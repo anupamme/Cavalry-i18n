@@ -2,10 +2,10 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-cavalry-glossary.md: Cavalry 四语术语表（en/zh-Hans/zh-Hant/ja_JP），含注释列标注禁用词、Forge Dynamics 显示层例外、Cavalry 版本增量与行业对齐来源。
+cavalry-glossary.md: Cavalry四语术语表，按数值/图像区分Add与Multiply、HSV/普通Value、文本Line/几何端部/描边Round/Flat/Projecting（Adobe分产品的合法同義詞不机械判错）、布局Wrap/数值倍率/Oklab及物理Still/Fixture/Body；Knot采用起始方向并记录原notes歧义，不接永久先画段提案；Transform日文/繁中與Extrude的成熟软件合法替代词与项目首选标签分开归因，地区译名与项目选择分开归因，原厂说明冲突沿sourceCorrections复核，字体/品牌/模型/API身份不改。 Combine/Merge现代詞形與並字合法释义分界、Stepped Next下一关键帧功能证据防止词典式误判。 Row/Column地区轴词与日文minutes分数合法用法分界，繁中Stroke筆畫的台湾成熟软件用法与项目描邊首选不混为功能错误；Scale倍率不套几何禁词，Fade/Fill All/With/通道映射按数值与对象角色限定。
 runtime-ui-live-capture-workflow.md: 同时区分时间轴用户名称字体覆盖与界面翻译、两平台独立 ABI 和无逐帧诊断落盘； Runtime UI live 抓取流程，Windows 启动状态 marker 与显式绘制计数采样分离，区分调试/安装包启动路径、Cavalry 窗口截图证据、`widgetAt(cursor)` 坐标反查、Qt item model dump、JSON 数据层复用、ModalDialog 诊断、闪烁根因分类、注入后中文 session、英文 dump-only 基线与 ExtensionLayer 平台精确边界（QLineEdit 只翻译 `placeholderText`；实际名称/查询值含只读、parentless/重挂接保持原文；未经采证的 model DisplayRole 风险仍独立处理），并规定全量复抓、增量修复、coverage 对比路径。
 runtime-translation-noise-triage.md: Runtime 翻译噪声分诊协议，定义短 token provenance 证据等级、quarantine 决策、live capture 对准步骤与 Time Editor niceName 保护线。
-translation-guidelines.md: Add Layer 查询/检索/显示/身份分离及 Unicode 验收契约； 翻译规范，约束语言风格、保留词、字体族/样式原值、JSON font 默认身份及未来独立显示层边界、快捷键身份原文/操作本地化例外、Forge Dynamics 显示层/模型层分流与界面一致性。
+translation-guidelines.md: 图形/动效语境规范，先词表/历史再一手地区证据；厂商日语默认优先，只有有限源/原JA/新译摘要与root批准绑定的确证纠错可覆盖，vendor来源槽不冒称全部原译；禁止全局换词、推翻已证source纠错或改字体/模型/API身份；caption准入不冒称未决源行为已被证实。
 component-source-adaptation-protocol.md: 语言补丁更新徽章的绿色语义、菜单/选中值共享投影及 active/selected 状态边界； 开源组件源码适配知识基线，定义 Design token、组件行为与业务三层所有权；锁定 shadcn Button/Marker/Select/Tooltip/AlertDialog/Toast commit、Base UI 1.6.0 Toast、shadcn 4.19.0 utility 与 Phosphor commit，并规定 Button/业务 variant 分层、Windows transparent-compositor 外壳、四枚 caption、平台 UI Review 同步、DPI 与视觉/静态/真机证据边界及 GEB 回环。
 img/: 静态资源库，存放 README 截图与文档示意图。
 

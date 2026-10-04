@@ -2,6 +2,44 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+native_remaining_ui_contract.js: 纯测试共享完整分区摘要/源/格式/三语producer和有限实际修订守门，原42合同逻辑等价提取，不自动注册测试或读取私账/App。
+native_remaining_ui_final_repair_cases.js: 构建期剩余UI后半分区纯静态回退数据，Global06的112文字槽/6物理键决定、Node A04/A05/A06与B04/B05/B06分别绑定77/98/82/58/52/40个冻结源身份及旧值；不依赖私账，不以数据生成代验批准。
+native_remaining_ui_repair_cases.js: 构建期纯静态有限真实修订回退样本，A02/A03/B01/B02/B03/Global04/Global05精确source身份与old/new逐槽共址；测试逻辑不依赖私账，拆分防止多批合同单文件膨胀。
+native_graphics_reaudit.test.js: Node本轮88槽/62键有限图形/动效修订及13纠错/377厂商原样闭合合同，逐槽保留真实旧译反例及冻结源身份，真实显示投影无metadata；不读私账，不冒称通用NLP或live。
+native_remaining_ui_translations.test.js: Node剩余UI入库主合同，A04真实39过3缺模块RED→42全过GREEN；A04精确77槽/42键静态回退、443键完整摘要及Curl/Metaballs/Text Box/Projecting/数值运算/几何端点反例。其余A02/A03/B01/B02/B03/Global04/Global05/Global06既有合同与源绑定回退保留，共享完整分区断言，不读取私账、只测显式准入显示输入，不代表live。
+native_remaining_ui_tail_translations.test.js: Node剩余UI后半合同，A05/A06/B04/B05/B06完整414/402/449/442/328键分区摘要和98/82/58/52/40个源身份绑定旧值回退；保护ProRes/Fade/Fill/身份、Stroke/Glyph/文本行与几何Lines/二维三维/XOR/Voronoi Levels/Body、台湾表格轴/Shift+Return/补零/Oklab、端帽/Tangent/Pin/Feedback/Nominal及GIF/物理衰减语义，并闭合77模块/10278唯一键、17个target catalog与1421键稳定compact UI切片；与主合同拆分守住单文件规模，正式模块缺失时保持RED，不读取stage或私账、不批准、不代表live。
+native_guide_plugin_translations.test.js: Node的15完整Guide/Plugin catalog、396键/1188决定合同；历史批准摘要与现行三语摘要分别锁定，canonical源/日语身份不变；390厂商来源JA中13源绑定纠错/377原样、6DNT及真实producer/登记闭合，有限反例保护菜单引用、相对路径、量/通道、色幕和繁中字形，不代验live。
+native_mesh_family_translations.test.js: Node的六完整mesh-family owner/152键默认源绑定批准合同；锁456决定与真实源身份，完整基线后15旧译回退及21单槽有限语义反例，显示投影不写模型，不依赖stage或live。
+native_mesh_family_semantic_contract.js: 构建期有限语义合同；源notes绑定Fill All/Count、网格细分与顶点标签、Capture/Flow、剔除与松弛、SkSL边界和当前caption，区分Catmull DNT与Mitchell技术保留，不实现通用NLP。
+native_six_owner_translations.test.js: Node的六完整owner/200键默认审批合同；无stage/env/skip旁路，锁600审定决定、源/notes/角色、真实根审批/显式登记，正向完整基线后36摘要破坏与63有限单槽反例；合成display-only投影不代验官方资产或live。
+native_six_owner_semantic_contract.js: 纯测试有限语义合同；引用现行Kerning/Character Spacing/Camera及本域label，约束Falloff概率/视口与计算、父路径垂线/帧模式/圆弧阈值、统计Nominal/柱高、四角入出与Bayer/2.5D保留；不是通用NLP，不参与产品运行时。
+native_ten_owner_translations.test.js: Node的十完整owner/201键合同；603现行源绑定决策与历史批准摘要分开锁定，谱系/显式登记保留；全201正向基线后30摘要变异及58有限反例/39真实旧译回退，source-notes和现行caption保护宽度变化/材质替换，只投影display、不依赖私账或冒称通用NLP。
+native_ten_owner_semantic_contract.js: 纯测试合同；以既有Auto Animate显示词约束Stagger引用，按source-notes绑定通用宽度渐变、沿路径移动与仅未设置材质时替换的已审caption，双端渐细独立守边界；共享正向guard与单槽真实旧译反例，改译须重新审定，不进入产品运行时。
+native_resource_bundle.js: 审批/producer/lock及独立纠错登记输入摘要与陈旧拒绝；locale精确schema禁止覆盖key/source；从官方assets根及17对摘要锁装配三语显示预览；vendor按原厂来源槽含有限已批纠错计数，保持Rust typed manifest形状及390源槽准入；只写固定target派生目录，不装入App/profile。
+native_resource_bundle.test.js: 合成catalog工件合同；锁定身份/notes/格式/厂商默认优先及独立登记/自报metadata拒绝及locale身份覆盖反例、vendor来源槽聚合与typed manifest形状、未知/重复拒绝、缺译如实记账与确定性；不代替真实纠错语义查证或live。
+cavalry_native_target.json: 2.8 main/Api/Core/QtCore/17对catalog身份锁，hash非profile路径证明； macOS2.8开发预览源锁，绑定Qt6.9.2、官方主程序与17对catalog摘要/10473叶/390厂商日语；现行2.7.2发布目标不变。
+native_observed_ui_translations.test.js: Node 的 CUA 现场遗漏键入库合同；锁定 42 app 键与 drawable 不透明度、完整 catalog 身份、Auto 推荐限定词、9 DNT、三语格式与厂商日语优先，混合包投影保护模型身份，离线通过不代替现场重验。
+native_sound_translations.test.js: Node 的 Sound 整域 65 键审批合同；绑定官方 source/notes/角色摘要、三语显式决策、Mel/Bark/RMS 技术保留、分析阈值与声像/采样/计权关系、11枚举索引及反向变异、当前标签引用；缺模块/原草稿真实失败，离线通过不代表 Sound live 验收。
+native_sound_legacy_translations.test.js: Node 的 Sound Legacy 整域48键入库合同；绑定旧场景说明与独有最大dB、两项技术保留、七类关系及真实反向变异、标签引用/显示身份和厂商日语优先；入库前缺模块为RED，不将新版Sound或离线审批作旧场景行为证明。
+native_rgb_split_translations.test.js: Node 的 RGB Split 完整35键/105译值审批合同；锁定源对/notes/role/provenance、RGB偏移、镜头半径与Padding边界、重复距离与次数、One/Two/Zero预设及16个命名混合模式，含真实反向变异；stage输入仅用于只读红绿核验，不代表实机显示。
+native_slit_scan_translations.test.js: Node 的 Slit Scan 48键/144译值默认合同；锁定完整owner/source/notes/角色与provenance、base/Glow混合模式引用、Mirror Scan 原标签及非整图翻转/循环算法过度承诺边界、ICU/富文本格式、模型身份投影和真实反向变异；正式模块缺失先RED，stage仅对root绑定草稿RED/审定候选GREEN，不代表实机显示。
+native_align_distortion_glow_translations.test.js: Node的三完整owner/100键默认审批合同；锁定官方source/notes/身份、300决策、对齐方向/HSV/RGB/半径强度/预览/Xor/Porter-Duff与18共享模式，22个实际修订逐一原稿回退变异；缺模块先真实RED，stage诊断不代表正式入库或live。
+native_array_distribution_translations.test.js: Node 的 Array完整4键/12值默认合同；锁定官方source/notes/身份摘要、手工坐标列表/计数方向/序列索引与三语审定文字，12个实际译值反向变异保护Array非网格和日语配置语法；正式模块缺失真实RED，source-only stage不代表审批或live。
+native_auto_animate_translations.test.js: Node 离线 autoAnimate 128 叶入库合同；锁定 owner/source/notes 与稳定键摘要、三语格式、当前进度模式/层级标签引用、相机变焦/几何缩放与可逆进退场、显示投影不写模型身份和厂商日语优先，先RED后入库，不调用服务或App。
+native_metadata_reuse.js: Node 的已审帮助复用解析器；显式源摘要审批后读取旧三语 description，可绑定译值摘要和跨文件 key，输出 reviews/未批台账，不复制旧签名或自动批准候选。
+native_metadata_reuse.test.js: Node 的纯复用合同；锁定未审批不复用、源/译值摘要漂移、旧语言完整性、迁移映射与机器字段不混入 reviews。
+native_translation_inventory.js: Node 的全量纯队列编排器；组合官方 source/日语 catalog 与旧 JSON/TS 候选，按 registry key 排序，dontTranslate 与厂商日语优先，候选分类不代表审定或完成。
+native_translation_inventory.test.js: Node 的离线全量队列合同；锁定来源清单、跨 catalog 撞键、未映射叶、同源多键和互斥三语计数，期望文件清单仍由调用方核对。
+native_translation_candidates.js: Node 的旧译纯索引；从已知 JSON 显示角色及 TS 提取精确英语候选和来源，保留歧义，不以规范化匹配或模型身份自动批准复用。
+native_translation_candidates.test.js: Node 的旧译角色/身份合同；覆盖稳定 owner、数组重排、显示专用来源、重复身份隔离、空译及多义同源，不把单候选当翻译通过。
+native_translation_format.js: Node 的构建期格式门；使用固定 FormatJS ICU AST 比对参数、分支、offset、逐分支 #，另保留旧占位符与 HTML 技术属性，不引入运行时解释器。
+native_translation_format.test.js: Node 的合成格式合同；验证 ICU 语法/语义、参数新增删除、legacy tokens、HTML 属性字节和 Unicode，不能证明原厂 ICU 求值或界面布局。
+native_metadata_help.js: Node 的脚本帮助纯投影；按 function/class/method/property 名生成稳定 description 键，只修改已审说明并保留签名和技术模板，不走 UI ICU 门。
+native_metadata_help.test.js: Node 的 metadata 身份/技术保真合同；覆盖方法和属性重排、参数不变、未知说明、source 漂移与缺译保留，不写安装或调用翻译服务。
+native_translation_reviews.test.js: Node 的补译入库合同；核验 UI/形状/OpenType/累加渲染与帮助说明的完整源绑定、三语决策、格式/代码/标签引用和显示投影，锁定字形访问而非全选、基字相对位置/字母匹配及源纠错/字符串缩短/自动宽度条件；首批九条不是范围上限。
+project_translation_skill.test.js: Node 的项目级翻译技能配置合同；验证可发现元数据、上游及安装摘要、Markdown 依赖与 EXTEND 四语词表路径，不发翻译请求、不承担产品运行时。
+native_language_pack.js: Node构建期纯投影；按实体/字段路径收集显示键，DNT保持强身份、日语默认vendor优先；只有带root批准及完整source/notes/原JA/新译摘要的精确key纠错可覆盖，vendor-corrected内部状态不泄露到UI-text，不读安装或写用户目录。
+native_language_pack.test.js: Node 的 2.8 native-first TDD 合同；锁定稳定键与命名空间、DNT强身份边界和默认vendor优先；有限厂商纠错必须绑定key/catalog/owner/fieldPath/source/notes/原JA及root批准，跨语种/上下文漂移拒绝，确定性输出不代替真实语义和实机验收。
 check_macos_timeline_font.test.js: Node 驱动 vendor-free 原生字体策略回归，编译并验证完整名称覆盖、UTF-8 边界与 borrowed 字体字节保真。
 macos_timeline_font_fixture.cpp: C++ mock 字体覆盖差异和重复调用回归；不冒充私有 ABI 或实机字形证明。
 check_macos_quick_add_category.test.js: 同时比对完整 injector fixture 与生产构建的适配器编译输入，防止链接遗漏； 锁定 Mac 类别 getter 的双架构机器码、编译器 QString 返回 ABI、exact owner 与共享映像门，不冒充实机。
