@@ -13,7 +13,10 @@
       "icons/icon.icns"
     ],
     "resources": {
-      "../languages": "languages",
+      "../languages/en": "languages/en",
+      "../languages/zh-Hans": "languages/zh-Hans",
+      "../languages/zh-Hant": "languages/zh-Hant",
+      "../languages/ja_JP": "languages/ja_JP",
       "../injector/libCavalryTranslatorInjector.dylib": "injector/libCavalryTranslatorInjector.dylib"
     },
     "macOS": {

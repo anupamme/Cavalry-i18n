@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 CommandRunner 的受控 detached process 端口；只接收编译期枚举 ProjectLink，不接收 renderer URL。
- * [OUTPUT]: 提供 ProjectLink::from_id 与 open_project_link，将 repository/license/bug report 映射为固定 HTTPS 地址并交给平台默认浏览器。
+ * [OUTPUT]: 提供 ProjectLink::from_id 与 open_project_link，将 repository/license/bug report/2.7.2历史版 映射为固定 HTTPS 地址并交给平台默认浏览器。
  * [POS]: privilege 的最小外部导航适配器；守住任意 URL 不跨越 renderer 边界，复用现有系统进程抽象而不引入 opener 依赖。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -11,11 +11,15 @@ const LICENSE_URL: &str = "https://github.com/daftAI2026/Cavalry-i18n/blob/main/
 const REPORT_ISSUE_URL: &str =
     "https://github.com/daftAI2026/Cavalry-i18n/issues/new?template=bug_report.yml";
 
+const LEGACY_RELEASE_URL: &str =
+    "https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.7.2-p12";
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ProjectLink {
     Repository,
     License,
     ReportIssue,
+    LegacyRelease,
 }
 
 impl ProjectLink {
@@ -24,6 +28,7 @@ impl ProjectLink {
             "repository" => Some(Self::Repository),
             "license" => Some(Self::License),
             "reportIssue" => Some(Self::ReportIssue),
+            "legacyRelease" => Some(Self::LegacyRelease),
             _ => None,
         }
     }
@@ -33,6 +38,7 @@ impl ProjectLink {
             Self::Repository => REPOSITORY_URL,
             Self::License => LICENSE_URL,
             Self::ReportIssue => REPORT_ISSUE_URL,
+            Self::LegacyRelease => LEGACY_RELEASE_URL,
         }
     }
 }
@@ -79,6 +85,24 @@ mod tests {
         assert_eq!(ProjectLink::Repository.url(), REPOSITORY_URL);
         assert_eq!(ProjectLink::License.url(), LICENSE_URL);
         assert_eq!(ProjectLink::ReportIssue.url(), REPORT_ISSUE_URL);
+    }
+
+    #[test]
+    fn legacy_release_does_not_follow_latest_or_accept_renderer_urls() {
+        assert_eq!(
+            ProjectLink::from_id("legacyRelease"),
+            Some(ProjectLink::LegacyRelease)
+        );
+        assert_eq!(
+            ProjectLink::LegacyRelease.url(),
+            "https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.7.2-p12"
+        );
+        let mut runner = RecordingRunner::default();
+        open_project_link(ProjectLink::LegacyRelease, &mut runner).unwrap();
+        assert!(runner.commands[0]
+            .args
+            .iter()
+            .any(|a| a.ends_with("/cavalry-2.7.2-p12")));
     }
 
     #[test]

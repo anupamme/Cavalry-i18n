@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Tauri AppHandle、detect 的语言目录扫描与共享 runtime_paths。
- * [OUTPUT]: 提供应用路径上下文、资源候选、语言源定位和单调 staging nonce。
+ * [OUTPUT]: 提供应用路径上下文、资源候选、语言源定位和单调 staging nonce；显式native预览将state放入独立native-2.8-preview子域，保留旧baseline。
  * [POS]: commands 的运行环境解析层；业务动作只接收已经归一化的 repo/state/resource 路径。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -60,7 +60,12 @@ pub(crate) fn state_dir_for_app(app: &tauri::AppHandle) -> PathBuf {
     }
     #[cfg(not(target_os = "windows"))]
     {
-        runtime_paths::resolve_state_dir(app.path().app_data_dir().ok())
+        let base = runtime_paths::resolve_state_dir(app.path().app_data_dir().ok());
+        #[cfg(target_os = "macos")]
+        if super::native_resources::preview_enabled() {
+            return base.join("native-2.8-preview");
+        }
+        base
     }
 }
 

@@ -1,12 +1,18 @@
 /**
- * [INPUT]: 依赖 commands 子模块、共享 operation_lock、Tauri command runtime/IPC Channel 与 privilege facade。
- * [OUTPUT]: 保持九条稳定 Tauri command；macOS Switch/Restore 直接进入安全事务，仅将真实 typed PermissionDenied 投影为 App Management handoff，保护写事务 commit 后只清理交接层而不反向飞回已失效动作；其余 apply 四阶段、真实 commit oracle、Windows residue、Updater、固定项目链接与 About 保持既有 owner。
- * [POS]: renderer API facade；具体状态、快照、写入和平台运行时下沉至领域模块，GUI 与卸载恢复复用同一单飞/事务语义。
+ * [INPUT]: 依赖 commands 领域子模块、共享 operation_lock、Tauri command runtime/IPC Channel 与 privilege facade；显式macOS 2.8开发预览消费native资源/用户事务，默认仍走现行2.7.2路径。
+ * [OUTPUT]: 保持九条稳定 Tauri command；native预览在同一九命令API内将只读状态/signature探测卸载到blocking worker，独立投影厂商Official来源、userProfile范围与脱敏 nativeLocaleState（unset/explicit/unrecognized），并提交自有strings/typed locale；receipt证明的English restore-only成功不尝试启动不兼容宿主，耐久warning不启动Cavalry；macOS Switch/Restore 直接进入安全事务，仅将真实 typed PermissionDenied 投影为 App Management handoff，保护写事务 commit 后只清理交接层而不反向飞回已失效动作；其余 apply 四阶段、真实 commit oracle、Windows residue、Updater、固定项目链接与 About 保持既有 owner。
+ * [POS]: renderer API facade；Official仅是显式macOS预览的厂商来源展示，不代表版本支持、资源可用、profile状态、恢复能力或写入许可；具体状态、快照、写入和平台运行时下沉至领域模块，GUI 与卸载恢复复用同一单飞/事务语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 mod apply;
 mod context;
 mod contract;
+#[cfg(target_os = "macos")]
+mod native_official;
+#[cfg(target_os = "macos")]
+mod native_resources;
+#[cfg(target_os = "macos")]
+mod native_user;
 mod patch_receipt;
 mod restart;
 mod snapshot;
@@ -15,6 +21,10 @@ mod status;
 #[path = "commands/tests.rs"]
 mod tests;
 mod update;
+#[cfg(any(test, target_os = "macos"))]
+mod user_language;
+#[cfg(any(test, target_os = "macos"))]
+mod user_language_files;
 
 use chrono::{SecondsFormat, Utc};
 use std::path::PathBuf;
@@ -24,8 +34,8 @@ use crate::{operation_lock, privilege};
 pub use apply::apply_language_inner;
 pub(crate) use context::RESTORE_OFFICIAL_ACTION;
 pub use contract::{
-    ActionPayload, BrowsePayload, BundleDiagnostics, LanguageChoice, OperationEvent,
-    PermissionHandoffEvent, PermissionHandoffPayload, PermissionHandoffRequest,
+    ActionPayload, BrowsePayload, BundleDiagnostics, LanguageChoice, NativeLocaleState,
+    OperationEvent, PermissionHandoffEvent, PermissionHandoffPayload, PermissionHandoffRequest,
     PermissionSourceRect, PermissionViewportSize, StatusPayload,
 };
 pub use restart::restart_cavalry_inner;
@@ -53,9 +63,15 @@ fn complete_permission_handoff_after_commit() {
     crate::macos_permission_handoff::finish_app_management_handoff(false);
 }
 
+fn should_restart_after_apply(applied: &ActionPayload, native_preview: bool) -> bool {
+    applied.ok
+        && !applied.native_restore_only
+        && !(native_preview && applied.reconciliation_required)
+}
+
 #[tauri::command]
-pub fn get_status(app: tauri::AppHandle) -> Result<StatusPayload, String> {
-    status::get_status_for_app(&app)
+pub async fn get_status(app: tauri::AppHandle) -> Result<StatusPayload, String> {
+    status::get_status_for_app(&app).await
 }
 
 #[tauri::command]
@@ -112,20 +128,42 @@ pub async fn apply_language(
         match tauri::async_runtime::spawn_blocking(move || -> Result<ActionPayload, String> {
             let _guard = guard;
             let mut runner = privilege::RealCommandRunner;
-            let applied = match apply::apply_language_inner_with_reporter(
-                &paths.repo_root,
-                &paths.state_dir,
-                &paths.resource_dir,
-                &app_path,
-                &lang,
-                &mut runner,
-                &now,
-                worker_progress.clone(),
-            ) {
+            #[cfg(target_os = "macos")]
+            let native_preview = native_resources::preview_enabled();
+            #[cfg(not(target_os = "macos"))]
+            let native_preview = false;
+            let mut legacy_apply = || {
+                apply::apply_language_inner_with_reporter(
+                    &paths.repo_root,
+                    &paths.state_dir,
+                    &paths.resource_dir,
+                    &app_path,
+                    &lang,
+                    &mut runner,
+                    &now,
+                    worker_progress.clone(),
+                )
+            };
+            #[cfg(target_os = "macos")]
+            let applied_result = if native_preview {
+                Ok(native_user::apply_inner(
+                    &paths.repo_root,
+                    &paths.state_dir,
+                    &paths.resource_dir,
+                    &app_path,
+                    &lang,
+                    worker_progress.clone(),
+                ))
+            } else {
+                legacy_apply()
+            };
+            #[cfg(not(target_os = "macos"))]
+            let applied_result = legacy_apply();
+            let applied = match applied_result {
                 Ok(payload) => payload.into_renderer_contract(),
                 Err(error) => return Err(error),
             };
-            if !applied.ok {
+            if !should_restart_after_apply(&applied, native_preview) {
                 return Ok(applied);
             }
             // 受保护写事务已提交，权限 oracle 已成立；先回收 handoff，再继续普通重启阶段。

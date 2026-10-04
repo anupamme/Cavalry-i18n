@@ -1,16 +1,17 @@
 /**
- * [INPUT]: 无运行时依赖；承载 renderer 稳定的四语本地化 copy。
- * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、仅在 typed 缺失官方基线时要求重装而普通验证错误只引导重试/提交 Issue、真实任务 Event、typed 写入拒绝后的 macOS 权限 handoff 与重开、Windows UAC 分流、外围 Toast 及完整无障碍名称；内部兼容清理不形成用户文案。
+ * [INPUT]: 依赖先行加载的user-profile-text.js，再合并renderer稳定的其余四语copy。
+ * [OUTPUT]: 对外提供统一四语 UI_TEXT 与状态标题路由；用户级默认英语标签、共享scope/确认/恢复copy由独立子域spread合并，其他主窗口/安装级/组件copy保持同一消费接口。
  * [POS]: renderer 的视觉文案与状态语义数据层；将持久事实、即时决策和短时局部失败分别供 Activity、AlertDialog 与 Toast 消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const UI_TEXT = {
   en: {
+    ...NATIVE_USER_PROFILE_TEXT.en,
     appTitle: 'Cavalry Language Switcher',
     appFound: 'Cavalry {version}',
     appFoundNoVersion: 'Cavalry found',
     appNotFound: 'Cavalry not found',
-    appPathFallback: 'Tried:\n{candidates}',
+    appPathFallback: 'Tried:',
     skipToControls: 'Skip to controls',
     aboutButtonAria: 'About Cavalry Language Switcher',
     aboutTooltip: 'About',
@@ -41,8 +42,7 @@ const UI_TEXT = {
     updateBusy: 'Another Switcher operation is already running.',
     updateStateUnavailable: 'The checked update state is unavailable. Restart the Switcher and check again.',
     chooseAppAria: 'Choose Cavalry installation',
-    language: 'Language',
-    current: 'Current',
+    language: 'Language', current: 'Current',
     switchTo: 'Switch to',
     chooseLanguage: 'Choose a language',
     apply: 'Switch',
@@ -54,6 +54,7 @@ const UI_TEXT = {
     officialBadge: 'Official',
     patchUpdateBadge: 'Update available',
     languageOptionUpdateAria: '{language}, Update available',
+    unknownLanguage: 'Unknown',
     retry: 'Retry',
     openSettings: 'Open Settings',
     openPrivacySecurity: 'Open permission settings',
@@ -176,11 +177,12 @@ const UI_TEXT = {
     permissionWindowsBody: 'Retry as administrator, then allow the change when Windows asks.',
   },
   'zh-Hans': {
+    ...NATIVE_USER_PROFILE_TEXT['zh-Hans'],
     appTitle: 'Cavalry 语言切换器',
     appFound: 'Cavalry {version}',
     appFoundNoVersion: '已找到 Cavalry',
     appNotFound: '未找到 Cavalry',
-    appPathFallback: '已尝试：\n{candidates}',
+    appPathFallback: '已尝试：',
     skipToControls: '跳到操作区域',
     aboutButtonAria: '关于 Cavalry 语言切换器',
     aboutTooltip: '关于',
@@ -211,8 +213,7 @@ const UI_TEXT = {
     updateBusy: '语言切换器正在执行其他操作。',
     updateStateUnavailable: '已检查的更新状态不可用，请重启语言切换器后重新检查。',
     chooseAppAria: '选择 Cavalry 安装位置',
-    language: '语言',
-    current: '当前',
+    language: '语言', current: '当前',
     switchTo: '切换为',
     chooseLanguage: '选择语言',
     apply: '切换',
@@ -224,6 +225,7 @@ const UI_TEXT = {
     officialBadge: '官方',
     patchUpdateBadge: '可更新',
     languageOptionUpdateAria: '{language}，可更新',
+    unknownLanguage: '未知',
     retry: '重试',
     openSettings: '打开设置',
     openPrivacySecurity: '打开权限设置',
@@ -342,11 +344,12 @@ const UI_TEXT = {
     permissionWindowsBody: '请以管理员身份重试，并在 Windows 提示时允许此次更改。',
   },
   'zh-Hant': {
+    ...NATIVE_USER_PROFILE_TEXT['zh-Hant'],
     appTitle: 'Cavalry 語言切換器',
     appFound: 'Cavalry {version}',
     appFoundNoVersion: '已找到 Cavalry',
     appNotFound: '未找到 Cavalry',
-    appPathFallback: '已嘗試：\n{candidates}',
+    appPathFallback: '已嘗試：',
     skipToControls: '跳到操作區域',
     aboutButtonAria: '關於 Cavalry 語言切換器',
     aboutTooltip: '關於',
@@ -377,8 +380,7 @@ const UI_TEXT = {
     updateBusy: '語言切換器正在執行其他操作。',
     updateStateUnavailable: '已檢查的更新狀態無法使用，請重新啟動語言切換器後再檢查。',
     chooseAppAria: '選擇 Cavalry 安裝位置',
-    language: '語言',
-    current: '目前',
+    language: '語言', current: '目前',
     switchTo: '切換為',
     chooseLanguage: '選擇語言',
     apply: '切換',
@@ -390,6 +392,7 @@ const UI_TEXT = {
     officialBadge: '官方',
     patchUpdateBadge: '可更新',
     languageOptionUpdateAria: '{language}，可更新',
+    unknownLanguage: '未知',
     retry: '重試',
     openSettings: '打開設定',
     openPrivacySecurity: '打開權限設定',
@@ -508,11 +511,12 @@ const UI_TEXT = {
     permissionWindowsBody: '請以系統管理員身分重試，並在 Windows 提示時允許這項變更。',
   },
   ja_JP: {
+    ...NATIVE_USER_PROFILE_TEXT.ja_JP,
     appTitle: 'Cavalry 言語スイッチャー',
     appFound: 'Cavalry {version}',
     appFoundNoVersion: 'Cavalry が見つかりました',
     appNotFound: 'Cavalry が見つかりません',
-    appPathFallback: '確認した場所:\n{candidates}',
+    appPathFallback: '確認した場所:',
     skipToControls: '操作領域へ移動',
     aboutButtonAria: 'Cavalry 言語スイッチャーについて',
     aboutTooltip: 'このアプリについて',
@@ -543,8 +547,7 @@ const UI_TEXT = {
     updateBusy: '言語スイッチャーで別の操作を実行中です。',
     updateStateUnavailable: '確認済みの更新状態を利用できません。言語スイッチャーを再起動して、もう一度確認してください。',
     chooseAppAria: 'Cavalry のインストール先を選択',
-    language: '言語',
-    current: '現在',
+    language: '言語', current: '現在',
     switchTo: '切り替え先',
     chooseLanguage: '言語を選択',
     apply: '切り替える',
@@ -556,6 +559,7 @@ const UI_TEXT = {
     officialBadge: '公式',
     patchUpdateBadge: '更新可能',
     languageOptionUpdateAria: '{language}、更新可能',
+    unknownLanguage: '不明',
     retry: '再試行',
     openSettings: '設定を開く',
     openPrivacySecurity: '権限設定を開く',
@@ -678,7 +682,6 @@ const UI_TEXT = {
     permissionWindowsBody: '管理者として再試行し、Windows の確認画面で変更を許可してください。',
   },
 };
-
 const STATUS_TITLE_KEYS = Object.freeze({
   operationFailed: 'desktopServiceUnavailableTitle',
   warningStateDurabilityPending: 'restartSwitcherTitle',
@@ -703,6 +706,9 @@ const STATUS_TITLE_KEYS = Object.freeze({
   newerVersionUnsupported: 'newerVersionUnsupportedTitle',
   unknownVersionUnsupported: 'unknownVersionUnsupportedTitle',
   runtimeResidueWarning: 'finishRuntimeCleanupTitle',
+  nativeUserProfileScopeNotice: 'nativeUserProfileScopeTitle',
+  nativeUserProfileReconciliation: 'nativeUserProfileRecoveryTitle',
+  nativeResourceUnavailable: 'nativeResourceUnavailableTitle', nativeUserProfileResourcesUnavailableRecovery: 'nativeUserProfileRecoveryTitle',
   readyToApply: 'readyToApplyTitle',
   customRootNotWritable: 'folderNotWritableTitle',
   preparingApply: 'preparingApplyTitle',

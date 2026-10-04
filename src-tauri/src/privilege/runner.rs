@@ -1,10 +1,16 @@
 /**
  * [INPUT]: 依赖 std::process::Command、Windows CommandExt、路径与环境变量类型；被发现、权限复制、签名和重启边界注入执行器。
- * [OUTPUT]: 提供 CommandRunner、RealCommandRunner、RecordingRunner、CommandStatus、RecordedCommand 与无控制台 captured command 构造器。
- * [POS]: privilege 的进程执行适配器；业务事务只依赖此抽象，Windows 控制台辅助程序统一以 CREATE_NO_WINDOW 运行。
+ * [OUTPUT]: 提供 CommandRunner、RealCommandRunner、RecordingRunner、CommandStatus、RecordedCommand 与无控制台 captured command 构造器；状态型只读探针可请求有界 deadline，真实 runner 超时后回收其直接子进程。
+ * [POS]: privilege 的进程执行适配器；业务事务只依赖此抽象，Windows 控制台辅助程序统一以 CREATE_NO_WINDOW 运行；状态探针不暴露stdout/stderr，也不改变现有命令语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
-use std::{ffi::OsString, path::Path, process::Command};
+use std::{
+    ffi::OsString,
+    path::Path,
+    process::{Child, Command, Stdio},
+    thread,
+    time::{Duration, Instant},
+};
 
 #[cfg(windows)]
 const WINDOWS_CREATE_NO_WINDOW: u32 = 0x08000000;
@@ -66,6 +72,17 @@ pub trait CommandRunner {
     fn run_captured(&mut self, program: &str, args: &[String]) -> Result<CommandStatus, String> {
         self.run(program, args)?;
         Ok(CommandStatus::success())
+    }
+
+    /// Fixture适配器可立即返回；真实runner负责强制执行期限。
+    fn run_status_timeout(
+        &mut self,
+        program: &str,
+        args: &[String],
+        _timeout: Duration,
+    ) -> Result<Option<i32>, String> {
+        self.run_captured(program, args)
+            .map(|status| status.exit_code)
     }
 
     fn spawn_detached(&mut self, program: &str, args: &[String]) -> Result<(), String> {
@@ -140,6 +157,48 @@ impl CommandRunner for RealCommandRunner {
         })
     }
 
+    fn run_status_timeout(
+        &mut self,
+        program: &str,
+        args: &[String],
+        timeout: Duration,
+    ) -> Result<Option<i32>, String> {
+        let deadline = Instant::now()
+            .checked_add(timeout)
+            .ok_or_else(|| "Command deadline is out of range.".to_string())?;
+        let mut child = captured_command(program)
+            .args(args)
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()
+            .map_err(|error| format!("Could not start bounded command: {error}"))?;
+
+        loop {
+            match child.try_wait() {
+                Ok(Some(status)) => return Ok(status.code()),
+                Ok(None) => {
+                    let now = Instant::now();
+                    if now >= deadline {
+                        if kill_and_reap(&mut child).is_err() {
+                            return Err("Command timed out and could not be reaped.".into());
+                        }
+                        return Err("Command exceeded its deadline.".into());
+                    }
+                    thread::sleep(
+                        deadline
+                            .saturating_duration_since(now)
+                            .min(Duration::from_millis(10)),
+                    );
+                }
+                Err(_) => {
+                    let _ = kill_and_reap(&mut child);
+                    return Err("Could not inspect bounded command status.".into());
+                }
+            }
+        }
+    }
+
     fn spawn_detached(&mut self, program: &str, args: &[String]) -> Result<(), String> {
         Command::new(program)
             .args(args)
@@ -193,6 +252,14 @@ impl CommandRunner for RealCommandRunner {
             .map(|child| Some(child.id()))
             .map_err(|error| error.to_string())
     }
+}
+
+fn kill_and_reap(child: &mut Child) -> Result<(), String> {
+    let _ = child.kill();
+    child
+        .wait()
+        .map(|_| ())
+        .map_err(|_| "Could not reap bounded command.".to_string())
 }
 
 #[derive(Default)]
@@ -258,6 +325,74 @@ pub(crate) fn is_permission_error(detail: &str) -> bool {
         || lower.contains("os error 5")
         || lower.contains("eacces")
         || lower.contains("eperm")
+}
+
+#[cfg(test)]
+mod status_timeout_tests {
+    use super::{CommandRunner, CommandStatus, RealCommandRunner};
+    use std::time::{Duration, Instant};
+
+    struct MisleadingStatusRunner;
+
+    impl CommandRunner for MisleadingStatusRunner {
+        fn run(&mut self, _program: &str, _args: &[String]) -> Result<(), String> {
+            panic!("status-only fixture must not use run")
+        }
+
+        fn run_captured(
+            &mut self,
+            _program: &str,
+            _args: &[String],
+        ) -> Result<CommandStatus, String> {
+            Ok(CommandStatus {
+                exit_code: Some(1),
+                stdout: "TeamIdentifier=TB4YVNQHVC".into(),
+                stderr: "designated => anchor apple generic".into(),
+            })
+        }
+    }
+
+    #[test]
+    fn status_timeout_port_returns_exit_status_not_captured_claims() {
+        let mut runner = MisleadingStatusRunner;
+        assert_eq!(
+            runner
+                .run_status_timeout("/usr/bin/codesign", &[], Duration::from_secs(5))
+                .unwrap(),
+            Some(1)
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn real_status_timeout_reports_success_and_nonzero_codes() {
+        let mut runner = RealCommandRunner;
+        assert_eq!(
+            runner
+                .run_status_timeout("/usr/bin/true", &[], Duration::from_secs(1))
+                .unwrap(),
+            Some(0)
+        );
+        assert_eq!(
+            runner
+                .run_status_timeout("/usr/bin/false", &[], Duration::from_secs(1))
+                .unwrap(),
+            Some(1)
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn real_status_timeout_kills_and_reaps_direct_sleep_child() {
+        let mut runner = RealCommandRunner;
+        let args = vec!["2".to_string()];
+        let started = Instant::now();
+        let error = runner
+            .run_status_timeout("/bin/sleep", &args, Duration::from_millis(20))
+            .unwrap_err();
+        assert!(error.contains("deadline"), "{error}");
+        assert!(started.elapsed() < Duration::from_secs(2));
+    }
 }
 
 #[cfg(all(test, windows))]

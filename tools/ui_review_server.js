@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 renderer/index.html/about.html 与 renderer 下真实 CSS/JS，依赖 ui_review_workspace/handoff/catalogs 审查模块，以及 Node http/fs/path/os；仅以 localhost query 选择受控 fixture 状态，并从系统临时目录或 CAVALRY_UI_REVIEW_REFERENCE_ROOT 指定目录只读展示本机参考截图。
- * [OUTPUT]: 对外提供 createUiReviewServer/renderReviewDocument，并在 CLI 模式启动包含主界面、About、反馈/图标/徽章目录、权限 handoff 原型及安装/版本兼容/补丁新旧与结构拒绝/普通验证失败报告入口/typed 错误/成功/阻塞/警告状态矩阵的 UI Review；每次请求重读 renderer 并失效审查模块缓存，revision 同时覆盖两类源码，只在 bridge 前注入同一 handoff 合同的 fake API，更新 fixture 不向真实确认框注入审查占位文案，并以 applyTransaction 提交作为 success cleanup、只让显式 Back reverse 到持久 Activity 动作；三个固定 local-reference 路由分别承载落稳 helper、箭头与系统行，缺图即 404，浏览器默认 favicon 请求静默返回空响应。
+ * [INPUT]: 依赖 renderer/index.html/about.html 与 renderer 下真实 CSS/JS，依赖 ui_review_workspace/handoff/catalogs 审查模块，以及 Node http/fs/path/os；仅以 localhost query 选择受控 fixture 状态，notFound 给出两条固定候选以审查逐路径截断，并从系统临时目录或 CAVALRY_UI_REVIEW_REFERENCE_ROOT 指定目录只读展示本机参考截图。
+ * [OUTPUT]: 对外提供 createUiReviewServer/renderReviewDocument，并在 CLI 模式启动包含主界面、About、反馈/图标/徽章目录、权限 handoff 原型及安装/版本兼容/补丁新旧与结构拒绝/普通验证失败报告入口/typed 错误/成功/阻塞/警告状态矩阵，以及 nativeLocaleState 的 unset+en/unknown、unset+en/official、explicit+zh-Hans/official 三种 Cavalry 2.8 userProfile 预览，与缺少语言资源、恢复协调、2.7.2 固定旧版入口、owned hostless restoreOnly 和宿主探测失败后 restoreOnly fixture；native官方来源状态独立于当前语言，userProfile 不伪造官方恢复或英语恢复权限；每次请求重读 renderer 并失效审查模块缓存，revision 同时覆盖两类源码，只在 bridge 前注入同一 handoff 合同的 fake API，更新 fixture 不向真实确认框注入审查占位文案，并以 applyTransaction 提交作为 success cleanup、只让显式 Back reverse 到持久 Activity 动作；三个固定 local-reference 路由分别承载落稳 helper、箭头与系统行，缺图即 404，浏览器默认 favicon 请求静默返回空响应。
  * [POS]: tools 的本地 UI 审查编排入口；生产界面与组件资产保持同源，/handoff 只提供真实 renderer iframe、匿名 native mock、运行时 DOM clone 与不入库的本机视觉参考，不进入 Tauri bundle、不伪造 native/package 证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -109,6 +109,19 @@ function fixtureSource() {
     readyPoll: 50,
     readyAttempts: 80,
   });
+  const nativeProfileScenarios = Object.freeze([
+    'nativeUnknown', 'nativeResourceUnavailable', 'nativeRecoveryNoResources', 'nativeLegacyRelease',
+    'nativeRestoreOnly', 'nativeRestoreOnlyHostFailure', 'nativeDefaultEnglish',
+    'nativeOfficialDefaultEnglish', 'nativeOfficialTranslated',
+  ]);
+  const nativeProfileScenario = nativeProfileScenarios.includes(scenario);
+  const nativeOfficialScenario = ['nativeOfficialDefaultEnglish', 'nativeOfficialTranslated'].includes(scenario);
+  const nativeLocaleStateByScenario = Object.freeze({
+    nativeDefaultEnglish: 'unset',
+    nativeOfficialDefaultEnglish: 'unset',
+    nativeOfficialTranslated: 'explicit',
+  });
+  let nativeLocaleState = nativeLocaleStateByScenario[scenario];
   const windowsScenario = ['windowsClean', 'permissionWindows', 'aboutOpenToast'].includes(scenario);
   const permissionScenario = ['permissionMac', 'permissionWindows'].includes(scenario);
   const permissionReviewMessage = 'cavalry-ui-review:permission-retry';
@@ -119,10 +132,12 @@ function fixtureSource() {
   let permissionReviewOutcome = null;
   let permissionHandoffResolve = null;
   let permissionHandoffOnEvent = null;
-  let currentLang = ['patchUpdate', 'patchDrift', 'translated', 'managedLegacy', 'restore', 'restoreConfirm', 'reinstall'].includes(scenario) ? 'zh-Hans' : 'en';
+  let currentLang = ['patchUpdate', 'patchDrift', 'translated', 'managedLegacy', 'restore', 'restoreConfirm', 'reinstall', 'nativeResourceUnavailable', 'nativeRestoreOnly', 'nativeRestoreOnlyHostFailure', 'nativeOfficialTranslated'].includes(scenario)
+    ? 'zh-Hans'
+    : ['nativeUnknown', 'nativeRecoveryNoResources'].includes(scenario) ? 'unknown' : 'en';
   let patchStatus = currentLang === 'en' ? 'notApplicable'
     : ['patchUpdate', 'patchDrift'].includes(scenario) ? 'updateAvailable'
-      : scenario === 'managedLegacy' ? 'unknown' : 'current';
+      : ['managedLegacy', 'nativeUnknown', 'nativeRecoveryNoResources'].includes(scenario) ? 'unknown' : 'current';
   const wait = (duration) => new Promise((resolve) => setTimeout(resolve, duration));
   const success = () => ({
     ok: true, count: 1, currentLang, warning: null, warningCode: null,
@@ -133,28 +148,41 @@ function fixtureSource() {
     appManagementGranted: scenario === 'notFound' ? null : permissionScenario ? false : true,
     appPath: scenario === 'notFound'
       ? ''
+      : scenario === 'nativeRestoreOnly' ? ''
       : windowsScenario ? 'C:\\Program Files\\Cavalry\\Cavalry.exe' : '/Applications/Cavalry.app',
     currentLang,
     patchStatus,
-    installationMode: windowsScenario
-      ? 'unknown'
+    installationMode: nativeOfficialScenario
+      ? 'official'
+      : nativeProfileScenario || windowsScenario
+        ? 'unknown'
       : scenario === 'reinstall'
           ? 'modifiedOrUnverified'
           : scenario === 'managedLegacy'
             ? 'managedLegacy'
           : currentLang === 'en' ? 'official' : 'modifiedOrUnverified',
-    officialRecoveryAvailable: scenario !== 'managedLegacy',
-    defaultAppCandidates: ['/Applications/Cavalry.app'],
+    officialRecoveryAvailable: nativeProfileScenario ? false : scenario !== 'managedLegacy',
+    defaultAppCandidates: scenario === 'notFound'
+      ? ['/Applications/Cavalry.app', '/Users/fixture/Applications/Cavalry.app']
+      : ['/Applications/Cavalry.app'],
     languages,
+    languageScope: nativeProfileScenario ? 'userProfile' : 'installation',
+    nativeLocaleState,
+    nativeResourceAvailable: !['nativeResourceUnavailable', 'nativeRecoveryNoResources', 'nativeRestoreOnly', 'nativeRestoreOnlyHostFailure'].includes(scenario),
+    nativeEnglishRestoreAvailable: ['nativeRestoreOnly', 'nativeRestoreOnlyHostFailure'].includes(scenario) && currentLang !== 'en',
     needsExtract: scenario === 'reinstall',
     permissionAction: scenario === 'permissionWindows' ? 'requestElevation' : scenario === 'permissionMac' ? 'openPrivacy' : 'none',
     platform: windowsScenario ? 'windows' : 'macos',
     reconciliationRequired: false,
-    supportedVersion: '2.7.2',
-    version: scenario === 'olderVersion' ? '2.7.1' : scenario === 'newerVersion' ? '2.7.3' : '2.7.2',
-    versionCompatibility: scenario === 'olderVersion'
+    supportedVersion: nativeProfileScenario ? '2.8.0' : '2.7.2',
+    version: nativeProfileScenario && scenario !== 'nativeLegacyRelease'
+      ? '2.8.0'
+      : scenario === 'olderVersion' ? '2.7.1' : scenario === 'newerVersion' ? '2.7.3' : '2.7.2',
+    versionCompatibility: scenario === 'nativeLegacyRelease' || scenario === 'olderVersion'
       ? 'olderUnsupported'
+      : scenario === 'nativeRestoreOnly' ? 'unknownUnsupported'
       : scenario === 'newerVersion' ? 'newerUnsupported' : 'supported',
+    reconciliationRequired: scenario === 'nativeRecoveryNoResources',
   });
 
   window.cavalryI18n = Object.freeze({
@@ -163,7 +191,9 @@ function fixtureSource() {
     applyLanguage: async (_appPath, language, onEvent = () => {}) => {
       const reviewOutcome = permissionReviewOutcome;
       permissionReviewOutcome = null;
-      const phases = ['verifyInstallation', 'ensureBaseline', 'applyTransaction', 'restartCavalry'];
+      const phases = scenario === 'nativeRestoreOnly' || scenario === 'nativeRestoreOnlyHostFailure'
+        ? ['verifyInstallation', 'ensureBaseline', 'applyTransaction']
+        : ['verifyInstallation', 'ensureBaseline', 'applyTransaction', 'restartCavalry'];
       for (const phase of phases) {
         onEvent({ phase, state: 'running' });
         await wait(timing.phase);
@@ -198,6 +228,10 @@ function fixtureSource() {
       }
       currentLang = language === 'restore-official' ? 'en' : language;
       patchStatus = currentLang === 'en' ? 'notApplicable' : 'current';
+      if (nativeLocaleState !== undefined) nativeLocaleState = 'explicit';
+      if (scenario === 'nativeRestoreOnly' || scenario === 'nativeRestoreOnlyHostFailure') {
+        return { ...success(), nativeRestoreOnly: true };
+      }
       return scenario === 'warning'
         ? { ...success(), warningCode: 'restartFailed', warningCodes: ['restartFailed'] }
         : success();
@@ -281,6 +315,7 @@ function fixtureSource() {
       restore: '#restoreButton', restoreConfirm: '#restoreButton',
       update: '#updateButton', updateConfirm: '#updateButton', updateFailure: '#updateButton',
       permissionMac: '#applyButton', permissionWindows: '#applyButton',
+      nativeRestoreOnly: '#restoreButton', nativeRestoreOnlyHostFailure: '#restoreButton',
       aboutOpenToast: '#aboutButton',
     });
     const selector = actionSelectors[scenario];
@@ -291,7 +326,7 @@ function fixtureSource() {
     }
     const trigger = await waitForReady(selector);
     trigger?.click();
-    if (!['restore', 'update', 'updateFailure'].includes(scenario)) return;
+    if (!['restore', 'update', 'updateFailure', 'nativeRestoreOnly', 'nativeRestoreOnlyHostFailure'].includes(scenario)) return;
     const confirm = await waitForReady('#modalPrimaryButton');
     confirm?.click();
   });

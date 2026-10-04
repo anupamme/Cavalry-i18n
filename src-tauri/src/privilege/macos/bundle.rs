@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 CommandRunner、macOS bundle 路径、直接 codesign 命令与不跟随 symlink 的 native xattr 清理。
- * [OUTPUT]: 提供仅限显式修改代码对象与 app seal 的有界签名、vendor/ad-hoc requirement 证据解析、脚本入口外置签名组件清单与旧版已知残留识别、nested/app 独立只读签名复核、Gatekeeper quarantine 清理。
- * [POS]: macOS apply 的 bundle 收口；外置签名组件是旧 Switcher 脚本入口可能留下的已知副作用，只按自身路径识别并交由事务清理，不把整个 `_CodeSignature` 目录当作翻译准入证据；quarantine 不跟随 bundle 内 symlink。
+ * [OUTPUT]: 提供仅限显式修改代码对象与 app seal 的有界签名、固定厂商 requirement 的只读限时验签、vendor/ad-hoc requirement 证据解析、脚本入口外置签名组件清单与旧版已知残留识别、nested/app 独立只读签名复核、Gatekeeper quarantine 清理。
+ * [POS]: macOS apply/status 的 bundle 签名边界；Official只由OS对精确厂商requirement验签成功投影，不消费stdout自报身份；外置签名组件是旧 Switcher 脚本入口可能留下的已知副作用，只按自身路径识别并交由事务清理，不把整个 `_CodeSignature` 目录当作翻译准入证据；quarantine 不跟随 bundle 内 symlink。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -9,6 +9,7 @@ use std::{
     fs,
     os::unix::fs::MetadataExt,
     path::{Path, PathBuf},
+    time::Duration,
 };
 
 use super::super::CommandRunner;
@@ -18,6 +19,36 @@ pub(crate) const EXTERNAL_SIGNATURE_COMPONENTS: [&str; 3] = [
     "Contents/_CodeSignature/CodeSignature",
     "Contents/_CodeSignature/CodeRequirements",
 ];
+
+const OFFICIAL_CODESIGN: &str = "/usr/bin/codesign";
+const OFFICIAL_REQUIREMENT_PREFIX: &str = "=identifier \"com.scenegroup.cavalry\" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] and certificate leaf[field.1.2.840.113635.100.6.1.13] and certificate leaf[subject.OU] = \"";
+
+pub(crate) fn verify_official_vendor_signature<R: CommandRunner>(
+    app_path: &Path,
+    timeout: Duration,
+    runner: &mut R,
+) -> Result<(), String> {
+    if !app_path.is_absolute() {
+        return Err("Official Cavalry verification requires an absolute bundle path.".into());
+    }
+    let requirement = format!(
+        "{OFFICIAL_REQUIREMENT_PREFIX}{}\"",
+        crate::detect::SUPPORTED_CAVALRY_TEAM_ID
+    );
+    let args = [
+        "--verify".to_string(),
+        "--deep".to_string(),
+        "--strict".to_string(),
+        "--all-architectures".to_string(),
+        "-R".to_string(),
+        requirement,
+        app_path.to_string_lossy().to_string(),
+    ];
+    match runner.run_status_timeout(OFFICIAL_CODESIGN, &args, timeout)? {
+        Some(0) => Ok(()),
+        _ => Err("Official Cavalry code signature requirement did not verify.".into()),
+    }
+}
 
 pub(crate) fn external_signature_component_paths(app_path: &Path) -> Vec<PathBuf> {
     EXTERNAL_SIGNATURE_COMPONENTS

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 npm run tauri:build 同次产出的 macOS .app、Tauri Brotli codegen assets 与平台生成 injector dylib，以及 renderer（含权限 handoff、语义图标注册表、任务事件与 Updater 投影脚本）、runtime resource 候选路径和 languages
- * [OUTPUT]: 对外提供 packaged Tauri .app 资源、权限 handoff 源码→唯一 Brotli payload→最终二进制字节闭包、关键 renderer 路由、injector 内容同一性/Qt ABI 与 size report 测试；允许 Cargo build cache 在多个 hash 目录保留同一 payload，但拒绝二进制嵌入两个不同编码的当前源码
+ * [INPUT]: 依赖 npm run tauri:build 同次产出的 macOS .app、Tauri Brotli codegen assets 与平台生成 injector dylib，以及renderer（含user-profile-text→ui-text字典、权限handoff、图标、任务事件与Updater）、runtime resource候选路径和languages
+ * [OUTPUT]: 对外提供 packaged Tauri .app资源、renderer/权限handoff源码→唯一Brotli payload→最终二进制字节闭包、关键路由、injector内容同一性/Qt ABI与size report测试；允许Cargo build cache保留同payload副本，但拒绝字节漂移
  * [POS]: tools 的 Phase 6 packaged 资源守门，把未追踪的 macOS 原生构建物与最终 bundle 建立哈希同一性，失败即说明不能宣称 packaged 可用
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -29,6 +29,7 @@ const expectedRendererHashes = {
   'index.html': sha256(path.join(rendererRoot, 'index.html')),
   'styles.css': sha256(path.join(rendererRoot, 'styles.css')),
   'operation-log.css': sha256(path.join(rendererRoot, 'operation-log.css')),
+  'user-profile-text.js': sha256(path.join(rendererRoot, 'user-profile-text.js')),
   'ui-text.js': sha256(path.join(rendererRoot, 'ui-text.js')),
   'icons.js': sha256(path.join(rendererRoot, 'icons.js')),
   'operation-log.js': sha256(path.join(rendererRoot, 'operation-log.js')),
@@ -150,7 +151,7 @@ test('tauri build contains renderer assets or embeds their Tauri routes', () => 
   assert.ok(fs.existsSync(binary), 'Tauri executable missing from packaged app');
   const binaryText = fs.readFileSync(binary, 'latin1');
   for (const token of [
-    'index.html', '/styles.css', '/operation-log.css', '/ui-text.js',
+    'index.html', '/styles.css', '/operation-log.css', '/user-profile-text.js', '/ui-text.js',
     '/icons.js', '/operation-log.js', '/permission-handoff.js', '/update-progress.js', '/app.js',
   ]) {
     assert.ok(binaryText.includes(token), `Tauri executable should embed route token ${token}`);

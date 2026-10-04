@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖各平台权限复制、bundle/restart 适配器与 CommandRunner；接收 staged CopyPair、只读发现命令和受控启动请求。
- * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，提供普通写入前只读运行探针、显式 restart 的 graceful close、有界 macOS 签名/只读 seal 验证、Windows apply/recovery 提升 worker 早期分流，并让 Program Files journal 仅在用户动作锁内按当前选择经 same-EXE RunAs 边界收敛。
- * [POS]: src-tauri/src 的跨平台系统命令 facade；平台安全、提升事务、journal 机制与辅助进程可见性下沉到职责模块，命令层不直接触碰 UAC/AppleScript，受保护安装根禁止回退为未提权写入。
+ * [INPUT]: 依赖各平台权限复制、bundle/restart 适配器与 CommandRunner；接收 staged CopyPair、只读进程身份探针和受控启动请求。
+ * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，提供 selected/all-Cavalry 只读 admission、legacy restart 的 graceful close、macOS native preview launch-only facade、固定厂商requirement的限时只读验签与既有有界macOS签名/只读seal验证、Windows apply/recovery提升worker早期分流，并让Program Files journal仅在用户动作锁内按当前选择经same-EXE RunAs边界收敛。
+ * [POS]: src-tauri/src 的跨平台系统命令 facade；Official认证仅经此处转入macOS codesign owner并只消费受限deadline退出状态，不使用一般签名身份stdout；共享用户文件准入由macOS process owner按所有 Cavalry bundle identity 判定，平台安全、提升事务、journal 机制与辅助进程可见性下沉到职责模块，命令层不直接触碰 UAC/AppleScript，受保护安装根禁止回退为未提权写入。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 mod copy_transaction;
@@ -25,6 +25,8 @@ pub use keychain::{
     patch_keychain_query_attributes, patch_keychain_query_attributes_with_privilege,
     KeychainPatchReport,
 };
+#[cfg(target_os = "macos")]
+pub(crate) use restart::launch_cavalry_without_termination;
 pub use restart::{
     close_cavalry_before_modification, open_privacy_security, restart_cavalry,
     restart_cavalry_with_environment, restart_cavalry_with_environment_and_pid, restart_commands,
@@ -46,10 +48,17 @@ pub(crate) use macos::apply_transaction::{
 pub(crate) use macos::bundle::{
     external_signature_component_paths, has_known_external_signature_residue,
     inspect_bundle_signature, seal_patched_bundle, sign_modified_nested_code,
-    verify_modified_nested_code, BundleSignatureEvidence,
+    verify_modified_nested_code, verify_official_vendor_signature, BundleSignatureEvidence,
 };
 #[cfg(target_os = "macos")]
-pub(crate) use macos::process::ensure_cavalry_not_running;
+#[allow(unused_imports)]
+// 原生用户 profile 写入接线完成后会消费这些 facade API。
+pub(crate) use macos::{
+    process::{
+        ensure_cavalry_not_running, guard_all_cavalry_not_running, CavalryProcessGuardError,
+    },
+    user_profile::current_user_home,
+};
 #[cfg(target_os = "windows")]
 pub(crate) use runner::captured_command;
 #[cfg(target_os = "windows")]

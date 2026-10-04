@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、保留但禁用当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、跨平台未提交 marker 与 Windows runtime 残留均保留 Restore、Managed Legacy 恢复语义、普通验证失败专有的固定 Issue 表单按钮及外链失败 Toast、typed Cavalry 运行中错误不显露报告入口、无不可见详情/重装建议、旧 preflight hint 不再拦截真实事务、只读权限未知不产生启动警告、真实 typed PermissionDenied 按 macOS/Windows 分流且通过同一 forward/return rect 与 session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Select 选中更新徽章及状态刷新清理、Badge、固定 about-label close 及 About/外链失败进入局部 Toast。
+ * [INPUT]: renderer bridge/user-profile-text/ui-text/language-scope/version-guidance/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
+ * [OUTPUT]: 验证 camelCase scope/受控 currentLang/nativeLocaleState/error code 白名单、四语unset+English默认徽章与不授予owned Restore、严格 owned-only hostless English Restore 与 nativeRestoreOnly no-launch 语义、用户级英文三阶段 copy 与安装级 Cavalry copy 的隔离、用户级共享副本确认与资源门、失败回执 reconciliation 刷新且保留 failure Activity、未知语言重应用、固定三类 native 错误和跨副本退出提示、用户配置恢复阶段文案、2.8 preview 中仅为 2.7.2 安装显示的 fixed legacyRelease link，以及 installation 原合同、权限事务、任务流、组件状态机、Updater Channel、About 和 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -35,6 +35,7 @@ function runtime({
   status = {},
   reject = null,
   apply = { ok: true, currentLang: 'zh-Hans' },
+  applyEvents = null,
   update = { currentVersion: '0.7.0', version: null, notes: null, pubDate: null, available: false, errorCode: null },
   install = { currentVersion: '0.7.0', version: '0.7.1', notes: null, pubDate: null, available: true, errorCode: 'updateInstallFailed' },
   installEvents = [
@@ -49,7 +50,7 @@ function runtime({
   aboutPlatform = 'other',
   projectLinkResult = { ok: true },
 } = {}) {
-  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutRepositoryLink', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'reportIssueButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
+  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutRepositoryLink', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'legacyReleaseButton', 'reportIssueButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   const calls = [];
   const channels = [];
@@ -109,7 +110,7 @@ function runtime({
       const result = nextResult(applyResults);
       const callback = callbacks.get(payload.onEvent.id);
       if (callback) {
-        const events = result.ok
+        const events = applyEvents || (result.ok
           ? [
               { phase: 'verifyInstallation', state: 'running' },
               { phase: 'verifyInstallation', state: 'completed' },
@@ -117,8 +118,10 @@ function runtime({
               { phase: 'ensureBaseline', state: 'completed' },
               { phase: 'applyTransaction', state: 'running' },
               { phase: 'applyTransaction', state: (result.warningCodes || []).some((code) => code !== 'restartFailed') ? 'warning' : 'completed' },
-              { phase: 'restartCavalry', state: 'running' },
-              { phase: 'restartCavalry', state: (result.warningCodes || []).includes('restartFailed') || result.warningCode === 'restartFailed' ? 'warning' : 'completed' },
+              ...(result.nativeRestoreOnly === true ? [] : [
+                { phase: 'restartCavalry', state: 'running' },
+                { phase: 'restartCavalry', state: (result.warningCodes || []).includes('restartFailed') || result.warningCode === 'restartFailed' ? 'warning' : 'completed' },
+              ]),
             ]
           : result.permissionRequired
             ? [
@@ -132,7 +135,7 @@ function runtime({
             : [
                 { phase: 'verifyInstallation', state: 'running' },
                 { phase: 'verifyInstallation', state: 'error' },
-              ];
+              ]);
         events.forEach((message, index) => callback({ index, message }));
         callback({ index: events.length, end: true });
       }
@@ -173,7 +176,10 @@ function chooseLanguage(runtimeState, index = null) {
 function boot(options) {
   const r = runtime(options);
   vm.runInNewContext(read('renderer/tauri-bridge.js'), r.context, { filename: 'bridge.js' });
+  vm.runInNewContext(read('renderer/user-profile-text.js'), r.context, { filename: 'user-profile-text.js' });
   vm.runInNewContext(read('renderer/ui-text.js'), r.context, { filename: 'ui-text.js' });
+  vm.runInNewContext(read('renderer/language-scope.js'), r.context, { filename: 'language-scope.js' });
+  vm.runInNewContext(read('renderer/version-guidance.js'), r.context, { filename: 'version-guidance.js' });
   vm.runInNewContext(read('renderer/icons.js'), r.context, { filename: 'icons.js' });
   vm.runInNewContext(read('renderer/select-control.js'), r.context, { filename: 'select-control.js' });
   vm.runInNewContext(read('renderer/tooltip-control.js'), r.context, { filename: 'tooltip-control.js' });
@@ -191,6 +197,7 @@ function boot(options) {
 function bootAbout(options) {
   const r = runtime(options);
   vm.runInNewContext(read('renderer/tauri-bridge.js'), r.context, { filename: 'bridge.js' });
+  vm.runInNewContext(read('renderer/user-profile-text.js'), r.context, { filename: 'user-profile-text.js' });
   vm.runInNewContext(read('renderer/ui-text.js'), r.context, { filename: 'ui-text.js' });
   vm.runInNewContext(read('renderer/icons.js'), r.context, { filename: 'icons.js' });
   vm.runInNewContext(read('renderer/toast-control.js'), r.context, { filename: 'toast-control.js' });
@@ -809,6 +816,7 @@ test('single Restore maps to the platform transaction and remains visible when n
   assert.deepEqual(JSON.parse(JSON.stringify(macos.calls.filter(({ command }) => command === 'apply_language')[0])), {
     command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'restore-official' },
   });
+  assert.match(activityText(macos), /Cavalry restored/, 'installation Restore keeps its existing phase wording');
 
   const windows = boot({
     status: { platform: 'windows', currentLang: 'en', reconciliationRequired: true },
@@ -1328,4 +1336,484 @@ test('state durability warning blocks mutations and requires a Switcher restart'
     assert.equal(r.elements[id].disabled, true, `${id} must stay blocked pending durability`);
   }
   assert.equal(r.window.cavalryI18n.extractEnglish, undefined, 'the renderer must not expose manual baseline refresh');
+});
+
+test('user-profile status is whitelisted and invalid locales collapse to a visible unknown value', async () => {
+  const profile = boot({ status: {
+    languageScope: 'userProfile',
+    currentLang: 'private-locale-debug-value',
+    language_scope: 'installation',
+    current_lang: 'zh-Hant',
+    nativeResourceAvailable: true,
+    debugPayload: 'must-not-cross-the-bridge',
+  } });
+  await flush();
+  const normalized = await profile.window.cavalryI18n.getStatus();
+  assert.equal(normalized.languageScope, 'userProfile');
+  assert.equal(normalized.currentLang, 'unknown');
+  assert.equal(normalized.nativeLocaleState, 'unrecognized', 'missing native-only state is conservative');
+  assert.equal(normalized.nativeResourceAvailable, true);
+  assert.equal(normalized.language_scope, undefined);
+  assert.equal(normalized.current_lang, undefined);
+  assert.equal(normalized.debugPayload, undefined);
+  assert.equal(profile.elements['#currentLanguage'].textContent, 'Unknown');
+  assert.doesNotMatch(activityText(profile), /private-locale-debug-value|must-not-cross-the-bridge/);
+
+  const legacy = boot({ status: {
+    language_scope: 'userProfile',
+    current_lang: 'zh-Hans',
+    currentLang: 'not-a-product-locale',
+    nativeResourceAvailable: false,
+  } });
+  await flush();
+  const legacyStatus = await legacy.window.cavalryI18n.getStatus();
+  assert.equal(legacyStatus.languageScope, 'installation');
+  assert.equal(legacyStatus.currentLang, 'en');
+  assert.equal(legacyStatus.nativeResourceAvailable, true);
+});
+
+test('nativeLocaleState accepts only the three camelCase user-profile states', async () => {
+  for (const [state, currentLang] of [
+    ['unset', 'en'],
+    ['explicit', 'ja_JP'],
+    ['unrecognized', 'unknown'],
+  ]) {
+    const profile = boot({ status: {
+      languageScope: 'userProfile', currentLang, nativeLocaleState: state,
+    } });
+    await flush();
+    const status = await profile.window.cavalryI18n.getStatus();
+    assert.equal(status.nativeLocaleState, state);
+    assert.equal(status.currentLang, currentLang, 'locale observation state must not overwrite the backend language projection');
+  }
+
+  const rejected = boot({ status: {
+    languageScope: 'userProfile', currentLang: 'unknown',
+    nativeLocaleState: 'private-raw-locale', native_locale_state: 'explicit',
+  } });
+  await flush();
+  const rejectedStatus = await rejected.window.cavalryI18n.getStatus();
+  assert.equal(rejectedStatus.nativeLocaleState, 'unrecognized');
+  assert.equal(rejectedStatus.native_locale_state, undefined);
+  assert.doesNotMatch(JSON.stringify(rejectedStatus), /private-raw-locale/);
+
+  const installation = boot({ status: {
+    languageScope: 'installation', currentLang: 'en', nativeLocaleState: 'explicit',
+  } });
+  await flush();
+  const legacyStatus = await installation.window.cavalryI18n.getStatus();
+  assert.equal(legacyStatus.nativeLocaleState, null, 'native profile detail is absent from installation scope');
+});
+
+test('unset native locale shows vendor-default English without selecting a language or granting Restore', async () => {
+  const locales = [
+    ['en-US', 'English (default)', 'Current: English (default)'],
+    ['zh-CN', '英语（默认）', '当前: 英语（默认）'],
+    ['zh-TW', '英語（預設）', '目前: 英語（預設）'],
+    ['ja-JP', '英語（既定）', '現在: 英語（既定）'],
+  ];
+  for (const [locale, label, ariaLabel] of locales) {
+    const profile = boot({ locale, status: {
+      appPath: '', languageScope: 'userProfile', currentLang: 'en', nativeLocaleState: 'unset',
+      nativeEnglishRestoreAvailable: false, nativeResourceAvailable: true,
+    } });
+    await flush();
+    assert.equal(profile.elements['#currentLanguage'].textContent, label, `${locale} default label`);
+    assert.equal(profile.elements['#currentLanguage'].attributes.get('aria-label'), ariaLabel, `${locale} ARIA`);
+    assert.equal(profile.elements['#languageSelect'].value, '', `${locale} must not preselect a target language`);
+    assert.equal(profile.elements['#restoreButton'].disabled, true, `${locale} default English is not ownership proof`);
+  }
+
+  for (const currentLang of ['unknown', 'zh-Hans']) {
+    const inconsistent = boot({ status: {
+      appPath: '', languageScope: 'userProfile', currentLang, nativeLocaleState: 'unset',
+      nativeEnglishRestoreAvailable: false,
+    } });
+    await flush();
+    assert.equal(inconsistent.elements['#currentLanguage'].textContent, 'Unknown',
+      'unset with a non-default current language remains conservative');
+  }
+
+  const legacy = boot({ status: {
+    appPath: '', languageScope: 'installation', currentLang: 'en', nativeLocaleState: 'unset',
+  } });
+  await flush();
+  assert.equal(legacy.elements['#currentLanguage'].textContent, 'English',
+    'installation badges ignore the native-only locale state');
+});
+
+test('native user-profile Switch discloses shared scope and keeps the selected app as launch target', async () => {
+  const r = boot({
+    status: {
+      languageScope: 'userProfile', nativeResourceAvailable: true, currentLang: 'unknown',
+      patchStatus: 'unknown', reconciliationRequired: true, version: '2.8.0', supportedVersion: '2.8.0',
+    },
+  });
+  await flush();
+
+  assert.equal(r.elements['#currentLanguage'].textContent, 'Unknown');
+  assert.equal(r.elements['#restoreButton'].disabled, false, 'unknown language must not disable English restore');
+  assert.match(activityText(r), /this.*user profile|shared.*user profile|all.*Cavalry.*copies/i);
+  chooseLanguage(r);
+  assert.equal(r.elements['#applyButton'].disabled, false, 'unknown language must remain re-applicable');
+  r.elements['#applyButton'].listeners.get('click')[0]();
+
+  assert.equal(r.elements['#modalBackdrop'].open, true, 'user-profile changes require explicit confirmation');
+  assert.match(r.elements['#modalBody'].textContent, /all Cavalry copies|every Cavalry copy/i);
+  assert.match(r.elements['#modalBody'].textContent, /other versions/i);
+  assert.match(r.elements['#modalBody'].textContent, /save.*work.*quit.*all/i);
+  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 0);
+
+  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+  const apply = r.calls.find(({ command }) => command === 'apply_language');
+  assert.equal(apply.payload.appPath, '/Applications/Cavalry.app');
+});
+
+test('native user-profile Restore confirms shared fixed English and remains available without translation resources', async () => {
+  const r = boot({ status: {
+    languageScope: 'userProfile', nativeResourceAvailable: false, currentLang: 'zh-Hant',
+    patchStatus: 'unknown', reconciliationRequired: true, version: '2.8.0', supportedVersion: '2.8.0',
+  } });
+  await flush();
+
+  assert.equal(r.elements['#languageSelect'].disabled, true, 'missing native resource blocks only language selection');
+  assert.equal(r.elements['#applyButton'].disabled, true, 'missing native resource blocks Switch');
+  assert.equal(r.elements['#restoreButton'].disabled, false, 'English restoration does not consume the language resource pack');
+  assert.match(activityText(r), /native.*translation.*resource|translation.*resource.*unavailable/i);
+  assert.match(activityText(r), /shared language state.*recovery|may need recovery/i);
+
+  r.elements['#restoreButton'].listeners.get('click')[0]();
+  assert.equal(r.elements['#modalBackdrop'].open, true);
+  assert.match(r.elements['#modalBody'].textContent, /all Cavalry copies|every Cavalry copy/i);
+  assert.match(r.elements['#modalBody'].textContent, /English/i);
+  assert.match(r.elements['#modalBody'].textContent, /not.*previous language|not.*previous locale/i);
+  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 0);
+  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+  const restore = r.calls.find(({ command }) => command === 'apply_language');
+  assert.equal(restore.payload.lang, 'en', 'user-profile Restore is a fixed English transaction');
+  assert.equal(restore.payload.appPath, '/Applications/Cavalry.app', 'appPath remains the restart target');
+});
+
+test('typed native user-profile failures stay local and never open App Management or request a 2.7.2 reinstall', async () => {
+  const cases = [
+    ['nativeUserLanguageConflict', /recovery record|recovery data|shared.*state/i],
+    ['nativeResourceUnavailable', /translation resource/i],
+    ['nativeUserLanguagePermissionDenied', /user.*configuration|file permissions/i],
+  ];
+  for (const [errorCode, messagePattern] of cases) {
+    const r = boot({
+      status: {
+        languageScope: 'userProfile', nativeResourceAvailable: true, currentLang: 'zh-Hans',
+        version: '2.8.0', supportedVersion: '2.8.0',
+      },
+      apply: { ok: false, errorCode, error: 'private backend debug prose' },
+    });
+    await flush();
+    chooseLanguage(r);
+    r.elements['#applyButton'].listeners.get('click')[0]();
+    assert.equal(r.elements['#modalBackdrop'].open, true);
+    r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+    await flush();
+
+    assert.match(activityText(r), messagePattern, `${errorCode} must have fixed localized copy`);
+    assert.equal(r.elements['#permissionButton'].hidden, true, `${errorCode} must not route to permission settings`);
+    assert.equal(r.calls.some(({ command }) => command === 'open_privacy_security'), false);
+    assert.doesNotMatch(activityText(r), /2\.7\.2|private backend debug prose/);
+  }
+});
+
+test('native conflict reconciliation preserves the failure Activity and unlocks fixed-English Restore', async () => {
+  for (const nativeResourceAvailable of [true, false]) {
+    let statusReads = 0;
+    const r = boot({
+      status: {
+        languageScope: 'userProfile', nativeResourceAvailable: true, currentLang: 'en',
+        patchStatus: 'notApplicable', reconciliationRequired: false,
+        version: '2.8.0', supportedVersion: '2.8.0',
+      },
+      statusRequest: (status) => {
+        statusReads += 1;
+        return Promise.resolve(statusReads === 1 ? status : {
+          ...status,
+          nativeResourceAvailable,
+          currentLang: 'unknown',
+          patchStatus: 'unknown',
+          reconciliationRequired: true,
+        });
+      },
+      apply: {
+        ok: false,
+        errorCode: 'nativeUserLanguageConflict',
+        reconciliationRequired: true,
+      },
+    });
+    await flush();
+    assert.equal(r.elements['#restoreButton'].disabled, true, 'clean English starts without Restore');
+    chooseLanguage(r);
+    r.elements['#applyButton'].listeners.get('click')[0]();
+    r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+    await flush();
+
+    assert.equal(statusReads, 2, 'reconciliation status must be refreshed after the failed write');
+    assert.equal(r.elements['#currentLanguage'].textContent, 'Unknown');
+    assert.equal(r.elements['#restoreButton'].disabled, false, 'reconciliation permits fixed-English Restore');
+    assert.equal(r.elements['#languageSelect'].disabled, !nativeResourceAvailable);
+    assert.equal(r.elements['#permissionButton'].hidden, true);
+    assert.match(activityText(r), /could not safely complete|recovery record|recovery data/i,
+      'status refresh must not replace the typed failure Activity');
+  }
+});
+
+test('user-profile running-process failure asks users to quit every copy without terminating any instance', async () => {
+  const r = boot({
+    status: {
+      languageScope: 'userProfile', nativeResourceAvailable: true, currentLang: 'zh-Hans',
+      version: '2.8.0', supportedVersion: '2.8.0',
+    },
+    apply: { ok: false, errorCode: 'cavalryStillRunning' },
+  });
+  await flush();
+  chooseLanguage(r);
+  r.elements['#applyButton'].listeners.get('click')[0]();
+  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+
+  assert.match(activityText(r), /quit every running Cavalry copy|all running.*Cavalry.*copies/i);
+  assert.match(activityText(r), /other versions/i);
+  assert.equal(r.calls.some(({ command }) => /terminate|kill/i.test(command)), false);
+});
+
+test('user-profile recovery phase describes user configuration records, not bundle backup', async () => {
+  const r = boot({
+    status: {
+      languageScope: 'userProfile', nativeResourceAvailable: true, currentLang: 'en',
+      patchStatus: 'notApplicable', version: '2.8.0', supportedVersion: '2.8.0',
+    },
+    apply: { ok: true, currentLang: 'zh-Hans' },
+  });
+  await flush();
+  chooseLanguage(r);
+  r.elements['#applyButton'].listeners.get('click')[0]();
+  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+
+  assert.match(activityText(r), /user configuration recovery record.*checked|recovery record.*confirmed/i);
+  assert.doesNotMatch(activityText(r), /recovery files ready|English files|official baseline/i);
+});
+
+test('user-profile fixed-English transaction phases name English, not the Cavalry installation', async () => {
+  const cases = [
+    ['en-US', 'English restored'],
+    ['zh-CN', '已恢复英文'],
+    ['zh-TW', '已還原英文'],
+    ['ja-JP', '英語に戻しました'],
+  ];
+  for (const [locale, completedCopy] of cases) {
+    const r = boot({
+      locale,
+      status: {
+        languageScope: 'userProfile', nativeResourceAvailable: false, currentLang: 'zh-Hans',
+        nativeEnglishRestoreAvailable: true, version: '2.8.0', supportedVersion: '2.8.0',
+      },
+      apply: { ok: true, currentLang: 'en', nativeRestoreOnly: true },
+    });
+    await flush();
+    r.elements['#restoreButton'].listeners.get('click')[0]();
+    r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+    await flush();
+    assert.match(activityText(r), new RegExp(completedCopy), `${locale} fixed-English commit title`);
+    assert.doesNotMatch(activityText(r), /Cavalry restored|已恢复 Cavalry|已還原 Cavalry|Cavalry を復元しました/,
+      `${locale} user-profile restore must not say the installation was restored`);
+  }
+});
+
+test('legacy 2.7.2 release link appears only for a 2.8 preview and stays a fixed bridge id', async () => {
+  const stable = boot({ status: {
+    version: '2.7.2', supportedVersion: '2.7.2', versionCompatibility: 'supported',
+  } });
+  await flush();
+  assert.equal(stable.elements['#legacyReleaseButton'].hidden, true);
+  assert.equal(stable.elements['#statusPanel'].dataset.state, 'neutral', 'the last 2.7.2 Switcher must not mark its supported target unsupported');
+
+  const tooOld = boot({ status: {
+    version: '2.7.1', supportedVersion: '2.8.0', versionCompatibility: 'olderUnsupported',
+  } });
+  await flush();
+  assert.equal(tooOld.elements['#legacyReleaseButton'].hidden, true, 'the fixed legacy link is specifically for Cavalry 2.7.2');
+
+  const labels = [
+    ['en-US', 'Download the final Cavalry 2.7.2 Switcher release'],
+    ['zh-CN', '下载最终版 Cavalry 2.7.2 语言切换器'],
+    ['zh-TW', '下載最終版 Cavalry 2.7.2 語言切換器'],
+    ['ja-JP', '最終版 Cavalry 2.7.2 スイッチャーをダウンロード'],
+  ];
+  let preview;
+  for (const [locale, label] of labels) {
+    preview = boot({ locale, status: {
+      version: '2.7.2', supportedVersion: '2.8.0', versionCompatibility: 'olderUnsupported',
+    } });
+    await flush();
+    assert.equal(preview.elements['#legacyReleaseButton'].hidden, false, locale);
+    assert.equal(preview.elements['#legacyReleaseButton'].textContent, label, locale);
+    assert.match(activityText(preview), /Cavalry 2\.8\.0/);
+  }
+  preview.elements['#legacyReleaseButton'].listeners.get('click')[0]();
+  await flush();
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(preview.calls.filter(({ command }) => command === 'open_project_link'))),
+    [{ command: 'open_project_link', payload: { link: 'legacyRelease' } }]
+  );
+  await assert.rejects(() => preview.window.cavalryI18n.openProjectLink('https://attacker.invalid'), /Unsupported project link/);
+});
+
+test('hostless English Restore needs strict user-profile ownership and English action evidence', async () => {
+  const accepted = boot({ status: {
+    appPath: '', languageScope: 'userProfile', currentLang: 'zh-Hans', nativeResourceAvailable: false,
+    reconciliationRequired: false, nativeEnglishRestoreAvailable: true,
+  } });
+  await flush();
+  assert.equal((await accepted.window.cavalryI18n.getStatus()).nativeEnglishRestoreAvailable, true);
+
+  for (const value of ['true', 1, null, undefined, false]) {
+    const r = boot({ status: {
+      appPath: '', languageScope: 'userProfile', nativeEnglishRestoreAvailable: value,
+      native_english_restore_available: true,
+    } });
+    await flush();
+    assert.equal((await r.window.cavalryI18n.getStatus()).nativeEnglishRestoreAvailable, false,
+      `non-boolean/alternate-name status cannot grant restore: ${String(value)}`);
+  }
+
+  const installation = boot({ status: {
+    languageScope: 'installation', currentLang: 'en', nativeEnglishRestoreAvailable: true,
+  } });
+  await flush();
+  assert.equal((await installation.window.cavalryI18n.getStatus()).nativeEnglishRestoreAvailable, false,
+    'installation-scoped 2.7 status cannot inherit native user-profile ownership');
+  for (const status of [
+    { languageScope: 'userProfile', currentLang: 'en', nativeEnglishRestoreAvailable: true },
+    { languageScope: 'userProfile', currentLang: 'private-locale', nativeEnglishRestoreAvailable: true },
+    { languageScope: 'userProfile', currentLang: 'zh-Hans', reconciliationRequired: true, nativeEnglishRestoreAvailable: true },
+  ]) {
+    const r = boot({ status });
+    await flush();
+    assert.equal((await r.window.cavalryI18n.getStatus()).nativeEnglishRestoreAvailable, false,
+      'English, unknown locale, and reconciliation do not prove a current owned language image');
+  }
+
+  const success = boot({ apply: { ok: true, currentLang: 'en', nativeRestoreOnly: true } });
+  const acceptedAction = await success.window.cavalryI18n.applyLanguage('', 'en');
+  assert.equal(acceptedAction.nativeRestoreOnly, true);
+  const rejectedAction = await success.window.cavalryI18n.applyLanguage('', 'zh-Hans');
+  assert.equal(rejectedAction.nativeRestoreOnly, false, 'non-English actions cannot claim English-only restore');
+  const failure = boot({ apply: { ok: false, nativeRestoreOnly: true } });
+  assert.equal((await failure.window.cavalryI18n.applyLanguage('', 'en')).nativeRestoreOnly, false,
+    'failed actions cannot claim completed restore');
+  for (const result of [
+    { ok: true, currentLang: 'zh-Hans', nativeRestoreOnly: true },
+    { ok: true, currentLang: 'en', nativeRestoreOnly: 'true' },
+    { ok: true, currentLang: 'en', nativeRestoreOnly: true, warningCodes: ['stateDurabilityPending'] },
+    { ok: true, currentLang: 'en', nativeRestoreOnly: true, reconciliationRequired: true },
+    { ok: true, currentLang: 'en', nativeRestoreOnly: true, permissionRequired: true },
+    { ok: true, currentLang: 'en', nativeRestoreOnly: true, errorCode: 'nativeUserLanguageConflict' },
+    { ok: true, currentLang: 'en', nativeRestoreOnly: true, error: true },
+    { ok: true, currentLang: 'en', native_restore_only: true },
+  ]) {
+    const malformed = boot({ apply: result });
+    assert.equal((await malformed.window.cavalryI18n.applyLanguage('', 'en')).nativeRestoreOnly, false,
+      'restore-only action requires success, English result, no warning/conflict/permission, and strict camelCase true');
+  }
+});
+
+test('hostless native English Restore is available only for strongly owned state and never launches Cavalry', async () => {
+  let statusReads = 0;
+  const owned = boot({
+    status: {
+      appPath: '', languageScope: 'userProfile', nativeResourceAvailable: false,
+      nativeEnglishRestoreAvailable: true, currentLang: 'zh-Hans', versionCompatibility: 'unknownUnsupported',
+    },
+    statusRequest: (status) => {
+      statusReads += 1;
+      return Promise.resolve(statusReads === 1 ? status : {
+        ...status, nativeEnglishRestoreAvailable: false, currentLang: 'en', reconciliationRequired: false,
+      });
+    },
+    apply: { ok: true, currentLang: 'en', nativeRestoreOnly: true },
+  });
+  await flush();
+  assert.equal(owned.elements['#restoreButton'].disabled, false, 'strongly owned active image can restore with no host');
+  assert.equal(owned.elements['#applyButton'].disabled, true, 'ownership never authorizes Switch without a host');
+  assert.equal(owned.elements['#browseButton'].hidden, false, 'existing missing-install Browse remains unchanged');
+  owned.elements['#restoreButton'].listeners.get('click')[0]();
+  assert.equal(owned.elements['#modalBackdrop'].open, true, 'shared-profile English restore still requires confirmation');
+  owned.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+
+  const action = owned.calls.find(({ command }) => command === 'apply_language');
+  assert.deepEqual(action?.payload, { appPath: '', lang: 'en' });
+  assert.equal(statusReads, 2, 'successful hostless restore refreshes authoritative status');
+  assert.equal(owned.elements['#restoreButton'].disabled, true, 'clean English with no remaining owned image hides the action');
+  assert.match(owned.elements['#statusOutcome'].textContent, /English restored.*No verified compatible installation; Cavalry was not started/i);
+  assert.doesNotMatch(`${activityText(owned)} ${owned.elements['#statusOutcome'].textContent}`, /Cavalry is now open|Restarting Cavalry|Restart the Switcher|restart failed/i);
+
+  const incompatible = boot({ status: {
+    appPath: '/Applications/Cavalry.app', languageScope: 'userProfile', nativeResourceAvailable: true,
+    nativeEnglishRestoreAvailable: true, currentLang: 'zh-Hans', versionCompatibility: 'olderUnsupported',
+    version: '2.7.2', supportedVersion: '2.8.0',
+  } });
+  await flush();
+  assert.equal(incompatible.elements['#restoreButton'].disabled, false,
+    'strongly owned English image remains recoverable with an incompatible selected host');
+  assert.equal(incompatible.elements['#applyButton'].disabled, true, 'unsupported host still blocks Switch');
+  assert.equal(incompatible.elements['#languageSelect'].disabled, true, 'unsupported host still blocks Select');
+
+  const sameVersionVerificationDrift = boot({
+    status: {
+      appPath: '/Applications/Cavalry.app', languageScope: 'userProfile', nativeResourceAvailable: true,
+      nativeEnglishRestoreAvailable: true, currentLang: 'zh-Hans', versionCompatibility: 'supported',
+      version: '2.8.0', supportedVersion: '2.8.0',
+    },
+    apply: { ok: true, currentLang: 'en', nativeRestoreOnly: true },
+    applyEvents: [
+      { phase: 'verifyInstallation', state: 'running' },
+      { phase: 'verifyInstallation', state: 'completed' },
+      { phase: 'ensureBaseline', state: 'running' },
+      { phase: 'ensureBaseline', state: 'completed' },
+      { phase: 'applyTransaction', state: 'running' },
+      { phase: 'applyTransaction', state: 'completed' },
+    ],
+  });
+  await flush();
+  sameVersionVerificationDrift.elements['#restoreButton'].listeners.get('click')[0]();
+  sameVersionVerificationDrift.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+  assert.match(activityText(sameVersionVerificationDrift), /English recovery state checked/,
+    'same-version hash/host verification failure uses profile recovery copy, never a successful host claim');
+  assert.doesNotMatch(activityText(sameVersionVerificationDrift), /Cavalry installation verified|Cavalry のインストールを確認しました/);
+  assert.match(sameVersionVerificationDrift.elements['#statusOutcome'].textContent,
+    /No verified compatible installation; Cavalry was not started/i);
+
+  for (const status of [
+    { appPath: '', languageScope: 'userProfile', currentLang: 'zh-Hans' },
+    { appPath: '', languageScope: 'userProfile', currentLang: 'unknown', reconciliationRequired: true },
+    { appPath: '', languageScope: 'userProfile', currentLang: 'zh-Hans', nativeEnglishRestoreAvailable: 'true' },
+    { appPath: '', languageScope: 'userProfile', currentLang: 'zh-Hans', native_english_restore_available: true },
+  ]) {
+    const denied = boot({ status });
+    await flush();
+    assert.equal(denied.elements['#restoreButton'].disabled, true,
+      'missing ownership evidence, unknown state, and reconciliation alone never grant hostless Restore');
+  }
+
+  const oldInstallation = boot({ status: {
+    appPath: '/Applications/Cavalry.app', languageScope: 'installation', currentLang: 'en',
+    nativeEnglishRestoreAvailable: true, version: '2.7.2', supportedVersion: '2.7.2',
+    versionCompatibility: 'supported',
+  } });
+  await flush();
+  assert.equal((await oldInstallation.window.cavalryI18n.getStatus()).nativeEnglishRestoreAvailable, false);
+  assert.equal(oldInstallation.elements['#restoreButton'].disabled, true,
+    'the released 2.7 installation Restore contract remains unchanged');
 });

@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 tauri_build、cc、sha2、macOS AppKit handoff 源、四语言 JSON 源与 Windows generic/QPA 发布 DLL。
- * [OUTPUT]: 生成 Tauri runtime context，macOS 目标编译并链接权限 handoff owner，并把发布资源的 SHA-256 信任锚写入 OUT_DIR 供提权 worker 编译期嵌入。
+ * [INPUT]: 依赖 tauri_build、cc、sha2、macOS AppKit handoff 源、四语言 JSON 源与 Windows generic/QPA 发布 DLL；显式macOS native preview构建另读固定target工件manifest。
+ * [OUTPUT]: 生成 Tauri runtime context与资源信任锚；仅显式macOS开发预览把native manifest固定到OUT_DIR，默认/发布流水线不依赖厂商App或派生预览文件。
  * [POS]: src-tauri 的构建钩子；在用户可写安装资源之外固定 Windows source provenance，不参与运行时路径发现。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -20,7 +20,54 @@ const QPA_RELATIVE_PATH: &str = "injector/windows/qpa/qwindows.dll";
 fn main() {
     build_macos_permission_handoff();
     generate_source_provenance_catalog();
+    embed_native_preview_manifest();
     tauri_build::build();
+}
+
+// -- 开发预览显式准入：运行时工件必须逐字匹配此编译期manifest --------
+fn embed_native_preview_manifest() {
+    println!("cargo:rerun-if-env-changed=CAVALRY_I18N_ENABLE_NATIVE_PREVIEW");
+    let input = Path::new("target/native-language-packs/manifest.json");
+    println!("cargo:rerun-if-changed={}", input.display());
+    let enabled = env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("macos")
+        && env::var("CAVALRY_I18N_ENABLE_NATIVE_PREVIEW").as_deref() == Ok("1");
+    let bytes = if enabled {
+        assert_ne!(
+            env::var("PROFILE").as_deref(),
+            Ok("release"),
+            "native development preview must not be compiled as a release"
+        );
+        for source in [
+            "../languages/native",
+            "../tools/native_resource_bundle.js",
+            "../tools/native_language_pack.js",
+            "../tools/native_translation_format.js",
+            "../package-lock.json",
+            "../tools/cavalry_native_target.json",
+        ] {
+            println!("cargo:rerun-if-changed={source}");
+        }
+        let checked = std::process::Command::new("node")
+            .args(["../tools/native_resource_bundle.js", "--check"])
+            .status()
+            .expect("native preview freshness check requires Node and npm dependencies");
+        assert!(
+            checked.success(),
+            "native preview resources are stale or changed; rebuild with explicit official assets"
+        );
+        let metadata = fs::symlink_metadata(input)
+            .expect("native preview requires build:native-resources before compiling");
+        assert!(
+            metadata.is_file() && !metadata.file_type().is_symlink(),
+            "native preview manifest must be a regular file"
+        );
+        fs::read(input).expect("native preview manifest could not be read")
+    } else {
+        Vec::new()
+    };
+    let output = PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR is required"));
+    fs::write(output.join("native_preview_manifest.json"), bytes)
+        .expect("native preview compile-time manifest could not be written");
 }
 
 fn build_macos_permission_handoff() {

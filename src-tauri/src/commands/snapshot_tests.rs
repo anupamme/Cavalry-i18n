@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 snapshot.rs 的 English gate、state durability helper、refresh gate 与 Windows QPA 只读证据 seam。
- * [OUTPUT]: 提供 snapshot 状态耐久性、macOS official baseline capture 边界、refresh 零写入、Windows residue/recovery fail-closed 的单元合同。
+ * [OUTPUT]: 提供 snapshot 状态耐久性、macOS official baseline capture 边界、refresh 零写入、Windows residue/recovery fail-closed 的单元合同；源码合同锁定异步 `get_status_for_app` 必须把只读投影交给 `spawn_blocking` owner，且owner不恢复pending事务。
  * [POS]: commands/snapshot.rs 的测试投影；与生产快照逻辑分离，保持领域文件低于 800 行且不扩大运行时 API。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -44,13 +44,32 @@ fn only_user_language_actions_own_pending_recovery() {
     let status_source = include_str!("status.rs");
     let restart_source = include_str!("restart.rs");
     let lib_source = include_str!("../lib.rs");
-    let startup_status_source = status_source
-        .split("pub(crate) fn get_status_for_app")
+    let native_status_source = status_source
+        .split("fn native_status_for_paths")
         .nth(1)
-        .expect("status must expose the Tauri startup projection")
+        .expect("native status projection must remain a distinct read-only owner")
+        .split("pub(crate) async fn get_status_for_app")
+        .next()
+        .expect("native status owner must precede the async wrapper");
+    let startup_status_wrapper = status_source
+        .split("pub(crate) async fn get_status_for_app")
+        .nth(1)
+        .expect("status must expose the async Tauri startup wrapper")
+        .split("fn get_status_for_paths")
+        .next()
+        .expect("async wrapper must end before the blocking status owner");
+    assert!(
+        startup_status_wrapper.contains("spawn_blocking")
+            && startup_status_wrapper.contains("get_status_for_paths(paths)"),
+        "Tauri status work must be delegated to the blocking status owner"
+    );
+    let startup_status_source = status_source
+        .split("fn get_status_for_paths")
+        .nth(1)
+        .expect("status must expose its synchronous projection owner")
         .split("fn record_status_diagnostics")
         .next()
-        .expect("startup status projection must precede diagnostics");
+        .expect("blocking status projection must precede diagnostics");
     let snapshot_production = snapshot_source
         .split("#[cfg(test)]")
         .next()
@@ -70,12 +89,15 @@ fn only_user_language_actions_own_pending_recovery() {
     );
     for (owner, source) in [
         ("status", startup_status_source),
+        ("native status", native_status_source),
         ("restart", restart_source),
         ("startup", lib_source),
     ] {
         assert!(
             !source.contains("pending_macos_apply_install_root")
-                && !source.contains("recover_macos_apply_for_selection"),
+                && !source.contains("recover_macos_apply_for_selection")
+                && !source.contains("recover_windows_language_transaction_for_selection")
+                && !source.contains("has_pending_windows_language_transaction"),
             "{owner} must not inspect or recover pending language transactions"
         );
     }

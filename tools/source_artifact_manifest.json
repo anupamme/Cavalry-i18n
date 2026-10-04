@@ -25,6 +25,7 @@
     "tools/verify_ci_action_pins.test.js",
     "renderer/index.html",
     "renderer/app.js",
+    "renderer/user-profile-text.js",
     "renderer/ui-text.js",
     "renderer/styles.css",
     "renderer/tauri-bridge.js",

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Tauri AppHandle/IPC Channel、官方 tauri-plugin-updater 2.10.1 的 Update、Updater 单飞状态，以及安装阶段复用的 bundle operation lock。
- * [OUTPUT]: 提供 check_update/install_update 两条 renderer-facing command、只暴露 currentVersion/version/notes/pubDate/available/errorCode 的 DTO、三阶段脱敏更新事件，以及进程内 pending Update 状态。
+ * [OUTPUT]: 提供 check_update/install_update 两条 renderer-facing command、只暴露 currentVersion/version/notes/pubDate/available/errorCode 的 DTO、三阶段脱敏更新事件，以及进程内 pending Update 状态；显式native开发预览拒绝check/install旧共享endpoint，不把未发布预览自动升级为2.7。
  * [POS]: commands 的更新领域边界；检查网络不占用 Cavalry bundle 锁，检查与安装彼此单飞；安装只消费 Rust State 中最近一次签名验证通过的 Update，并以 Channel 观察下载、安装和重启边界。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -254,6 +254,11 @@ fn state_error_payload(app: &AppHandle) -> UpdatePayload {
 }
 
 fn updater_is_configured(app: &AppHandle) -> bool {
+    #[cfg(target_os = "macos")]
+    if super::native_resources::preview_enabled() {
+        return false;
+    }
+    // 未发布2.8预览绝不消费旧2.7.2的共享latest.json。
     app.config().plugins.0.contains_key("updater")
 }
 

@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 commands 各职责模块、临时 bundle fixtures 与 fake CommandRunner。
- * [OUTPUT]: 覆盖 macOS 完整 official baseline 准入/收敛替换、旧 JSON-only provenance 在历史 revision 字符串下优先返回重装提示、完整基线绑定漂移安全拒绝，以及 command DTO、Windows legacy QPA、snapshot/provenance、签名残留清理、事务 marker 与四阶段 apply/restart。
+ * [INPUT]: 依赖 commands 各职责模块、临时 bundle/user-profile fixtures 与 fake CommandRunner。
+ * [OUTPUT]: 覆盖 macOS 完整 official baseline 准入/收敛替换、旧 JSON-only provenance 在历史 revision 字符串下优先返回重装提示、完整基线绑定漂移安全拒绝，以及 command DTO、Windows legacy QPA、snapshot/provenance、签名残留清理、事务 marker、纯 locale 投影、用户文件事务目录意图/前像回执/locale-last/预发布乐观比较/恢复警告合同（不宣称 OS 原子 CAS），四阶段 apply/restart。
  * [POS]: commands 的 owner unit tests；通过公开兼容 seam 和 transport-neutral reporter 验证跨模块编排。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -2083,3 +2083,7 @@ fn repeated_identical_apply_repairs_a_broken_managed_signature() {
 
 #[path = "tests/runtime.rs"]
 mod runtime;
+#[path = "tests/user_language.rs"]
+mod user_language;
+#[path = "tests/user_language_files.rs"]
+mod user_language_files;

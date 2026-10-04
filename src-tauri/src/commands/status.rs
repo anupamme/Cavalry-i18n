@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 patch_receipt 的只读回执/源身份验证、context 路径/语言源、detect/install/state、Windows QPA 只读检查与本地 diagnostics 事实流。
- * [OUTPUT]: 提供启动期只读安装观察、四态版本兼容投影、独立于语言 marker 的补丁版本状态、当前语言、跨平台未提交 marker 与 Windows runtime 残留提示，以及目录耐久确认后的安装选择（安装根或 revision 改变即丢弃旧补丁回执）；启动不探测 journal、签名、英文快照、进程或写权限，完整证明和内部事务收敛留给用户触发的 Switch/Restore。
- * [POS]: commands 的轻量状态层；启动回答安装、版本和当前语言，把 English 下未提交 marker 与本工具拥有或无法证明已清理的 Windows runtime 投影为可执行 Restore，不把 crash-safety 或写入前证明投影成产品阻断。
+ * [INPUT]: 依赖 patch_receipt 的只读回执/源身份验证、context 路径/语言源、detect/install/state、Windows QPA只读检查、本地diagnostics及macOS固定厂商requirement只读验签。
+ * [OUTPUT]: 提供卸载到blocking worker的启动期只读安装观察；显式macOS native预览另独立投影厂商Official来源、typed profile/receipt语言、脱敏nativeLocaleState（Absent按已锁2.8原厂fallback为en+unset；Known为explicit；Unknown/错误输入为unknown+unrecognized）、资源可用性及强Current-owned postimage限定的nativeEnglishRestoreAvailable；Official要求可显示bundle身份，但不比较supported版本，且独立于pack/profile/receipt、不授予应用写入或恢复许可，其余默认2.7路径不变；四态版本兼容、补丁状态、当前语言、安装选择及Windows残留提示仍各守自身证明边界。status不探测journal、英文快照、进程或写权限，事务证明和收敛留给用户触发的Switch/Restore。
+ * [POS]: commands 的只读状态层；native签名验签有5秒子进程期限并由Tauri blocking worker承载，失败只把安装来源留为unknown，不阻断原有语言/profile/resource投影。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::path::{Path, PathBuf};
@@ -45,13 +45,13 @@ fn version_triplet(version: &str) -> Option<(u64, u64, u64)> {
 }
 
 fn version_compatibility(version: &str) -> &'static str {
-    if version == detect::SUPPORTED_CAVALRY_VERSION {
+    compatibility_for_target(version, detect::SUPPORTED_CAVALRY_VERSION)
+}
+pub(crate) fn compatibility_for_target(version: &str, supported_version: &str) -> &'static str {
+    if version == supported_version {
         return "supported";
     }
-    match (
-        version_triplet(version),
-        version_triplet(detect::SUPPORTED_CAVALRY_VERSION),
-    ) {
+    match (version_triplet(version), version_triplet(supported_version)) {
         (Some(actual), Some(supported)) if actual < supported => "olderUnsupported",
         (Some(actual), Some(supported)) if actual > supported => "newerUnsupported",
         _ => "unknownUnsupported",
@@ -300,50 +300,113 @@ pub(crate) fn status_for_paths(
     resource_dir: &Path,
     candidates: Vec<PathBuf>,
 ) -> Result<StatusPayload, String> {
-    let language_roots = language_root_candidates(repo_root, resource_dir);
     let (app_path, state, version) = observed_state(state_dir, candidates.iter().cloned())?;
     let compatibility = version_compatibility(&version);
     let reconciliation_required = marker_reconciliation_required(&app_path, &state.current_lang);
     #[cfg(target_os = "windows")]
     let reconciliation_required = reconciliation_required
         || windows_runtime_reconciliation_required(&app_path, &state.current_lang);
-    Ok(StatusPayload {
+    let mut status = status_shell(repo_root, resource_dir, candidates);
+    status.app_path = app_path.to_string_lossy().to_string();
+    status.current_lang = state.current_lang.clone();
+    status.patch_status =
+        patch_status_for_paths(repo_root, state_dir, resource_dir, &app_path, &state).into();
+    status.reconciliation_required = reconciliation_required;
+    status.version = version;
+    status.version_compatibility = compatibility.into();
+    Ok(status)
+}
+
+pub(super) fn status_shell(
+    repo_root: &Path,
+    resource_dir: &Path,
+    candidates: Vec<PathBuf>,
+) -> StatusPayload {
+    StatusPayload {
         app_management_granted: None,
-        app_path: app_path.to_string_lossy().to_string(),
-        current_lang: state.current_lang.clone(),
-        patch_status: patch_status_for_paths(repo_root, state_dir, resource_dir, &app_path, &state)
-            .to_string(),
-        // 保留 DTO 键用于旧 renderer 兼容；启动观察不声称已证明 Official/Managed。
-        installation_mode: "unknown".to_string(),
+        app_path: String::new(),
+        current_lang: "en".into(),
+        language_scope: "installation".into(),
+        native_resource_available: true,
+        native_locale_state: None,
+        native_english_restore_available: false,
+        patch_status: "notApplicable".into(),
+        installation_mode: "unknown".into(),
         macos_permission_handoff_required: false,
-        // Restore 是统一用户意图；后端事务在锁内决定使用官方 baseline 或旧版快照。
         official_recovery_available: false,
         default_app_candidates: candidates
             .into_iter()
-            .map(|candidate| candidate.to_string_lossy().to_string())
+            .map(|path| path.to_string_lossy().to_string())
             .collect(),
         diagnostics: None,
-        languages: language_choices_from_roots(&language_roots),
+        languages: language_choices_from_roots(&language_root_candidates(repo_root, resource_dir)),
         needs_extract: false,
-        permission_action: "none".to_string(),
-        platform: platform_name().to_string(),
-        reconciliation_required,
+        permission_action: "none".into(),
+        platform: platform_name().into(),
+        reconciliation_required: false,
         repo_root: repo_root.to_string_lossy().to_string(),
-        supported_version: detect::SUPPORTED_CAVALRY_VERSION.to_string(),
-        version,
-        version_compatibility: compatibility.to_string(),
-    })
+        supported_version: detect::SUPPORTED_CAVALRY_VERSION.into(),
+        version: String::new(),
+        version_compatibility: "unknownUnsupported".into(),
+    }
+}
+#[cfg(target_os = "macos")]
+fn native_status_for_paths(
+    paths: &AppPaths,
+    candidates: Vec<PathBuf>,
+) -> Result<StatusPayload, String> {
+    let saved = read_state_projection(&paths.state_dir);
+    let installation = (!saved.app_path.trim().is_empty())
+        .then(|| PathBuf::from(saved.app_path))
+        .into_iter()
+        .chain(candidates.iter().cloned())
+        .find_map(|path| super::native_resources::observe_install(&path).ok());
+    let mut status = status_shell(&paths.repo_root, &paths.resource_dir, candidates);
+    if let Some((app, version)) = installation {
+        status.installation_mode = super::native_official::installation_mode(&app).into();
+        status.app_path = app.to_string_lossy().to_string();
+        status.version = version;
+    }
+    Ok(super::native_user::project_status(
+        status,
+        &paths.state_dir,
+        &paths.repo_root,
+        &paths.resource_dir,
+    ))
 }
 
-pub(crate) fn get_status_for_app(app: &tauri::AppHandle) -> Result<StatusPayload, String> {
+pub(crate) async fn get_status_for_app(app: &tauri::AppHandle) -> Result<StatusPayload, String> {
     let paths = AppPaths::for_app(app);
+    tauri::async_runtime::spawn_blocking(move || get_status_for_paths(paths))
+        .await
+        .map_err(|_| "Status projection worker could not be joined.".to_string())?
+}
+
+fn get_status_for_paths(paths: AppPaths) -> Result<StatusPayload, String> {
     let candidates = detect::default_app_candidates();
-    let result = status_for_paths(
-        &paths.repo_root,
-        &paths.state_dir,
-        &paths.resource_dir,
-        candidates,
-    );
+    #[cfg(target_os = "macos")]
+    let native_preview = super::native_resources::preview_enabled();
+    #[cfg(not(target_os = "macos"))]
+    let native_preview = false;
+    let legacy_status = || {
+        status_for_paths(
+            &paths.repo_root,
+            &paths.state_dir,
+            &paths.resource_dir,
+            candidates.clone(),
+        )
+    };
+    #[cfg(target_os = "macos")]
+    let result = if native_preview {
+        native_status_for_paths(&paths, candidates.clone())
+    } else {
+        legacy_status()
+    };
+    #[cfg(not(target_os = "macos"))]
+    let result = {
+        let _ = native_preview;
+        legacy_status()
+    };
     record_status_diagnostics(&paths, &result);
     result
 }
@@ -384,6 +447,24 @@ pub(crate) fn browse_for_app(app: &tauri::AppHandle) -> Result<BrowsePayload, St
     };
     let state_dir = super::context::state_dir_for_app(app);
     let _guard = crate::operation_lock::try_begin_bundle_operation(&state_dir)?;
+    #[cfg(target_os = "macos")]
+    if super::native_resources::preview_enabled() {
+        let (path, version) = super::native_resources::observe_install(&selection)?;
+        read_state_for_mutation(&state_dir)?;
+        persist_selected_state(
+            &state_dir,
+            &State {
+                app_path: path.to_string_lossy().to_string(),
+                cavalry_version: version.clone(),
+                ..State::default()
+            },
+        )?;
+        return Ok(BrowsePayload {
+            canceled: false,
+            app_path: path.to_string_lossy().to_string(),
+            version,
+        });
+    }
     #[cfg(target_os = "macos")]
     if privilege::pending_macos_apply_install_root(&state_dir)?.is_some() {
         return Err(

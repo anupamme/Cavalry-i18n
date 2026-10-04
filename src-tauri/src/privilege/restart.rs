@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 InstallLayout、CommandRunner、macOS exact-PID 控制与 Windows hash-safe PowerShell 编码。
- * [OUTPUT]: 提供 restart_commands、typed 写入前 graceful close、两平台 canonical executable/PID 绑定，以及带 cwd/env/PID 的 Cavalry 重启。
- * [POS]: privilege 的跨平台重启适配器；macOS 通过 libproc+NSRunningApplication 有界等待，Windows 固定当前 Session 的同一 Process/SafeHandle。
+ * [OUTPUT]: 提供 restart_commands、macOS native preview 的背景启动请求 open -g -n、typed 写入前 graceful close、两平台 canonical executable/PID 绑定，以及带 cwd/env/PID 的 Cavalry 重启。
+ * [POS]: privilege 的跨平台重启适配器；原厂 native 启动不终止既有进程，-g只请求Launch Services不要前台激活，不保证Cavalry自身不主动激活；旧重启流程仍可在明确场景graceful close；macOS经libproc+NSRunningApplication有界等待，Windows固定当前Session的同一Process/SafeHandle。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{ffi::OsString, fmt, path::Path};
@@ -35,6 +35,24 @@ pub fn restart_commands(app_path: &Path) -> Vec<RecordedCommand> {
 
     #[allow(unreachable_code)]
     Vec::new()
+}
+
+/// 只请求在后台启动已选中的原厂 app；`open -g`不约束应用自主激活窗口。
+/// 调用方必须先完成宿主验证及共享进程准入；与 legacy restart 分开，避免关闭现有进程。
+#[cfg(target_os = "macos")]
+pub(crate) fn launch_cavalry_without_termination<R: CommandRunner>(
+    app_path: &Path,
+    runner: &mut R,
+) -> Result<(), String> {
+    let command = RecordedCommand {
+        program: "open".to_string(),
+        args: vec![
+            "-g".to_string(),
+            "-n".to_string(),
+            app_path.to_string_lossy().to_string(),
+        ],
+    };
+    runner.spawn_detached(&command.program, &command.args)
 }
 
 #[cfg(target_os = "windows")]
@@ -493,5 +511,56 @@ mod tests {
             close_cavalry_before_modification(Path::new(r"C:\Cavalry"), &mut runner).unwrap_err();
         assert!(matches!(error, CloseCavalryError::Command(_)));
         assert!(error.to_string().contains("fixture failure"));
+    }
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod macos_launch_tests {
+    use super::*;
+    use crate::privilege::{RecordedCommand, RecordingRunner};
+
+    #[derive(Default)]
+    struct LaunchRecordingRunner {
+        recorder: RecordingRunner,
+        run_calls: usize,
+        spawn_calls: usize,
+    }
+
+    impl CommandRunner for LaunchRecordingRunner {
+        fn run(&mut self, program: &str, args: &[String]) -> Result<(), String> {
+            self.run_calls += 1;
+            self.recorder.run(program, args)
+        }
+
+        fn spawn_detached(&mut self, program: &str, args: &[String]) -> Result<(), String> {
+            self.spawn_calls += 1;
+            self.recorder.commands.push(RecordedCommand {
+                program: program.to_string(),
+                args: args.to_vec(),
+            });
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn native_launch_requests_background_new_instance_without_termination() {
+        let app_path = Path::new("/Applications/Cavalry Preview.app");
+        let mut runner = LaunchRecordingRunner::default();
+
+        launch_cavalry_without_termination(app_path, &mut runner).unwrap();
+
+        assert_eq!(runner.spawn_calls, 1);
+        assert_eq!(runner.run_calls, 0);
+        assert_eq!(
+            runner.recorder.commands,
+            [RecordedCommand {
+                program: "open".to_string(),
+                args: vec![
+                    "-g".to_string(),
+                    "-n".to_string(),
+                    app_path.to_string_lossy().to_string(),
+                ],
+            }]
+        );
     }
 }

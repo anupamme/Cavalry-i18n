@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 detect/state/status 同步、snapshot English 真相投影、platform_runtime.restart、共享 operation_lock 测试门与 CommandRunner。
- * [OUTPUT]: 提供 restart_cavalry_inner；重启前同步 revision 并按已证明现实覆盖 stale marker 状态，测试仍以显式 inspector seam 覆盖 QPA ACTIVE。
+ * [OUTPUT]: 提供 restart_cavalry_inner 与commands内部的restart_cavalry_legacy_inner；显式native预览先只读检查用户profile回执/namespace，无pending或drift才复核2.8宿主并使用不终止已有进程的正常launch，不同步2.7 bundle状态；legacy路径重启前同步 revision 并按已证明现实覆盖 stale marker 状态，Windows测试仍以显式 inspector seam 覆盖 QPA ACTIVE。
  * [POS]: commands 的重启编排层；Windows QPA/plugin/诊断 marker 与 macOS launcher 下沉 platform_runtime，状态投影不写安装根，也不拥有 Switch/Restore 的 journal 收敛。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -14,6 +14,20 @@ use super::{
 };
 
 pub fn restart_cavalry_inner<R: CommandRunner>(
+    repo_root: &Path,
+    state_dir: &Path,
+    resource_dir: &Path,
+    app_path: &Path,
+    runner: &mut R,
+) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    if super::native_resources::preview_enabled() {
+        return super::native_user::restart(app_path, state_dir, runner);
+    }
+    restart_cavalry_legacy_inner(repo_root, state_dir, resource_dir, app_path, runner)
+}
+
+pub(super) fn restart_cavalry_legacy_inner<R: CommandRunner>(
     repo_root: &Path,
     state_dir: &Path,
     resource_dir: &Path,

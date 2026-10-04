@@ -1,11 +1,11 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::commands 的注册表与跨平台序列化 payload
- * [OUTPUT]: 对外提供 command 名称、权限动作、platform、Status 补丁回执状态/版本兼容/官方恢复能力与固定 false 的旧 macOS handoff hint、About 创建时原生交通灯配置与 Windows main-owner 生命周期、稳定 errorCode、可组合 warningCodes、Windows residue、Updater DTO 与 camelCase JSON shape contract tests
+ * [OUTPUT]: 对外提供 command 名称、权限动作、platform、Status 补丁回执状态/版本兼容/官方恢复能力/owned native English restore capability/受控nativeLocaleState与固定 false的旧macOS handoff hint、Action restore-only结果、About创建时原生交通灯配置与Windows main-owner生命周期、稳定errorCode、可组合warningCodes、Windows residue、Updater DTO与camelCase JSON shape contract tests
  * [POS]: src-tauri/tests 的 renderer API 守门，保持九命令和旧字段兼容，并显式暴露平台差异、Managed Legacy/版本只读字段、固定项目外链、可本土化错误、Windows runtime residue 与脱敏更新状态
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use cavalry_i18n_tauri::commands::{
-    registered_command_names, ActionPayload, StatusPayload, UpdatePayload,
+    registered_command_names, ActionPayload, NativeLocaleState, StatusPayload, UpdatePayload,
 };
 use std::{fs, path::Path};
 
@@ -117,6 +117,7 @@ fn command_payload_uses_renderer_compatible_camel_case() {
         ),
         permission_required: true,
         reconciliation_required: true,
+        native_restore_only: false,
         error: None,
         error_code: Some("cavalryStillRunning".into()),
         warning_code: Some("restartFailed".into()),
@@ -131,6 +132,7 @@ fn command_payload_uses_renderer_compatible_camel_case() {
     );
     assert_eq!(value["permissionRequired"], true);
     assert_eq!(value["reconciliationRequired"], true);
+    assert!(value.get("nativeRestoreOnly").is_none());
     assert_eq!(value["errorCode"], "cavalryStillRunning");
     assert_eq!(value["warningCode"], "restartFailed");
     assert_eq!(
@@ -143,14 +145,20 @@ fn command_payload_uses_renderer_compatible_camel_case() {
     assert!(value.get("warning_codes").is_none());
 }
 
-#[test]
-fn status_payload_keeps_permission_probe_and_omits_inactive_legacy_handoff_hint() {
-    let payload = StatusPayload {
+fn status_payload(
+    language_scope: &str,
+    native_locale_state: Option<NativeLocaleState>,
+) -> StatusPayload {
+    StatusPayload {
+        language_scope: language_scope.into(),
+        native_resource_available: true,
+        native_english_restore_available: false,
         app_management_granted: Some(true),
         app_path: "/Applications/Cavalry.app".into(),
         current_lang: "en".into(),
         patch_status: "notApplicable".into(),
         installation_mode: "official".into(),
+        native_locale_state,
         macos_permission_handoff_required: false,
         official_recovery_available: true,
         default_app_candidates: Vec::new(),
@@ -164,12 +172,25 @@ fn status_payload_keeps_permission_probe_and_omits_inactive_legacy_handoff_hint(
         supported_version: "2.7.2".into(),
         version: "2.3.4".into(),
         version_compatibility: "olderUnsupported".into(),
-    };
+    }
+}
+
+#[test]
+fn status_payload_keeps_permission_probe_and_omits_inactive_legacy_handoff_hint() {
+    let payload = status_payload("installation", None);
     let value = serde_json::to_value(payload).unwrap();
     assert_eq!(value["appManagementGranted"], true);
     assert_eq!(value["permissionAction"], "openPrivacy");
     assert_eq!(value["platform"], "macos");
     assert_eq!(value["patchStatus"], "notApplicable");
+    assert!(value.get("nativeEnglishRestoreAvailable").is_none());
+    assert_eq!(value["languageScope"], "installation");
+    assert_eq!(value["nativeResourceAvailable"], true);
+    assert!(
+        value.get("nativeLocaleState").is_none(),
+        "legacy installation status must omit native-only locale observation"
+    );
+    assert!(value.get("native_locale_state").is_none());
     assert!(value.get("patch_status").is_none());
     assert_eq!(value["reconciliationRequired"], true);
     assert_eq!(value["installationMode"], "official");
@@ -178,4 +199,28 @@ fn status_payload_keeps_permission_probe_and_omits_inactive_legacy_handoff_hint(
     assert_eq!(value["supportedVersion"], "2.7.2");
     assert_eq!(value["versionCompatibility"], "olderUnsupported");
     assert!(value.get("app_management_granted").is_none());
+}
+
+#[test]
+fn native_locale_state_is_camel_case_and_native_profile_only() {
+    let payload = status_payload("userProfile", Some(NativeLocaleState::Unset));
+    let value = serde_json::to_value(payload).unwrap();
+    assert_eq!(value["nativeLocaleState"], "unset");
+    assert!(value.get("native_locale_state").is_none());
+}
+
+#[test]
+fn native_locale_state_has_only_controlled_camel_case_values() {
+    assert_eq!(
+        serde_json::to_value(NativeLocaleState::Unset).unwrap(),
+        "unset"
+    );
+    assert_eq!(
+        serde_json::to_value(NativeLocaleState::Explicit).unwrap(),
+        "explicit"
+    );
+    assert_eq!(
+        serde_json::to_value(NativeLocaleState::Unrecognized).unwrap(),
+        "unrecognized"
+    );
 }
