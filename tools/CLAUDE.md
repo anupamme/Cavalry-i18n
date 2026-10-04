@@ -96,6 +96,8 @@ powershell_command.js: Windows 开发脚本宿主边界；优先单次启动 `pw
 release_metadata.js: GitHub Release 协议守门器，以 `release.config.json` 为真相源，校验 `cavalry-2.7.2-pN` tag，生成双架构 DMG、Windows x64 NSIS、macOS updater archive、三份签名 sidecar 与 `latest.json` 的唯一名称，并向 manifest producer 共享同一解析函数。
 create_updater_manifest.js: 静态 Tauri updater manifest producer；从当前 package SemVer、已审阅 notes、三个 exact-name artifact 及对应 base64 `.sig` 确定性生成 `latest.json`，只允许两个 macOS 架构与 Windows x64，不持有密钥也不上传。
 create_updater_manifest.test.js: updater manifest 离线对抗测试；以临时伪 artifact/signature 验证三平台映射、稳定 URL/时间归一化，以及命名、签名格式和 symlink 输入失败关闭。
+create_legacy_updater_manifest.js: 固定p12原文/输出字节锁的离线producer，独立于当前SemVer/平台profile，仅将三条URL固定到p12并保留原签名；CLI只新建或验证同字节latest.json，不接production发布器、不重验archive签名。
+create_legacy_updater_manifest.test.js: 固定历史feed的离线合同；锁原文字节/三条tag URL/原签名指纹、真实input/output变异和CLI新建/同字节幂等/异内容保留/参数与symlink拒绝；独立source fixture，不依赖动态发行平台或密码学验签。
 release_publish.js: 幂等 GitHub Release 发布器；先以三项签名 sidecar 生成并验证 manifest/provenance，再让私有 draft 只上传三项安装包、两个 macOS updater archive、`latest.json` 与 `SHA256SUMS` 七项用户/updater 资产并逐字节回读，最后一步才公开；SBOM、toolchain、provenance 与独立签名仅在 CI 内验证，远端冲突仍 fail-closed。
 create_sbom.js / verify_release_provenance.js: 从 npm/Cargo lockfiles 生成确定性 CycloneDX 1.5 SBOM，并在 CI 内复核 ReleaseAssetProvenance v5 对 release commit、真实平台签名声明、SBOM、toolchain、九项安装/updater/signature 输入及 manifest 三平台语义的精确绑定；这些构建证据不再作为用户下载附件。
 create_source_artifact.js / verify_source_artifact.js / source_artifact_manifest.json + schemas/: 用 mode-preserving tar 输出 repo 外 source artifact；verifier 独立生成同 commit 的 `git archive`，逐 entry 拒绝 link/special/traversal/duplicate/secret 并精确比对路径、bytes、type 与 mode，marker 不能替代 tree 校验。
@@ -134,7 +136,7 @@ ja_JP.ts: 日文 compiled UI 翻译源。
 zh-Hans.ts: 简体中文 compiled UI 翻译源。
 zh-Hant.ts: 繁体中文 compiled UI 翻译源。
 runtime_ui_allowlist.json: runtime UI 覆盖率允许保留英文/快捷键/格式标签/样本值的 exact、contains、regex 与 stripRegex 清单；可翻译的自动编号 Composition 标签不得进入噪声豁免。
-fixtures/: 测试 fixture 工厂，生成 fake Cavalry.app 而不提交真实应用包。
+fixtures/: fake Cavalry.app测试工厂与已发行p12公开manifest的固定字节输入；不包含真实应用包或用户配置。
 git-hooks/: Git Hook bootstrap 目录，承载提交前 Node 路径解析与快速门禁入口（详见 git-hooks/CLAUDE.md）。
 
 依赖边界:
