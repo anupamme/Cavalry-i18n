@@ -52,7 +52,7 @@ pub(crate) use macos::bundle::{
 };
 #[cfg(target_os = "macos")]
 #[allow(unused_imports)]
-// 原生用户 profile 写入接线完成后会消费这些 facade API。
+// 原生用户profile接线复用只读OS home与全部Cavalry写者准入，不借用安装恢复权。
 pub(crate) use macos::{
     process::{
         ensure_cavalry_not_running, guard_all_cavalry_not_running, CavalryProcessGuardError,

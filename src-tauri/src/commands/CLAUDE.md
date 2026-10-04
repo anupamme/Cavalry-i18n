@@ -24,6 +24,7 @@ status.rs: 启动只读观察与安装选择owner；Tauri command把只读工作
 tests.rs: commands 基础契约 owner tests；验证缺少补丁回执的旧安装不被误判最新，覆盖 macOS P4/P5 形态的 JSON-only provenance 优先重装分类与完整基线绑定漂移拒绝、DTO、锁、marker、Windows pending marker/English runtime residue 只读投影、snapshot、四阶段真实 apply/clean-English no-op 边界、稳定 manifest、RAII 未完成阶段收口与 Tauri Channel rejection 隔离，并挂载运行时领域子模块。
 tests/runtime.rs: macOS apply fixture 与 Windows DLL/语言资源解析分开验证，覆盖打包资源、语言 apply、macOS直接调用内部legacy helper的fixture runner与Windows restart边界回归；native profile准入由独立fixture合同覆盖；Windows 断言 QPA ACTIVE 且子进程环境只含诊断 marker，复用父级 fixture，不在磁盘写魔法 ACTIVE sentinel。
 tests/native_user_official_independence.rs: 临时profile组合投影；在Absent默认English与Known显式翻译两态下，对照`official/unknown`来源并验证locale、nativeResourceAvailable与patchStatus不串扰，签名分类另由native_official fixture负责。
+tests/native_status_readonly_smoke.rs: status人工ignored组合烟测；真实原厂签名/编译包/OS默认profile经同一次生产native status owner投影，不启动GUI或创建模拟首次运行的state，细节由tests地图约束。
 update.rs: Switcher 自更新领域边界；显式native预览禁止消费旧共享endpoint；通过官方 updater plugin 检查版本并把待验证的 `Update` 仅保存在 Rust State，renderer 只取得脱敏 camelCase DTO；安装命令拒绝外部 URL/签名/版本输入，与语言写入共用全局 operation lock，并以 camelCase Channel 只发送 downloading、verifying/installing、restarting 三个真实边界，其中下载结束回调先于签名验证，故绝不虚构独立 verified 事件，Channel 失效也不改变更新事务。
 
 法则: facade 只保留稳定命令与兼容 seam；领域逻辑按状态、快照、写入、平台运行时单向下沉。

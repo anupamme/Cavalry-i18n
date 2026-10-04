@@ -9,7 +9,7 @@
 更新：2026-10-05
 状态：**整体迁移未完成；逐项办事表以§5.2为当前唯一进度入口。** 原生显示源已全部闭合：77模块、10278审批键、剩0；每语10473叶（含195自动DNT），34厂商源/身份未改。原4319质量冻结后新增5959键，390厂商日语仅13核证纠错/377保留。512帮助译文已审但consumer未接，Destination Over仍有1项厂商源行为冲突待实测。
 
-当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official使用固定厂商Apple Developer ID requirement，只认证来源、不授予写入/恢复权。整仓Node717项通过；native与默认路径全量Rust各370通过/0失败，5个显式人工门未运行；另手动真实原厂来源只读smoke 1项通过，六文件前后摘要未变。四语徽章headless fixture 6项通过，不是实际WK或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
+当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official使用固定厂商Apple Developer ID requirement，只认证来源、不授予写入/恢复权。整仓Node717项通过；native与默认路径全量Rust各370通过/0失败，6个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章headless fixture 6项通过，不是实际WK或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
 
 历史已完成两键探针、三语菜单/部分节点/指南与退出重启持久化；不能重标成完整冻结包通过。当前完整三语包已单次生成并与冻结manifest逐字一致，本轮代表catalog现场矩阵仍0/51。用户要求后台PID/CUA操作；原厂open -g自激活反例已记录，不再用该方式启动。用户偏好仍原样，未Apply本轮三语。默认2.7发布、版本号与共享updater feed不变；Windows实施暂停。翻译检查点已commit，验收后的开发预览另行commit；不推送或发布。完整session复盘与原始过程证据只入私人账本，继续主线不等待复盘。
 本文件按用户要求放在产品分支；过程证据与临时队列留在会话级 stage 或私有历史文档库。公开构建、测试和发布不得依赖这些路径，也不打包调查脚本。
@@ -434,7 +434,8 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 - [x] 九命令/单一bridge沿用，版本兼容、资源、用户有效语言、补丁状态和恢复能力分离；2.7.2历史下载入口/预览updater禁用已接。
 - [x] 默认英语/显式语言/异常Unknown三态接入四语文案；拆独立userProfile copy并保持四语各189键逐字等价与加载/打包顺序合同。
 - [x] Official来源只读验签/5秒期限/子进程回收/异步status、失败unknown及来源不覆盖语言/资源合同；实际原厂验签smoke已通过，不证明notarization。
-- [x] 新状态徽章headless fixture 6/6、400×484布局/无横溢出；整仓Node717、native与默认Rust各370/0失败（各5明确人工ignored）。
+- [x] 新状态徽章headless fixture 6/6、400×484布局/无横溢出；整仓Node717、native与默认Rust各370/0失败（各6明确人工ignored）。
+- [x] 当前真实原厂App/OS默认profile/已审批完整pack经生产native status owner组合只读烟测；临时未创建state模拟首次运行，六vendor文件与profile/manifest字节模式不变，不代验AppHandle/WK或Apply。
 - [ ] 新默认英语+Official真实WKWebView复验；此前旧WK布局检查不能替代新代码。
 - [ ] 完整产品四语文案/错误/Activity/恢复终态与真实后端联动；去掉预览限制必须有对应事实，不为外观删安全提示。
 
@@ -459,7 +460,7 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 
 - [x] 翻译冻结Git检查点`32033c3`，精确index树379项验证；未混入当时未验收的runtime/Official。
 - [x] 过期ignored构建/cache历史限域5.79GiB清理，本轮又清理已提交检查点导出与闭合阶段bytecode；当前有效target/packs/证据/失败日志/私有前像保留。
-- [ ] 提交本轮已验收preview源码/UI检查点；只显式暂存自有文件，按独立主题拆commit。
+- [x] 本轮preview源码/UI检查点`5c6df86`与独立旧feed检查点`944a0f0`已commit；68文件跨层预览整体保全，工作树当时干净，未push。
 - [ ] 回顾整个session的决策/原话/失败/纠正/经验并提交私人账本；共享私库他人脏文件不覆盖，未推送隔离clone不冒称已同步。
 
 当前顺序：B全键已闭合；先保存验收代码检查点，同时做全程复盘，然后推进C/D真实消费者与恢复，按证据进入F/G。用户“不抢前台”与“不丢场景”的限制优先；不重复已知自激活启动，不以复盘停主线。
