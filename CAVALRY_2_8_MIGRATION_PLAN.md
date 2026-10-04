@@ -1,5 +1,5 @@
 <!--
-[INPUT]: 依赖现行 2.7.2 架构、官方 2.8.0 来源/限域实测、旧三语翻译源、三家族原生投影/用户 locale 与隔离文件事务合同、项目级翻译技能与已审补译输入
+[INPUT]: 依赖现行 2.7.2 架构、官方 2.8.0 来源/限域实测、旧三语翻译源、三家族原生投影/用户 locale 与隔离文件事务合同、项目级翻译技能、已审补译输入与当前renderer的非激活WK fixture证据（非实际后端联动）
 [OUTPUT]: 给出本分支的 2.8 迁移决策、TDD顺序、原4319键质量冻结、10278正式键与剩余0键的接续边界；不宣称产品已经支持2.8
 [POS]: feat/cavalry-2.8.0 的实施方案入口；调查工具与原始证据不进入产品运行时
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -9,7 +9,7 @@
 更新：2026-10-05
 状态：**整体迁移未完成；逐项办事表以§5.2为当前唯一进度入口。** 原生显示源已全部闭合：77模块、10278审批键、剩0；每语10473叶（含195自动DNT），34厂商源/身份未改。原4319质量冻结后新增5959键，390厂商日语仅13核证纠错/377保留。512帮助译文已审但consumer未接，Destination Over仍有1项厂商源行为冲突待实测。
 
-当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official使用固定厂商Apple Developer ID requirement，只认证来源、不授予写入/恢复权。整仓Node717项通过；native与默认路径全量Rust各370通过/0失败，6个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章headless fixture 6项通过，不是实际WK或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
+当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official使用固定厂商Apple Developer ID requirement，只认证来源、不授予写入/恢复权。整仓Node717项通过；native与默认路径全量Rust各370通过/0失败，6个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章Chromium headless fixture 6项与系统WKWebView fixture 6项均通过；WK审查用prohibited激活策略，记录1个内部隐藏TUINSWindow、0可见/key/main及无自身激活事件，原厂/profile六监视文件前后不变。真实WebKit渲染不等于Tauri AppHandle/实际后端联动或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
 
 历史已完成两键探针、三语菜单/部分节点/指南与退出重启持久化；不能重标成完整冻结包通过。当前完整三语包已单次生成并与冻结manifest逐字一致，本轮代表catalog现场矩阵仍0/51。用户要求后台PID/CUA操作；原厂open -g自激活反例已记录，不再用该方式启动。用户偏好仍原样，未Apply本轮三语。默认2.7发布、版本号与共享updater feed不变；Windows实施暂停。翻译`32033c3`、旧feed`944a0f0`、开发预览`5c6df86`与真实只读status`d24d29c`已分主题commit；不推送或发布。完整session复盘与compact过程证据已在隔离私人账本本地commit，未同步共享目录/远端；下一项继续真实消费者与帮助consumer最小接缝，不等待复盘停工。
 本文件按用户要求放在产品分支；过程证据与临时队列留在会话级 stage 或私有历史文档库。公开构建、测试和发布不得依赖这些路径，也不打包调查脚本。
@@ -355,6 +355,7 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 - 这是实际帮助消费链的静态证明，不是完整运行时调用图或 Cavalry live 验收。先证明真实读取路径与语言选择，再决定是否需要窄的 consumer 接入；帮助仍独立于 UI-text 包，不猜 bridge、不把 2.7 安装级 `CORE_MAP` 宣称为 2.8 用户级支持。任何文件部署都须另证 locale、所有权、恢复和写入边界。
 - 旧说明关联的机器字段有 16 项参数结构变化：两条 setGradient* 为真实新参数签名，其余 14 项为 null 占位清理；说明语义可复用时，投影仍必须保留新版参数结构而不是覆盖旧文档。
 - 只处理自然语言 description，不复制三份冗余译文，也不预建第二套文档引擎。
+- 后续固定Node24.20.0对实际四份锁定2.8源再次作三语内存投影：各512说明/0缺口，description以外结构与source bytes不变；不写安装资源、不把投影当consumer通过。静态查得真实跨库`TextEdit::addScriptDocumentationEntry`接缝，doc复制/lifetime、唯一name+source绑定及locale来源仍待证；插件、MetaData overlay、内部窄适配均保留比较，不凭缺少公开override接口先验淘汰内部路线。
 
 ### 4.5 compiled、动态与自绘
 
@@ -434,9 +435,9 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 - [x] 九命令/单一bridge沿用，版本兼容、资源、用户有效语言、补丁状态和恢复能力分离；2.7.2历史下载入口/预览updater禁用已接。
 - [x] 默认英语/显式语言/异常Unknown三态接入四语文案；拆独立userProfile copy并保持四语各189键逐字等价与加载/打包顺序合同。
 - [x] Official来源只读验签/5秒期限/子进程回收/异步status、失败unknown及来源不覆盖语言/资源合同；实际原厂验签smoke已通过，不证明notarization。
-- [x] 新状态徽章headless fixture 6/6、400×484布局/无横溢出；整仓Node717、native与默认Rust各370/0失败（各6明确人工ignored）。
+- [x] 新状态徽章Chromium headless与系统WKWebView fixture各6/6，CSS viewport 400×484/无横溢出；WK非激活、仅内部hidden窗口、六监视文件未变。整仓Node717、native与默认Rust各370/0失败（各6明确人工ignored）；两种fixture均不证明真实后端联动。
 - [x] 当前真实原厂App/OS默认profile/已审批完整pack经生产native status owner组合只读烟测；临时未创建state模拟首次运行，六vendor文件与profile/manifest字节模式不变，不代验AppHandle/WK或Apply。
-- [ ] 新默认英语+Official真实WKWebView复验；此前旧WK布局检查不能替代新代码。
+- [ ] 新默认英语+Official在当前真实Tauri/WK与实际只读后端的联动复验；最新standalone WK fixture已过，但不抵扣AppHandle、原生窗口或真实启动行为。
 - [ ] 完整产品四语文案/错误/Activity/恢复终态与真实后端联动；去掉预览限制必须有对应事实，不为外观删安全提示。
 
 #### F 缺口、首绘与性能
@@ -590,3 +591,13 @@ CAVALRY_I18N_ENABLE_NATIVE_PREVIEW=1 npx tauri build --debug --bundles app --no-
 `tools/create_legacy_updater_manifest.js` 与固定 p12 原文 fixture 已提供离线冻结能力：原始字节先验锁定，只将三个已发行平台的下载 URL 固定到 `cavalry-2.7.2-p12`，保留原 `1.0.6`、说明、日期与签名字节，输出再次通过精确字节锁。它不依赖当前 package SemVer 或未来2.8平台profile；保留历史Windows清单不代表新增Windows支持。CLI只接受显式 canonical目录中的 `latest.json`，新建或验证同字节已有内容，不覆盖异内容或跟随symlink。10项离线合同已接默认门，含真实字节变异与CLI验证；它不下载archive，也不重新验证archive的密码学签名。中断可能留下部分输出，下次会拒绝，需要使用新的输出目录或人工处理；不承诺原子发布、目录掉电耐久或排除并发父目录替换。
 
 当前共享updater endpoint、release metadata、publisher与workflow仍保持既有单feed协议，尚未采用该离线producer。发布2.8前仍须将冻结的 `latest.json` 与独立 `latest-2.8.json` 接入显式production profile，并对实际公开资产和两个feed逐字节readback；仅有历史下载入口或离线生成器均不能证明旧客户端已被隔离。新feed的平台集合与资产数量须按当期实际发行profile确定，不能从旧p12的三平台集合推定。默认版本/发行配置未切换，Windows仍暂停。
+
+## 12. 非激活WK检查点（2026-10-05）
+
+系统WebKit直接消费当前renderer及明确fake bridge，验证四语默认英语+Official、日语Unknown来源+默认英语、简体Official+已翻译六态。CSS视窗400×484，snapshotWidth单位为points，本机800pt/2x输出1600×1936；root查看简体/日语，独审查看六截图并核对摘要。语言、来源、Restore能力分离，source/profile六文件监视回读不变，未启动Tauri或Cavalry、未Apply或修改语言。
+
+保留四份harness RED：无变化的setActivationPolicy返回false被误判、WK创建内部隐藏TUINSWindow触发过严zero-window断言、在同一硬门下进一步只读窗口诊断、snapshot points被误作pixels。分别修正测试断言并锁固定canonical输出/拒symlink与既存覆盖；不改生产代码、不把captureComplete当pass。最终独立Node24回执门6/6，系统prohibited/无自身激活/0可见-key-main窗口；内部窗口真实记为1，不误称总窗口0。
+
+[Qt6.9.2 integration/delegate](https://github.com/qt/qtbase/blob/v6.9.2/src/plugins/platforms/cocoa/qcocoaapplicationdelegate.mm)及[raise/resolver](https://github.com/qt/qtbase/blob/v6.9.2/src/plugins/platforms/cocoa/qcocoawindow.mm)源码另证实两个不同语义的候选guard：非空`QT_MAC_DISABLE_FOREGROUND_APPLICATION_TRANSFORM=1`跳过Qt启动激活，`QT_MAC_SET_RAISE_PROCESS=0`关闭raise中的进程activate但不阻止orderFront。尚未实测Cavalry该启动组合，通知只能事后记录；不能据研究报告承诺完全不抢前台，更不能重跑已知会自激活的open -g。当前Cavalry Untitled未提供AXEdited，未据名称猜可丢弃或退出它。
+
+该检查点只补WebKit引擎和接缝研究事实，不增加正式键、不关闭§5.2真实consumer/恢复/帮助/性能/发行待办。
