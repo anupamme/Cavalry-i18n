@@ -462,7 +462,7 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 - [x] 翻译冻结Git检查点`32033c3`，精确index树379项验证；未混入当时未验收的runtime/Official。
 - [x] 过期ignored构建/cache历史限域5.79GiB清理，本轮又清理已提交检查点导出与闭合阶段bytecode；当前有效target/packs/证据/失败日志/私有前像保留。
 - [x] 本轮preview源码/UI检查点`5c6df86`与独立旧feed检查点`944a0f0`已commit；68文件跨层预览整体保全，工作树当时干净，未push。
-- [x] 回顾整个session的决策/原话/失败/纠正/经验并本地提交私人账本`8821d6e`；共享私库有他人脏修改，故保存隔离clone，未push/未同步共享目录，绝不冒称已远端落盘。
+- [x] 回顾整个session的决策/原话/失败/纠正/经验并本地提交私人账本`8821d6e`；后续基于更新远端main重做己有diff并保存`d2cdd886`，包含WK六态原图/四RED与帮助边界。共享私库有他人脏修改，故使用临时隔离clone，未push/未同步共享目录，绝不冒称已远端落盘。
 
 当前顺序：B全键已闭合；先保存验收代码检查点，同时做全程复盘，然后推进C/D真实消费者与恢复，按证据进入F/G。用户“不抢前台”与“不丢场景”的限制优先；不重复已知自激活启动，不以复盘停主线。
 
@@ -601,3 +601,13 @@ CAVALRY_I18N_ENABLE_NATIVE_PREVIEW=1 npx tauri build --debug --bundles app --no-
 [Qt6.9.2 integration/delegate](https://github.com/qt/qtbase/blob/v6.9.2/src/plugins/platforms/cocoa/qcocoaapplicationdelegate.mm)及[raise/resolver](https://github.com/qt/qtbase/blob/v6.9.2/src/plugins/platforms/cocoa/qcocoawindow.mm)源码另证实两个不同语义的候选guard：非空`QT_MAC_DISABLE_FOREGROUND_APPLICATION_TRANSFORM=1`跳过Qt启动激活，`QT_MAC_SET_RAISE_PROCESS=0`关闭raise中的进程activate但不阻止orderFront。尚未实测Cavalry该启动组合，通知只能事后记录；不能据研究报告承诺完全不抢前台，更不能重跑已知会自激活的open -g。当前Cavalry Untitled未提供AXEdited，未据名称猜可丢弃或退出它。
 
 该检查点只补WebKit引擎和接缝研究事实，不增加正式键、不关闭§5.2真实consumer/恢复/帮助/性能/发行待办。
+
+## 13. 帮助窄消费的复制边界（2026-10-05）
+
+独立、未部署的Apple arm64/libc++合成fixture完成普通及ASan/UBSan各15/15。四个字符串与整个参数向量逐成员深拷贝，仅副本description替换；长字符串、嵌入NUL、非ASCII、临时副本析构后的callee-owned内容、name/source碰撞及显式locale/版本/ABI拒绝均有合同。准备失败只在original调用前透传一次；original已部分写入或抛异常都不重试。它不包含vendor类型重解释、loader或真实Qt对象，不证明厂商ABI/hover消费者。
+
+root审查发现初稿将查表sourceBytes与实际record.description分开传递，漂移record可以借正确候选原文误命中。新增反例实际先RED（构建0、运行1），再删除重复输入：resolver直接读取实际record的完整description字节；修后两个配置各15/15，原始失败日志保留。LeakSanitizer另报本平台不支持，不冒称通过；闭合后只清理自有二进制及dSYM，保留源与证据。
+
+当前2.8 arm64静态链另闭合单条`primitive`的namespace过滤与map-key原字节：它不是从canonical路径尾推导。固定Node24将这一个运行名与四份原厂MetaData、两个framework、完整record/source身份及既有三语审批绑定，内存仅改其description，非目标内容不变。该回执明确1条候选、其余511运行名未完整认证、complete=false、consumerConnected=false；可信locale、实际C++互操作、安全加载和可逆hover canary仍待证明，不因此勾选512帮助完成。
+
+真实Tauri徽章联动也不走捷径：锁定Tao/Wry创建路径本身请求AppKit激活，生产page lifecycle还会show/focus；仅设visible=false/focused=false不能满足不抢前台。保持E工单未勾，不启动这种伪隐藏烟测；必要时先验证测试专用的禁激活控制，再运行只读生产status/renderer联动。
