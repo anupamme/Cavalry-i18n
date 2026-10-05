@@ -16,7 +16,7 @@ output/ - 派生审计产物，保存截图、JSON surface 抓取与翻译草稿
 </directory>
 
 <config>
-CAVALRY_2_8_MIGRATION_PLAN.md - feat/cavalry-2.8.0迁移入口与§5.2全流程逐项勾选办事表；77模块10278正式键/0待接，完整资源已闭合；Node717、native/默认Rust各370（6人工ignored）、来源/status只读smoke各1与Chromium/WK徽章fixture各6绿；帮助合成owned-copy普通/ASan+UBSan各15绿、实际source漂移RED修复与单primitive内存绑定不证明consumer；全session私库d2cdd886本地保存未push；build-only真实AppHandle生产status只读1/1、不建窗/事件循环，原厂English局部Qt guard背景启动及root-owned正常退出各1，不拼接为IPC/WK联动或全三语；真实Tauri UI（Tao/Wry建窗会请求激活）/完整三语live/恢复/512帮助/性能/发行未完成，默认2.7发布不变
+CAVALRY_2_8_MIGRATION_PLAN.md - feat/cavalry-2.8.0迁移入口与§5.2全流程办事表；77模块10278正式键/0待接，§16记录生产owner三语Apply/重应用/固定English恢复5/5与四语后台首屏/正常退出4/4，三语同10键抽样不冒领全catalog0/51；当前en-GB、自有strings/receipt清除、原厂App未改；画布CJK字体/英文动态文案、实际Switcher IPC/WK联动、512帮助/性能/发行仍待办；全session私人账本本地commit未push，默认2.7发布不变
 AGENTS.md - 根级 Agent 行动地图，按 Kumo knowledge base 结构固化查找入口、约定、反模式、命令、流水线、工具链与安全边界
 CHANGELOG.md - 新版本中文条目与英文分类语义分离的 SemVer 发布历史与 Unreleased 用户可见变更真相源；tag 正文由 workflow 按版本抽取，不保留会漂移的根目录 release body 快照
 LOCAL_BUILD_SOP.md - 唯一桌面打包与发布操作合同，区分本地验证、ad-hoc tag、Tauri updater 签名和未具备的平台身份，并固定 macOS DMG 文件名与挂载卷标的不同职责

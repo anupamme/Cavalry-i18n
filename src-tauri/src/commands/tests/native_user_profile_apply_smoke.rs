@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖显式锁定的2.8原厂App、native-preview资源、OS用户profile与state；通过native_user生产owner和operation_lock执行。
- * [OUTPUT]: 提供默认ignored、一次只写一个明确语言的实际profile smoke；验证完整pack、receipt/pack SHA、固定English恢复及六个vendor文件零漂移。
+ * [OUTPUT]: 提供默认ignored、一次只写一个明确语言的实际profile smoke；验证完整pack、receipt/pack SHA、固定English恢复、非locale偏好语义/mode及六个vendor文件零漂移。
  * [POS]: commands/tests 的真实用户文件动作合同；直接调用apply_inner，不经过会自动restart的公开command，不启动Cavalry、不声称真实UI切换已验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -218,6 +218,11 @@ fn native_profile_apply_smoke_performs_one_action_without_restart() {
         &before.locale,
         &before.ownership,
     );
+    // -- 只比较语义与mode，保全locale之外的用户字段，不输出原文 ----------
+    let mut preferences_before: serde_json::Value =
+        serde_json::from_slice(&fs::read(paths.preferences()).unwrap()).unwrap();
+    preferences_before.as_object_mut().unwrap().remove("locale");
+    let preferences_mode = required_file_image(paths.preferences()).1;
     let diagnostics_path = state_dir.join("diagnostics.jsonl");
     let diagnostics_before = file_image(&diagnostics_path);
 
@@ -240,6 +245,15 @@ fn native_profile_apply_smoke_performs_one_action_without_restart() {
         packs_before
     );
     assert_eq!(file_image(&diagnostics_path), diagnostics_before);
+
+    let mut preferences_after: serde_json::Value =
+        serde_json::from_slice(&fs::read(paths.preferences()).unwrap()).unwrap();
+    preferences_after.as_object_mut().unwrap().remove("locale");
+    assert!(
+        preferences_after == preferences_before,
+        "unrelated Preferences fields changed"
+    );
+    assert_eq!(required_file_image(paths.preferences()).1, preferences_mode);
 
     let after = user_language_files::read_profile_projection(&paths)
         .expect("read resulting profile without attempting repair");

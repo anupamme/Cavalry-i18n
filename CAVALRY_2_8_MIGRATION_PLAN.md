@@ -1,5 +1,5 @@
 <!--
-[INPUT]: 依赖现行 2.7.2 架构、官方 2.8.0 来源/限域实测、旧三语翻译源、三家族原生投影/用户 locale 与隔离文件事务合同、项目级翻译技能、已审补译输入与当前renderer的非激活WK fixture证据（非实际后端联动）
+[INPUT]: 依赖现行2.7.2架构、官方2.8.0来源、冻结三语源、用户profile生产事务及真实首屏/恢复证据；WK fixture与无窗口AppHandle各守边界，不合成IPC联动通过
 [OUTPUT]: 给出本分支的 2.8 迁移决策、TDD顺序、原4319键质量冻结、10278正式键与剩余0键的接续边界；不宣称产品已经支持2.8
 [POS]: feat/cavalry-2.8.0 的实施方案入口；调查工具与原始证据不进入产品运行时
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -11,7 +11,7 @@
 
 当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official使用固定厂商Apple Developer ID requirement，只认证来源、不授予写入/恢复权。整仓Node717项通过；native与默认路径全量Rust各370通过/0失败，6个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章Chromium headless fixture 6项与系统WKWebView fixture 6项均通过；WK审查用prohibited激活策略，记录1个内部隐藏TUINSWindow、0可见/key/main及无自身激活事件，原厂/profile六监视文件前后不变。真实WebKit渲染不等于Tauri AppHandle/实际后端联动或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
 
-历史已完成两键探针、三语菜单/部分节点/指南与退出重启持久化；不能重标成完整冻结包通过。当前完整三语包已单次生成并与冻结manifest逐字一致，本轮代表catalog现场矩阵仍0/51。用户要求后台PID/CUA操作；原厂open -g自激活反例已记录，不再用该方式启动。用户偏好仍原样，未Apply本轮三语。默认2.7发布、版本号与共享updater feed不变；Windows实施暂停。翻译`32033c3`、旧feed`944a0f0`、开发预览`5c6df86`与真实只读status`d24d29c`已分主题commit；不推送或发布。完整session复盘与compact过程证据已在隔离私人账本本地commit，未同步共享目录/远端；下一项继续真实消费者与帮助consumer最小接缝，不等待复盘停工。
+当前完整冻结包已完成生产owner的三语Apply、简体同语言重应用及固定English恢复共5/5；随后四语原厂后台启动、首屏观察及root审查后的正常退出各4/4。三语同10个首屏键显示与资源一致，但不是完整代表catalog验收，现场矩阵仍0/51。当前typed locale为en-GB，自有strings/receipt已删除，非locale偏好语义/mode及六个监视vendor文件未变；不是将最初Absent locale回滚为缺键。画布CJK提示方框与Welcome英文已确证，字体路径及部署入口仍须补齐。后台启动使用经实测的局部Qt guard，不复用自激活的盲目open -g；生产Switcher IPC/renderer联动未验收。默认2.7发布、版本号与共享updater feed不变；Windows暂停，不推送或发布。完整session复盘和证据已在隔离私人账本本地commit，未同步共享目录/远端；当前检查点与明确剩余项见§16。
 本文件按用户要求放在产品分支；过程证据与临时队列留在会话级 stage 或私有历史文档库。公开构建、测试和发布不得依赖这些路径，也不打包调查脚本。
 
 > 下文早期阶段的数量、RED、构建与实跑记录属于各自历史检查点；当前键与离线验收状态以上方状态为准。完整键资源已闭合，不代表真实 UI、独立帮助 consumer 或发行已完成。
@@ -417,7 +417,7 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 
 - [x] 历史两键原生探针，不改bundle；中文显示、正常退出保存、重启读回成立（限域观察）。
 - [x] 历史安装版三语菜单、Group/Text Shape部分节点、指南与重启持久化及实验回退；字体/模型值保留，见§3.7–3.8。
-- [ ] 当前完整冻结包三语代表catalog矩阵（3×17，本轮0/51）、全部键族/插件/指南和布局/tooltip验收；历史小样不抵扣。
+- [ ] 当前完整冻结包三语代表catalog矩阵（3×17，本轮0/51）、全部键族/插件/指南和布局/tooltip验收；当前三语同10个首屏键已显示，仍不抵扣完整catalog。
 - [ ] 512条帮助的实际consumer接线和三语实际显示；不得塞进UI-text或先改原厂MetaData假装接完。
 - [ ] 需要时验证热刷新、sidecar/公开setter/最小bridge对照；仅在具体缺口证明必要后实现。
 
@@ -426,7 +426,7 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 - [x] 用户scope的typed locale/专属strings/独立receipt事务接进显式macOS preview；资源先、locale最后，旧bundle baseline与QPA不进入此路径。
 - [x] tempfile合同覆盖首次前像、重应用、pending/中断收敛、无关偏好保留、symlink/字节与mode漂移拒绝及empty-only目录清理；乐观比较不冒称OS CAS。
 - [x] fixed OS home、全部Cavalry写者快照准入、受控launch-only、hostless Current-owned English恢复代码与隔离合同；缺receipt/pending/坏证据不授予能力。
-- [ ] 真实Switcher完整Switch/同语言重应用/Restore English，退出重启持久化；实验回退不抵扣产品English恢复。
+- [ ] 真实Switcher完整Switch/同语言重应用/Restore English，退出重启持久化；生产owner单动作5/5及四语启动/正常退出已过，尚缺同一实际IPC/renderer/Activity链，不用这些分段结果冒领整行。
 - [ ] 真实中断/权限失败/漂移保留/耐久warning与恢复；登录/Keychain、共享副本/旧版影响及卸载保留/恢复语义。
 - [ ] Windows用户文件替换/目录耐久/真实进程准入与恢复（Windows实施暂停）。
 
@@ -443,7 +443,7 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 #### F 缺口、首绘与性能
 
 - [x] 历史现场漏译已对齐原生owner/key，并登记Time Editor/画布中文名称CJK方框；不是一律保留英文。
-- [ ] 对当前完整包排查compiled/动态/自绘/字体/搜索语义与新旧场景，确认必要补充的精确owner/callsite。
+- [ ] 对当前完整包排查compiled/动态/自绘/字体/搜索语义与新旧场景，确认必要补充的精确owner/callsite；首屏已证画布CJK方框与英文Welcome，arm64帮助Path的Lato无CJK链已静态绑定，尚未修复。
 - [ ] 修复确证缺口，若需注入按Qt 6.9.2逐架构ABI重新证明，不扩大为全局绘制hook。
 - [ ] 同机原厂基线与译后冷启动、菜单首开、Quick Add、创建/保存/重开、Timeline播放的CPU/内存/IO/帧时延及首绘对照。
 - [ ] macOS arm64与Intel runtime各自验收；现有Intel静态slice核对不能抵扣实机。
@@ -462,7 +462,7 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 - [x] 翻译冻结Git检查点`32033c3`，精确index树379项验证；未混入当时未验收的runtime/Official。
 - [x] 过期ignored构建/cache历史限域5.79GiB清理，本轮又清理已提交检查点导出与闭合阶段bytecode；当前有效target/packs/证据/失败日志/私有前像保留。
 - [x] 本轮preview源码/UI检查点`5c6df86`与独立旧feed检查点`944a0f0`已commit；68文件跨层预览整体保全，工作树当时干净，未push。
-- [x] 回顾整个session的决策/原话/失败/纠正/经验并本地提交私人账本`8821d6e`；后续基于更新远端main重做己有diff并保存`d2cdd886`，包含WK六态原图/四RED与帮助边界。共享私库有他人脏修改，故使用临时隔离clone，未push/未同步共享目录，绝不冒称已远端落盘。
+- [x] 回顾整个session的决策/原话/失败/纠正/经验并本地提交私人账本；最新`684923a6`汇合前序全session复盘、WK六态/四RED、帮助边界、AppHandle只读和原厂后台基线。共享私库有他人脏修改，故使用临时隔离clone，未push/未同步共享目录，绝不冒称已远端落盘；本轮5动作/4首屏另追加，不重复打包。
 
 当前顺序：B全键已闭合；先保存验收代码检查点，同时做全程复盘，然后推进C/D真实消费者与恢复，按证据进入F/G。用户“不抢前台”与“不丢场景”的限制优先；不重复已知自激活启动，不以复盘停主线。
 
@@ -645,3 +645,24 @@ CAVALRY_I18N_NATIVE_STATUS_SMOKE_APP=/Applications/Cavalry.app \
 - 首次进程前置因不可读PID拒绝，后确证STAT Z无地址空间才另建新前置；不忽略未知live进程。两次Swift编译RED修正后当前150行独立typecheck通过，不用纸面审查冒称可编译。
 
 当前完整catalog实机仍**0/51**、§5.2仍**26/18**；下一步仅复用既有production native profile事务作单动作Switch/重应用/English restore，不调用已知会抢前台的盲目`open -g`，再沿已测guarded路径观察真实翻译。
+
+## 16. 生产用户事务与四语首屏检查点
+
+2026-10-05：以下子项已经实际完成，§5.2的整流程大项仍为**26已完成/18待完成**。不按首屏抽样推算全catalog进度，不把直接owner调用与单独启动拼成实际Switcher联动。
+
+| 子项 | 结果与边界 |
+|---|---|
+| [x] 完整pack的简体、繁体、日语生产Apply | 3/3；显式ignored smoke持真实operation lock，复用`native_user::apply_inner`与writer guard，不启动App |
+| [x] 简体同语言重应用 | 1/1；首次receipt字节与locale前像均保留，不以新前像覆盖旧备份 |
+| [x] 生产固定English Restore | 1/1；en-GB提交，自有strings/receipt移除；不是测试手写字节回退或恢复locale缺键 |
+| [x] 四语原厂后台启动与初始面板 | 4/4；三语各10个相同首屏键与源/pack/实屏匹配，English面板与ASCII画布提示可读 |
+| [x] root已审空白实验实例正常退出 | 4/4；精确PID、无URL/scene操作及截图审批，不Save/Discard/forcekill；AXEdited/AXDocument失败保留实际状态码，不从Untitled推断一般作品可丢弃 |
+| [ ] 全catalog、实际Switcher联动、512帮助和显示缺口 | 未完成；上述结果分别对应当前生产事务、原厂启动和首屏范围 |
+
+本轮最终smoke源SHA-256 **`2cfcc056c40920f3f067ca3144100a5749abb7a7681f1d8e4e66c65320edce68`**；实际5动作共用该源编译的test binary。最终native lib定向回归258通过/0失败/3明确人工ignored，编译0 warning；不是重复全量Rust370或重新出包。每次动作均验证六个vendor文件、manifest/三包、diagnostics和非locale偏好语义/mode未变，失败不自动重试或整份Preferences回滚。
+
+四次启动均验证实际子进程的两个Qt guard；前台PID前后不变，采样内无目标激活通知/前台/active/遮挡。配置25ms采样包含查询开销，不声称实际固定间隔、绝对预防或首绘无闪烁。当前无本轮Cavalry实例，用户profile为固定English，自有语言文件与receipt均absent；持久operation lock inode保留，不当缓存删除。
+
+**确定的下一步缺口：**三语画布工具帮助和Viewport Quality显示CJK方框，Welcome消息及动态窗口标题仍英文。arm64静态链为`TransformTool::getHelpStrings` → registry → Viewport text-path cache → `MakePathFromText` → Lato Regular → Skia字形Path；原厂Lato没有CJK覆盖，Qt面板字体正常不能代验这条链。原厂2.8启用Hardened Runtime，缺少DYLD环境变量与关闭Library Validation的授权，用户strings包也没有字体入口；不得据此盲装旧2.7 injector、全局改字体或重签用户原厂App。先复用已有原生消费者与加载入口；确需签名/部署边界变化时单独裁决最小方案。
+
+机器检查点SHA-256 **`f6a380f136e7b0f3ca0b9bc387cf3cd374810791787e46e905e9941fedd9039e`**绑定5动作、四语PID/PNG/AX/审查/正常退出及最终profile事实。原始过程证据仅留会话stage/私人文档，公开构建和发布不依赖它们。
