@@ -673,7 +673,7 @@ CAVALRY_I18N_NATIVE_STATUS_SMOKE_APP=/Applications/Cavalry.app \
 
 - [x] macOS aarch64、macOS x64、历史Windows EXE三个真实payload的SHA/size/API asset身份匹配，原manifest对应签名实际3/3通过；未安装或执行任何payload，也不抵扣Windows 2.8实施。
 - [x] 真实复制的Windows历史payload在offset128变异一字节，现有密码学门按预期拒绝；不是只验证签名格式、key ID或GitHub摘要。
-- [x] 验后lsof无引用，精确删除3个下载payload、坏复制和失败空part共23,353,474逻辑字节；保留小型签名文本、源/manifest快照、摘要和正负日志，不冒称物理释放量。
+- [x] 验后lsof无引用，精确删除3个下载payload与1个坏复制共23,353,474逻辑字节；curl失败part本就不存在，不计删除。首次cleanup在四次删除后因不存在part断言失败，后纠正缺失目标处理并补记回执；保留小型签名文本、源/manifest快照、摘要和正负日志，不冒称物理释放量。
 - [ ] 双feed production publisher/CI、旧客户端实际接收和未来Release exact-readback仍未完成；默认配置、共享endpoint、版本号及线上Release未改。
 
 首次curl因TLS错误失败，原日志保留；改用GitHub精确asset-ID API正常TLS读回，不用insecure绕过。该测试binary仅编译一次（9.54s/0 warning），三语资源未重建。验证检查点SHA-256 **`40aa4b17ae54f0d16b5205a0748e499515e83b974e39acc402ee51b6022f4dd4`**绑定下载、原签名、准确validator source/binary和实际正负日志；这是历史archive信任证明，不是2.8产品发行证明。
