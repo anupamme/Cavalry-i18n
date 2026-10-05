@@ -16,7 +16,7 @@ output/ - 派生审计产物，保存截图、JSON surface 抓取与翻译草稿
 </directory>
 
 <config>
-CAVALRY_2_8_MIGRATION_PLAN.md - feat/cavalry-2.8.0迁移入口与§5.2办事表；官方77模块10278键/0待接，独立Forge八键补充使总78模块10286审批/10481显示叶，历史5次owner/4语原厂首屏之后新增两次Hans Apply（含Forge旧包升级）及独立副本字体canary（工具8 CJK/Space原样，后台门FAIL）；当前Hans/owned strings+receipt存在，原厂App未改，全catalog0/51；§18分列viewport离线102合同、§19全属性2483→2576与Forge动态resolver/构建补键门、§20第二轮单viewport实屏及PID后台/退出FAIL，§21补充源/pack/单次用户升级已接，八属性真实consumer与时间轴/搜索/字体身份待验，默认2.7发布不变
+CAVALRY_2_8_MIGRATION_PLAN.md - feat/cavalry-2.8.0迁移入口与§5.2办事表；官方77模块10278键/0待接，独立Forge八键补充使总78模块10286审批/10481显示叶，历史5次owner/4语原厂首屏之后新增两次Hans Apply（含Forge旧包升级）及独立副本字体canary（工具8 CJK/Space原样，后台门FAIL）；当前Hans/owned strings+receipt存在，原厂App未改，全catalog0/51；§18分列viewport离线102合同、§19全属性2483→2576与Forge动态resolver/构建补键门、§20第二轮单viewport实屏及PID后台/退出FAIL，§21补充源/pack/单次用户升级已接，§22完整491定义/2671声明来源及365缺源候选与旧译精确交叉，候选未批，八属性真实consumer与时间轴/搜索/字体身份待验，默认2.7发布不变
 AGENTS.md - 根级 Agent 行动地图，按 Kumo knowledge base 结构固化查找入口、约定、反模式、命令、流水线、工具链与安全边界
 CHANGELOG.md - 新版本中文条目与英文分类语义分离的 SemVer 发布历史与 Unreleased 用户可见变更真相源；tag 正文由 workflow 按版本抽取，不保留会漂移的根目录 release body 快照
 LOCAL_BUILD_SOP.md - 唯一桌面打包与发布操作合同，区分本地验证、ad-hoc tag、Tauri updater 签名和未具备的平台身份，并固定 macOS DMG 文件名与挂载卷标的不同职责
