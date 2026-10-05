@@ -16,7 +16,7 @@ output/ - 派生审计产物，保存截图、JSON surface 抓取与翻译草稿
 </directory>
 
 <config>
-CAVALRY_2_8_MIGRATION_PLAN.md - feat/cavalry-2.8.0迁移入口与§5.2办事表；官方77模块10278键/0待接，Forge8+缺源364使总80模块10650审批/10846 source/10845输出（World Scale一键未决），历史5次owner/4语原厂首屏之后新增两次Hans Apply（含Forge旧包升级）及独立副本字体canary（工具8 CJK/Space原样，后台门FAIL）；当前Hans/owned strings+receipt存在，原厂App未改，全catalog0/51；§18分列viewport离线102合同、§19全属性2483→2576与Forge动态resolver/构建补键门、§20第二轮单viewport实屏及PID后台/退出FAIL，§21补充源/pack/单次用户升级已接，§22完整491定义/2671声明来源及365缺源候选与旧译精确交叉，238实际Core格式回退受限取证，候选历史未批，§23 source-only边界/14合同及740通过保留；§24 raw adapter/364 caption经全槽与20修订槽独审后正式注册，旧官方owner合同改双身份、整仓752/双配置Rust各373通过，单次资源生成三语missing1/complete:false，八属性真实consumer与时间轴/搜索/字体身份待验，默认2.7发布不变
+CAVALRY_2_8_MIGRATION_PLAN.md - feat/cavalry-2.8.0迁移入口及§5.2全44项办事表；官方10278/Forge8/缺源364合计10650审批，10846源三语10845输出、一键未决；§26限域Forge8可见/真实Hans Update增至8次成功事务，§27恢复四会话145条全部原话、完整strings/receipt字节读回、CRT保存确认和raw全属性交叉；本轮native Rust379/Node752，未代默认Rust或live。完整流程26/18、catalog0/51不变；Timeline方框、Activity视觉、新caption/Restore/持久化待验，CUA连接关闭与AX超时保留，不强杀作品；Official57私档旧冲突草稿未push，当前归档另验。默认2.7发布/Windows暂停不变
 AGENTS.md - 根级 Agent 行动地图，按 Kumo knowledge base 结构固化查找入口、约定、反模式、命令、流水线、工具链与安全边界
 CHANGELOG.md - 新版本中文条目与英文分类语义分离的 SemVer 发布历史与 Unreleased 用户可见变更真相源；tag 正文由 workflow 按版本抽取，不保留会漂移的根目录 release body 快照
 LOCAL_BUILD_SOP.md - 唯一桌面打包与发布操作合同，区分本地验证、ad-hoc tag、Tauri updater 签名和未具备的平台身份，并固定 macOS DMG 文件名与挂载卷标的不同职责

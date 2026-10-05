@@ -1,5 +1,5 @@
 <!--
-[INPUT]: 依赖现行2.7.2架构、官方2.8.0来源、固定365条缺源边界与冻结三语源、用户profile生产事务、真实首屏/恢复、独立副本字体canary、全491定义source交叉及当前Hans真实Tauri只读联动/原厂安装盘基线；WK fixture与AppHandle仍各守边界，不把只读状态冒完整切换
+[INPUT]: 依赖现行2.7.2架构、官方2.8.0来源、固定365条缺源边界与冻结三语源、用户profile生产事务、真实首屏/恢复、独立副本字体canary、全491定义source交叉、Hans真实Tauri只读联动/同语言Update及Forge八标题实屏；WK fixture与AppHandle各守边界，保存超时不冒consumer通过
 [OUTPUT]: 给出本分支的2.8迁移决策与TDD顺序；官方10278/Forge8/缺源364合计10650审批，10846 source中World Scale一键未决，历史冻结与现行准入分账；不宣称产品已经支持2.8
 [POS]: feat/cavalry-2.8.0 的实施方案入口；调查工具与原始证据不进入产品运行时
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -11,7 +11,7 @@
 
 当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official显示须固定厂商Apple Developer ID来源验证与内置en/ja、无Switcher覆盖共同成立；旧来源-only语义已按§25收紧，不授予写入/恢复权。当前整仓Node752项通过（项目锁定Node24.20.0/npm11.19.0；§23历史740）；历史native与默认路径全量Rust各372通过/0失败/0warning，§24双Rust各373通过；§25 Official语义复验两配置各378通过/7 ignored/0warning（默认资源空数组仅测试覆盖）；7个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章Chromium headless fixture 6项与系统WKWebView fixture 6项均通过；WK审查用prohibited激活策略，记录1个内部隐藏TUINSWindow、0可见/key/main及无自身激活事件，原厂/profile六监视文件前后不变。真实WebKit渲染不等于Tauri AppHandle/实际后端联动或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
 
-完整冻结包历史生产owner动作5/5、四语原厂首屏/正常退出各4/4；随后Hans Apply和本次Forge八项新包的同语言升级各成功一次，合计7次成功用户事务。当前typed locale为zh-Hans，自有strings/receipt存在；English恢复曾因实验副本仍运行被writer guard拒绝，未写profile，不能沿用§16的历史English终态。原厂安装未改。独立ad-hoc副本的Hans工具提示字体canary已观察8条CJK/1条ASCII路径与可读截图，但后台门失败；后续第二轮副本又确认单一视口状态“视口质量：完整”可读，但启动/退出前台约束仍失败；其他视口状态、时间轴、动态属性、搜索/字体身份均须分别验收。完整catalog仍0/51，Switcher IPC未验收。默认2.7发布、版本号与共享feed不变；Windows暂停，不推送或发布。全session私人检查点及指定会话任务原文已在私人文档仓正常推送并远端核验；新实验与明确剩余项见§18，不能把字体小样计入完整UI通过。
+完整冻结包历史生产owner动作5/5、四语原厂首屏/正常退出各4/4；随后Hans Apply与Forge旧包升级各一次，§26又经真实Tauri IPC完成新364资源的Hans同语言Update并正常启动，合计8次成功用户事务。当前typed locale为zh-Hans，自有strings/receipt存在；English恢复曾因实验副本仍运行被writer guard拒绝，未写profile，不能沿用§16的历史English终态。原厂安装未改。独立ad-hoc副本的Hans工具提示字体canary已观察8条CJK/1条ASCII路径与可读截图，但后台门失败；第二轮副本确认单一视口状态“视口质量：完整”可读，启动/退出前台约束仍失败。§26原厂普通Inspector另见Forge八补充Hans标题8/8；Timeline同名中文仍方框，新364消费、其他动态属性、搜索/字体身份待验。完整catalog仍0/51；Hans只读status和同语言Update真实IPC小门已闭，但Restore/其他语言与Activity视觉未闭。默认2.7发布、版本号与共享feed不变；Windows暂停，不公开推送或发布。历史全session私人检查点及指定会话任务原文已正常push并远端核验；新增Official57文件发布遇根CLAUDE并发冲突停止，隔离草稿保留，不能声称新私档已push。新实验与明确剩余项见§26，不把小样或离线绿计入完整UI。
 本文件按用户要求放在产品分支；过程证据与临时队列留在会话级 stage 或私有历史文档库。公开构建、测试和发布不得依赖这些路径，也不打包调查脚本。
 
 > 下文早期阶段的数量、RED、构建与实跑记录属于各自历史检查点；当前键与离线验收状态以上方状态为准。完整官方键资源已闭合，不代表schema生成式标签、真实 UI、独立帮助 consumer 或发行已完成；全定义另有365缺源候选，见§22。
@@ -426,7 +426,7 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 - [x] 用户scope的typed locale/专属strings/独立receipt事务接进显式macOS preview；资源先、locale最后，旧bundle baseline与QPA不进入此路径。
 - [x] tempfile合同覆盖首次前像、重应用、pending/中断收敛、无关偏好保留、symlink/字节与mode漂移拒绝及empty-only目录清理；乐观比较不冒称OS CAS。
 - [x] fixed OS home、全部Cavalry写者快照准入、受控launch-only、hostless Current-owned English恢复代码与隔离合同；缺receipt/pending/坏证据不授予能力。
-- [ ] 真实Switcher完整Switch/同语言重应用/Restore English，退出重启持久化；生产owner历史5动作加后续两次Hans Apply共7次成功、四语原厂启动/正常退出已过，尚缺同一实际IPC/renderer/Activity链，不用这些分段结果冒领整行。
+- [ ] 真实Switcher完整Switch/同语言重应用/Restore English，退出重启持久化；生产owner历史5动作加后续两次Hans Apply与§26真实Tauri Hans Update共8次成功；该Update的IPC/正常启动/AX阶段与终态已见，Restore/其他语言、Activity视觉和新包退出持久化仍待验，不冒领整行。
 - [ ] 真实中断/权限失败/漂移保留/耐久warning与恢复；登录/Keychain、共享副本/旧版影响及卸载保留/恢复语义。
 - [ ] Windows用户文件替换/目录耐久/真实进程准入与恢复（Windows实施暂停）。
 
@@ -464,7 +464,7 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 - [x] 本轮preview源码/UI检查点`5c6df86`与独立旧feed检查点`944a0f0`已commit；68文件跨层预览整体保全，工作树当时干净，未push。
 - [x] 回顾整个session的决策/原话/失败/纠正/经验并本地提交私人账本；最新`684923a6`汇合前序全session复盘、WK六态/四RED、帮助边界、AppHandle只读和原厂后台基线。共享私库有他人脏修改，故使用临时隔离clone，未push/未同步共享目录，绝不冒称已远端落盘；本轮5动作/4首屏另追加，不重复打包。 后续恢复历史私档及原话已以01eb24bf正常push并远端读回，旧未发布clone/他人脏共享目录保留；本次29cdc4d接线审批与失败/成功档另追加发布，不以旧未push终态覆盖后续落盘。
 
-当前顺序：官方B已闭合、缺源caption批准364/1未决；29cdc4d检查点与全流程原话/复盘同步保存。继续C/D/E实际消费者、真实IPC与恢复，然后按证据进入F/G；不可从Node752/双Rust各373推出实屏通过。用户已把“不抢前台”降为偏好，必要正常激活获准；不丢场景仍硬约束。正常Tauri只读Hans联动及Official修复已闭小门，下一步受控真实Switch/Restore/consumer，不把旧背景FAIL改写，不以复盘停主线。
+当前顺序：官方B已闭合、缺源caption批准364/1未决；29cdc4d检查点与全流程原话/复盘已保存。§26继续闭Forge8 Hans caption与真实同语言Update小门，仍26完成/18待办，不从Node752/双Rust各378推出完整实屏通过。用户已把“不抢前台”降为偏好且明确批准当前Hans更新/正常启动；不丢场景仍硬约束。后续Restore/新caption/Activity视觉待验；本机exec出现os24且CRT保存查询超时，暂停重复写入、保留现场，不強杀或把outcome unknown改成失败/成功。
 
 ### 5.3 从最小探针逐步扩展验证
 
@@ -821,3 +821,41 @@ root随后在deny-default的独立进程sandbox中实际调用一次原厂Core�
 - 用户提供2.8 DMG只读挂载，与当前安装均通过固定厂商requirement；2,851对象/2,671文件的内容、模式与relative symlink目标完全相等。第一次compressed DMG五秒cold验签超时保留；独立research六十秒复核成功，不扩大产品五秒期限。未卸载/重装App、未改profile，因此当前中文是用户覆盖而非bundle被修改。
 - MSI显示Cavalry2.8.0/x64；签名数据/重算摘要存在，但本机issuer链验证失败，不等于Windows WinVerifyTrust或真实安装/Official通过；Windows现场仍未做。
 - 完整流程仍44项26完成/18未完成、catalog0/51。当前Hans只读IPC小门已闭，不抵扣原厂Absent默认英语、Switch/重应用/Restore真实Channel/Activity、364新caption consumer、字体/搜索或发行。后续按C/D/E实际链继续，不靠重新安装抹掉未完成分母。
+
+## 26. Forge真实消费与Hans同语言Update（2026-10-06，限域）
+
+用户明确批准真实Switcher的Hans Update及正常启动；不改原厂App、不清空profile，作品保护不变。root使用Tauri既有debug Preview.app而非dev watcher或替代壳；当前包四资源逐字匹配derived目录，三语各10845输出/missing1/complete:false，World Scale仍pending。
+
+### 26.1 Forge补充的普通Inspector消费
+
+原厂安装版旧10481键Hans包、本轮新建独立Forge测试场景：普通Inspector同屏见时间、起始帧、重力、地面摩擦、地面弹跳、速度迭代、位置迭代、场八个补充caption；地面模式与碰撞事件是额外官方键，不混入8项。使用原生Edit菜单加载属性，坐标工具失败与即时未显示另保留；只记最终实际CUA画面，不推断每一个加载动作都成功。
+
+本轮测试scene新建到专属目录，Save点击曾timeout，随后UI确切URL/保存成功与磁盘读回确认；raw nodeId/type仍为forgeDynamicsShape#1/forgeDynamicsShape。默认数值不逐项序列化，不能据scene文件宣布完整模型值回归。原厂生成的默认层名合法本地化，Scene Tree「Forge 动力学」可读而Timeline同名中文仍方框，字体缺口单列。正常退出后的exact PID及全宽进程检查通过；52监视对象51不变，Preferences随原厂运行/保存改变，strings/receipt与vendor监视对象未改。不声称整份偏好逐字段比较。
+
+该结果只闭Hans八caption可见小门，不闭Hant/JA或全catalog、输入/字体身份；构建期provenance的总体验收标记不因此翻成全语live verified。
+
+### 26.2 真实Update、Channel与正常启动
+
+实际网页tauri://localhost/index.html显示Hans/无Official/Restore可用与Update available；点Update并确认共享profile提示后，真实Channel的AX阶段由检查到四阶段成功，终态为已切换Hans且Cavalry打开，按钮退出busy。生产diagnostics同PID记录单次Started→Finished ok=true/transactionCommitted→status Hans/reconciliation=false；正常原厂进程PID与无测试参数的启动路径另已读回。language动作单次跨度约48.274秒，不作为启动性能分布。
+
+后置摘要记录strings由1047044变1079173B，receipt由15221083变15686724B；实际profile与fresh pack的最终完整字节比较及receipt语义读回尚未执行完，不把同长度当同字节。AX阶段成功与最后终态句已见，但截图阶段区域为空且顶部Preparing在终态仍保留，Activity视觉尚未PASS、根因待排查。没有冒捕获完整DTO，也没有凭AX文本存在宣布所有阶段肉眼可见。
+
+### 26.3 未知结果与环境故障
+
+在正常启动的原厂实例尝试Create > Effects > 扫描线及属性加载；即时画面未出现目标caption，不给新364消费信用。其本轮专属Save As点击timeout，后续AX/截图查询也timeout，保存结果outcome unknown；不重复Save/Apply、不discard或强杀。root及Luna的exec均执行前报Too many open files/os24，停止并发编译与重复写入、保留现场；正常退出Preview的动作也未取得最终PID证明。CRT场景磁盘存在性、nodeType与「扫描线粗细」仍待读回。
+
+完整流程仍44项中26完成/18待办，完整catalog0/51。下一步先恢复只读观察与资源执行能力、确认保存现场，再查Activity视觉及新caption，之后按保护边界继续Restore/三语/持久化，不拿环境故障掩盖或扩大当前产品完成度。
+
+
+## 27. 全部原话恢复、后置读回与非Forge交叉（2026-10-06）
+
+按指定会话及明确引用链恢复四个会话，全部直接用户任务原话共145条（48+30+55+12），不只最后tail；10条AGENTS/环境/恢复包装逐条排除，source session/JSONL行号/UTC与完整原文逐条核验无重漏。历史要求按先后继承：完整迁移而非只Forge、复用2.7晚期搜索/字体/输入身份边界、测试先行、及时checkpoint、私人文档写完须push/远端核验后立即释锁；AppleScript采集与正常启动曾获准，前台后来降为偏好，不丢作品仍是硬约束。全文与机器索引只归会话stage/私账，不成为构建输入。
+
+- **后置事务证明**：本轮完整字节核回实际Hans strings与§26新包相等（1079173B）；receipt schema1、无pending、active Hans，其strings bytes/mode/路径及typed locale与实际文件一致。只归档摘要/布尔结果，不保存raw profile/receipt。§26“仅同长度/待读回”属于当时停点，现已闭后置字节小门，不倒改原账。
+- **保存结果解疑**：CRT专用场景确实存在（2026B），raw nodeType/nodeId为crtScanLines/crtScanLines#1；保存落盘成立，但扫描线粗细真实caption未证明，不抵扣新增364消费者。恢复52项摘要与Update观察相比仅Preferences变动，vendor/34 catalog/源及derived包不漂移；这只是有限监视，不声称全文件零写。
+- **全域独立复算**：raw源重新闭合2671唯一Inspector身份：2200 direct+93 inherited+8 Forge+365 gap+4 unresolved+1 namespace；两条type-only定义共11引用另账。旧独有49对应26仍schema/18字段已删/5已删owner字段，总18 owners；当前21个引用中15走noiseEngine父级官方键、5已Forge补充，非Forge精确旧译候选voronoiShader.loopLength保留。不能把“schema仍有”一律称漏译，也不按同英文跨owner套值。
+- **当前工具事实**：exec可运行，不把前轮os24当持续状态；CUA首次inventory可读且Cavalry/Preview未运行，随后getApp/reset均Transport closed。依据已恢复AppleScript授权正常launch原厂PID32486，两次只读AX查询-1712超时；一次sample主线程处Qt/AppKit正常等待，未证明根因。正常activate/quit返回0，exact PID与自身osascript已退出；没有开作品、重复Save/Apply、Discard或强杀，没有新增实屏信用。原厂运行可正常改Preferences，启动前proof与启动/退出分账。
+- **离线验回**：partial manifest preflight接受missing1/complete:false并先解析三语类型；定向实际1通过，误用短名--exact的0tests只算编译。本轮显式native Rust全套379通过/0失败/7人工ignored/0warnings；默认Rust未重跑。锁定Node24.20.0/npm11.19.0整仓752/752、check:app、fmt/diff通过；未运行ignored真实profile门、未重建App/DMG。
+- **Activity仍未闭**：固定intro保留Preparing与阶段队列不更新顶部是当前源码设计；未找到成功后主动隐藏li的源码因果，原截图没有本地PNG，不能据AX或代码推断视觉PASS，也不能猜成WebKit/CUA错误。待有效DOM/实际画面再定。
+
+§5.2仍26完成/18待办，完整catalog0/51；8次历史成功用户事务不加新一次，512帮助consumer、三语Switch/Restore/重启持久化、搜索/字体/输入身份、性能和发行继续待验。先恢复非Forge真实consumer观察，静态可推进的唯一World Scale caption按同owner证据另审；不清空profile换绿，不改默认2.7发布/Windows暂停边界。

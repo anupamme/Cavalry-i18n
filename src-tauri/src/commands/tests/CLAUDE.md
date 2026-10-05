@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-native_status_readonly_smoke.rs: status的人工ignored子模块；明确App/repo与native编译后组合真实原厂验签、pack和OS profile，manifest独立断言10286审批/10481总叶/8补充/10473官方与三语missing0，而非从available猜完整性；要求默认locale Absent/无strings且前后摘要模式不变，缺失临时state不创建，不启动WK/Cavalry或验证Apply。
+native_status_readonly_smoke.rs: status的人工ignored子模块；明确App/repo与native编译后组合真实原厂验签、pack和OS profile，manifest必须绑定当前target字节SHA、从target导出official/supplemental/source数量、approvedUIKeys限于源范围，并先解析三语missing后推导complete以接受诚实partial；内存manifest合同覆盖missing=1与complete=false并拒绝后语类型错误/虚假完整；人工烟测仍要求默认locale Absent/无strings且前后摘要模式不变，缺失临时state不创建，不启动WK/Cavalry或验证Apply。
 native_user_profile_apply_smoke.rs: tempfile合同证明旧owned pack可升级且陈旧strings观察拒绝；人工ignored单动作将manifest的target SHA与当前target字节绑定、由官方/补充分账导出源总键数，并由三语missing推导complete（允许当前partial）；保留真实App/OS home/fixed state、显式授权、process admission、production operation lock及`apply_inner`写入owner；检查receipt/pack SHA、English恢复、非locale语义/mode与vendor六文件/pack/manifest/diagnostics不变。旧包只按原像ownership准入；失败不自动回滚/重试，不启动Cavalry，不冒称UI验收。
 runtime.rs: 验证补丁回执跨源更新/安装绑定且观察零写入， Resources 与 `_up_` 候选顺序、macOS injector定位与显式legacy restart runner、Windows generic plugin 的 child-only 环境，以及 apply/restart 在失败前不 spawn 的边界；legacy runner合同绕开preview OS-home profile admission，原生准入由独立fixture测试覆盖。
 user_language.rs: 纯 JSON Preferences.locale 投影合同；验证 native locale 映射、畸形 typed locale/unsupported language 零变更拒绝、缺失/原值前像、字段/metadata drift 下 test-only CAS rollback 与 fixed English helper；不接触文件系统、IPC 或真实 profile。
