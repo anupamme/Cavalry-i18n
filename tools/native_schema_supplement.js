@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖2.8.0 nodeDefinitions原始字节、八个固定Forge字段schema及官方catalog键集合。
- * [OUTPUT]: 仅提供经SHA/owner/父链/schema/UI顺序及显式dontTranslate=false绑定的补充source entries与target门，不提供译文或批准。
+ * [OUTPUT]: 仅提供经SHA/owner/父链/schema/UI顺序及显式dontTranslate=false绑定的八条source；共享source锁门的总补充数量由调用方显式提供，不提供译文或批准。
  * [POS]: native resource producer的窄schema回退源；不扫描其他字段、不推断未来ID、不进入运行时。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -88,9 +88,10 @@ function validateSupplementEntries(entries, officialEntries = []) {
   return FIXED_SOURCE_ROWS.map(clone);
 }
 
-function assertSupplementTarget(target) {
+function assertSupplementTarget(target, expectedKeyCount = SUPPLEMENT_KEY_COUNT) {
   const files = target?.sourceFiles;
-  if (target?.supplementalKeys !== SUPPLEMENT_KEY_COUNT || !Array.isArray(files) || files.length !== 1
+  if (!Number.isInteger(expectedKeyCount) || expectedKeyCount < SUPPLEMENT_KEY_COUNT
+      || target?.supplementalKeys !== expectedKeyCount || !Array.isArray(files) || files.length !== 1
       || !files[0] || Object.keys(files[0]).length !== 2
       || files[0].path !== SOURCE_PATH || files[0].sha256 !== SOURCE_SHA256) {
     fail('target supplement count/source lock differs');

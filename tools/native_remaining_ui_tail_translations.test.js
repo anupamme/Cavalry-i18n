@@ -415,22 +415,25 @@ test('Node B05 keeps full GIF choices and separates numeric decay from physical-
   assert.equal(destinationOverIssue.sourceOrNotesModified, false);
 });
 
-test('approved native UI registry keeps 17 official catalogs distinct from eight schema supplements', () => {
+test('approved native UI registry keeps 17 official catalogs distinct from Forge and pending schema-gap source domains', () => {
   const rows = approvedEntries();
   const uniqueKeys = new Set(rows.map(row => row.key));
-  // -- 总域扩大只来自显式schema补充；原官方批准域与DNT基数不变 ------
-  assert.equal(uniqueKeys.size, 10286);
-  assert.equal(rows.length, 10286);
-  assert.equal(APPROVED_MODULES.length, 78);
-  assert.equal(new Set(APPROVED_MODULES).size, 78);
+  // -- 总域扩大只来自显式schema补充；官方批准域/DNT不变，未决World Scale仍留源分母 ------
+  assert.equal(uniqueKeys.size, 10650);
+  assert.equal(rows.length, 10650);
+  assert.equal(APPROVED_MODULES.length, 80);
+  assert.equal(new Set(APPROVED_MODULES).size, 80);
 
   assert.equal(TARGET.nativeKeys, 10473);
-  assert.equal(TARGET.supplementalKeys, 8);
+  assert.equal(TARGET.supplementalKeys, 373);
   assert.equal(TARGET.catalogs.length, 17);
   const targetCatalogIds = new Set(TARGET.catalogs.map(catalog => catalog.id));
   assert.equal(targetCatalogIds.size, 17);
-  const supplements = rows.filter(row => row.catalogId === 'Definitions/nodeDefinitions.json#prettifyAttrPath');
-  assert.equal(supplements.length, 8);
+  const forge = rows.filter(row => row.catalogId === 'Definitions/nodeDefinitions.json#prettifyAttrPath');
+  const gaps = rows.filter(row => row.catalogId === 'schemaSupplement/nodeAttributes');
+  assert.equal(forge.length, 8);
+  assert.equal(gaps.length, 364);
+  const supplements = [...forge, ...gaps];
   assert.equal(rows.length - supplements.length, 10278);
   const explicitCatalogRows = rows.filter(row => Object.hasOwn(row, 'catalogId') && !supplements.includes(row));
   const compactRows = rows.filter(row => !Object.hasOwn(row, 'catalogId'))
@@ -441,8 +444,8 @@ test('approved native UI registry keeps 17 official catalogs distinct from eight
   const registeredCatalogIds = new Set(explicitCatalogRows.map(row => row.catalogId));
   for (const catalogId of registeredCatalogIds) assert.ok(targetCatalogIds.has(catalogId), catalogId);
   assert.deepEqual([...registeredCatalogIds].sort(), [...targetCatalogIds].sort());
-  assert.equal(TARGET.nativeKeys + TARGET.supplementalKeys - uniqueKeys.size, 195,
-    'the source-derived automatic-DNT remainder stays fixed');
+  assert.equal(TARGET.nativeKeys + TARGET.supplementalKeys - uniqueKeys.size, 196,
+    '195 automatic-DNT keys stay fixed plus one declared but unapproved World Scale key');
 
   const expectedLocales = [...LOCALES].sort();
   for (const row of rows) {

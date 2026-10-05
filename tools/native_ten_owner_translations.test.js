@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖十个完整owner的主代理审批、官方target域摘要helper、既有producer/格式门与同目录局部语义合同。
- * [OUTPUT]: 分开锁定历史批准与201键/603现行决策摘要，保持完整source/notes/roles身份、display-only投影和真实旧译反向变异。
+ * [OUTPUT]: 官方owner选择同时绑定catalogId，不混入同owner schema补充；分开锁定历史批准与201键/603现行决策摘要，保持完整source/notes/roles身份、display-only投影和真实旧译反向变异。
  * [POS]: tools 的十owner默认离线审批合同；缺模块/审批/显式注册必须失败，临时stage与私库不参与运行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -104,7 +104,7 @@ function assertFormalRegistration(modules) {
   assert.equal(new Set(registered.map(row => row.key)).size, registered.length,
     'the current registered native key set has no collisions');
   const owners = new Set(Object.keys(EXPECTED_OWNERS));
-  const selected = registered.filter(row => owners.has(row.owner));
+  const selected = registered.filter(row => row.catalogId === 'Definitions/Translation/nodeStrings' && owners.has(row.owner));
   assert.equal(selected.length, 201, 'the ten registered full owners expose exactly 201 source keys');
   assert.deepEqual(selected.map(row => row.key).sort(compare), allBatchEntries(modules).map(row => row.key).sort(compare));
 }

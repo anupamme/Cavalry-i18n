@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖规范化target原始bytes、冻结官方target字段清单与独立schema补充target合同。
+ * [INPUT]: 依赖规范化target原始bytes、冻结官方target字段清单与Forge八条与固定365条缺源补充target合同。
  * [OUTPUT]: 提供保留旧b6c6官方域摘要的精确投影，不把两项补充元数据混入旧批准身份。
  * [POS]: native source/provenance合同共用边界；只排除已命名补充字段，其他target漂移一律改变摘要或失败。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -8,7 +8,8 @@
 
 const { createHash } = require('node:crypto');
 const { isDeepStrictEqual } = require('node:util');
-const { assertSupplementTarget } = require('./native_schema_supplement');
+const { assertSupplementTarget, SUPPLEMENT_KEY_COUNT } = require('./native_schema_supplement');
+const { FIXED_GAP_LABELS } = require('./native_schema_gap_sources');
 
 const OFFICIAL_TARGET_SHA256 = 'b6c6c6de1145035dc5ead1f21daf27d405de79fb70f430ecc828f6d09522be84';
 const OFFICIAL_FIELDS = Object.freeze([
@@ -49,7 +50,7 @@ function officialTargetSha256(targetBytes) {
 
 function assertOfficialTarget(targetBytes) {
   const target = parseCanonicalTarget(targetBytes);
-  assertSupplementTarget(target);
+  assertSupplementTarget(target, SUPPLEMENT_KEY_COUNT + FIXED_GAP_LABELS.length);
   const digest = sha256(projectedOfficialBytes(target));
   if (digest !== OFFICIAL_TARGET_SHA256) fail(`official target digest differs: ${digest}`);
   return { target, officialTargetSha256: digest };

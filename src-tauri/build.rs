@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 tauri_build、cc、sha2、macOS AppKit handoff 源、四语言 JSON 源与 Windows generic/QPA 发布 DLL；显式macOS native preview构建另读固定target工件manifest、官方域摘要和schema补充源生成器。
+ * [INPUT]: 依赖 tauri_build、cc、sha2、macOS AppKit handoff 源、四语言 JSON 源与 Windows generic/QPA 发布 DLL；显式macOS native preview构建另读固定target工件manifest、官方域摘要及Forge/缺源schema补充源生成器。
  * [OUTPUT]: 生成 Tauri runtime context与资源信任锚；仅显式macOS开发预览把native manifest固定到OUT_DIR，默认/发布流水线不依赖厂商App或派生预览文件。
  * [POS]: src-tauri 的构建钩子；在用户可写安装资源之外固定 Windows source provenance，不参与运行时路径发现。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -42,6 +42,7 @@ fn embed_native_preview_manifest() {
             "../tools/native_resource_bundle.js",
             "../tools/native_language_pack.js",
             "../tools/native_schema_supplement.js",
+            "../tools/native_schema_gap_sources.js",
             "../tools/native_official_target.js",
             "../tools/native_translation_format.js",
             "../package-lock.json",

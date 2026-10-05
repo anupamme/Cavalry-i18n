@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖六个完整node owner的显式审批模块、approved_modules登记、native格式门与native_resource_bundle producer。
- * [OUTPUT]: 锁定152键源/notes/角色/owner摘要、root批准及三语决定；合成源保留真实DNT，验证技术保留、有限语义反例、格式与显示投影。
+ * [OUTPUT]: 官方owner选择同时绑定catalogId，不混入同owner schema补充；锁定152键源/notes/角色/owner摘要、root批准及三语决定；合成源保留真实DNT，验证技术保留、有限语义反例、格式与显示投影。
  * [POS]: 六owner默认离线合同；同目录helper以真实源/notes/当前caption关系校验基线，再拒绝逐槽语义反例，不证明live或发布。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -161,7 +161,7 @@ function assertExplicitRegistration(modules) {
   assert.equal(new Set(registered.map(row => row.key)).size, registered.length,
     'registered entries contain no duplicate source keys');
   const owners = new Set(Object.keys(OWNER_SPECS));
-  const selected = sorted(registered.filter(row => owners.has(row.owner)));
+  const selected = sorted(registered.filter(row => row.catalogId === 'Definitions/Translation/nodeStrings' && owners.has(row.owner)));
   assert.equal(selected.length, SOURCE.entryCount);
   assert.deepEqual(selected, sorted(allEntries(modules)), 'registry rows equal the six complete modules');
 }

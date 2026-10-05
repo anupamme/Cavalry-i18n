@@ -143,7 +143,7 @@
       "sha256": "14586420535bb8511b1668d14e0e61c6b964014d34bc4313166616b93f6298b4"
     }
   ],
-  "supplementalKeys": 8,
+  "supplementalKeys": 373,
   "sourceFiles": [
     {
       "path": "Definitions/nodeDefinitions.json",

@@ -2,6 +2,8 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+schema_attribute_gap_a.js: 构建期缺源A183 caption/549槽，固定Core标签与schema身份；全域独审及14槽有限修订经root批准，只补显示字典、不证明原厂实际消费。
+schema_attribute_gap_b.js: 构建期缺源B181 caption/543槽，6槽有限修订经全域独审/root批准；World Scale三槽未决，不注册该译键但producer保留源分母。
 forge_attribute_supplement.js: 构建期八个Forge schema回退标签的24槽源绑定审批；五项同owner旧译/三项独立语境核对，源在producer与nodeDefinitions/Core锁闭合，非官方catalog、不改模型、不代验实际消费。
 remaining_node_ui_b_05.js: 构建期最后442节点键，52文字槽29键经1326槽全域非作者与87差分/6上下文准入，24错误28建议；数值衰减/替换文本/二维值/sRGB分流，DestOver只批caption、源行为1未决，不代live。
 remaining_node_ui_b_04.js: 构建期完整449节点键，58文字槽34键经1347槽全域非作者与102槽独审准入，41错误17建议；台湾筆畫/中文投影合法保留、日文突出線端、反馈/名义数据/关节角色分流，不代live。
@@ -59,7 +61,7 @@ nodes_count_sub_meshes.js: 构建期源绑定审批，Count Sub Meshes完整10�
 nodes_material_behaviour_hsv.js: 构建期源绑定审批，HSV Material Behaviour完整5叶；保持HSV分量与行为用途，仅提供三语显示输入。 Grok基稿额度中止后由Luna Max修订/独立全域复核、主代理审定；AGY追加审稿不充当已通过门。
 nodes_stroke_material.js: 构建期源绑定审批，Stroke Material完整54叶；通用宽度渐变可变窄/变宽，双端渐细单独限定，Travel为沿路径移动，Alpha保留。 Grok基稿额度中止后由Luna Max修订/独立全域复核、主代理审定；AGY追加审稿不充当已通过门。
 nodes_sub_mesh.js: 构建期源绑定审批，Sub Mesh完整68叶；Stagger引用同已审节点，仅未设置填充/描边时替换保持材质限定，不改变子网格操作。 Grok基稿额度中止后由Luna Max修订/独立全域复核、主代理审定；AGY追加审稿不充当已通过门。
-approved_modules.js: 显式UI审批装配表；生成层只读取已审77个UI模块共10278键，不自动扫描目录或混入独立帮助/临时草稿。
+approved_modules.js: 显式UI审批装配表；生成层只读取已审80个UI模块共10650键（官方10278/Forge8/缺源364），不自动扫描目录或混入独立帮助/临时草稿。
 nodes_align_distortion_glow.js: 构建期源绑定数据，Align6/Distortion47/Glow47完整100叶由AGY完整稿、Grok全300值与Luna独立语境核对后主代理修订；保持正负对齐方向、HSV明度/边距、Alpha命名与日语Porter-Duff操作、半径/强度和预览透明度区别，不写模型或算法。
 nodes_array_distribution.js: 构建期源绑定数据，Array完整4叶经AGY/宝玉Skill、Grok全12值与Luna独立审校后主代理审定；手工(X, Y)坐标列表长度决定副本数量，index保持序列含义、Array保持数据列表而非网格，不写模型身份。
 nodes_slit_scan.js: 构建期源绑定数据，Slit Scan完整48叶经AGY/宝玉Skill、Grok全144值与Luna全域核对后主代理审定；基础/辉光共享17种模式保留独立枚举键及base-only Replace，镜像扫描不猜循环算法，Glow大小不改为冲突文档中的强度，不写模型或运行行为。
@@ -87,6 +89,7 @@ reviewed_translations.js: CommonJS 的构建期已审译文数据，按 2.8 原�
 
 依赖边界:
 本轮质量状态: 原4319键/63模块、12957槽全域非作者复审与62键88槽修订冻结；13厂商日语核证纠错/377原样。完整剩余分区已准入18/18（含冻结前4分区），冻结后新增5959键/14分区；当前77模块/10278正式键（100.0%），余0；全部六全局2596键正式。主/尾58、native/Skill380、源14实际全过/0fail/0skip；内存三语各10473投影（10278+195自动DNT），missing0、complete:true。全部18剩余分区准入，另显式全量15合同实际全过；DestinationOver有1个厂商源行为冲突仍待隔离实机验证，不等于译值缺口。历史回执不重写，该键冻结验收不含部署/live；维护者随后授权本机真实UI测试，需另记现场证据。
+当前接线状态（2026-10-06续接）：上述77官方模块/10278键、三语10473叶missing0为历史冻结检查点；另Forge8已接，现新增缺源A183+B181共364 caption，20槽语义返修经非作者验回/root批准。当前80模块/10650审批，官方10473+补充373（Forge8+缺源365）=10846 source；三语各10845输出，World Scale一键/三槽pending，manifest missing1/complete:false。显式source/producer保留未决分母，模型身份不写；待原厂真实消费验证，不能拿静态schema或资源生成抵扣live。
 此目录与父级四语 2.7.2 overlay 资产分开：数据供生成层消费，不直接复制到用户 Plugins，不将审稿元数据写入 registry。UI 译文经 `tools/native_language_pack.js` 的源绑定和厂商日语优先选择后投影单语言 `strings.json`；脚本说明经 `tools/native_metadata_help.js` 只修改当前源 description，不能写进 UI registry 或套 ICU 门。UI 数据经显式 `tools/native_resource_bundle.js` 接入未发布的 macOS debug 开发预览；独立脚本帮助尚未部署。dontTranslate 是强身份边界；仅可译键由厂商实译日语优先选择，旧候选或新补译不得覆盖该厂商译值，唯有维护者授权后逐键核证、独审、root批准并精确命中独立纠错登记的显示决定可以例外。通常由 AGY 沿项目级宝玉 Skill 出稿、Grok 独立检查、主代理裁定；维护者授权的 CLI 额度回退仍须完整源绑定、独立全域审校与主代理审批，provenance 分别记录真实出稿/修订/审校来源和未完成终态，待收追加审稿不能充当通过门。构建和测试不需要这些 CLI、Skill 或私有过程文件。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

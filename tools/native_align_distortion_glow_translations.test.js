@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 align/distortionFilter/glowFilter 的官方100叶审定模块、可选stage证据、native_language_pack 与 ICU 格式门
- * [OUTPUT]: 锁定完整source identity/notes/provenance、300个决策槽、图像/合成语义反例及只改显示值的投影边界
+ * [OUTPUT]: 官方owner选择同时绑定catalogId，不混入同owner schema补充；锁定完整source identity/notes/provenance、300个决策槽、图像/合成语义反例及只改显示值的投影边界
  * [POS]: tools 的默认整域审批合同；显式stage候选只诊断语义，不构成正式入库或运行时显示证明
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -218,7 +218,8 @@ function assertFormalModuleRegistered() {
   assert.equal(formalApprovalState(data), FORMAL_APPROVAL, 'module provenance must record root-adjudicated status');
   const registry = require(path.join(REPO_ROOT, 'languages/native/approved_modules.js'));
   assert.ok(registry.APPROVED_MODULES.includes('nodes_align_distortion_glow'), 'approved module is explicitly registered, never auto-discovered');
-  assert.equal(registry.approvedEntries().filter(row => ['align', 'distortionFilter', 'glowFilter'].includes(row.owner)).length, 100,
+  assert.equal(registry.approvedEntries().filter(row => row.catalogId === 'Definitions/Translation/nodeStrings'
+    && ['align', 'distortionFilter', 'glowFilter'].includes(row.owner)).length, 100,
     'approved registry exposes exactly the merged owner data');
   assert.equal(data.entries.every(row => !Object.hasOwn(row, 'oldCandidates')), true,
     'read-only old candidates must not leak into the formal module');

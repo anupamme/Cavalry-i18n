@@ -63,7 +63,7 @@ test('source supplement verifies pinned bytes and rejects official-key collision
   assert.match(supplement.SOURCE_SHA256, /^[a-f0-9]{64}$/);
   const target = JSON.parse(fs.readFileSync(`${__dirname}/cavalry_native_target.json`, 'utf8'));
   assert.equal(target.nativeKeys, 10473);
-  assert.equal(target.supplementalKeys, 8);
+  assert.equal(target.supplementalKeys, 373);
   assert.deepEqual(target.sourceFiles, [{ path: supplement.SOURCE_PATH, sha256: supplement.SOURCE_SHA256 }]);
   assert.throws(() => supplement.sourceEntries(Buffer.from('[]')), /digest|SHA/i);
   const entries = supplement.sourceEntriesFromDefinitions(definitionsFixture());

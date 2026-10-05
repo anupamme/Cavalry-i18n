@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-native/: 2.8原生显示键与独立脚本帮助审定输入；原4319质量冻结后新增5959键/14分区准入，官方批准域77模块/10278键、剩0；另一个schema补充模块八Forge键，总78模块/10286键，官方catalog与补充不混计；source/notes/模型身份保全，13厂商日语核证纠错/377保留。UI仅供未发布macOS预览、帮助consumer未接，不代打包/live。
+native/: 2.8原生显示键与独立脚本帮助审定输入；原4319质量冻结后新增5959键/14分区准入，官方批准域77模块/10278键、剩0；另一个schema补充模块八Forge键及两模块364缺源caption，共80模块/10650键；源域计365保留World Scale一键未决，官方catalog与补充不混计；source/notes/模型身份保全，13厂商日语核证纠错/377保留。UI仅供未发布macOS预览、帮助consumer未接，不代打包/live。
 en/: 英文基线语言包，作为 38 个 JSON surface 的 source truth 与 structure parity 参照，并吸收已核实的 Windows 2.7.2 平台节点。
 zh-Hans/: 简体中文语言包，覆盖 38 个 JSON surface，翻译用户可见说明/属性/枚举与 Windows 平台增量，并保留 API/type/ID/niceName 等模型身份字段。
 zh-Hant/: 繁体中文语言包，覆盖 38 个 JSON surface，保持繁体术语、Windows 平台增量、技术字段与模型 niceName 原样、简繁纯度。

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖编译期native manifest、target的17份catalog/独立schema锁及context资源候选；安装身份仅在用户动作内验证。
- * [OUTPUT]: 提供bundle发现、官方/补充键分账和三语payload完整验证，以及原厂宿主runtime/catalog/schema只读证明。
+ * [OUTPUT]: 提供bundle发现、官方/补充键分账和三语payload完整验证与诚实missing分母，以及原厂宿主runtime/catalog/schema只读证明。
  * [POS]: commands/native_user的资源边界；不把可修改manifest自报摘要当审批，不写App、profile或状态，不用旧2.7.2 runtime/QPA门。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -106,7 +106,7 @@ fn target() -> Result<Target, String> {
         || target.bundle_id != "com.scenegroup.cavalry"
         || target.executable != "Contents/MacOS/Cavalry"
         || target.native_keys != 10473
-        || target.supplemental_keys != 8
+        || target.supplemental_keys != 373
         || target.source_files.len() != 1
         || target.source_files[0].path != "Definitions/nodeDefinitions.json"
         || target.source_files[0].sha256
@@ -394,7 +394,7 @@ mod tests {
         let root = temp.path().canonicalize().unwrap();
         let mut manifest = json!({"schemaVersion":1,"kind":"development-preview","cavalryVersion":"2.8.0",
             "targetSha256":hash(TARGET_BYTES),"inputSha256":"a".repeat(64),"approvedUIKeys":1,
-            "nativeKeys":10481,"supplementalKeys":8,"complete":false,"packs":{}});
+            "nativeKeys":10846,"supplementalKeys":373,"complete":false,"packs":{}});
         for language in LANGUAGES {
             let vendor = if language == "ja_JP" { 390 } else { 0 };
             let values = (0..1 + vendor)
@@ -406,7 +406,7 @@ mod tests {
                     .unwrap();
             fs::write(root.join(format!("{language}.json")), &bytes).unwrap();
             manifest["packs"][language] = json!({"file":format!("{language}.json"),"nativeLocale":locale,
-                "sha256":hash(&bytes),"bytes":bytes.len(),"reviewed":1,"preserved":0,"vendor":vendor,"missing":10480-vendor});
+                "sha256":hash(&bytes),"bytes":bytes.len(),"reviewed":1,"preserved":0,"vendor":vendor,"missing":10845-vendor});
         }
         let bytes = serde_json::to_vec(&manifest).unwrap();
         fs::write(root.join("manifest.json"), &bytes).unwrap();
@@ -421,13 +421,52 @@ mod tests {
         assert!(load_at(&root, &compiled).unwrap_err().contains("digest"));
     }
     #[test]
+    fn one_pending_caption_keeps_an_honest_partial_pack_available() {
+        let (temp, compiled) = approved_fixture();
+        let root = temp.path().canonicalize().unwrap();
+        let mut manifest: serde_json::Value = serde_json::from_slice(&compiled).unwrap();
+        manifest["approvedUIKeys"] = serde_json::json!(10650);
+        for language in LANGUAGES {
+            let vendor = if language == "ja_JP" { 390 } else { 0 };
+            let values = (0..10845)
+                .map(|i| {
+                    (
+                        format!("fixture.{i}"),
+                        serde_json::json!({"UI-text":"caption"}),
+                    )
+                })
+                .collect::<serde_json::Map<_, _>>();
+            let locale = super::super::user_language::native_locale_for(language).unwrap();
+            let bytes = serde_json::to_vec(&serde_json::json!([
+                {"type":"strings","language":locale,"value":values}
+            ]))
+            .unwrap();
+            fs::write(root.join(format!("{language}.json")), &bytes).unwrap();
+            let info = &mut manifest["packs"][language];
+            info["sha256"] = serde_json::json!(hash(&bytes));
+            info["bytes"] = serde_json::json!(bytes.len());
+            info["reviewed"] = serde_json::json!(10650 - vendor);
+            info["preserved"] = serde_json::json!(195);
+            info["missing"] = serde_json::json!(1);
+        }
+        let partial = serde_json::to_vec(&manifest).unwrap();
+        fs::write(root.join("manifest.json"), &partial).unwrap();
+        assert_eq!(load_at(&root, &partial).unwrap().packs.len(), 3);
+        manifest["complete"] = serde_json::json!(true);
+        let false_claim = serde_json::to_vec(&manifest).unwrap();
+        fs::write(root.join("manifest.json"), &false_claim).unwrap();
+        assert!(load_at(&root, &false_claim)
+            .unwrap_err()
+            .contains("coverage"));
+    }
+    #[test]
     fn schema_supplement_count_is_explicit_and_cannot_masquerade_as_official_catalog() {
         let (temp, compiled) = approved_fixture();
         let root = temp.path().canonicalize().unwrap();
         let mut manifest: serde_json::Value = serde_json::from_slice(&compiled).unwrap();
-        // -- 八项仍缺译的合成包：只改变来源分账，不伪造已显示或已审批 -----
-        manifest["supplementalKeys"] = serde_json::json!(8);
-        manifest["nativeKeys"] = serde_json::json!(10481);
+        // -- 补充仍缺译的合成包：只改变来源分账，不伪造已显示或已审批 -----
+        manifest["supplementalKeys"] = serde_json::json!(373);
+        manifest["nativeKeys"] = serde_json::json!(10846);
         let bytes = serde_json::to_vec(&manifest).unwrap();
         fs::write(root.join("manifest.json"), &bytes).unwrap();
         assert!(

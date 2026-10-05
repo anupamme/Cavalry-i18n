@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖六完整owner的根审批显示模块、显式registry、官方target域摘要helper、DNT一致的合成源及公有格式/有限语义合同与producer。
- * [OUTPUT]: 锁定200键/600槽source identity、DNT/技术保留、格式、源note语义和合成fixture上的display-only投影。
+ * [OUTPUT]: 官方owner选择同时绑定catalogId，不混入同owner schema补充；锁定200键/600槽source identity、DNT/技术保留、格式、源note语义和合成fixture上的display-only投影。
  * [POS]: 六owner的默认source-bound合同；固定审定值/有限反例只证明离线200键显示输入，不是通用NLP或真实Cavalry运行证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -100,7 +100,7 @@ function assertExplicitRegistration(modules) {
   assert.equal(new Set(registered.map(row => row.key)).size, registered.length,
     'current registry has no duplicate source keys');
   const owners = new Set(Object.keys(SPECS));
-  const selected = registered.filter(row => owners.has(row.owner));
+  const selected = registered.filter(row => row.catalogId === 'Definitions/Translation/nodeStrings' && owners.has(row.owner));
   assert.equal(selected.length, 200);
   assert.deepEqual(sorted(selected), sorted(allEntries(modules)), 'registered source-bound rows equal the explicitly owned modules');
 }

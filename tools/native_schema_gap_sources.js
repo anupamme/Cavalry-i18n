@@ -1,17 +1,21 @@
 /**
- * [INPUT]: 依赖调用方提供的2.8 nodeDefinitions定义树与完整官方source key列表；定义/官方集完整性及真实文件摘要身份由调用方另行核验。
- * [OUTPUT]: 提供冻结的365组(owner, attributeId, Core fallback)候选源行及定义/继承/UI引用/官方碰撞校验。
- * [POS]: native source-only缺口边界；只校验调用方输入集，不证明集合完整；不读文件或vendor、不推断英文、不审批译文、不接入registry/producer/运行时。
+ * [INPUT]: sourceEntries接收SHA锁定的2.8 nodeDefinitions原始字节与调用方完整官方键集；行验证还须显式给出Forge补充集。
+ * [OUTPUT]: 提供sourceEntries、validateGapDefinitions、validateGapEntries、固定365行投影及GAP_CATALOG_ID。
+ * [POS]: 将已固定的Core fallback映射为resource-bundle源行；集合完整性由调用方证明，本模块不读文件/vendor、不审批或自行装配producer/registry/运行时。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
 
+const { createHash } = require('node:crypto');
+const { isDeepStrictEqual } = require('node:util');
 const SOURCE_DEFINITIONS_SHA256 = '96c7ffbda8d8244a111b3ad3e60fe530eb919fe9f93cbdf3577e2e29ca11d48f';
 const CORE_FALLBACK_SHA256 = '8df2a434b5a6b73da691f7c8d0bba6fbb4c244dc0b388ea466ba8220c5ebeafb';
 const FIXED_GAP_COUNT = 365;
 const FIXED_INHERITED_GAP_COUNT = 13;
 const IDENTIFIER = /^[A-Za-z][A-Za-z0-9_]*$/;
 const VENDOR_NODE_TYPE = /^[A-Za-z0-9][A-Za-z0-9_]*$/;
+const GAP_CATALOG_ID = 'schemaSupplement/nodeAttributes';
+const GAP_SOURCE_NOTES = 'Cavalry 2.8 nodeDefinitions declares this Inspector attribute; English label is the verified Core fallback.';
 
 function fail(message) {
   throw new Error('native schema gap sources ' + message);
@@ -398,6 +402,21 @@ const FIXED_GAP_LABELS = deepFreeze([
   ["wave","adaptiveWaveCounts","Adaptive Wave Counts"],
 ]);
 
+const FIXED_GAP_SOURCE_ROWS = deepFreeze(FIXED_GAP_LABELS.map(([owner, attributeId, source]) => ({
+  key: `nodeAttr:${owner}.${attributeId}`,
+  catalogId: GAP_CATALOG_ID,
+  owner,
+  fieldPath: ['attributes', attributeId, 'name'],
+  source,
+  vendorJapanese: null,
+  dontTranslate: false,
+  notes: [GAP_SOURCE_NOTES],
+})));
+
+function cloneGapRows(rows) {
+  return rows.map(row => ({ ...row, fieldPath: [...row.fieldPath], notes: [...row.notes] }));
+}
+
 function assertFixedGapLabels() {
   if (FIXED_GAP_LABELS.length !== FIXED_GAP_COUNT) fail('fixed source row count differs');
   const identities = new Set();
@@ -516,6 +535,21 @@ function officialKeys(officialEntries) {
   return keys;
 }
 
+function existingSupplementKeys(existingSupplementEntries) {
+  if (!Array.isArray(existingSupplementEntries)) {
+    fail('existing supplement entries must be provided as an array');
+  }
+  const keys = new Set();
+  for (const entry of existingSupplementEntries) {
+    if (!isRecord(entry) || typeof entry.key !== 'string' || entry.key.length === 0) {
+      fail('existing supplement entry lacks a key');
+    }
+    if (keys.has(entry.key)) fail('duplicate existing supplement key: ' + entry.key);
+    keys.add(entry.key);
+  }
+  return keys;
+}
+
 function validateGapDefinitions(definitions, officialEntries) {
   assertFixedGapLabels();
   const byType = indexDefinitions(definitions);
@@ -549,9 +583,59 @@ function validateGapDefinitions(definitions, officialEntries) {
   return FIXED_GAP_LABELS;
 }
 
+function validateGapEntries(entries, officialEntries, options) {
+  if (!isRecord(options) || !Array.isArray(options.existingSupplementEntries)) {
+    fail('existing supplement entries must be provided explicitly');
+  }
+  const official = officialKeys(officialEntries);
+  const supplements = existingSupplementKeys(options.existingSupplementEntries);
+  if (!Array.isArray(entries) || entries.length !== FIXED_GAP_COUNT) {
+    fail('requires exactly 365 source rows');
+  }
+
+  const keys = new Set();
+  for (const entry of entries) {
+    if (!isRecord(entry) || typeof entry.key !== 'string' || entry.key.length === 0) {
+      fail('gap source row shape invalid');
+    }
+    if (keys.has(entry.key)) fail('duplicate gap source key: ' + entry.key);
+    keys.add(entry.key);
+    if (official.has(entry.key)) fail('official gap key collision: ' + entry.key);
+    if (supplements.has(entry.key)) fail('existing supplement collision: ' + entry.key);
+  }
+
+  for (let index = 0; index < FIXED_GAP_SOURCE_ROWS.length; index += 1) {
+    const expected = FIXED_GAP_SOURCE_ROWS[index];
+    if (!isDeepStrictEqual(entries[index], expected)) {
+      fail('source row identity differs: ' + expected.key);
+    }
+  }
+  return cloneGapRows(FIXED_GAP_SOURCE_ROWS);
+}
+
+function sourceEntries(rawNodeDefinitionsBytes, fullOfficialEntries) {
+  if (!Buffer.isBuffer(rawNodeDefinitionsBytes) && !(rawNodeDefinitionsBytes instanceof Uint8Array)) {
+    fail('nodeDefinitions input must be raw bytes');
+  }
+  const bytes = Buffer.from(rawNodeDefinitionsBytes);
+  const digest = createHash('sha256').update(bytes).digest('hex');
+  if (digest !== SOURCE_DEFINITIONS_SHA256) fail('nodeDefinitions SHA-256 differs');
+
+  let definitions;
+  try { definitions = JSON.parse(bytes.toString('utf8')); }
+  catch { fail('nodeDefinitions JSON is invalid'); }
+
+  validateGapDefinitions(definitions, fullOfficialEntries);
+  return cloneGapRows(FIXED_GAP_SOURCE_ROWS);
+}
+
 module.exports = {
   FIXED_GAP_LABELS,
+  GAP_CATALOG_ID,
+  FIXED_GAP_SOURCE_ROWS,
   SOURCE_DEFINITIONS_SHA256,
   CORE_FALLBACK_SHA256,
+  sourceEntries,
+  validateGapEntries,
   validateGapDefinitions,
 };

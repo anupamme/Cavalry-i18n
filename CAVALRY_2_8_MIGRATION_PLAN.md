@@ -1,15 +1,15 @@
 <!--
 [INPUT]: 依赖现行2.7.2架构、官方2.8.0来源、固定365条缺源边界与冻结三语源、用户profile生产事务、真实首屏/恢复、独立副本字体canary及全491定义source交叉证据；WK fixture与无窗口AppHandle各守边界，不合成IPC联动通过
-[OUTPUT]: 给出本分支的 2.8 迁移决策、TDD顺序、原4319键质量冻结、官方10278键及独立Forge补充8键、总10286审批、官方待接0与额外schema缺源候选分账的接续边界；不宣称产品已经支持2.8
+[OUTPUT]: 给出本分支的2.8迁移决策与TDD顺序；官方10278/Forge8/缺源364合计10650审批，10846 source中World Scale一键未决，历史冻结与现行准入分账；不宣称产品已经支持2.8
 [POS]: feat/cavalry-2.8.0 的实施方案入口；调查工具与原始证据不进入产品运行时
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 # Cavalry 2.8.0 本地化迁移方案
 
-更新：2026-10-05
-状态：**整体迁移未完成；逐项办事表以§5.2为当前唯一进度入口。** 官方显示源域已闭合：77模块、10278审批键、剩0；另独立Forge schema域1模块8键准入，总78模块10286审批/每语10481叶（官方10473+补充8，含195自动DNT），34厂商源/身份未改。原4319质量冻结后新增5959键，390厂商日语仅13核证纠错/377保留。512帮助译文已审但consumer未接，Destination Over仍有1项厂商源行为冲突待实测。
+更新：2026-10-06
+状态：**整体迁移未完成；逐项办事表以§5.2为当前唯一进度入口。** 官方显示源域已闭合：77模块、10278审批键、剩0；另独立Forge schema域1模块8键、缺源域2模块364caption准入，共80模块10650审批/每语10845输出；官方10473+补充373=10846 source，World Scale一键三槽pending使missing1/complete:false（195自动DNT之外的技术保留单独计数），34厂商源/身份未改。原4319质量冻结后新增5959键，390厂商日语仅13核证纠错/377保留。512帮助译文已审但consumer未接，Destination Over仍有1项厂商源行为冲突待实测。
 
-当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official使用固定厂商Apple Developer ID requirement，只认证来源、不授予写入/恢复权。当前整仓Node740项通过（项目锁定Node24.20.0/npm11.19.0，本轮新增14项source-only合同）；native与默认路径全量Rust各372通过/0失败/0warning，7个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章Chromium headless fixture 6项与系统WKWebView fixture 6项均通过；WK审查用prohibited激活策略，记录1个内部隐藏TUINSWindow、0可见/key/main及无自身激活事件，原厂/profile六监视文件前后不变。真实WebKit渲染不等于Tauri AppHandle/实际后端联动或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
+当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official使用固定厂商Apple Developer ID requirement，只认证来源、不授予写入/恢复权。当前整仓Node752项通过（项目锁定Node24.20.0/npm11.19.0；§23历史740）；历史native与默认路径全量Rust各372通过/0失败/0warning，本轮Rust复验单独记§24；7个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章Chromium headless fixture 6项与系统WKWebView fixture 6项均通过；WK审查用prohibited激活策略，记录1个内部隐藏TUINSWindow、0可见/key/main及无自身激活事件，原厂/profile六监视文件前后不变。真实WebKit渲染不等于Tauri AppHandle/实际后端联动或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
 
 完整冻结包历史生产owner动作5/5、四语原厂首屏/正常退出各4/4；随后Hans Apply和本次Forge八项新包的同语言升级各成功一次，合计7次成功用户事务。当前typed locale为zh-Hans，自有strings/receipt存在；English恢复曾因实验副本仍运行被writer guard拒绝，未写profile，不能沿用§16的历史English终态。原厂安装未改。独立ad-hoc副本的Hans工具提示字体canary已观察8条CJK/1条ASCII路径与可读截图，但后台门失败；后续第二轮副本又确认单一视口状态“视口质量：完整”可读，但启动/退出前台约束仍失败；其他视口状态、时间轴、动态属性、搜索/字体身份均须分别验收。完整catalog仍0/51，Switcher IPC未验收。默认2.7发布、版本号与共享feed不变；Windows暂停，不推送或发布。全session私人检查点及指定会话任务原文已在私人文档仓正常推送并远端核验；新实验与明确剩余项见§18，不能把字体小样计入完整UI通过。
 本文件按用户要求放在产品分支；过程证据与临时队列留在会话级 stage 或私有历史文档库。公开构建、测试和发布不得依赖这些路径，也不打包调查脚本。
@@ -785,3 +785,20 @@ root随后在deny-default的独立进程sandbox中实际调用一次原厂Core�
 - [ ] 原生补充注册与实机消费者：本轮只建立固定源边界；target、审批模块、资源producer及Rust计数仍官方10473+既有Forge8，未把365候选自动加入包。所有候选`liveConsumerVerified:false`，没有GUI启动、profile写入、重建资源或重复打包。
 
 源表canonical UTF-8 JSON+LF SHA **`d2f66a17f1a1fb9eddb26c0d8547088faa8fd99aebc7bd474d97246250f85f8f`**。仅这一固定表及其纯合同进入公开工具链；原始日志、source对照、草稿和审查在私人账及会话stage归档，公开构建不依赖它们。官方10278+补充8、§5.2的26完成/18待办、完整catalog0/51、默认2.7发布和Windows暂停边界均不变。本轮未重跑Rust/live，不以过去372项或historical首屏小样代验新工作。
+
+
+## 24. 全属性缺源caption正式准入与诚实未决分母
+
+2026-10-06续接：§23的source-only/未注册是前一冻结点，不重写历史。本次 root 继续工作同时由 GPT-6 Luna Max 并行完成 raw source adapter、三语全槽/修订槽非作者审查、跨版本全属性对照与接线独审；不以派单代替主代理实际producer/Rust验收。
+
+| 子项 | 实际结果与边界 |
+|---|---|
+| [x] 全属性交叉对照 | 2.7四语各2483身份、2.8英语/厂商日语各2576；共有2434/旧独有49/新增142；128文件闭包缺失与漂移0。2671唯一Inspector声明分为2200直接官方、93父级官方、8Forge、365缺源、4未解及1插件命名空间，另2条ownerless分账；不是2671真实可见控件 |
+| [x] 三语缺源语义准入 | A183/549槽与B182/546槽完整独审；root修14+6共20槽并经非作者定向验回，最终批准364键/1092槽。保留全部原作者稿/候选/历史摘要，World Scale一键三槽pending，不跨owner借Forge语义 |
+| [x] 源adapter与显式装配 | nodeDefinitions原始字节先SHA再解析；固定365源校验owner/schema/父链/Inspector声明以及完整官方/Forge集合碰撞，21项离线合同。两个新审批模块显式registry接入，producer从完整17对official源先建立身份再派生Forge8+缺源365；不伪造第18份official catalog |
+| [x] 预览资源/Rust计数 | target和Rust按官方10473+补充373=10846源；80模块/10650审批。单次真实官方assets构建三语各10845显示叶，World Scale省略交原生fallback，missing1/complete:false；厂商日语390来源计数不变（13已核证纠错/377保留）；去掉新364caption后的三语10481叶投影均逐字节等于历史旧包SHA，不是完整UI通过 |
+| [x] 真实源与审批字节验回 | 当前nodeDefinitions/Core SHA、17对catalog/10473官方叶、238实际Core fallback ID均核回；正式364caption逐key/owner/source及三语decision/text完全匹配最终root候选，未读取或写入用户profile |
+| [x] 合同与陈旧拒绝 | pinned Node24.20.0/npm11.19.0整仓752/752。首轮751项中5失败来自四个旧official owner合同单按owner选集混入新schema，修为catalogId+owner双身份后原官方计数/摘要不变；聚合域碰撞拒绝另5/5；默认backend与显式native全套Rust各373通过/0fail/7显式人工门ignored/0warning（默认首次缺旧injector资源前置失败保留，以测试专用空resources overlay复验，不代生产打包）。旧preview --check实际拒绝，单次重建后fresh通过，日志不覆盖 |
+| [ ] 原厂消费者与晚期机制对等 | 本次未启动GUI、未修改App/profile、未打包/公开发布；所有新增caption liveConsumerVerified:false。后续以exact PID和不抢前台的受控实屏验各源域，原生可消费优先；真正不可达才复用2.7窄机制。搜索/首帧/字体family/style/输入/模型身份、时间轴与512帮助consumer仍独立验收 |
+
+§5.2仍**26已完成/18待完成**，完整catalog仍**0/51**。默认2.7发布、Windows暂停和用户作品保护不变。静态声明/译文审批/资源生成/Rust可读门各有独立证明，不能相互替代。

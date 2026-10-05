@@ -22,7 +22,7 @@ test('official target domain projects to the frozen pre-supplement SHA', () => {
   assert.equal(OFFICIAL_TARGET_SHA256, result.officialTargetSha256);
   assert.equal(officialTargetSha256(targetBytes), result.officialTargetSha256);
   assert.equal(result.target.nativeKeys, 10473);
-  assert.equal(result.target.supplementalKeys, 8);
+  assert.equal(result.target.supplementalKeys, 373);
 });
 
 test('official runtime, catalog, key-count and installation identity mutations fail closed', () => {

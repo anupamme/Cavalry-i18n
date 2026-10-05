@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖固定365组(owner, attributeId, fallback)源行、target锁中的source/Core预期摘要常量、调用方提供的完整官方键集及合成定义树。
- * [OUTPUT]: 锁定源行canonical摘要，并证明根/继承schema、递归Inspector声明和官方键碰撞均被校验。
+ * [INPUT]: 依赖固定365组(owner, attributeId, fallback)源行、target锁摘要常量、显式官方/Forge键集及合成定义树。
+ * [OUTPUT]: 锁定source row投影身份，验证SHA先行、定义树、全量365 entry和metadata/碰撞拒绝。
  * [POS]: source-only候选边界合同；不批准候选、不读私有stage/vendor/App/profile，也不接入资源producer。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -15,6 +15,10 @@ const {
   FIXED_GAP_LABELS,
   SOURCE_DEFINITIONS_SHA256,
   CORE_FALLBACK_SHA256,
+  GAP_CATALOG_ID,
+  FIXED_GAP_SOURCE_ROWS,
+  sourceEntries,
+  validateGapEntries,
   validateGapDefinitions,
 } = require('./native_schema_gap_sources');
 
@@ -76,6 +80,23 @@ function syntheticDefinitions() {
   });
 
   return [root, ...byOwner.values()];
+}
+
+function expectedGapRows() {
+  return FIXED_GAP_LABELS.map(([owner, attributeId, source]) => ({
+    key: `nodeAttr:${owner}.${attributeId}`,
+    catalogId: 'schemaSupplement/nodeAttributes',
+    owner,
+    fieldPath: ['attributes', attributeId, 'name'],
+    source,
+    vendorJapanese: null,
+    dontTranslate: false,
+    notes: ['Cavalry 2.8 nodeDefinitions declares this Inspector attribute; English label is the verified Core fallback.'],
+  }));
+}
+
+function cloneGapRows(rows) {
+  return rows.map(row => ({ ...row, fieldPath: [...row.fieldPath], notes: [...row.notes] }));
 }
 
 function removeDeclaredReference(definition, attributeId) {
@@ -232,4 +253,92 @@ test('direct and inherited official nodeAttr collisions are rejected', () => {
   assert.throws(() => validateGapDefinitions(inherited, [{ key: `nodeAttr:fixtureRoot.${inheritedId}` }]),
     /official.*parent.*collision/i);
   assert.equal(definitionByType(inherited, child).superType, 'fixtureRoot');
+});
+
+test('fixed 365 source rows use the exact resource-bundle projection contract', () => {
+  const expected = expectedGapRows();
+  assert.equal(GAP_CATALOG_ID, 'schemaSupplement/nodeAttributes');
+  assert.equal(FIXED_GAP_SOURCE_ROWS.length, 365);
+  assert.ok(Object.isFrozen(FIXED_GAP_SOURCE_ROWS));
+  assert.ok(FIXED_GAP_SOURCE_ROWS.every(row => Object.isFrozen(row)
+    && Object.isFrozen(row.fieldPath) && Object.isFrozen(row.notes)));
+  assert.deepEqual(FIXED_GAP_SOURCE_ROWS, expected);
+  assert.equal(new Set(FIXED_GAP_SOURCE_ROWS.map(row => row.key)).size, 365);
+  assert.ok(FIXED_GAP_SOURCE_ROWS.every(row => row.vendorJapanese === null && row.dontTranslate === false));
+});
+
+test('raw source adapter checks exact bytes digest before JSON parsing', () => {
+  assert.throws(() => sourceEntries('[]', []), /raw bytes/i);
+  assert.throws(() => sourceEntries(Buffer.from('{ malformed json'), []), /SHA-256 differs/i);
+  assert.throws(() => sourceEntries(new Uint8Array([0x7b, 0x7d]), []), /SHA-256 differs/i);
+});
+
+test('gap-entry gate accepts all fixed rows after synthetic source/schema validation', () => {
+  const definitions = syntheticDefinitions();
+  assert.strictEqual(validateGapDefinitions(definitions, []), FIXED_GAP_LABELS);
+  const rows = expectedGapRows();
+  const { FIXED_SOURCE_ROWS } = require('./native_schema_supplement');
+  const validated = validateGapEntries(rows, [], { existingSupplementEntries: FIXED_SOURCE_ROWS });
+  assert.deepEqual(validated, rows);
+  assert.notStrictEqual(validated, rows);
+  assert.notStrictEqual(validated[0].fieldPath, rows[0].fieldPath);
+  assert.equal(validated.length, 365);
+});
+
+test('gap-entry gate requires all 365 rows and rejects duplicate keys', () => {
+  const rows = expectedGapRows();
+  const { FIXED_SOURCE_ROWS } = require('./native_schema_supplement');
+  const options = { existingSupplementEntries: FIXED_SOURCE_ROWS };
+  assert.throws(() => validateGapEntries(rows.slice(0, -1), [], options), /exactly 365/i);
+
+  const duplicate = cloneGapRows(rows);
+  duplicate[1] = structuredClone(duplicate[0]);
+  assert.throws(() => validateGapEntries(duplicate, [], options), /duplicate.*key/i);
+});
+
+test('gap-entry gate rejects official and existing Forge collisions', () => {
+  const rows = expectedGapRows();
+  const { FIXED_SOURCE_ROWS } = require('./native_schema_supplement');
+  assert.throws(() => validateGapEntries(rows, [{ key: rows[0].key }], {
+    existingSupplementEntries: FIXED_SOURCE_ROWS,
+  }), /official.*collision/i);
+
+  const collidingForge = cloneGapRows(FIXED_SOURCE_ROWS);
+  collidingForge[0].key = rows[0].key;
+  assert.throws(() => validateGapEntries(rows, [], { existingSupplementEntries: collidingForge }),
+    /supplement.*collision/i);
+});
+
+test('gap-entry gate rejects forged rows and metadata drift', () => {
+  const rows = expectedGapRows();
+  const { FIXED_SOURCE_ROWS } = require('./native_schema_supplement');
+  const options = { existingSupplementEntries: FIXED_SOURCE_ROWS };
+  const mutations = [
+    row => { row.key = 'nodeAttr:forged.value'; },
+    row => { row.catalogId = 'officialCatalog'; },
+    row => { row.owner = 'wrongOwner'; },
+    row => { row.fieldPath = ['attributes', 'wrong', 'name']; },
+    row => { row.source = 'Forged fallback'; },
+    row => { row.notes = ['Copied/forged explanation']; },
+    row => { row.vendorJapanese = '假的日文'; },
+    row => { row.dontTranslate = true; },
+    row => { delete row.dontTranslate; },
+    row => { row.unreviewed = true; },
+  ];
+
+  for (const mutate of mutations) {
+    const changed = cloneGapRows(rows);
+    mutate(changed[0]);
+    assert.throws(() => validateGapEntries(changed, [], options), /source row.*identity|row shape/i);
+  }
+});
+
+test('gap-entry gate requires explicit complete evidence arguments', () => {
+  const rows = expectedGapRows();
+  const { FIXED_SOURCE_ROWS } = require('./native_schema_supplement');
+  assert.throws(() => validateGapEntries(rows, undefined, {
+    existingSupplementEntries: FIXED_SOURCE_ROWS,
+  }), /official entries must be an array/i);
+  assert.throws(() => validateGapEntries(rows, [], undefined), /existing supplement entries/i);
+  assert.throws(() => validateGapEntries(rows, [], {}), /existing supplement entries/i);
 });

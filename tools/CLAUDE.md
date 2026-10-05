@@ -2,35 +2,36 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+native_schema_gap_translations.test.js: 离线源绑定准入合同；守364键/1092槽和三语审批摘要，真实producer保留365源中World Scale一键missing而非伪造complete；不读App或私账。
 native_remaining_ui_contract.js: 纯测试共享完整分区摘要/源/格式/三语producer和有限实际修订守门，原42合同逻辑等价提取，不自动注册测试或读取私账/App。
 native_remaining_ui_final_repair_cases.js: 构建期剩余UI后半分区纯静态回退数据，Global06的112文字槽/6物理键决定、Node A04/A05/A06与B04/B05/B06分别绑定77/98/82/58/52/40个冻结源身份及旧值；不依赖私账，不以数据生成代验批准。
 native_remaining_ui_repair_cases.js: 构建期纯静态有限真实修订回退样本，A02/A03/B01/B02/B03/Global04/Global05精确source身份与old/new逐槽共址；测试逻辑不依赖私账，拆分防止多批合同单文件膨胀。
 native_graphics_reaudit.test.js: Node本轮88槽/62键有限图形/动效修订及13纠错/377厂商原样闭合合同，逐槽保留真实旧译反例及冻结源身份，真实显示投影无metadata；不读私账，不冒称通用NLP或live。
 native_remaining_ui_translations.test.js: Node剩余UI入库主合同，A04真实39过3缺模块RED→42全过GREEN；A04精确77槽/42键静态回退、443键完整摘要及Curl/Metaballs/Text Box/Projecting/数值运算/几何端点反例。其余A02/A03/B01/B02/B03/Global04/Global05/Global06既有合同与源绑定回退保留，共享完整分区断言，不读取私账、只测显式准入显示输入，不代表live。
-native_remaining_ui_tail_translations.test.js: Node剩余UI后半合同，A05/A06/B04/B05/B06完整414/402/449/442/328键分区摘要和98/82/58/52/40个源身份绑定旧值回退；保护ProRes/Fade/Fill/身份、Stroke/Glyph/文本行与几何Lines/二维三维/XOR/Voronoi Levels/Body、台湾表格轴/Shift+Return/补零/Oklab、端帽/Tangent/Pin/Feedback/Nominal及GIF/物理衰减语义，并闭合77官方模块/10278官方UI键+1补充模块/8键=78模块/10286总审定键、17个official target catalog与1421键稳定compact UI切片；与主合同拆分守住单文件规模，正式模块缺失时保持RED，不读取stage或私账、不批准、不代表live。
+native_remaining_ui_tail_translations.test.js: Node剩余UI后半合同，A05/A06/B04/B05/B06完整414/402/449/442/328键分区摘要和98/82/58/52/40个源身份绑定旧值回退；保护ProRes/Fade/Fill/身份、Stroke/Glyph/文本行与几何Lines/二维三维/XOR/Voronoi Levels/Body、台湾表格轴/Shift+Return/补零/Oklab、端帽/Tangent/Pin/Feedback/Nominal及GIF/物理衰减语义，并闭合77官方模块/10278官方UI键+Forge1模块/8键+缺源2模块/364键=80模块/10650总审定键、17个official target catalog与1421键稳定compact UI切片；与主合同拆分守住单文件规模，正式模块缺失时保持RED，不读取stage或私账、不批准、不代表live。
 native_guide_plugin_translations.test.js: Node的15完整Guide/Plugin catalog、396键/1188决定合同；用共享official-target投影维持历史批准b6摘要，现行三语摘要分开锁定；390厂商来源JA中13纠错/377原样、6DNT与真实producer闭合，不代验live。
-native_mesh_family_translations.test.js: Node的六完整mesh-family owner/152键默认源绑定批准合同；锁456决定与真实源身份，完整基线后15旧译回退及21单槽有限语义反例，显示投影不写模型，不依赖stage或live。 合成source fixture保留官方DNT，避免新源绑定门将漏metadata误报为批准漂移。
+native_mesh_family_translations.test.js: 官方catalogId+owner双身份选择，不把同owner schema补键反写旧批准分母；Node的六完整mesh-family owner/152键默认源绑定批准合同；锁456决定与真实源身份，完整基线后15旧译回退及21单槽有限语义反例，显示投影不写模型，不依赖stage或live。 合成source fixture保留官方DNT，避免新源绑定门将漏metadata误报为批准漂移。
 native_mesh_family_semantic_contract.js: 构建期有限语义合同；源notes绑定Fill All/Count、网格细分与顶点标签、Capture/Flow、剔除与松弛、SkSL边界和当前caption，区分Catmull DNT与Mitchell技术保留，不实现通用NLP。
-native_six_owner_translations.test.js: Node的六完整owner/200键默认审批合同；共享official-target投影仍锁冻结b6官方身份，锁600决定/源/notes/角色/DNT/审批登记，正向基线后36摘要破坏与63单槽反例；合成源同步DNT身份，不代验live。
+native_six_owner_translations.test.js: 官方catalogId+owner双身份选择，不把同owner schema补键反写旧批准分母；Node的六完整owner/200键默认审批合同；共享official-target投影仍锁冻结b6官方身份，锁600决定/源/notes/角色/DNT/审批登记，正向基线后36摘要破坏与63单槽反例；合成源同步DNT身份，不代验live。
 native_six_owner_semantic_contract.js: 纯测试有限语义合同；引用现行Kerning/Character Spacing/Camera及本域label，约束Falloff概率/视口与计算、父路径垂线/帧模式/圆弧阈值、统计Nominal/柱高、四角入出与Bayer/2.5D保留；不是通用NLP，不参与产品运行时。
-native_ten_owner_translations.test.js: Node的十完整owner/201键合同；共享official-target投影保留冻结b6源身份，603现行源绑定决定与历史批准摘要分开锁定；全201基线后30摘要变异及58有限反例/39旧译回退，只投影display、不依赖私账或通用NLP。
+native_ten_owner_translations.test.js: 官方catalogId+owner双身份选择，不把同owner schema补键反写旧批准分母；Node的十完整owner/201键合同；共享official-target投影保留冻结b6源身份，603现行源绑定决定与历史批准摘要分开锁定；全201基线后30摘要变异及58有限反例/39旧译回退，只投影display、不依赖私账或通用NLP。
 native_ten_owner_semantic_contract.js: 纯测试合同；以既有Auto Animate显示词约束Stagger引用，按source-notes绑定通用宽度渐变、沿路径移动与仅未设置材质时替换的已审caption，双端渐细独立守边界；共享正向guard与单槽真实旧译反例，改译须重新审定，不进入产品运行时。
-native_resource_bundle.js: 审批/producer/lock及独立纠错登记输入摘要与陈旧拒绝；locale精确schema禁止覆盖key/source，批准DNT缺省规范为false并必须等于源；从官方assets根及17对摘要锁装配三语预览，并接入固定8个schema-only补充源；manifest保留总nativeKeys并分报supplementalKeys，CLI另显示官方catalog数，缺译如实保留。
+native_resource_bundle.js: 审批/producer/lock及独立纠错登记输入摘要与陈旧拒绝；locale精确schema禁止覆盖key/source，批准DNT缺省规范为false并必须等于源；从官方assets根及17对摘要锁装配三语预览，并按源域验证Forge8+缺源365共373固定补充源，完整官方集合先于schema adapter；manifest保留总nativeKeys并分报supplementalKeys，CLI另显示官方catalog数，缺译如实保留。
 native_resource_bundle.test.js: 合成catalog工件合同；锁定身份/notes/格式/厂商默认优先及独立登记、自报metadata拒绝、locale身份覆盖、vendor计数与typed manifest；另验证固定8补充源的计数、碰撞/漂移拒绝和未批缺键，不能代替语义批准或live。
 native_schema_supplement.js: 2.8 nodeDefinitions原始SHA、Forge owner父链、八字段完整schema及Inspector顺序的source-only投影；固定catalogId/source notes与dontTranslate=false、补充target字段及官方键碰撞门，不生成locale译文、不扩展任意ID。
 native_schema_supplement.test.js: 合成nodeDefinitions边界合同；验证8个owner/ID/fallback source及显式DNT=false、父链/schema/UI顺序/重复身份/官方碰撞和原始字节摘要拒绝，不依赖安装、App或profile。
-native_schema_gap_sources.js: 独立source-only的365组owner/attributeId/Core实际fallback固定表；校验调用方定义树的唯一vendor nodeType（允许数字开头）、完整父链、有效根字段schema、递归Inspector声明及必传官方键集中的直接/父级碰撞；定义/官方集完整性和target字节摘要由调用方核验，不读文件、不推断标签、不批准或接入八键/资源producer。
-native_schema_gap_sources.test.js: 固定365 tuple canonical摘要与target source/Core摘要常量合同；以合成根/继承/list/compound定义覆盖数字开头owner/父级、缺失官方证据、无效字段schema、缺UI、UI循环、重复/非法owner、官方碰撞和unknown-key，证明窄源边界不等于live/翻译审批。
+native_schema_gap_sources.js: SHA锁定的2.8 nodeDefinitions原始字节adapter；固定365条`schemaSupplement/nodeAttributes` resource-bundle源行并校验唯一vendor nodeType（允许数字开头）、父链/schema/递归Inspector声明、官方与Forge键碰撞和全部row身份；官方/Forge集合完整性由调用方证明，由producer显式调用、不自行装配审批或运行时。
+native_schema_gap_sources.test.js: 固定365 tuple及resource-bundle元数据投影合同；合成根/继承/list/compound定义和伪造entry覆盖SHA先行、数字开头owner、缺失证据、完整行/重复、官方/Forge碰撞及metadata漂移，不证明live/审批。
 native_official_target.js: 对target官方字段做精确canonical JSON投影，唯一排除新增supplementalKeys/sourceFiles；旧b6c6摘要保持不变，非官方字段值由独立补充门验证。
 native_official_target.test.js: source/provenance共用target合同；冻结官方摘要正例，验证runtime/catalog/native count/安装身份变异失败，并证明补充count/path/hash单独失败且未知字段不被忽略。
 native_user_scope_copy.test.js: 四语 userProfile copy与badge状态投影合同；锁定开发预览/共享profile文案、unset+en的English (default)及当前语言ARIA、显式/Unknown/legacy分流和默认语言不授予hostless Restore；读取user-profile-text→ui-text组合，不代替浏览器布局或现场可见性验收。
-cavalry_native_target.json: 2.8 main/Api/Core/QtCore/17对official catalog身份锁，hash非profile路径证明；macOS2.8开发预览源锁绑定Qt6.9.2、官方主程序、10473官方叶/390厂商日语，另独立锁8个schema补充键及nodeDefinitions路径/SHA；现行2.7.2发布目标不变。
+cavalry_native_target.json: 2.8 main/Api/Core/QtCore/17对official catalog身份锁，hash非profile路径证明；macOS2.8开发预览源锁绑定Qt6.9.2、官方主程序、10473官方叶/390厂商日语，另独立锁373个schema补充源（Forge8+缺源365、后者364批准/1未决）及nodeDefinitions路径/SHA；现行2.7.2发布目标不变。
 native_observed_ui_translations.test.js: Node 的 CUA 现场遗漏键入库合同；锁定 42 app 键与 drawable 不透明度、完整 catalog 身份、Auto 推荐限定词、9 DNT、三语格式与厂商日语优先，混合包投影保护模型身份，离线通过不代替现场重验。
 native_sound_translations.test.js: Node 的 Sound 整域 65 键审批合同；绑定官方 source/notes/角色摘要、三语显式决策、Mel/Bark/RMS 技术保留、分析阈值与声像/采样/计权关系、11枚举索引及反向变异、当前标签引用；缺模块/原草稿真实失败，离线通过不代表 Sound live 验收。
 native_sound_legacy_translations.test.js: Node 的 Sound Legacy 整域48键入库合同；绑定旧场景说明与独有最大dB、两项技术保留、七类关系及真实反向变异、标签引用/显示身份和厂商日语优先；入库前缺模块为RED，不将新版Sound或离线审批作旧场景行为证明。
 native_rgb_split_translations.test.js: Node 的 RGB Split 完整35键/105译值审批合同；锁定源对/notes/role/provenance、RGB偏移、镜头半径与Padding边界、重复距离与次数、One/Two/Zero预设及16个命名混合模式，含真实反向变异；stage输入仅用于只读红绿核验，不代表实机显示。
 native_slit_scan_translations.test.js: Node 的 Slit Scan 48键/144译值默认合同；锁定完整owner/source/notes/角色与provenance、base/Glow混合模式引用、Mirror Scan 原标签及非整图翻转/循环算法过度承诺边界、ICU/富文本格式、模型身份投影和真实反向变异；正式模块缺失先RED，stage仅对root绑定草稿RED/审定候选GREEN，不代表实机显示。
-native_align_distortion_glow_translations.test.js: Node的三完整owner/100键默认审批合同；锁定官方source/notes/身份、300决策、对齐方向/HSV/RGB/半径强度/预览/Xor/Porter-Duff与18共享模式，22个实际修订逐一原稿回退变异；缺模块先真实RED，stage诊断不代表正式入库或live。
+native_align_distortion_glow_translations.test.js: 官方catalogId+owner双身份选择，不把同owner schema补键反写旧批准分母；Node的三完整owner/100键默认审批合同；锁定官方source/notes/身份、300决策、对齐方向/HSV/RGB/半径强度/预览/Xor/Porter-Duff与18共享模式，22个实际修订逐一原稿回退变异；缺模块先真实RED，stage诊断不代表正式入库或live。
 native_array_distribution_translations.test.js: Node 的 Array完整4键/12值默认合同；锁定官方source/notes/身份摘要、手工坐标列表/计数方向/序列索引与三语审定文字，12个实际译值反向变异保护Array非网格和日语配置语法；正式模块缺失真实RED，source-only stage不代表审批或live。
 native_auto_animate_translations.test.js: Node 离线 autoAnimate 128 叶入库合同；锁定 owner/source/notes 与稳定键摘要、三语格式、当前进度模式/层级标签引用、相机变焦/几何缩放与可逆进退场、显示投影不写模型身份和厂商日语优先，先RED后入库，不调用服务或App。
 native_metadata_reuse.js: Node 的已审帮助复用解析器；显式源摘要审批后读取旧三语 description，可绑定译值摘要和跨文件 key，输出 reviews/未批台账，不复制旧签名或自动批准候选。

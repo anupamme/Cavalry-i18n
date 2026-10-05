@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖官方assets、精确官方target域helper、显式DNT补充source、审批模块、纠错登记及native/ICU纯投影。
+ * [INPUT]: 依赖官方assets、精确官方target域helper、Forge八键及365缺源固定source、审批模块、纠错登记及native/ICU纯投影。
  * [OUTPUT]: 提供三语预览/确定性manifest与区分官方/补充总量的CLI摘要；批准必须匹配source DNT，缺译保留fallback。
  * [POS]: macOS用户语言事务的构建输入owner；源身份/格式不符拒绝发布，不复制原厂catalog、不读私库或用户profile。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -11,7 +11,8 @@ const path = require('node:path');
 const { createHash, randomUUID } = require('node:crypto');
 const { collectNativeCatalog, resolveTranslations, renderNativePack } = require('./native_language_pack');
 const { assertNativeTranslationFormat } = require('./native_translation_format');
-const { sourceEntries, validateSupplementEntries } = require('./native_schema_supplement');
+const { sourceEntries: forgeSourceEntries, validateSupplementEntries, SUPPLEMENT_CATALOG_ID } = require('./native_schema_supplement');
+const { sourceEntries: gapSourceEntries, validateGapEntries, GAP_CATALOG_ID } = require('./native_schema_gap_sources');
 const { assertOfficialTarget } = require('./native_official_target');
 const { APPROVED_VENDOR_CORRECTIONS } = require('../languages/native/approved_vendor_corrections');
 const LANGUAGES = Object.freeze(['zh-Hans', 'zh-Hant', 'ja_JP']);
@@ -19,17 +20,25 @@ const sha256 = value => createHash('sha256').update(value).digest('hex');
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 // -- 单一装配：源绑定先于任何输出，missing不会填入未经审批旧候选 ------
-function buildNativeResourceBundle(pairs, approved, trustedVendorCorrections = APPROVED_VENDOR_CORRECTIONS,
-  supplementalEntries = []) {
+function collectOfficialEntries(pairs) {
   const entries = [];
   for (const pair of [...pairs].sort((a, b) => a.id.localeCompare(b.id, 'en'))) {
     const collected = collectNativeCatalog(pair.id, pair.source, pair.japanese);
     if (collected.unmapped.length) throw new Error(`unmapped native display leaves: ${pair.id}`);
     entries.push(...collected.entries);
   }
+  return entries;
+}
+function buildNativeResourceBundle(pairs, approved, trustedVendorCorrections = APPROVED_VENDOR_CORRECTIONS,
+  supplementalEntries = []) {
+  const entries = collectOfficialEntries(pairs);
   if (!Array.isArray(supplementalEntries)) throw new Error('native schema supplement entries must be an array');
-  const supplements = supplementalEntries.length
-    ? validateSupplementEntries(supplementalEntries, entries) : [];
+  const forge = supplementalEntries.filter(row => row?.catalogId === SUPPLEMENT_CATALOG_ID);
+  const gaps = supplementalEntries.filter(row => row?.catalogId === GAP_CATALOG_ID);
+  if (forge.length + gaps.length !== supplementalEntries.length) throw new Error('unknown native schema supplement domain');
+  const verifiedForge = forge.length ? validateSupplementEntries(forge, entries) : [];
+  const verifiedGaps = gaps.length ? validateGapEntries(gaps, entries, { existingSupplementEntries: verifiedForge }) : [];
+  const supplements = [...verifiedForge, ...verifiedGaps];
   entries.push(...supplements);
   const indexed = new Map();
   for (const row of entries) {
@@ -122,7 +131,9 @@ function buildFromAssetRoot(assetRoot) {
   });
   const nodeDefinitions = safeRegularFile(root, sourceLock.path);
   if (sha256(nodeDefinitions) !== sourceLock.sha256) throw new Error('native schema supplement source digest differs');
-  const supplements = sourceEntries(nodeDefinitions);
+  const officialEntries = collectOfficialEntries(pairs);
+  const supplements = [...forgeSourceEntries(nodeDefinitions, officialEntries),
+    ...gapSourceEntries(nodeDefinitions, officialEntries)];
   const { approvedEntries } = require('../languages/native/approved_modules');
   const result = buildNativeResourceBundle(pairs, approvedEntries(), undefined, supplements);
   if (result.manifest.nativeKeys !== target.nativeKeys + target.supplementalKeys
@@ -144,6 +155,7 @@ function inputDigest() {
     ...APPROVED_MODULES.map(name => `languages/native/${name}.js`),
     'tools/native_resource_bundle.js', 'tools/native_language_pack.js',
     'tools/native_translation_format.js', 'tools/native_schema_supplement.js',
+    'tools/native_schema_gap_sources.js',
     'tools/native_official_target.js', 'package-lock.json',
   ].sort();
   const repo = path.resolve(__dirname, '..');
