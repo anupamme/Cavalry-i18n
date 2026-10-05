@@ -16,7 +16,7 @@ output/ - 派生审计产物，保存截图、JSON surface 抓取与翻译草稿
 </directory>
 
 <config>
-CAVALRY_2_8_MIGRATION_PLAN.md - feat/cavalry-2.8.0迁移入口及§5.2全44项办事表；官方10278/Forge8/缺源365合计10651审批，10846源三语派生10846输出/missing0；World Scale仅caption追加；§26限域Forge8可见/真实Hans Update增至8次成功事务，§27恢复四会话145条全部原话、完整strings/receipt字节读回、CRT保存确认和raw全属性交叉；§28单键caption/完整source包、旧364与旧10845包投影不变；本轮native Rust379/Node754，未代默认Rust或live。完整流程26/18、catalog0/51不变；Timeline方框、Activity视觉、新caption/Restore/持久化待验，CUA连接关闭与AX超时保留，不强杀作品；Official57私档旧冲突草稿未push，当前归档另验。默认2.7发布/Windows暂停不变
+CAVALRY_2_8_MIGRATION_PLAN.md - feat/cavalry-2.8.0迁移入口及§5.2全44项办事表；官方10278/Forge8/缺源365合计10651审批，10846源三语派生10846输出/missing0；World Scale仅caption追加；§26限域Forge8可见/真实Hans Update增至8次成功事务，§27恢复四会话145用户/317可见assistant共462条全部文本原话、完整strings/receipt字节读回、CRT保存确认和raw全属性交叉；§28单键caption/完整source包、旧364与旧10845包投影不变；§29细分tab/嵌套字段/两orphan/插件namespace，不造源或alias；本轮native Rust379/Node754，未代默认Rust或live。完整流程26/18、catalog0/51不变；Timeline方框、Activity视觉、新caption/Restore/持久化待验，CUA连接关闭与AX超时保留，不强杀作品；Official57私档旧冲突草稿未push，当前归档另验。默认2.7发布/Windows暂停不变
 AGENTS.md - 根级 Agent 行动地图，按 Kumo knowledge base 结构固化查找入口、约定、反模式、命令、流水线、工具链与安全边界
 CHANGELOG.md - 新版本中文条目与英文分类语义分离的 SemVer 发布历史与 Unreleased 用户可见变更真相源；tag 正文由 workflow 按版本抽取，不保留会漂移的根目录 release body 快照
 LOCAL_BUILD_SOP.md - 唯一桌面打包与发布操作合同，区分本地验证、ad-hoc tag、Tauri updater 签名和未具备的平台身份，并固定 macOS DMG 文件名与挂载卷标的不同职责

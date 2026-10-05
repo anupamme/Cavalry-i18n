@@ -849,12 +849,12 @@ root随后在deny-default的独立进程sandbox中实际调用一次原厂Core�
 
 ## 27. 全部原话恢复、后置读回与非Forge交叉（2026-10-06）
 
-按指定会话及明确引用链恢复四个会话，全部直接用户任务原话共145条（48+30+55+12），不只最后tail；10条AGENTS/环境/恢复包装逐条排除，source session/JSONL行号/UTC与完整原文逐条核验无重漏。历史要求按先后继承：完整迁移而非只Forge、复用2.7晚期搜索/字体/输入身份边界、测试先行、及时checkpoint、私人文档写完须push/远端核验后立即释锁；AppleScript采集与正常启动曾获准，前台后来降为偏好，不丢作品仍是硬约束。全文与机器索引只归会话stage/私账，不成为构建输入。
+按指定会话及明确引用链恢复四个会话，全部直接用户任务原话共145条（48+30+55+12），不只最后tail；10条AGENTS/环境/恢复包装逐条排除，source session/JSONL行号/UTC与完整原文逐条核验无重漏。历史要求按先后继承：完整迁移而非只Forge、复用2.7晚期搜索/字体/输入身份边界、测试先行、及时checkpoint、私人文档写完须push/远端核验后立即释锁；AppleScript采集与正常启动曾获准，前台后来降为偏好，不丢作品仍是硬约束。另从明确可见phase恢复317条assistant全文（305commentary/12final_answer），与145条用户共462条可见原话，source原channel缺省不伪造；所有文本/来源行逐项验回，图片载荷/包装全文/隐藏分析/工具事件不归档。全文与机器索引只归会话stage/私账，不成为构建输入。
 
 - **后置事务证明**：本轮完整字节核回实际Hans strings与§26新包相等（1079173B）；receipt schema1、无pending、active Hans，其strings bytes/mode/路径及typed locale与实际文件一致。只归档摘要/布尔结果，不保存raw profile/receipt。§26“仅同长度/待读回”属于当时停点，现已闭后置字节小门，不倒改原账。
 - **保存结果解疑**：CRT专用场景确实存在（2026B），raw nodeType/nodeId为crtScanLines/crtScanLines#1；保存落盘成立，但扫描线粗细真实caption未证明，不抵扣新增364消费者。恢复52项摘要与Update观察相比仅Preferences变动，vendor/34 catalog/源及derived包不漂移；这只是有限监视，不声称全文件零写。
 - **全域独立复算**：raw源重新闭合2671唯一Inspector身份：2200 direct+93 inherited+8 Forge+365 gap+4 unresolved+1 namespace；两条type-only定义共11引用另账。旧独有49对应26仍schema/18字段已删/5已删owner字段，总18 owners；当前21个引用中15走noiseEngine父级官方键、5已Forge补充，非Forge精确旧译候选voronoiShader.loopLength保留。不能把“schema仍有”一律称漏译，也不按同英文跨owner套值。
-- **当前工具事实**：exec可运行，不把前轮os24当持续状态；CUA首次inventory可读且Cavalry/Preview未运行，随后getApp/reset均Transport closed。依据已恢复AppleScript授权正常launch原厂PID32486，两次只读AX查询-1712超时；一次sample主线程处Qt/AppKit正常等待，未证明根因。正常activate/quit返回0，exact PID与自身osascript已退出；没有开作品、重复Save/Apply、Discard或强杀，没有新增实屏信用。原厂运行可正常改Preferences，启动前proof与启动/退出分账。
+- **当前工具事实**：exec可运行，不把前轮os24当持续状态；CUA首次inventory可读且Cavalry/Preview未运行，随后getApp/reset均Transport closed。依据已恢复AppleScript授权正常launch原厂PID32486，两次只读AX查询-1712超时；一次sample主线程处Qt/AppKit正常等待，未证明根因。正常activate/quit返回0，exact PID与自身osascript已退出；未显式打开或编辑作品、未重复Save/Apply、Discard或强杀（自动窗口恢复未由AX证明），没有新增实屏信用。原厂运行可正常改Preferences，启动前proof与启动/退出分账。
 - **离线验回**：partial manifest preflight接受missing1/complete:false并先解析三语类型；定向实际1通过，误用短名--exact的0tests只算编译。本轮显式native Rust全套379通过/0失败/7人工ignored/0warnings；默认Rust未重跑。锁定Node24.20.0/npm11.19.0整仓752/752、check:app、fmt/diff通过；未运行ignored真实profile门、未重建App/DMG。
 - **Activity仍未闭**：固定intro保留Preparing与阶段队列不更新顶部是当前源码设计；未找到成功后主动隐藏li的源码因果，原截图没有本地PNG，不能据AX或代码推断视觉PASS，也不能猜成WebKit/CUA错误。待有效DOM/实际画面再定。
 
@@ -872,3 +872,10 @@ root随后在deny-default的独立进程sandbox中实际调用一次原厂Core�
 - **回归**：锁定Node24.20.0/npm11.19.0整仓754/754、显式native Rust379/0失败/7人工ignored/0warnings；默认Rust本轮未重跑。独审、RED/GREEN、freshness、构建与旧投影证明分别留在会话/私人证据，不成为产品构建输入。
 
 完整source包不是完整产品：§5.2仍26/44、待办18，完整catalog0/51。非Forge Voronoi/CRT实屏、Activity真实列目、三语Switch/Restore/退出持久化、512帮助、搜索/首帧/字体/输入/模型身份及性能/发行仍须真实证据；4 unresolved、1 namespace与type-only 11引用继续独立分账，不被10846源完整吞掉。
+
+
+## 29. 未解UI引用的结构细分（2026-10-06，只读）
+
+raw2671身份分母与历史4 unresolved/1 namespace分类不覆盖重写。继续从真实定义/官方catalog与2.7exact-owner对照缩小边界：cameraGuide.shape同时是tab id，官方tabs.shape已有标题、不是声明属性；renderQueueItem裸remapToTimecode无根字段，但targets.remapToTimecode有真实compound schema/控制器/官方caption，不能新增裸键或把静态同名当运行alias证明；goalModifier.inputShape与toonOutlines.ignoreTarget仍只是无schema/catalog的orphan order项，不借inputPoints或connectShape的字段语义。grainFilter.time有独立插件Time source与sceneGroup命名空间，不是nodeStrings漏键，2.8 int与旧double差异也不回写模型。
+
+root验收的是静态结构归属，不是控件可见性；source adapter/target/365批准caption不变。先恢复非Forge Voronoi/CRT观察，再只读确认Goal Modifier/Toon Stroke是否真正呈现orphan行；若出现才追实际owner。真实目标不能靠自动造alias或加裸键达成，26/44、catalog0/51不变。
