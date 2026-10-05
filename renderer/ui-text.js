@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖先行加载的user-profile-text.js，再合并renderer稳定的其余四语copy。
- * [OUTPUT]: 对外提供统一四语 UI_TEXT 与状态标题路由；用户级默认英语标签、共享scope/确认/恢复copy由独立子域spread合并，其他主窗口/安装级/组件copy保持同一消费接口。
+ * [OUTPUT]: 对外提供统一四语 UI_TEXT 与状态标题路由；用户级默认英语标签、共享scope/确认/恢复copy由独立子域spread合并，其他copy保持同一接口，Official说明只声明已验证原厂App及无Switcher语言覆盖，不冒称任意第三方/全UI原样。
  * [POS]: renderer 的视觉文案与状态语义数据层；将持久事实、即时决策和短时局部失败分别供 Activity、AlertDialog 与 Toast 消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -48,7 +48,7 @@ const UI_TEXT = {
     apply: 'Switch',
     updateLanguagePatch: 'Update',
     restore: 'Restore English',
-    officialMode: 'Installation: verified official runtime',
+    officialMode: 'Installation: verified vendor app; no Switcher language override',
     modifiedMode: 'Installation: locally modified runtime',
     recoveryMode: 'Installation: recovery required before further changes',
     officialBadge: 'Official',
@@ -219,7 +219,7 @@ const UI_TEXT = {
     apply: '切换',
     updateLanguagePatch: '更新',
     restore: '恢复英文',
-    officialMode: '安装状态：已验证的官方运行时',
+    officialMode: '安装状态：已验证原厂应用；无 Switcher 语言覆盖',
     modifiedMode: '安装状态：已在本机修改',
     recoveryMode: '安装状态：必须先完成中断事务恢复',
     officialBadge: '官方',
@@ -386,7 +386,7 @@ const UI_TEXT = {
     apply: '切換',
     updateLanguagePatch: '更新',
     restore: '還原英文',
-    officialMode: '安裝狀態：已驗證的官方執行環境',
+    officialMode: '安裝狀態：已驗證原廠應用；無 Switcher 語言覆寫',
     modifiedMode: '安裝狀態：已在本機修改',
     recoveryMode: '安裝狀態：必須先完成中斷交易復原',
     officialBadge: '官方',
@@ -553,7 +553,7 @@ const UI_TEXT = {
     apply: '切り替える',
     updateLanguagePatch: '更新',
     restore: '英語に戻す',
-    officialMode: 'インストール状態: 検証済みの公式ランタイム',
+    officialMode: 'インストール状態: 検証済みの純正アプリ・Switcher の言語上書きなし',
     modifiedMode: 'インストール状態: ローカルで変更済み',
     recoveryMode: 'インストール状態: 中断した処理の復旧が必要です',
     officialBadge: '公式',

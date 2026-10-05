@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/user-profile-text/ui-text/language-scope/version-guidance/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 camelCase scope/受控 currentLang/nativeLocaleState/error code 白名单、四语unset+English默认徽章与不授予owned Restore、严格 owned-only hostless English Restore 与 nativeRestoreOnly no-launch 语义、用户级英文三阶段 copy 与安装级 Cavalry copy 的隔离、用户级共享副本确认与资源门、失败回执 reconciliation 刷新且保留 failure Activity、未知语言重应用、固定三类 native 错误和跨副本退出提示、用户配置恢复阶段文案、2.8 preview 中仅为 2.7.2 安装显示的 fixed legacyRelease link，以及 installation 原合同、权限事务、任务流、组件状态机、Updater Channel、About 和 Toast。
+ * [OUTPUT]: 验证 camelCase scope/受控 currentLang/nativeLocaleState/error code 白名单、四语 installation Official badge 对原厂 English/Japanese 的显示及后端 unknown+owned zh-Hans 的隐藏、不按 locale 推断来源、严格 owned-only hostless English Restore 与 nativeRestoreOnly no-launch 语义、用户级英文三阶段 copy 与安装级 Cavalry copy 的隔离、用户级共享副本确认与资源门、失败回执 reconciliation 刷新且保留 failure Activity、未知语言重应用、固定三类 native 错误和跨副本退出提示、用户配置恢复阶段文案、2.8 preview 中仅为 2.7.2 安装显示的 fixed legacyRelease link，以及 installation 原合同、权限事务、任务流、组件状态机、Updater Channel、About 和 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -526,18 +526,49 @@ test('idle task viewport centers one localized prompt without creating event row
   }
 });
 
-test('installation badge is reserved for a verified official macOS runtime', async () => {
-  for (const [locale, expected] of [
-    ['en-US', 'Official'],
-    ['zh-CN', '官方'],
-    ['zh-TW', '官方'],
-    ['ja-JP', '公式'],
-  ]) {
-    const r = boot({ locale, status: { currentLang: 'en', installationMode: 'official' } });
+test('installation badge follows backend Official projection across built-in locales and UI languages', async () => {
+  const uiLocales = [
+    ['en-US', 'Official', 'Installation: verified vendor app; no Switcher language override', 'English (default)'],
+    ['zh-CN', '官方', '安装状态：已验证原厂应用；无 Switcher 语言覆盖', '英语（默认）'],
+    ['zh-TW', '官方', '安裝狀態：已驗證原廠應用；無 Switcher 語言覆寫', '英語（預設）'],
+    ['ja-JP', '公式', 'インストール状態: 検証済みの純正アプリ・Switcher の言語上書きなし', '英語（既定）'],
+  ];
+  const builtInOfficialCases = [
+    ['default English', {
+      languageScope: 'userProfile', currentLang: 'en', nativeLocaleState: 'unset',
+      nativeResourceAvailable: false, installationMode: 'official',
+    }, null],
+    ['built-in Japanese', {
+      languageScope: 'userProfile', currentLang: 'ja_JP', nativeLocaleState: 'explicit',
+      nativeResourceAvailable: false, installationMode: 'official',
+    }, '日本語'],
+  ];
+
+  for (const [locale, badge, modeCopy, defaultEnglishLabel] of uiLocales) {
+    for (const [scenario, projectedStatus, languageLabel] of builtInOfficialCases) {
+      const r = boot({ locale, status: {
+        version: '2.8.0', supportedVersion: '2.8.0', versionCompatibility: 'supported',
+        ...projectedStatus,
+      } });
+      await flush();
+      assert.equal(r.elements['#installationBadge'].textContent, badge, `${scenario}/${locale}`);
+      assert.equal(r.elements['#installationBadge'].dataset.state, 'official', `${scenario}/${locale}`);
+      assert.equal(r.elements['#installationBadge'].hidden, false, `${scenario}/${locale}`);
+      assert.equal(r.elements['#installationMode'].textContent, modeCopy, `${scenario}/${locale}`);
+      assert.equal(r.elements['#currentLanguage'].textContent, languageLabel || defaultEnglishLabel, `${scenario}/${locale}`);
+    }
+
+    const ownedHans = boot({ locale, status: {
+      version: '2.8.0', supportedVersion: '2.8.0', versionCompatibility: 'supported',
+      languageScope: 'userProfile', currentLang: 'zh-Hans', nativeLocaleState: 'explicit',
+      nativeResourceAvailable: true, patchStatus: 'current', installationMode: 'unknown',
+    } });
     await flush();
-    assert.equal(r.elements['#installationBadge'].textContent, expected, locale);
-    assert.equal(r.elements['#installationBadge'].dataset.state, 'official', locale);
-    assert.equal(r.elements['#installationBadge'].hidden, false, locale);
+    assert.equal(ownedHans.elements['#currentLanguage'].textContent, '简体中文', `owned zh-Hans/${locale}`);
+    assert.equal(ownedHans.elements['#installationBadge'].hidden, true, `owned zh-Hans/${locale}`);
+    assert.equal(ownedHans.elements['#installationBadge'].textContent, '', `owned zh-Hans/${locale}`);
+    assert.equal(ownedHans.elements['#installationBadge'].dataset.state, 'unknown', `owned zh-Hans/${locale}`);
+    assert.equal(ownedHans.elements['#installationMode'].hidden, true, `owned zh-Hans/${locale}`);
   }
 
   const managed = boot({ status: { currentLang: 'en', installationMode: 'modifiedOrUnverified' } });
@@ -838,7 +869,7 @@ test('single Restore maps to the platform transaction and remains visible when n
   await flush();
   assert.equal(official.elements['#restoreButton'].hidden, false);
   assert.equal(official.elements['#restoreButton'].disabled, true);
-  assert.equal(official.elements['#installationMode'].textContent, 'Installation: verified official runtime');
+  assert.equal(official.elements['#installationMode'].textContent, 'Installation: verified vendor app; no Switcher language override');
   assert.equal(official.elements['#installationBadge'].textContent, 'Official');
   assert.equal(official.elements['#installationBadge'].dataset.state, 'official');
 });

@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 native_user 的私有 profile/status纯投影、status shell、临时用户路径与隔离测试资源。
- * [OUTPUT]: 验证厂商来源 `official/unknown` 与 Absent/Known locale、资源可用性、pack状态分别投影，不触碰真实profile。
- * [POS]: commands/tests 的跨事实边界合同；签名结论由native_official独立测试，本文件证明来源字段不会覆写用户profile/资源事实。
+ * [OUTPUT]: 验证Official须同时有厂商来源与无自有覆盖的内置语言；自有三语/未决profile不宣称Official，语言、资源与恢复能力仍独立投影。
+ * [POS]: commands/tests 的临时profile语义合同；签名由native_official独立测试，本文件不运行codesign、不读真实home，也不从徽章授予事务权限。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::*;
@@ -99,7 +99,14 @@ fn installation_source_does_not_overwrite_profile_locale_or_resource_projection(
             assert_eq!(status.patch_status, expected_patch);
             assert_eq!(status.language_scope, "userProfile");
         }
-        assert_eq!(official.installation_mode, "official");
+        assert_eq!(
+            official.installation_mode,
+            if expected_lang == "en" {
+                "official"
+            } else {
+                "unknown"
+            }
+        );
         assert_eq!(unknown.installation_mode, "unknown");
         assert_eq!(
             official.native_resource_available,
@@ -109,4 +116,139 @@ fn installation_source_does_not_overwrite_profile_locale_or_resource_projection(
         assert_eq!(official.native_locale_state, unknown.native_locale_state);
         assert_eq!(official.patch_status, unknown.patch_status);
     }
+}
+
+fn projected(paths: &UserLanguagePaths, vendor_origin: &str) -> StatusPayload {
+    let root = paths.preferences().parent().unwrap();
+    let mut status = super::super::status::status_shell(root, root, Vec::new());
+    status.app_path = "/fixture/Cavalry.app".into();
+    status.version = "2.8.0".into();
+    status.installation_mode = vendor_origin.into();
+    project_profile_status(status, &profile_projection(paths, None), false)
+}
+
+#[test]
+fn builtin_english_and_vendor_japanese_can_be_official_without_preview_resources() {
+    for locale in [None, Some("en-GB"), Some("ja")] {
+        let (_temp, paths) = profile(locale);
+        let status = projected(&paths, "official");
+        assert_eq!(status.installation_mode, "official");
+        assert!(!status.native_resource_available);
+        assert!(!status.native_english_restore_available);
+        assert_eq!(projected(&paths, "unknown").installation_mode, "unknown");
+    }
+}
+
+#[test]
+fn unowned_custom_or_unrecognized_language_and_external_strings_are_not_official() {
+    for locale in [Some("zh-Hans"), Some("zh-Hant"), Some("private-locale")] {
+        let (_temp, paths) = profile(locale);
+        assert_eq!(projected(&paths, "official").installation_mode, "unknown");
+    }
+    for locale in [None, Some("en-GB"), Some("ja")] {
+        let (_temp, paths) = profile(locale);
+        fs::create_dir_all(paths.strings().parent().unwrap()).unwrap();
+        fs::write(paths.strings(), pack()).unwrap();
+        let status = projected(&paths, "official");
+        assert_eq!(status.installation_mode, "unknown");
+        assert!(status.reconciliation_required);
+        assert!(!status.native_english_restore_available);
+    }
+}
+
+#[test]
+fn all_owned_languages_remain_nonofficial_when_resources_are_missing_or_updated() {
+    for (language, native_locale) in [
+        ("zh-Hans", "zh-Hans"),
+        ("zh-Hant", "zh-Hant"),
+        ("ja_JP", "ja"),
+    ] {
+        let (_temp, paths) = profile(None);
+        let bytes = serde_json::to_vec(&json!([{"type":"strings","language":native_locale,"value":{"fixture":{"UI-text":"翻译"}}}])).unwrap();
+        assert!(
+            apply_profile(
+                &paths,
+                language,
+                Some(&bytes),
+                &mut || Ok(()),
+                &super::super::contract::NoopReporter
+            )
+            .ok
+        );
+        let missing = projected(&paths, "official");
+        assert_eq!(missing.installation_mode, "unknown");
+        assert_eq!(missing.current_lang, language);
+        assert!(missing.native_english_restore_available);
+        assert!(!missing.reconciliation_required);
+        let updated = NativeResources {
+            packs: [(
+                language.into(),
+                bytes.iter().copied().chain([b' ']).collect(),
+            )]
+            .into_iter()
+            .collect(),
+        };
+        let mut base = missing;
+        base.installation_mode = "official".into();
+        let updated =
+            project_profile_status(base, &profile_projection(&paths, Some(&updated)), true);
+        assert_eq!(updated.installation_mode, "unknown");
+        assert_eq!(updated.patch_status, "updateAvailable");
+        assert!(updated.native_english_restore_available);
+    }
+}
+
+#[test]
+fn drift_or_unreadable_profile_never_becomes_official_by_changing_locale_to_english() {
+    let (_temp, paths) = profile(None);
+    assert!(
+        apply_profile(
+            &paths,
+            "zh-Hans",
+            Some(&pack()),
+            &mut || Ok(()),
+            &super::super::contract::NoopReporter
+        )
+        .ok
+    );
+    let mut preferences: serde_json::Value =
+        serde_json::from_slice(&fs::read(paths.preferences()).unwrap()).unwrap();
+    preferences["locale"]["value"] = json!("en-GB");
+    fs::write(
+        paths.preferences(),
+        serde_json::to_vec(&preferences).unwrap(),
+    )
+    .unwrap();
+    let drift = projected(&paths, "official");
+    assert_eq!(drift.current_lang, "en");
+    assert_eq!(drift.installation_mode, "unknown");
+    assert!(!drift.native_english_restore_available);
+    fs::write(paths.preferences(), b"invalid").unwrap();
+    let unreadable = projected(&paths, "official");
+    assert_eq!(unreadable.current_lang, "unknown");
+    assert_eq!(unreadable.installation_mode, "unknown");
+}
+
+#[test]
+fn pending_and_corrupt_receipts_never_claim_official_even_with_default_english() {
+    let (_temp, paths) = profile(None);
+    let _ = user_language_files::apply_with_interrupt(
+        &paths,
+        "zh-Hans",
+        &pack(),
+        Some(user_language_files::InterruptAfter::ResourcePublish),
+    );
+    assert!(matches!(
+        user_language_files::read_profile_projection(&paths)
+            .unwrap()
+            .ownership,
+        ReceiptObservation::Pending { .. }
+    ));
+    let pending = projected(&paths, "official");
+    assert_eq!(pending.current_lang, "en");
+    assert_eq!(pending.installation_mode, "unknown");
+    assert!(pending.reconciliation_required);
+    assert!(!pending.native_english_restore_available);
+    fs::write(paths.receipt(), b"invalid-receipt").unwrap();
+    assert_eq!(projected(&paths, "official").installation_mode, "unknown");
 }

@@ -1,5 +1,5 @@
 <!--
-[INPUT]: 依赖现行2.7.2架构、官方2.8.0来源、固定365条缺源边界与冻结三语源、用户profile生产事务、真实首屏/恢复、独立副本字体canary及全491定义source交叉证据；WK fixture与无窗口AppHandle各守边界，不合成IPC联动通过
+[INPUT]: 依赖现行2.7.2架构、官方2.8.0来源、固定365条缺源边界与冻结三语源、用户profile生产事务、真实首屏/恢复、独立副本字体canary、全491定义source交叉及当前Hans真实Tauri只读联动/原厂安装盘基线；WK fixture与AppHandle仍各守边界，不把只读状态冒完整切换
 [OUTPUT]: 给出本分支的2.8迁移决策与TDD顺序；官方10278/Forge8/缺源364合计10650审批，10846 source中World Scale一键未决，历史冻结与现行准入分账；不宣称产品已经支持2.8
 [POS]: feat/cavalry-2.8.0 的实施方案入口；调查工具与原始证据不进入产品运行时
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -9,7 +9,7 @@
 更新：2026-10-06
 状态：**整体迁移未完成；逐项办事表以§5.2为当前唯一进度入口。** 官方显示源域已闭合：77模块、10278审批键、剩0；另独立Forge schema域1模块8键、缺源域2模块364caption准入，共80模块10650审批/每语10845输出；官方10473+补充373=10846 source，World Scale一键三槽pending使missing1/complete:false（195自动DNT之外的技术保留单独计数），34厂商源/身份未改。原4319质量冻结后新增5959键，390厂商日语仅13核证纠错/377保留。512帮助译文已审但consumer未接，Destination Over仍有1项厂商源行为冲突待实测。
 
-当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official使用固定厂商Apple Developer ID requirement，只认证来源、不授予写入/恢复权。当前整仓Node752项通过（项目锁定Node24.20.0/npm11.19.0；§23历史740）；历史native与默认路径全量Rust各372通过/0失败/0warning，本轮Rust复验单独记§24；7个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章Chromium headless fixture 6项与系统WKWebView fixture 6项均通过；WK审查用prohibited激活策略，记录1个内部隐藏TUINSWindow、0可见/key/main及无自身激活事件，原厂/profile六监视文件前后不变。真实WebKit渲染不等于Tauri AppHandle/实际后端联动或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
+当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official显示须固定厂商Apple Developer ID来源验证与内置en/ja、无Switcher覆盖共同成立；旧来源-only语义已按§25收紧，不授予写入/恢复权。当前整仓Node752项通过（项目锁定Node24.20.0/npm11.19.0；§23历史740）；历史native与默认路径全量Rust各372通过/0失败/0warning，§24双Rust各373通过；§25 Official语义复验两配置各378通过/7 ignored/0warning（默认资源空数组仅测试覆盖）；7个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章Chromium headless fixture 6项与系统WKWebView fixture 6项均通过；WK审查用prohibited激活策略，记录1个内部隐藏TUINSWindow、0可见/key/main及无自身激活事件，原厂/profile六监视文件前后不变。真实WebKit渲染不等于Tauri AppHandle/实际后端联动或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
 
 完整冻结包历史生产owner动作5/5、四语原厂首屏/正常退出各4/4；随后Hans Apply和本次Forge八项新包的同语言升级各成功一次，合计7次成功用户事务。当前typed locale为zh-Hans，自有strings/receipt存在；English恢复曾因实验副本仍运行被writer guard拒绝，未写profile，不能沿用§16的历史English终态。原厂安装未改。独立ad-hoc副本的Hans工具提示字体canary已观察8条CJK/1条ASCII路径与可读截图，但后台门失败；后续第二轮副本又确认单一视口状态“视口质量：完整”可读，但启动/退出前台约束仍失败；其他视口状态、时间轴、动态属性、搜索/字体身份均须分别验收。完整catalog仍0/51，Switcher IPC未验收。默认2.7发布、版本号与共享feed不变；Windows暂停，不推送或发布。全session私人检查点及指定会话任务原文已在私人文档仓正常推送并远端核验；新实验与明确剩余项见§18，不能把字体小样计入完整UI通过。
 本文件按用户要求放在产品分支；过程证据与临时队列留在会话级 stage 或私有历史文档库。公开构建、测试和发布不得依赖这些路径，也不打包调查脚本。
@@ -434,10 +434,10 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 
 - [x] 九命令/单一bridge沿用，版本兼容、资源、用户有效语言、补丁状态和恢复能力分离；2.7.2历史下载入口/预览updater禁用已接。
 - [x] 默认英语/显式语言/异常Unknown三态接入四语文案；拆独立userProfile copy并保持四语各189键逐字等价与加载/打包顺序合同。
-- [x] Official来源只读验签/5秒期限/子进程回收/异步status、失败unknown及来源不覆盖语言/资源合同；实际原厂验签smoke已通过，不证明notarization。
+- [x] 厂商来源只读验签/5秒期限/子进程回收/异步status；§25最终Official显示另须内置en/ja及无Switcher覆盖，自有三语/未知/漂移隐藏且不改资源/恢复能力；6项tempfile反例与实际当前Hans隐藏已过，原厂DMG/installed全树相等/固定requirement通过，不证明notarization。
 - [x] 新状态徽章Chromium headless与系统WKWebView fixture各6/6，CSS viewport 400×484/无横溢出；WK非激活、仅内部hidden窗口、六监视文件未变。整仓Node717、native与默认Rust各370/0失败（各6明确人工ignored）；两种fixture均不证明真实后端联动。
 - [x] 当前真实原厂App/OS默认profile/已审批完整pack经生产native status owner组合只读烟测；原owner烟测以临时未创建state模拟首次运行；新增build-only真实AppHandle调用生产get_status一次，默认profile/完整pack/Official投影通过，10监视文件不变、隔离diagnostics已清理；两者均不代验IPC/WK或Apply。
-- [ ] 新默认英语+Official在当前真实Tauri/WK与实际只读后端的联动复验；standalone WK fixture与build-only真实AppHandle只读烟测分别已过，但尚未连成同一IPC/WebView路径，不抵扣原生窗口或真实启动行为。
+- [ ] 原厂默认英语+Official在真实Tauri/WK与实际后端联动复验；§25已闭当前真实owned Hans的正常Tauri/WK/bridge/get_status只读链，并实屏证明修复后无Official/Restore仍在、52对象未变，但未把当前profile改成Absent，不借Hans场次冒默认英语或Apply/Channel通过。
 - [ ] 完整产品四语文案/错误/Activity/恢复终态与真实后端联动；去掉预览限制必须有对应事实，不为外观删安全提示。
 
 #### F 缺口、首绘与性能
@@ -464,7 +464,7 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 - [x] 本轮preview源码/UI检查点`5c6df86`与独立旧feed检查点`944a0f0`已commit；68文件跨层预览整体保全，工作树当时干净，未push。
 - [x] 回顾整个session的决策/原话/失败/纠正/经验并本地提交私人账本；最新`684923a6`汇合前序全session复盘、WK六态/四RED、帮助边界、AppHandle只读和原厂后台基线。共享私库有他人脏修改，故使用临时隔离clone，未push/未同步共享目录，绝不冒称已远端落盘；本轮5动作/4首屏另追加，不重复打包。 后续恢复历史私档及原话已以01eb24bf正常push并远端读回，旧未发布clone/他人脏共享目录保留；本次29cdc4d接线审批与失败/成功档另追加发布，不以旧未push终态覆盖后续落盘。
 
-当前顺序：官方B已闭合、缺源caption批准364/1未决；29cdc4d检查点与全流程原话/复盘同步保存。继续C/D/E实际消费者、真实IPC与恢复，然后按证据进入F/G；不可从Node752/双Rust各373推出实屏通过。用户“不抢前台”与“不丢场景”的限制优先；不重复已知自激活启动，不以复盘停主线。
+当前顺序：官方B已闭合、缺源caption批准364/1未决；29cdc4d检查点与全流程原话/复盘同步保存。继续C/D/E实际消费者、真实IPC与恢复，然后按证据进入F/G；不可从Node752/双Rust各373推出实屏通过。用户已把“不抢前台”降为偏好，必要正常激活获准；不丢场景仍硬约束。正常Tauri只读Hans联动及Official修复已闭小门，下一步受控真实Switch/Restore/consumer，不把旧背景FAIL改写，不以复盘停主线。
 
 ### 5.3 从最小探针逐步扩展验证
 
@@ -802,3 +802,22 @@ root随后在deny-default的独立进程sandbox中实际调用一次原厂Core�
 | [ ] 原厂消费者与晚期机制对等 | 本次未启动GUI、未修改App/profile、未打包/公开发布；所有新增caption liveConsumerVerified:false。后续以exact PID和不抢前台的受控实屏验各源域，原生可消费优先；真正不可达才复用2.7窄机制。搜索/首帧/字体family/style/输入/模型身份、时间轴与512帮助consumer仍独立验收 |
 
 §5.2仍**26已完成/18待完成**，完整catalog仍**0/51**。默认2.7发布、Windows暂停和用户作品保护不变。静态声明/译文审批/资源生成/Rust可读门各有独立证明，不能相互替代。
+
+
+## 25. Official标准与真实只读状态联动（2026-10-06）
+
+### 定义不是颜色或语言猜测
+
+- `native_official::vendor_origin`只用canonical厂商bundle、原厂executable及固定OS-evaluated Developer-ID requirement证明来源；五秒期限、严格全架构验签与失败unknown不变，不因语言包反推来源。
+- 最终`installationMode=official`是合取展示门：vendor来源已证，typed locale为核证的Absent→en-GB、显式en-GB或原厂ja，并且receipt None来自成功读取，Switcher固定strings路径可靠NotFound。只证明此namespace无Switcher覆盖，不排除任意第三方插件/注入、不声称全UI原样。
+- 自有Hans/Hant/JA（含旧pack/缺新资源）、外部strings、未知locale、pending/drift/corrupt/读失败都不能宣称Official；保留既有unknown隐藏徽章，不新增Managed枚举、不说安装造假。当前语言、desired pack版本/可用性与强owned English恢复能力不被徽章改变。2.7.2-p12生产status原本恒unknown，fixture Official不算生产来源验证；默认2.7事务与baseline门不改。
+- renderer继续只消费后端official/unknown，四语tooltip/无障碍copy限定“可信原厂应用且无Switcher语言覆盖”，不按汉字/非英语自行推断；原厂ja与Switcher-owned ja分开。UI Review原owned-Hans假fixture改unknown，历史六张WK图不冒修订后现场重跑。
+
+### 有限验收与剩余
+
+- 6项tempfile组合合同覆盖原生en/ja、自有三语、旧/新或不可用资源、外部strings、未知locale、英文漂移、pending及坏receipt。首轮真实RED为1通过/4失败；中间插入位置错误的E0425编译RED另存，不当语义RED；修正后定向5通过，新增pending后两配置全Rust各378通过/0失败/7人工ignored/0warning。默认配置用test-only空resources以避开缺失旧injector，不证明默认产品打包。锁定Node24.20.0/npm11.19.0整仓752/752与syntax/fmt/diff/freshness通过。
+- 首装AppHandle样例和人工ignored Apply smoke分别对齐当前target/partial，并先完整验证三语missing再判complete，避免短路漏检；仅编译/既有tempfile测试，不执行真实profile动作、不为过首装门清空当前owned状态。
+- 正常Tauri debug .app真实WK/renderer/bridge/get_status现场复现“当前简中+旧Official”，修复后同路再观察“当前简中、无Official、Restore入口保留”。52项有限vendor/catalog/profile/control/resource摘要前后相等，生产diagnostics如实追加；不称零文件写。先前raw dev无法CUA绑定、watcher意外重启，以及关闭后AX观察重开均保留，最终正常Cmd-Q与限定ps退出核实。完整DTO未抓取；截图只在CUA会话输出中，不假造本地PNG。
+- 用户提供2.8 DMG只读挂载，与当前安装均通过固定厂商requirement；2,851对象/2,671文件的内容、模式与relative symlink目标完全相等。第一次compressed DMG五秒cold验签超时保留；独立research六十秒复核成功，不扩大产品五秒期限。未卸载/重装App、未改profile，因此当前中文是用户覆盖而非bundle被修改。
+- MSI显示Cavalry2.8.0/x64；签名数据/重算摘要存在，但本机issuer链验证失败，不等于Windows WinVerifyTrust或真实安装/Official通过；Windows现场仍未做。
+- 完整流程仍44项26完成/18未完成、catalog0/51。当前Hans只读IPC小门已闭，不抵扣原厂Absent默认英语、Switch/重应用/Restore真实Channel/Activity、364新caption consumer、字体/搜索或发行。后续按C/D/E实际链继续，不靠重新安装抹掉未完成分母。

@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖native_resources的编译审批/宿主证明、fixed user paths的耐久事务与privilege的同用户路径/all-Cavalry准入；用户写入序列化由command facade持共享operation lock，manual smoke调用方显式复用该锁。
- * [OUTPUT]: 提供2.8开发预览的用户语言状态及脱敏nativeLocaleState（仅锁定原厂fallback确认的Absent投影en+unset，不看系统语言；Known=explicit；Unknown/null/错误typed/读取失败仍为unknown+unrecognized）、receipt强证明的English恢复能力、四阶段应用和原厂正常启动；无法验证兼容宿主时仅允许自有Current profile完成English restore-only，不尝试launch；另挂载一次性ignored真实profile smoke，直接调用apply_inner而不经过公开command的自动重启。
- * [POS]: commands 的macOS native-first编排owner；资源完整性与profile所有权分开证明，纯profile→Status投影不覆盖安装来源事实，宿主探测只读；manual smoke持共享operation lock并复用生产writer guard/事务，但只执行显式单次profile动作，不启动Cavalry、不验证真实切换UI；进程guard仅快照，不承诺OS启动锁或任意外部writer隔离。
+ * [OUTPUT]: 提供2.8开发预览的typed用户语言状态、强Current-owned English恢复能力及四阶段事务；Official显示还须内置English/日语且无Switcher receipt/专属strings覆盖，不把原厂App来源冒作当前翻译官方；异常仍Unknown，hostless仅自有Current restore-only。
+ * [POS]: commands的native-first编排owner；厂商来源与profile语言分别取证后合成Official显示门，资源新旧/可用性与恢复许可不随徽章变化；manual ignored smoke直调apply_inner而非公开命令自动重启，进程guard仅快照，不承诺OS启动锁或任意外部writer隔离。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::{
@@ -21,6 +21,7 @@ const WRITER_REFUSAL: &str = "nativeWriterStillRunning";
 const WRITER_INSPECTION: &str = "nativeWriterInspectionFailed";
 
 struct ProfileStatus {
+    official_language: bool,
     current_lang: String,
     native_locale_state: NativeLocaleState,
     patch_status: String,
@@ -29,6 +30,7 @@ struct ProfileStatus {
 }
 fn unknown_profile() -> ProfileStatus {
     ProfileStatus {
+        official_language: false,
         current_lang: "unknown".into(),
         native_locale_state: NativeLocaleState::Unrecognized,
         patch_status: "unknown".into(),
@@ -60,10 +62,14 @@ fn profile_projection(
         LocaleObservation::Absent => ("en".into(), NativeLocaleState::Unset),
         LocaleObservation::Unknown => ("unknown".into(), NativeLocaleState::Unrecognized),
     };
-    let (patch_status, reconciliation_required) = match observed.ownership {
+    let (patch_status, reconciliation_required, official_language) = match observed.ownership {
         ReceiptObservation::None => match fs::symlink_metadata(paths.strings()) {
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => ("notApplicable", false),
-            _ => ("unknown", true),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => (
+                "notApplicable",
+                false,
+                matches!(current_lang.as_str(), "en" | "ja_JP"),
+            ),
+            _ => ("unknown", true, false),
         },
         ReceiptObservation::Current {
             language,
@@ -79,13 +85,15 @@ fn profile_projection(
                     None => "unknown",
                 },
                 false,
+                false,
             )
         }
         ReceiptObservation::Drifted { .. } | ReceiptObservation::Pending { .. } => {
-            ("unknown", true)
+            ("unknown", true, false)
         }
     };
     ProfileStatus {
+        official_language,
         current_lang,
         native_locale_state,
         patch_status: patch_status.into(),
@@ -113,6 +121,10 @@ fn project_profile_status(
     profile: &ProfileStatus,
     resources_available: bool,
 ) -> StatusPayload {
+    // -- 来源认证不等于翻译官方：两份只读事实共同准入徽章 ------------
+    if status.installation_mode == "official" && !profile.official_language {
+        status.installation_mode = "unknown".into();
+    }
     status.language_scope = "userProfile".into();
     status.native_resource_available = resources_available;
     status.current_lang = profile.current_lang.clone();

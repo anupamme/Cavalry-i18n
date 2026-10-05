@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 serde 序列化、Tauri IPC Channel 和 privilege 的 typed post-commit warning code。
- * [OUTPUT]: 提供九命令名称、renderer兼容payload DTO、Action的nativeRestoreOnly提交结果、固定App Management handoff、四阶段进度、Status范围/nativeLocaleState/语言与restore capability；installationMode在legacy默认unknown，显式macOS preview可只按固定厂商验签投影official且不表示版本/资源/写入许可；journal与内部签名证据不进入renderer契约。
+ * [OUTPUT]: 提供九命令名称、renderer兼容payload DTO、Action的nativeRestoreOnly提交结果、固定App Management handoff、四阶段进度、Status范围/nativeLocaleState/语言与restore capability；installationMode在legacy默认unknown，显式macOS preview的official须固定厂商验签与内置语言/无Switcher覆盖共同成立，不表示版本/资源/写入许可；journal与内部签名证据不进入renderer契约。
  * [POS]: commands 的外部契约层；OperationReporter 是 transport-neutral 进度抽象，Tauri Channel 只在本文件的适配器中出现；内部 warning prose 只用于领域测试，command facade 必须在序列化前转换为 codes 并清空原文。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -215,7 +215,7 @@ pub struct StatusPayload {
     #[serde(skip_serializing_if = "is_false")]
     pub native_english_restore_available: bool,
     pub patch_status: String,
-    /// 显式native预览仅在OS成功评估固定厂商requirement后报告official；legacy默认unknown。
+    /// 显式native预览须OS厂商验签且profile为无Switcher覆盖的内置语言才报告official；未通过只留unknown，不判定来源造假；legacy默认unknown。
     pub installation_mode: String,
     #[serde(skip_serializing_if = "is_false")]
     pub macos_permission_handoff_required: bool,

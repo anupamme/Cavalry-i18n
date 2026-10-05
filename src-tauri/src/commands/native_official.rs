@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 native_resources 的 canonical/no-symlink 且可读取显示版本的bundle观察，与 privilege 的固定厂商requirement限时OS验签边界。
- * [OUTPUT]: 对显式macOS native预览投影单一 `official` 或 fail-closed `unknown` 安装来源状态；认证要求存在可显示版本的bundle，但不与supported版本比较，也不依赖语言pack、用户profile、baseline或journal。
- * [POS]: commands/status 的来源事实owner；Official只描述由Apple代码签名策略认证的原厂Cavalry bundle，不表示版本兼容、翻译可用、恢复能力或写入授权。
+ * [OUTPUT]: 对显式macOS native预览提供单一 `official` 或 fail-closed `unknown` 厂商来源事实；认证要求存在可显示版本的bundle，但不与supported版本比较，也不依赖语言pack、用户profile、baseline或journal。
+ * [POS]: commands/status 的来源事实owner；本模块只证明Apple代码签名策略认证的原厂Cavalry bundle；最终Official徽章还由native_user核对内置语言与无Switcher覆盖，不表示版本兼容、翻译可用、恢复能力或写入授权。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{fs, io::Cursor, path::Path, time::Duration};
@@ -10,12 +10,12 @@ use crate::privilege::{self, CommandRunner, RealCommandRunner};
 
 const SIGNATURE_TIMEOUT: Duration = Duration::from_secs(5);
 
-pub(crate) fn installation_mode(selected_app: &Path) -> &'static str {
+pub(crate) fn vendor_origin(selected_app: &Path) -> &'static str {
     let mut runner = RealCommandRunner;
-    installation_mode_with_runner(selected_app, &mut runner)
+    vendor_origin_with_runner(selected_app, &mut runner)
 }
 
-fn installation_mode_with_runner<R: CommandRunner>(
+fn vendor_origin_with_runner<R: CommandRunner>(
     selected_app: &Path,
     runner: &mut R,
 ) -> &'static str {
@@ -181,13 +181,13 @@ mod tests {
     }
 
     #[test]
-    fn exact_os_evaluated_vendor_requirement_is_the_only_official_claim() {
+    fn exact_os_evaluated_requirement_proves_vendor_origin_only() {
         let temp = tempfile::tempdir().unwrap();
         let app = make_bundle(temp.path(), "com.scenegroup.cavalry", "99.4.1", "Cavalry");
         let canonical = crate::install::canonical_root_for_selection(&app).unwrap();
         let mut runner = FixtureRunner::default();
 
-        assert_eq!(installation_mode_with_runner(&app, &mut runner), "official");
+        assert_eq!(vendor_origin_with_runner(&app, &mut runner), "official");
         assert_single_codesign_call(&runner, &canonical);
         // 认证只接收bundle身份与签名runner，不读取资源pack、用户profile或恢复状态。
     }
@@ -205,7 +205,7 @@ mod tests {
                 result: Some(result),
                 ..FixtureRunner::default()
             };
-            assert_eq!(installation_mode_with_runner(&app, &mut runner), "unknown");
+            assert_eq!(vendor_origin_with_runner(&app, &mut runner), "unknown");
             assert_single_codesign_call(
                 &runner,
                 &crate::install::canonical_root_for_selection(&app).unwrap(),
@@ -219,7 +219,7 @@ mod tests {
         let wrong_id = make_bundle(temp.path(), "not.cavalry", "2.8.0", "Cavalry");
         let mut wrong_id_runner = FixtureRunner::default();
         assert_eq!(
-            installation_mode_with_runner(&wrong_id, &mut wrong_id_runner),
+            vendor_origin_with_runner(&wrong_id, &mut wrong_id_runner),
             "unknown"
         );
         assert!(wrong_id_runner.commands.is_empty());
@@ -235,7 +235,7 @@ mod tests {
             .unwrap();
         let mut missing_identity_runner = FixtureRunner::default();
         assert_eq!(
-            installation_mode_with_runner(&missing_identity, &mut missing_identity_runner),
+            vendor_origin_with_runner(&missing_identity, &mut missing_identity_runner),
             "unknown"
         );
         assert!(missing_identity_runner.commands.is_empty());
@@ -248,7 +248,7 @@ mod tests {
         );
         let mut wrapper_runner = FixtureRunner::default();
         assert_eq!(
-            installation_mode_with_runner(&wrapper, &mut wrapper_runner),
+            vendor_origin_with_runner(&wrapper, &mut wrapper_runner),
             "unknown"
         );
         assert!(wrapper_runner.commands.is_empty());
@@ -258,7 +258,7 @@ mod tests {
         symlink(&app, &alias).unwrap();
         let mut alias_runner = FixtureRunner::default();
         assert_eq!(
-            installation_mode_with_runner(&alias, &mut alias_runner),
+            vendor_origin_with_runner(&alias, &mut alias_runner),
             "unknown"
         );
         assert!(alias_runner.commands.is_empty());
@@ -268,7 +268,7 @@ mod tests {
         symlink(temp.path().join("outside-executable"), &executable_path).unwrap();
         let mut executable_runner = FixtureRunner::default();
         assert_eq!(
-            installation_mode_with_runner(&app, &mut executable_runner),
+            vendor_origin_with_runner(&app, &mut executable_runner),
             "unknown"
         );
         assert!(executable_runner.commands.is_empty());
@@ -291,7 +291,7 @@ mod tests {
         assert!(!state_path.exists());
         let mut runner = FixtureRunner::default();
 
-        assert_eq!(installation_mode_with_runner(&app, &mut runner), "official");
+        assert_eq!(vendor_origin_with_runner(&app, &mut runner), "official");
 
         assert_eq!([hash_bytes(&info), hash_bytes(&executable)], before);
         assert!(!state_path.exists());
@@ -320,7 +320,7 @@ mod tests {
         let state_path = disposable_state.path().join("must-not-be-created");
         assert!(!state_path.exists());
 
-        assert_eq!(installation_mode(&app), "official");
+        assert_eq!(vendor_origin(&app), "official");
 
         let after = watched
             .iter()

@@ -29,7 +29,7 @@ app.js: 唯一业务交互源；启动只消费 bridge 的只读 version/scope/l
 tauri-bridge.js: 非视觉兼容桥，在业务脚本前定义最小冻结 API；归一化 camelCase scope、受控 locale/unknown、userProfile专属 nativeLocaleState 三值（旧 installation 为 null）、原生资源、严格 ownership-gated English restore availability 与 action code，保持原有命令形状；拒绝snake_case/debug扩展并丢弃raw error/warning prose；`nativeRestoreOnly` 仅允许 `apply_language` 的成功固定英文动作且要求最终语言为 en、无warning/reconciliation/permission/error，不能被 Switch 或其他 API 冒认；固定 project-link ID 为 repository/license/reportIssue/legacyRelease，其中旧版入口只允许明确 ID，不接收 renderer URL，其他 URL/路径/debug 仍丢弃。
 version-guidance.js: 版本提示策略模块；兼容状态文案键直接消费后端枚举，legacyRelease 按安装 2.7.2 + 后端 olderUnsupported + supportedVersion 2.8.0 精确显露；只提供固定四语按钮名与门控，不推断 semver、不持 URL 或调用 Tauri。
 language-scope.js: renderer 语言范围策略的唯一投影层；按冻结Status分别决定Switch/Select资源门与userProfile unset+English默认/Unknown徽章文案，不把localeState当所有权证明、恢复可用性或当前语言推断，另管strict owned-image hostless 英文恢复门、用户级确认及宿主无关的英文 verify 与固定英文 apply 阶段key；不访问 Tauri 或应用文件路径，调用方仍负责正常宿主重启事务。
-ui-text.js: 依赖user-profile-text.js并以四语spread合成稳定UI_TEXT，再提供`STATUS_TITLE_KEYS`状态标题路由；默认候选引导只提供本地化label，候选路径由PathDisplay单独呈现；统一消费面覆盖Select/Badge/Switch/Update/Restore/Updater、安装级恢复、userProfile英文恢复、版本与权限提示、四语无障碍copy及普通verify Issue，不为子域复制第二份文案。
+ui-text.js: Official说明限定已验证原厂App且无Switcher语言覆盖，不宣称全UI或第三方插件原样；依赖user-profile-text.js并以四语spread合成稳定UI_TEXT，再提供`STATUS_TITLE_KEYS`状态标题路由；默认候选引导只提供本地化label，候选路径由PathDisplay单独呈现；统一消费面覆盖Select/Badge/Switch/Update/Restore/Updater、安装级恢复、userProfile英文恢复、版本与权限提示、四语无障碍copy及普通verify Issue，不为子域复制第二份文案。
 
 依赖边界:
 

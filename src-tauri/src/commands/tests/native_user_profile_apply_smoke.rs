@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖显式锁定的2.8原厂App、native-preview资源、OS用户profile与state；通过native_user生产owner和operation_lock执行。
- * [OUTPUT]: 提供默认ignored的单语言profile smoke及旧owned pack升级准入fixture；分别验证当前原像与新10481键资源、receipt/pack SHA、English恢复和vendor/非locale零漂移。
+ * [INPUT]: 依赖显式锁定的2.8原厂App、target绑定且允许诚实partial的native-preview资源、OS用户profile与state；通过native_user生产owner和operation_lock执行。
+ * [OUTPUT]: 提供默认ignored的单语言profile smoke及旧owned pack升级准入fixture；用target/source分账与三语missing推导完整度，再验证receipt/pack SHA、English恢复和vendor/非locale零漂移。
  * [POS]: commands/tests 的真实用户文件动作合同；直接调用apply_inner，不经过会自动restart的公开command，不启动Cavalry、不声称真实UI切换已验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -210,17 +210,51 @@ fn native_profile_apply_smoke_performs_one_action_without_restart() {
         serde_json::from_slice(&fs::read(&manifest_path).expect("locked preview manifest missing"))
             .expect("preview manifest must be valid JSON");
     assert_eq!(manifest["kind"], "development-preview");
-    assert_eq!(manifest["complete"], true);
-    assert_eq!(manifest["approvedUIKeys"], 10286);
-    assert_eq!(manifest["nativeKeys"], 10481);
-    assert_eq!(manifest["supplementalKeys"], 8);
+    let target_bytes = include_bytes!("../../../../tools/cavalry_native_target.json");
+    let target: serde_json::Value =
+        serde_json::from_slice(target_bytes).expect("native target lock must be valid JSON");
     assert_eq!(
-        manifest["nativeKeys"].as_u64().unwrap() - manifest["supplementalKeys"].as_u64().unwrap(),
-        10473
+        manifest["targetSha256"],
+        format!("{:x}", Sha256::digest(target_bytes)),
+        "resource manifest must bind the currently tracked target bytes"
     );
-    for product_language in PRODUCT_LANGUAGES {
-        assert_eq!(manifest["packs"][product_language]["missing"], 0);
-    }
+    let official_keys = target["nativeKeys"]
+        .as_u64()
+        .expect("target official key count must be an unsigned integer");
+    let supplemental_keys = target["supplementalKeys"]
+        .as_u64()
+        .expect("target supplemental key count must be an unsigned integer");
+    let source_keys = official_keys
+        .checked_add(supplemental_keys)
+        .expect("locked source key count must not overflow");
+    assert_eq!(manifest["nativeKeys"], source_keys);
+    assert_eq!(manifest["supplementalKeys"], supplemental_keys);
+    assert_eq!(
+        manifest["nativeKeys"]
+            .as_u64()
+            .and_then(|total| total.checked_sub(manifest["supplementalKeys"].as_u64()?)),
+        Some(official_keys),
+        "official and supplemental source counts must remain disjoint"
+    );
+    let approved_keys = manifest["approvedUIKeys"]
+        .as_u64()
+        .expect("approved UI key count must be an unsigned integer");
+    assert!(approved_keys > 0 && approved_keys <= source_keys);
+    let missing_counts = PRODUCT_LANGUAGES.map(|language| {
+        let missing = manifest["packs"][language]["missing"]
+            .as_u64()
+            .expect("each product language must report an unsigned missing count");
+        assert!(
+            missing <= source_keys,
+            "missing count exceeds locked source keys"
+        );
+        missing
+    });
+    let complete = missing_counts.iter().all(|missing| *missing == 0);
+    assert_eq!(
+        manifest["complete"], complete,
+        "complete must be derived from every locale's actual missing count"
+    );
     let resources = native_resources::load_resources(&repo, &repo)
         .expect("all three packs must match the compiled resource approval");
     assert_eq!(resources.packs.len(), 3);

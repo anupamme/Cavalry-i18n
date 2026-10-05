@@ -95,9 +95,12 @@ fn main() {
     assert_eq!(manifest["supplementalKeys"], target["supplementalKeys"]);
     let approved_keys = manifest["approvedUIKeys"].as_u64().unwrap();
     assert!(approved_keys > 0 && approved_keys <= source_keys);
-    let complete = ["zh-Hans", "zh-Hant", "ja_JP"]
-        .iter()
-        .all(|language| manifest["packs"][language]["missing"].as_u64().unwrap() == 0);
+    let missing_counts = ["zh-Hans", "zh-Hant", "ja_JP"].map(|language| {
+        let missing = manifest["packs"][language]["missing"].as_u64().unwrap();
+        assert!(missing <= source_keys);
+        missing
+    });
+    let complete = missing_counts.iter().all(|missing| *missing == 0);
     assert_eq!(manifest["complete"], complete);
     watched.push(manifest_path);
     let before = watched.iter().map(|path| image(path)).collect::<Vec<_>>();

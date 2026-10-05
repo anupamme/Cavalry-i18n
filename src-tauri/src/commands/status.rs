@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 patch_receipt 的只读回执/源身份验证、context 路径/语言源、detect/install/state、Windows QPA只读检查、本地diagnostics及macOS固定厂商requirement只读验签。
- * [OUTPUT]: 提供卸载到blocking worker的启动期只读安装观察；显式macOS native预览另独立投影厂商Official来源、typed profile/receipt语言、脱敏nativeLocaleState（Absent按已锁2.8原厂fallback为en+unset；Known为explicit；Unknown/错误输入为unknown+unrecognized）、资源可用性及强Current-owned postimage限定的nativeEnglishRestoreAvailable；Official要求可显示bundle身份，但不比较supported版本，且独立于pack/profile/receipt、不授予应用写入或恢复许可，其余默认2.7路径不变；四态版本兼容、补丁状态、当前语言、安装选择及Windows残留提示仍各守自身证明边界。status不探测journal、英文快照、进程或写权限，事务证明和收敛留给用户触发的Switch/Restore。
+ * [OUTPUT]: 提供卸载到blocking worker的启动期只读安装观察；显式macOS native预览另独立投影厂商Official来源、typed profile/receipt语言、脱敏nativeLocaleState（Absent按已锁2.8原厂fallback为en+unset；Known为explicit；Unknown/错误输入为unknown+unrecognized）、资源可用性及强Current-owned postimage限定的nativeEnglishRestoreAvailable；厂商来源要求可显示bundle身份及固定OS验签，最终Official还须native_user证明内置语言且无Switcher覆盖；资源/兼容性/恢复许可独立，不由徽章授权，其余默认2.7路径不变；四态版本兼容、补丁状态、当前语言、安装选择及Windows残留提示仍各守自身证明边界。status不探测journal、英文快照、进程或写权限，事务证明和收敛留给用户触发的Switch/Restore。
  * [POS]: commands 的只读状态层；native签名验签有5秒子进程期限并由Tauri blocking worker承载，失败只把安装来源留为unknown，不阻断原有语言/profile/resource投影；人工忽略的组合烟测只读取明确选择的真实App/profile，不启动GUI。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -367,7 +367,7 @@ fn native_status_for_paths(
         .find_map(|path| super::native_resources::observe_install(&path).ok());
     let mut status = status_shell(&paths.repo_root, &paths.resource_dir, candidates);
     if let Some((app, version)) = installation {
-        status.installation_mode = super::native_official::installation_mode(&app).into();
+        status.installation_mode = super::native_official::vendor_origin(&app).into();
         status.app_path = app.to_string_lossy().to_string();
         status.version = version;
     }
