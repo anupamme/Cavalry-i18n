@@ -11,7 +11,7 @@
 
 当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official使用固定厂商Apple Developer ID requirement，只认证来源、不授予写入/恢复权。整仓Node717项通过；native与默认路径全量Rust各370通过/0失败，6个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章Chromium headless fixture 6项与系统WKWebView fixture 6项均通过；WK审查用prohibited激活策略，记录1个内部隐藏TUINSWindow、0可见/key/main及无自身激活事件，原厂/profile六监视文件前后不变。真实WebKit渲染不等于Tauri AppHandle/实际后端联动或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
 
-完整冻结包历史生产owner动作5/5、四语原厂首屏/正常退出各4/4；随后另一次Hans Apply成功，合计6次成功用户事务。当前typed locale为zh-Hans，自有strings/receipt存在；English恢复曾因实验副本仍运行被writer guard拒绝，未写profile，不能沿用§16的历史English终态。原厂安装未改。独立ad-hoc副本的Hans工具提示字体canary已观察8条CJK/1条ASCII路径与可读截图，但后台门失败；视口状态、时间轴、动态属性、搜索/字体身份均须分别验收。完整catalog仍0/51，Switcher IPC未验收。默认2.7发布、版本号与共享feed不变；Windows暂停，不推送或发布。全session私人检查点已本地commit；新实验与明确剩余项见§18，不能把字体小样计入完整UI通过。
+完整冻结包历史生产owner动作5/5、四语原厂首屏/正常退出各4/4；随后另一次Hans Apply成功，合计6次成功用户事务。当前typed locale为zh-Hans，自有strings/receipt存在；English恢复曾因实验副本仍运行被writer guard拒绝，未写profile，不能沿用§16的历史English终态。原厂安装未改。独立ad-hoc副本的Hans工具提示字体canary已观察8条CJK/1条ASCII路径与可读截图，但后台门失败；后续第二轮副本又确认单一视口状态“视口质量：完整”可读，但启动/退出前台约束仍失败；其他视口状态、时间轴、动态属性、搜索/字体身份均须分别验收。完整catalog仍0/51，Switcher IPC未验收。默认2.7发布、版本号与共享feed不变；Windows暂停，不推送或发布。全session私人检查点已本地commit；新实验与明确剩余项见§18，不能把字体小样计入完整UI通过。
 本文件按用户要求放在产品分支；过程证据与临时队列留在会话级 stage 或私有历史文档库。公开构建、测试和发布不得依赖这些路径，也不打包调查脚本。
 
 > 下文早期阶段的数量、RED、构建与实跑记录属于各自历史检查点；当前键与离线验收状态以上方状态为准。完整键资源已闭合，不代表真实 UI、独立帮助 consumer 或发行已完成。
@@ -688,7 +688,7 @@ CAVALRY_I18N_NATIVE_STATUS_SMOKE_APP=/Applications/Cavalry.app \
 | [x] 原厂2.8 arm64字体工厂/调用点补证 | 真实Core `MakeScalableFont`构造24B对象；CTFont→SkTypeface精确身份及完整字形覆盖；不以复制活SkFont/borrowed指针冒充owner |
 | [x] Hans工具提示副本canary | 九条exact native文字中8条CJK借用字体、Space原字体；有限事件日志与主窗PNG显示可读。仅本次副本，不是产品部署或三语全画布通过 |
 | [ ] 本次副本后台启动/正常退出 | 启动观察到1次目标激活、2个前台/active/遮挡样本，后台门失败；先前正常退出请求未退出。保留事实，不据此猜用户/厂商谁触发，不抵扣历史4/4原厂样本 |
-| [x] 视口状态独立离线策略 | 明确`renderFrame → text-path cache` caller，三状态×无后缀/MSAA/Auto九个exact组合，与工具帮助owner隔离。先RED 84/102，普通和ASan/UBSan再各102/102；arm64零warning编译，未部署/实跑，非字体修复完成 |
+| [x] 视口状态独立离线策略 | 明确`renderFrame → text-path cache` caller，三状态×无后缀/MSAA/Auto九个exact组合，与工具帮助owner隔离。先RED 84/102，普通和ASan/UBSan再各102/102；arm64零warning编译；该离线检查点尚未部署/实跑，后续第二轮事实见下，非完整字体修复完成 |
 | [x] 2.7.2晚期代码差分对照 | 搜索/显示修复进入p9，输入值/字体身份及时间轴修复进入p10；root核p10→p12相关injector/语言/规范/TS路径零差分，不漏最后发布线中的既有机制 |
 | [ ] 属性全域、时间轴与搜索实机对等 | 不能从10278官方键齐全推断动态属性已覆盖；Forge八项只是例子。原生键存在/官方源缺口/动态consumer/DNT分别列账；测量与绘制必须同字体，原始名称和搜索身份不改 |
 
@@ -716,4 +716,20 @@ CAVALRY_I18N_NATIVE_STATUS_SMOKE_APP=/Applications/Cavalry.app \
 
 Forge当前源有52属性标签、旧源57，精确缺的五项是`groundFriction/groundBounce/velocityIterations/positionIterations/fields`，三语旧译具有同owner+ID；另外三项只有旧TS通用context候选，不冒充Forge身份。字体相关机器值、字段ID和模型身份仍不翻。
 
-**下一最短接线：**先绑定真实Inspector行的label resolver/setter与owner+field ID，确认原生查表/fallback优先级，再沿既有稳定键或精确显示边界补充；不直接扩大全局TS fallback，不把schema全部机器字段变成“待译键”。实际consumer尚未接，全UI/搜索/字体与§5.2待办仍不勾选。
+**后续静态调用链已确认：**Inspector属性行经`AttrControlRow → AttributeHelper → getNiceNameForAttr → TextRegistry::attrName`动态构造`nodeAttr:<owner>.<attributeId>`，当前owner缺词先查父级，再格式化属性路径；不需为这五个字段另造全局Qt翻译hook。现有原生包reader没有官方keyset过滤，真正阻断在构建producer的source绑定与manifest/target的10473键合同。仍须绑定当前fallback英语源与schema、限域审批补充键、同步构建/资源合同，再验实际加载和标签；只见resolver并不等于provider已接。
+
+旧独有49项又按同owner当前definition直接分类：26仍存在、18字段缺失、5owner缺失；不能把26都称为漏译，Noise父级回退也须分别核实。原枚举JSON没有77模块SHA，root已另存实际78文件require闭包的摘要，未覆盖或追认原报告。全UI/搜索/字体与§5.2待办仍不勾选。
+
+
+## 20. 第二轮字体实屏与PID后台边界
+
+2026-10-05：复用同一个自有副本和shim槽，不新增App/DMG，不写原厂安装；在无Cavalry进程和无副本open reference时更新已独审的v2候选，再本地最小重签。相对原厂仍严格只有主执行文件、CodeResources及自有shim三路径差分，完整原厂树再次校验未变。
+
+- [x] 第二轮Hans窄显示：实际PID的工具index0..8和viewport index9事件，精确CGWindow截图经root审阅显示工具提示及“视口质量：完整”可读。只证明一个viewport状态，不把其余八组合、繁体/日语或时间轴算通过。
+- [ ] 后台约束：启动187次采样中目标activate通知/frontmost/active均0，前后前台PID相同；但窗口顺序及bounds相交门FAIL。数值6是target-window × frontmost-app-window的累计矩形相交关系，不是6个采样帧；重复failure还可能只是累计值再次报告，不证明实际像素遮挡比例。
+- [ ] 本轮正常退出：基于本轮空场景PNG请求精确PID正常terminate，返回接受但10秒内未退出，记录前台随后变为目标；之后只读发现该PID absent/lsof无引用，退出原因/时间未证，不回写为成功。无forcekill、主动activate或全局键鼠。
+- [x] 后续当前状态只读核对：typed locale仍Hans，owned strings/receipt存在且无pending；非locale偏好按相同canonical算法与事务前摘要一致，原厂完整树不变。没有新增English Restore或profile事务。
+
+PID仅限定动作投递目标，不保证App/Qt不show/raise自己的窗口；CUA是观察/交互入口，也不自动构成后台保证。本轮工具表没有桌面CUA入口，本地亦未发现peekaboo/cua/cliclick/yabai，继续使用已有PID、只读CGWindow截图与可识别AX控件；不把浏览器/模拟器工具冒充Cavalry桌面验收，不为换入口重复启动。
+
+v2源SHA **`952f3e6380729bd24988d653f83a1f1d3d91aefac964b59a760e72303fb0ee81`**与本轮实际加载独立绑定，首轮与v2离线历史证据保留。当前完整catalog仍**0/51**，办事表仍**26/18**，默认2.7配置/feed不变，未推送或发布。
