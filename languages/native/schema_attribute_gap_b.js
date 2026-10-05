@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖固定2.8 schema/Core源身份、完整分区三语独审与20槽修订复验；源行由producer独立核验。
- * [OUTPUT]: 提供181个精确nodeAttr三语已审caption；World Scale三槽未决而不注册，source仍计入分母。
+ * [INPUT]: 依赖固定2.8 schema/Core源身份、初始完整分区/20槽修订复验与particleShape单键caption独审；源行由producer独立核验。
+ * [OUTPUT]: 提供182个精确nodeAttr三语已审caption；World Scale只准入标签，单位/效果说明与实机消费未证。
  * [POS]: native审批装配的schema缺源B分区；非官方catalog，不改模型/字体/用户值，不证明实机消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -17,10 +17,18 @@ module.exports = {
     "independentRevisionReviewSha256": "7af351ef4693a14490ff3423b04d9c6a707699c9201940bf4b76a3778cb5e1ab",
     "candidateSha256": "3dc7c191936055cf75b1f77cb41d30e4863a547a03707e8a896bbfad0671cd69",
     "candidateKeys": 182,
-    "approvedKeys": 181,
-    "pendingSourceKeys": [
-      "nodeAttr:particleShape.worldScale"
-    ],
+    "initialApprovedKeys": 181,
+    "initialPendingSourceKeys": ["nodeAttr:particleShape.worldScale"],
+    "approvedKeys": 182,
+    "pendingSourceKeys": [],
+    "captionAddendum": {
+      "key": "nodeAttr:particleShape.worldScale",
+      "scope": "caption-only; no units or behavioral help; initial batch review digests remain historical",
+      "approvedBy": "primary-agent",
+      "sourceIdentitySha256": "4524c65e6e1ff06526d3171ec00a3668ee91dada6f65c0ccf7c35d84ba24ae4c",
+      "decisionSha256": "c905f9cc248ed9e47a855edcf1c4e900c7fc62580ac4337ebdf7fcacc55ec27b",
+      "independentCaptionReviewSha256": "d45b93b7228e1e201ca70b379cf1c62aac347b0c10d0462e37db6f6dba678046"
+    },
     "liveConsumerVerified": false
   },
   entries: [
@@ -75,6 +83,7 @@ module.exports = {
     {"key":"nodeAttr:particleShape.timeStep","catalogId":"schemaSupplement/nodeAttributes","owner":"particleShape","fieldPath":["attributes","timeStep","name"],"source":"Time Step","dontTranslate":false,"vendorJapanese":null,"notes":["Cavalry 2.8 nodeDefinitions declares this Inspector attribute; English label is the verified Core fallback."],"translations":{"zh-Hans":{"decision":"translate","text":"时间步长"},"zh-Hant":{"decision":"translate","text":"時間步長"},"ja_JP":{"decision":"translate","text":"タイムステップ"}}},
     {"key":"nodeAttr:particleShape.turbulence","catalogId":"schemaSupplement/nodeAttributes","owner":"particleShape","fieldPath":["attributes","turbulence","name"],"source":"Turbulence","dontTranslate":false,"vendorJapanese":null,"notes":["Cavalry 2.8 nodeDefinitions declares this Inspector attribute; English label is the verified Core fallback."],"translations":{"zh-Hans":{"decision":"translate","text":"湍流"},"zh-Hant":{"decision":"translate","text":"湍流"},"ja_JP":{"decision":"translate","text":"タービュランス"}}},
     {"key":"nodeAttr:particleShape.useCache","catalogId":"schemaSupplement/nodeAttributes","owner":"particleShape","fieldPath":["attributes","useCache","name"],"source":"Use Cache","dontTranslate":false,"vendorJapanese":null,"notes":["Cavalry 2.8 nodeDefinitions declares this Inspector attribute; English label is the verified Core fallback."],"translations":{"zh-Hans":{"decision":"translate","text":"使用缓存"},"zh-Hant":{"decision":"translate","text":"使用快取"},"ja_JP":{"decision":"translate","text":"キャッシュを使用"}}},
+    {"key":"nodeAttr:particleShape.worldScale","catalogId":"schemaSupplement/nodeAttributes","owner":"particleShape","fieldPath":["attributes","worldScale","name"],"source":"World Scale","vendorJapanese":null,"dontTranslate":false,"notes":["Cavalry 2.8 nodeDefinitions declares this Inspector attribute; English label is the verified Core fallback."],"translations":{"zh-Hans":{"decision":"translate","text":"世界比例"},"zh-Hant":{"decision":"translate","text":"世界比例"},"ja_JP":{"decision":"translate","text":"ワールドスケール"}}},
     {"key":"nodeAttr:pathModifier.captureForce","catalogId":"schemaSupplement/nodeAttributes","owner":"pathModifier","fieldPath":["attributes","captureForce","name"],"source":"Capture Force","dontTranslate":false,"vendorJapanese":null,"notes":["Cavalry 2.8 nodeDefinitions declares this Inspector attribute; English label is the verified Core fallback."],"translations":{"zh-Hans":{"decision":"translate","text":"捕获力"},"zh-Hant":{"decision":"translate","text":"捕捉力"},"ja_JP":{"decision":"translate","text":"キャプチャ力"}}},
     {"key":"nodeAttr:pathModifier.captureGraph","catalogId":"schemaSupplement/nodeAttributes","owner":"pathModifier","fieldPath":["attributes","captureGraph","name"],"source":"Capture Graph","dontTranslate":false,"vendorJapanese":null,"notes":["Cavalry 2.8 nodeDefinitions declares this Inspector attribute; English label is the verified Core fallback."],"translations":{"zh-Hans":{"decision":"translate","text":"捕获曲线"},"zh-Hant":{"decision":"translate","text":"捕捉曲線"},"ja_JP":{"decision":"translate","text":"キャプチャグラフ"}}},
     {"key":"nodeAttr:pathModifier.captureMargin","catalogId":"schemaSupplement/nodeAttributes","owner":"pathModifier","fieldPath":["attributes","captureMargin","name"],"source":"Capture Margin","dontTranslate":false,"vendorJapanese":null,"notes":["Cavalry 2.8 nodeDefinitions declares this Inspector attribute; English label is the verified Core fallback."],"translations":{"zh-Hans":{"decision":"translate","text":"捕获范围"},"zh-Hant":{"decision":"translate","text":"捕捉範圍"},"ja_JP":{"decision":"translate","text":"キャプチャ範囲"}}},

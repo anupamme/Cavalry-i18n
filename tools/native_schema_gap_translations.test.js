@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖固定365条补充源、两个已审caption模块、显式registry及真实资源producer；只用合成官方catalog。
- * [OUTPUT]: 守住364键/1092槽源身份、三语摘要、有限错义回退及World Scale未决分母，证明派生包不伪造完整性。
+ * [OUTPUT]: 守住365键/1095槽源身份、旧364摘要及单键caption追加审定；真实producer完整与撤批partial分开验证。
  * [POS]: schema缺源准入的离线合同；不读取私账/App/profile，不以静态caption审批代替实屏验收。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -15,22 +15,22 @@ const { buildNativeResourceBundle } = require('./native_resource_bundle');
 const { assertNativeTranslationFormat } = require('./native_translation_format');
 const PARTS = ['schema_attribute_gap_a', 'schema_attribute_gap_b'];
 const LOCALES = ['zh-Hans', 'zh-Hant', 'ja_JP'];
-const PENDING_KEY = 'nodeAttr:particleShape.worldScale';
+const WORLD_SCALE_KEY = 'nodeAttr:particleShape.worldScale';
 const sha = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const modules = () => PARTS.map(name => require(`../languages/native/${name}`));
 
-test('schema gap approvals enter only the explicit registry and keep one pending source key', () => {
+test('schema gap approvals enter only the explicit registry and close the fixed source denominator', () => {
   assert.equal(APPROVED_MODULES.length, 80);
   for (const name of PARTS) assert.equal(APPROVED_MODULES.filter(value => value === name).length, 1);
   const rows = modules().flatMap(part => part.entries);
-  assert.equal(rows.length, 364);
-  assert.equal(new Set(rows.map(row => row.key)).size, 364);
-  assert.ok(!rows.some(row => row.key === PENDING_KEY));
-  assert.equal(approvedEntries().length, 10650);
+  assert.equal(rows.length, 365);
+  assert.equal(new Set(rows.map(row => row.key)).size, 365);
+  assert.equal(rows.filter(row => row.key === WORLD_SCALE_KEY).length, 1);
+  assert.equal(approvedEntries().length, 10651);
   assert.equal(FIXED_GAP_SOURCE_ROWS.length, 365);
   const sourceByKey = new Map(FIXED_GAP_SOURCE_ROWS.map(row => [row.key, row]));
   assert.deepEqual(FIXED_GAP_SOURCE_ROWS.filter(row => !rows.some(approval => approval.key === row.key))
-    .map(row => row.key), [PENDING_KEY]);
+    .map(row => row.key), []);
   for (const row of rows) {
     const { translations, ...source } = row;
     assert.deepEqual(source, sourceByKey.get(row.key), row.key);
@@ -42,7 +42,7 @@ test('schema gap approvals enter only the explicit registry and keep one pending
   }
 });
 
-test('real producer counts pending World Scale honestly and leaves its fallback to native resolution', () => {
+test('real producer includes all approved captions without changing the source denominator', () => {
   const pairs = [{ id: 'Definitions/Translation/appStrings',
     source: [{ type: 'strings', value: { identity: { 'UI-text': 'ABI-ID', dontTranslate: true } } }],
     japanese: [{ type: 'strings', value: {} }],
@@ -54,17 +54,72 @@ test('real producer counts pending World Scale honestly and leaves its fallback 
   const { manifest, packs } = buildNativeResourceBundle(pairs, approved, undefined, sources);
   assert.equal(manifest.nativeKeys, 374);
   assert.equal(manifest.supplementalKeys, 373);
+  assert.equal(manifest.approvedUIKeys, 373);
+  assert.equal(manifest.complete, true);
+  for (const locale of LOCALES) {
+    assert.equal(manifest.packs[locale].missing, 0);
+    const value = JSON.parse(packs[locale])[0].value;
+    assert.deepEqual(value[WORLD_SCALE_KEY], { 'UI-text': approved.find(row => row.key === WORLD_SCALE_KEY).translations[locale].text });
+    assert.equal(Object.keys(value).length, 374);
+    for (const row of approved) assert.deepEqual(value[row.key], { 'UI-text': row.translations[locale].text });
+    assert.deepEqual(value.identity, { 'UI-text': 'ABI-ID' });
+  }
+  assert.equal(JSON.stringify({ pairs, approved, sources }), before);
+});
+
+test('revoking exactly the World Scale caption keeps the complete source but returns an honest partial pack', () => {
+  const pairs = [{ id: 'Definitions/Translation/appStrings',
+    source: [{ type: 'strings', value: { identity: { 'UI-text': 'ABI-ID', dontTranslate: true } } }],
+    japanese: [{ type: 'strings', value: {} }],
+  }];
+  const allApprovals = [...require('../languages/native/forge_attribute_supplement').entries,
+    ...modules().flatMap(part => part.entries)];
+  const revoked = structuredClone(allApprovals).filter(row => row.key !== WORLD_SCALE_KEY);
+  assert.equal(allApprovals.length - revoked.length, 1);
+  const sources = [...FIXED_SOURCE_ROWS, ...FIXED_GAP_SOURCE_ROWS];
+  const before = JSON.stringify({ pairs, allApprovals, revoked, sources });
+  const { manifest, packs } = buildNativeResourceBundle(pairs, revoked, undefined, sources);
+  assert.equal(manifest.nativeKeys, 374);
+  assert.equal(manifest.supplementalKeys, 373);
   assert.equal(manifest.approvedUIKeys, 372);
   assert.equal(manifest.complete, false);
   for (const locale of LOCALES) {
     assert.equal(manifest.packs[locale].missing, 1);
     const value = JSON.parse(packs[locale])[0].value;
-    assert.equal(value[PENDING_KEY], undefined);
+    assert.equal(value[WORLD_SCALE_KEY], undefined);
     assert.equal(Object.keys(value).length, 373);
-    for (const row of approved) assert.deepEqual(value[row.key], { 'UI-text': row.translations[locale].text });
+    for (const row of revoked) assert.deepEqual(value[row.key], { 'UI-text': row.translations[locale].text });
     assert.deepEqual(value.identity, { 'UI-text': 'ABI-ID' });
   }
-  assert.equal(JSON.stringify({ pairs, approved, sources }), before);
+  assert.equal(JSON.stringify({ pairs, allApprovals, revoked, sources }), before);
+});
+
+test('World Scale caption addendum is exact, source-bound and does not claim live consumption', () => {
+  const part = require('../languages/native/schema_attribute_gap_b');
+  const row = part.entries.find(row => row.key === WORLD_SCALE_KEY);
+  assert.ok(row, 'the independently reviewed caption must be explicitly registered');
+  const { translations, ...source } = row;
+  assert.deepEqual(source, FIXED_GAP_SOURCE_ROWS.find(row => row.key === WORLD_SCALE_KEY));
+  assert.deepEqual(LOCALES.map(locale => translations[locale]), [
+    { decision: 'translate', text: '世界比例' },
+    { decision: 'translate', text: '世界比例' },
+    { decision: 'translate', text: 'ワールドスケール' },
+  ]);
+  assert.equal(part.provenance.initialApprovedKeys, 181);
+  assert.deepEqual(part.provenance.initialPendingSourceKeys, [WORLD_SCALE_KEY]);
+  assert.equal(part.provenance.approvedKeys, 182);
+  assert.deepEqual(part.provenance.pendingSourceKeys, []);
+  assert.equal(part.provenance.liveConsumerVerified, false);
+  assert.deepEqual(part.provenance.captionAddendum, {
+    key: WORLD_SCALE_KEY,
+    scope: 'caption-only; no units or behavioral help; initial batch review digests remain historical',
+    approvedBy: 'primary-agent',
+    sourceIdentitySha256: '4524c65e6e1ff06526d3171ec00a3668ee91dada6f65c0ccf7c35d84ba24ae4c',
+    decisionSha256: 'c905f9cc248ed9e47a855edcf1c4e900c7fc62580ac4337ebdf7fcacc55ec27b',
+    independentCaptionReviewSha256: 'd45b93b7228e1e201ca70b379cf1c62aac347b0c10d0462e37db6f6dba678046',
+  });
+  assert.equal(sha(source), part.provenance.captionAddendum.sourceIdentitySha256);
+  assert.equal(sha(translations), part.provenance.captionAddendum.decisionSha256);
 });
 
 test('producer aggregation refuses unknown, partial, official-colliding and cross-domain source identities', () => {
@@ -102,7 +157,7 @@ test('the finite reviewed physics, layout, camera and CRT repairs cannot return 
   for (const [key, values] of Object.entries(expected)) {
     assert.deepEqual(LOCALES.map(locale => rows.get(key).translations[locale].text), values, key);
   }
-  assert.equal(sha(modules().flatMap(part => part.entries).map(row => row.key)),
+  assert.equal(sha(modules().flatMap(part => part.entries).filter(row => row.key !== WORLD_SCALE_KEY).map(row => row.key)),
     'aad7c7fd8bba9800fe193ef133b6f2ec6c05cfe98a51d44d9a24ce21d29f9785');
 });
 
@@ -119,9 +174,9 @@ const LOCALE_DIGESTS = Object.freeze({
     "ja_JP": "00e81fd86ec5d7a569705d8ef8a1b14ee8e1ce2e23b8394fba585121c4e956d8"
   }
 });
-test('each full schema-gap locale keeps the reviewed decision bytes', () => {
+test('each original schema-gap locale keeps all 364 reviewed decision bytes after the single caption addition', () => {
   for (const name of PARTS) for (const locale of LOCALES) {
-    const rows = require(`../languages/native/${name}`).entries;
+    const rows = require(`../languages/native/${name}`).entries.filter(row => row.key !== WORLD_SCALE_KEY);
     assert.equal(sha(rows.map(row => [row.key, row.translations[locale]])), LOCALE_DIGESTS[name][locale]);
   }
 });

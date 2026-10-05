@@ -2,13 +2,13 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-native_schema_gap_translations.test.js: 离线源绑定准入合同；守364键/1092槽和三语审批摘要，真实producer保留365源中World Scale一键missing而非伪造complete；不读App或私账。
+native_schema_gap_translations.test.js: 离线源绑定准入合同；守365键/1095槽与旧364冻结摘要；World Scale单键source/decision/独审绑定，真实producer完整与仅撤销该批准时missing1分开守门；不读App或私账。
 native_remaining_ui_contract.js: 纯测试共享完整分区摘要/源/格式/三语producer和有限实际修订守门，原42合同逻辑等价提取，不自动注册测试或读取私账/App。
 native_remaining_ui_final_repair_cases.js: 构建期剩余UI后半分区纯静态回退数据，Global06的112文字槽/6物理键决定、Node A04/A05/A06与B04/B05/B06分别绑定77/98/82/58/52/40个冻结源身份及旧值；不依赖私账，不以数据生成代验批准。
 native_remaining_ui_repair_cases.js: 构建期纯静态有限真实修订回退样本，A02/A03/B01/B02/B03/Global04/Global05精确source身份与old/new逐槽共址；测试逻辑不依赖私账，拆分防止多批合同单文件膨胀。
 native_graphics_reaudit.test.js: Node本轮88槽/62键有限图形/动效修订及13纠错/377厂商原样闭合合同，逐槽保留真实旧译反例及冻结源身份，真实显示投影无metadata；不读私账，不冒称通用NLP或live。
 native_remaining_ui_translations.test.js: Node剩余UI入库主合同，A04真实39过3缺模块RED→42全过GREEN；A04精确77槽/42键静态回退、443键完整摘要及Curl/Metaballs/Text Box/Projecting/数值运算/几何端点反例。其余A02/A03/B01/B02/B03/Global04/Global05/Global06既有合同与源绑定回退保留，共享完整分区断言，不读取私账、只测显式准入显示输入，不代表live。
-native_remaining_ui_tail_translations.test.js: Node剩余UI后半合同，A05/A06/B04/B05/B06完整414/402/449/442/328键分区摘要和98/82/58/52/40个源身份绑定旧值回退；保护ProRes/Fade/Fill/身份、Stroke/Glyph/文本行与几何Lines/二维三维/XOR/Voronoi Levels/Body、台湾表格轴/Shift+Return/补零/Oklab、端帽/Tangent/Pin/Feedback/Nominal及GIF/物理衰减语义，并闭合77官方模块/10278官方UI键+Forge1模块/8键+缺源2模块/364键=80模块/10650总审定键、17个official target catalog与1421键稳定compact UI切片；与主合同拆分守住单文件规模，正式模块缺失时保持RED，不读取stage或私账、不批准、不代表live。
+native_remaining_ui_tail_translations.test.js: Node剩余UI后半合同，A05/A06/B04/B05/B06完整414/402/449/442/328键分区摘要和98/82/58/52/40个源身份绑定旧值回退；保护ProRes/Fade/Fill/身份、Stroke/Glyph/文本行与几何Lines/二维三维/XOR/Voronoi Levels/Body、台湾表格轴/Shift+Return/补零/Oklab、端帽/Tangent/Pin/Feedback/Nominal及GIF/物理衰减语义，并闭合77官方模块/10278官方UI键+Forge1模块/8键+缺源2模块/365键=80模块/10651总审定键、17个official target catalog与1421键稳定compact UI切片；与主合同拆分守住单文件规模，正式模块缺失时保持RED，不读取stage或私账、不批准、不代表live。
 native_guide_plugin_translations.test.js: Node的15完整Guide/Plugin catalog、396键/1188决定合同；用共享official-target投影维持历史批准b6摘要，现行三语摘要分开锁定；390厂商来源JA中13纠错/377原样、6DNT与真实producer闭合，不代验live。
 native_mesh_family_translations.test.js: 官方catalogId+owner双身份选择，不把同owner schema补键反写旧批准分母；Node的六完整mesh-family owner/152键默认源绑定批准合同；锁456决定与真实源身份，完整基线后15旧译回退及21单槽有限语义反例，显示投影不写模型，不依赖stage或live。 合成source fixture保留官方DNT，避免新源绑定门将漏metadata误报为批准漂移。
 native_mesh_family_semantic_contract.js: 构建期有限语义合同；源notes绑定Fill All/Count、网格细分与顶点标签、Capture/Flow、剔除与松弛、SkSL边界和当前caption，区分Catmull DNT与Mitchell技术保留，不实现通用NLP。
@@ -25,7 +25,7 @@ native_schema_gap_sources.test.js: 固定365 tuple及resource-bundle元数据投
 native_official_target.js: 对target官方字段做精确canonical JSON投影，唯一排除新增supplementalKeys/sourceFiles；旧b6c6摘要保持不变，非官方字段值由独立补充门验证。
 native_official_target.test.js: source/provenance共用target合同；冻结官方摘要正例，验证runtime/catalog/native count/安装身份变异失败，并证明补充count/path/hash单独失败且未知字段不被忽略。
 native_user_scope_copy.test.js: 四语 userProfile copy与badge状态投影合同；锁定开发预览/共享profile文案、unset+en的English (default)及当前语言ARIA、显式/Unknown/legacy分流和默认语言不授予hostless Restore；读取user-profile-text→ui-text组合，不代替浏览器布局或现场可见性验收。
-cavalry_native_target.json: 2.8 main/Api/Core/QtCore/17对official catalog身份锁，hash非profile路径证明；macOS2.8开发预览源锁绑定Qt6.9.2、官方主程序、10473官方叶/390厂商日语，另独立锁373个schema补充源（Forge8+缺源365、后者364批准/1未决）及nodeDefinitions路径/SHA；现行2.7.2发布目标不变。
+cavalry_native_target.json: 2.8 main/Api/Core/QtCore/17对official catalog身份锁，hash非profile路径证明；macOS2.8开发预览源锁绑定Qt6.9.2、官方主程序、10473官方叶/390厂商日语，另独立锁373个schema补充源（Forge8+缺源365、后者365已审caption，单键World Scale只审标签不冒实屏）及nodeDefinitions路径/SHA；现行2.7.2发布目标不变。
 native_observed_ui_translations.test.js: Node 的 CUA 现场遗漏键入库合同；锁定 42 app 键与 drawable 不透明度、完整 catalog 身份、Auto 推荐限定词、9 DNT、三语格式与厂商日语优先，混合包投影保护模型身份，离线通过不代替现场重验。
 native_sound_translations.test.js: Node 的 Sound 整域 65 键审批合同；绑定官方 source/notes/角色摘要、三语显式决策、Mel/Bark/RMS 技术保留、分析阈值与声像/采样/计权关系、11枚举索引及反向变异、当前标签引用；缺模块/原草稿真实失败，离线通过不代表 Sound live 验收。
 native_sound_legacy_translations.test.js: Node 的 Sound Legacy 整域48键入库合同；绑定旧场景说明与独有最大dB、两项技术保留、七类关系及真实反向变异、标签引用/显示身份和厂商日语优先；入库前缺模块为RED，不将新版Sound或离线审批作旧场景行为证明。

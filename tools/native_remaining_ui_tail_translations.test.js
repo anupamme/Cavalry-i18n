@@ -415,12 +415,12 @@ test('Node B05 keeps full GIF choices and separates numeric decay from physical-
   assert.equal(destinationOverIssue.sourceOrNotesModified, false);
 });
 
-test('approved native UI registry keeps 17 official catalogs distinct from Forge and pending schema-gap source domains', () => {
+test('approved native UI registry keeps 17 official catalogs distinct from Forge and schema-gap source domains', () => {
   const rows = approvedEntries();
   const uniqueKeys = new Set(rows.map(row => row.key));
-  // -- 总域扩大只来自显式schema补充；官方批准域/DNT不变，未决World Scale仍留源分母 ------
-  assert.equal(uniqueKeys.size, 10650);
-  assert.equal(rows.length, 10650);
+  // -- 总域扩大只来自显式schema补充；官方批准域/DNT不变，源分母固定且World Scale单键caption另审 ------
+  assert.equal(uniqueKeys.size, 10651);
+  assert.equal(rows.length, 10651);
   assert.equal(APPROVED_MODULES.length, 80);
   assert.equal(new Set(APPROVED_MODULES).size, 80);
 
@@ -432,7 +432,7 @@ test('approved native UI registry keeps 17 official catalogs distinct from Forge
   const forge = rows.filter(row => row.catalogId === 'Definitions/nodeDefinitions.json#prettifyAttrPath');
   const gaps = rows.filter(row => row.catalogId === 'schemaSupplement/nodeAttributes');
   assert.equal(forge.length, 8);
-  assert.equal(gaps.length, 364);
+  assert.equal(gaps.length, 365);
   const supplements = [...forge, ...gaps];
   assert.equal(rows.length - supplements.length, 10278);
   const explicitCatalogRows = rows.filter(row => Object.hasOwn(row, 'catalogId') && !supplements.includes(row));
@@ -444,8 +444,8 @@ test('approved native UI registry keeps 17 official catalogs distinct from Forge
   const registeredCatalogIds = new Set(explicitCatalogRows.map(row => row.catalogId));
   for (const catalogId of registeredCatalogIds) assert.ok(targetCatalogIds.has(catalogId), catalogId);
   assert.deepEqual([...registeredCatalogIds].sort(), [...targetCatalogIds].sort());
-  assert.equal(TARGET.nativeKeys + TARGET.supplementalKeys - uniqueKeys.size, 196,
-    '195 automatic-DNT keys stay fixed plus one declared but unapproved World Scale key');
+  assert.equal(TARGET.nativeKeys + TARGET.supplementalKeys - uniqueKeys.size, 195,
+    '195 automatic-DNT keys stay fixed after the caption-only source gap closes');
 
   const expectedLocales = [...LOCALES].sort();
   for (const row of rows) {

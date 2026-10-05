@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖同目录已经由主代理审定的UI显示批次，不自动加载草稿或帮助说明；独立schema补充域显式登记且不冒官方catalog；缺源域365 source只批364 caption，World Scale三槽pending不登记。
+ * [INPUT]: 依赖同目录已经由主代理审定的UI显示批次，不自动加载草稿或帮助说明；独立schema补充域显式登记且不冒官方catalog；缺源域365 caption已显式审定，World Scale单键仅标签追加，不扩help或宣称live。
  * [OUTPUT]: 提供构建原生用户包的唯一显式审批模块清单与合并入口。
  * [POS]: languages/native 的审批装配边界；新增批次显式进入此清单，构建不依赖AGY/Grok或私库。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

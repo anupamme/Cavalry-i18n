@@ -1,15 +1,15 @@
 <!--
 [INPUT]: 依赖现行2.7.2架构、官方2.8.0来源、固定365条缺源边界与冻结三语源、用户profile生产事务、真实首屏/恢复、独立副本字体canary、全491定义source交叉、Hans真实Tauri只读联动/同语言Update及Forge八标题实屏；WK fixture与AppHandle各守边界，保存超时不冒consumer通过
-[OUTPUT]: 给出本分支的2.8迁移决策与TDD顺序；官方10278/Forge8/缺源364合计10650审批，10846 source中World Scale一键未决，历史冻结与现行准入分账；不宣称产品已经支持2.8
+[OUTPUT]: 给出2.8迁移/TDD与44项进度；官方10278/Forge8/缺源365合计10651审批、三语10846派生输出，World Scale仅caption单键追加；历史partial与当前source完整分账，不宣称产品已经支持2.8
 [POS]: feat/cavalry-2.8.0 的实施方案入口；调查工具与原始证据不进入产品运行时
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 # Cavalry 2.8.0 本地化迁移方案
 
 更新：2026-10-06
-状态：**整体迁移未完成；逐项办事表以§5.2为当前唯一进度入口。** 官方显示源域已闭合：77模块、10278审批键、剩0；另独立Forge schema域1模块8键、缺源域2模块364caption准入，共80模块10650审批/每语10845输出；官方10473+补充373=10846 source，World Scale一键三槽pending使missing1/complete:false（195自动DNT之外的技术保留单独计数），34厂商源/身份未改。原4319质量冻结后新增5959键，390厂商日语仅13核证纠错/377保留。512帮助译文已审但consumer未接，Destination Over仍有1项厂商源行为冲突待实测。
+状态：**整体迁移未完成；逐项办事表以§5.2为当前唯一进度入口。** 官方显示源域已闭合：77模块、10278审批键、剩0；另独立Forge schema域1模块8键、缺源域2模块365caption准入，共80模块10651审批/每语10846派生输出；官方10473+补充373=10846 source，World Scale经同owner因子证据和非作者窄审/root批准三语caption，derived missing0/complete:true（仅锁定source分母，不代完整UI）（195自动DNT之外的技术保留单独计数），34厂商源/身份未改。原4319质量冻结后新增5959键，390厂商日语仅13核证纠错/377保留。512帮助译文已审但consumer未接，Destination Over仍有1项厂商源行为冲突待实测。
 
-当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official显示须固定厂商Apple Developer ID来源验证与内置en/ja、无Switcher覆盖共同成立；旧来源-only语义已按§25收紧，不授予写入/恢复权。当前整仓Node752项通过（项目锁定Node24.20.0/npm11.19.0；§23历史740）；历史native与默认路径全量Rust各372通过/0失败/0warning，§24双Rust各373通过；§25 Official语义复验两配置各378通过/7 ignored/0warning（默认资源空数组仅测试覆盖）；7个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章Chromium headless fixture 6项与系统WKWebView fixture 6项均通过；WK审查用prohibited激活策略，记录1个内部隐藏TUINSWindow、0可见/key/main及无自身激活事件，原厂/profile六监视文件前后不变。真实WebKit渲染不等于Tauri AppHandle/实际后端联动或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
+当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official显示须固定厂商Apple Developer ID来源验证与内置en/ja、无Switcher覆盖共同成立；旧来源-only语义已按§25收紧，不授予写入/恢复权。当前整仓Node754项通过（项目锁定Node24.20.0/npm11.19.0；§23历史740、§24–27历史752）；历史native与默认路径全量Rust各372通过/0失败/0warning，§24双Rust各373通过；§25 Official语义复验两配置各378通过/7 ignored/0warning（默认资源空数组仅测试覆盖）；§27/28本轮显式native Rust379通过/0失败/7 ignored/0warning，默认Rust未重跑；7个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章Chromium headless fixture 6项与系统WKWebView fixture 6项均通过；WK审查用prohibited激活策略，记录1个内部隐藏TUINSWindow、0可见/key/main及无自身激活事件，原厂/profile六监视文件前后不变。真实WebKit渲染不等于Tauri AppHandle/实际后端联动或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
 
 完整冻结包历史生产owner动作5/5、四语原厂首屏/正常退出各4/4；随后Hans Apply与Forge旧包升级各一次，§26又经真实Tauri IPC完成新364资源的Hans同语言Update并正常启动，合计8次成功用户事务。当前typed locale为zh-Hans，自有strings/receipt存在；English恢复曾因实验副本仍运行被writer guard拒绝，未写profile，不能沿用§16的历史English终态。原厂安装未改。独立ad-hoc副本的Hans工具提示字体canary已观察8条CJK/1条ASCII路径与可读截图，但后台门失败；第二轮副本确认单一视口状态“视口质量：完整”可读，启动/退出前台约束仍失败。§26原厂普通Inspector另见Forge八补充Hans标题8/8；Timeline同名中文仍方框，新364消费、其他动态属性、搜索/字体身份待验。完整catalog仍0/51；Hans只读status和同语言Update真实IPC小门已闭，但Restore/其他语言与Activity视觉未闭。默认2.7发布、版本号与共享feed不变；Windows暂停，不公开推送或发布。历史全session私人检查点及指定会话任务原文已正常push并远端核验；新增Official57文件发布遇根CLAUDE并发冲突停止，隔离草稿保留，不能声称新私档已push。新实验与明确剩余项见§26，不把小样或离线绿计入完整UI。
 本文件按用户要求放在产品分支；过程证据与临时队列留在会话级 stage 或私有历史文档库。公开构建、测试和发布不得依赖这些路径，也不打包调查脚本。
@@ -394,7 +394,7 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 
 ### 5.2 整个2.8迁移的逐项办事表
 
-核对日期：2026-10-06。全流程44项中26完成/18待办，未加权，不编造总百分比；最新源接线见§24。`[x]`只表示该行明确限定的完成条件已达到；代码/fixture、历史小样、当前完整live、正式发行分账，不互相冒领。无权重依据，不给整个迁移编造百分比。后续每完成一项，在同次代码/文档检查点勾选并保留证据范围。
+核对日期：2026-10-06。全流程44项中26完成/18待办，未加权，不编造总百分比；最新源接线见§28。`[x]`只表示该行明确限定的完成条件已达到；代码/fixture、历史小样、当前完整live、正式发行分账，不互相冒领。无权重依据，不给整个迁移编造百分比。后续每完成一项，在同次代码/文档检查点勾选并保留证据范围。
 
 #### A 厂商调查与架构裁决
 
@@ -407,9 +407,9 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 #### B 三语翻译与资源闭合
 
 - [x] 原4319键全域图形语境复审，62键88槽修订、非作者差分复核与质量冻结。
-- [x] 剩余5959键按完整owner分区审校/裁定/准入，18/18闭合；官方合计77模块10278审批键，缺键/额外键/重复键均0；后续独立Forge8及缺源364caption正式准入，共80模块10650审批；World Scale一键三槽pending单列，不伪造官方目录。
+- [x] 剩余5959键按完整owner分区审校/裁定/准入，18/18闭合；官方合计77模块10278审批键，缺键/额外键/重复键均0；后续独立Forge8及缺源365caption正式准入，共80模块10651审批；World Scale单键仅caption追加审定，单位/效果help与consumer未证，不伪造官方目录。
 - [x] 厂商日语390叶逐键边界：仅13条核证误译修正，377原样；英语source和模型/API/字体/机器身份保全。
-- [x] 三语ICU/占位符/HTML/源绑定合同、确定性producer及完整资源摘要核对；当前官方10473+补充373=10846source；三语10845输出/missing1/complete:false，未决World Scale不计完成。去掉新增364后旧10481叶三语包字节均不变，单次派生资源更新、没有App打包。
+- [x] 三语ICU/占位符/HTML/源绑定合同、确定性producer及完整资源摘要核对；当前官方10473+补充373=10846source；三语10846派生输出/missing0/complete:true，World Scale三槽只闭caption审批。§28单次资源更新只新增这一键，去掉它后的旧10845包逐字节不变；§24去掉364后旧10481投影也仍冻结，没有App打包。
 - [x] 512条MetaData帮助description完成复用/补译审批和结构保护；此项仅译文，不代表部署。
 - [ ] Destination Over厂商notes与标准操作数方向冲突做隔离行为实验；caption无缺口，源疑问仍开放。
 
@@ -464,7 +464,7 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 - [x] 本轮preview源码/UI检查点`5c6df86`与独立旧feed检查点`944a0f0`已commit；68文件跨层预览整体保全，工作树当时干净，未push。
 - [x] 回顾整个session的决策/原话/失败/纠正/经验并本地提交私人账本；最新`684923a6`汇合前序全session复盘、WK六态/四RED、帮助边界、AppHandle只读和原厂后台基线。共享私库有他人脏修改，故使用临时隔离clone，未push/未同步共享目录，绝不冒称已远端落盘；本轮5动作/4首屏另追加，不重复打包。 后续恢复历史私档及原话已以01eb24bf正常push并远端读回，旧未发布clone/他人脏共享目录保留；本次29cdc4d接线审批与失败/成功档另追加发布，不以旧未push终态覆盖后续落盘。
 
-当前顺序：官方B已闭合、缺源caption批准364/1未决；29cdc4d检查点与全流程原话/复盘已保存。§26继续闭Forge8 Hans caption与真实同语言Update小门，仍26完成/18待办，不从Node752/双Rust各378推出完整实屏通过。用户已把“不抢前台”降为偏好且明确批准当前Hans更新/正常启动；不丢场景仍硬约束。后续Restore/新caption/Activity视觉待验；本机exec出现os24且CRT保存查询超时，暂停重复写入、保留现场，不強杀或把outcome unknown改成失败/成功。
+当前顺序：官方B已闭合、§28缺源caption批准365；29cdc4d检查点与全流程原话/复盘已保存。§26已闭Forge8 Hans caption与真实同语言Update小门，仍26完成/18待办，不从Node752/双Rust各378推出完整实屏通过。用户已把“不抢前台”降为偏好且明确批准当前Hans更新/正常启动；不丢场景仍硬约束。后续Restore/新caption/Activity视觉待验；§27已核回CRT保存成立、exec可运行；CUA连接关闭/AX超时仍阻碍真实consumer。暂停重复写入、不強杀，历史os24/Save未知保留各自时间点。
 
 ### 5.3 从最小探针逐步扩展验证
 
@@ -859,3 +859,16 @@ root随后在deny-default的独立进程sandbox中实际调用一次原厂Core�
 - **Activity仍未闭**：固定intro保留Preparing与阶段队列不更新顶部是当前源码设计；未找到成功后主动隐藏li的源码因果，原截图没有本地PNG，不能据AX或代码推断视觉PASS，也不能猜成WebKit/CUA错误。待有效DOM/实际画面再定。
 
 §5.2仍26完成/18待办，完整catalog0/51；8次历史成功用户事务不加新一次，512帮助consumer、三语Switch/Restore/重启持久化、搜索/字体/输入身份、性能和发行继续待验。先恢复非Forge真实consumer观察，静态可推进的唯一World Scale caption按同owner证据另审；不清空profile换绿，不改默认2.7发布/Windows暂停边界。
+
+
+## 28. World Scale单键caption审定与完整source包（2026-10-06）
+
+第一性原则是分别回答“标签如何译”和“参数全部行为是什么”。前者只需确证owner/英文源/数值语境，后者需要额外行为证据，不把未知单位强加为caption永远不可译的门。root实际核回锁定Core x86_64的worldScale/getAttrId、pullAttr→ParticleShapeData+0x430、同owner reviveParticle从该偏移读回并divpd原始指令；原厂Particle Shape文档只有World Scale标题，没有说明。依据项目refined/technical技能、Scale数值倍率词表及非作者三语窄审，root批准「世界比例 / 世界比例 / ワールドスケール」。不借Forge单位/稳定性help，不扩大模型或用户值翻译，不宣称单位/完整视觉效果已证。
+
+- **最小准入**：仅B分区增加一键/三槽，181→182、总gap364→365，80模块10650→10651审批；source adapter、target、官方17对catalog、373补充/10846总source及producer算法不改。B原始全域/修订/candidate摘要原样保留，initialApprovedKeys与initialPending明示历史停点，captionAddendum只绑定此key/source/三语decision/独审摘要；liveConsumerVerified仍false。
+- **TDD实际红绿**：先改合同、数据未准入时23项18通过/5失败；单键接入后23/23。旧364键集与A/B每语原有decision摘要常量不改，计算旧投影时排除新键，另独立断言新增source/decision与窄审记录。真实producer正向complete/missing0；克隆审批仅撤销此键必须complete:false/三语missing1，完整source与其它值不变，输入不被原地修改。不是删掉pending反例换绿。
+- **陈旧拒绝与单次资源构建**：旧derived --check真实拒绝；从只读挂载原厂assets用现有producer只构建一次，17对source/JA和定义字节仍摘要锁定，随后fresh通过。三语各10846输出/missing0/complete:true，Hans/Hant/JA为1079261/1080883/1236042B；逐语删新键再用原生产JSON格式投影，与原10845包完整字节相等。厂商JA390来源（13核证纠错/377原样）及自动DNT195不变。
+- **真实用户不被升级冒领**：资源构建前后实际Preferences/strings/receipt摘要、mode、size均不变。当前用户Hans还是§26的1079173B partial包，§27的完整字节相等是它与当时旧derived的验回，不称其已经含World Scale。未启动App或执行新用户事务、未重建Tauri App/DMG，不给新caption live信用。
+- **回归**：锁定Node24.20.0/npm11.19.0整仓754/754、显式native Rust379/0失败/7人工ignored/0warnings；默认Rust本轮未重跑。独审、RED/GREEN、freshness、构建与旧投影证明分别留在会话/私人证据，不成为产品构建输入。
+
+完整source包不是完整产品：§5.2仍26/44、待办18，完整catalog0/51。非Forge Voronoi/CRT实屏、Activity真实列目、三语Switch/Restore/退出持久化、512帮助、搜索/首帧/字体/输入/模型身份及性能/发行仍须真实证据；4 unresolved、1 namespace与type-only 11引用继续独立分账，不被10846源完整吞掉。
