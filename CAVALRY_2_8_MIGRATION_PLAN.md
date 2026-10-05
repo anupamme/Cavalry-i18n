@@ -701,3 +701,19 @@ CAVALRY_I18N_NATIVE_STATUS_SMOKE_APP=/Applications/Cavalry.app \
 **身份与搜索回归单独验：**字体family/style（含Regular/Bold等）、`type:font`默认对象、模型/API identity及用户实际输入不翻。2.8 Group的native显示已有历史小样，但同小样的英文/中文查询存在有限命中反例；Qt regex的CJK清理风险只是底层证据，不夸大为全搜索失败。Fast与Classic分开验输入、结果集、排序和创建身份，原生已覆盖的显示不再叠旧通用翻译。
 
 §5.2仍**26已完成/18待完成**，完整catalog仍**0/51**。512帮助consumer、全属性/UI/三语字体、真实Switcher联动、性能和发行仍未完成；离线构建只生成必要定向fixture，不重复打包。
+
+
+## 19. 全属性source对等，不以键齐全代验动态标签
+
+2026-10-05：子代理按精确`(nodeType, attributeId)`枚举，root另从原厂安装独立Python集合核对，并用固定Node24.20.0验证当前registry对应完整官方属性域：
+
+| 身份集合 | 数量与边界 |
+|---|---|
+| 2.7 / 2.8 nodeStrings属性 | 2483 / 2576；旧三语身份集合与English一致，不按英文词面模糊匹配 |
+| 精确共有 / 旧独有 / 新增 | 2434 / 49（18 owner）/ 142（27 owner）；目录差异不等于实际控件仍存在或应该恢复 |
+| 当前已注册官方属性 | 2576全匹配、缺0；另116属性来自sceneGroup插件，不充作官方主catalog |
+| Forge八项 | 当前schema存在、Shape顺序吻合截图，但官方Forge字符串目录没有time/startFrame/gravity及五项摩擦/弹跳/迭代/场；不是10278批准键里的空译值 |
+
+Forge当前源有52属性标签、旧源57，精确缺的五项是`groundFriction/groundBounce/velocityIterations/positionIterations/fields`，三语旧译具有同owner+ID；另外三项只有旧TS通用context候选，不冒充Forge身份。字体相关机器值、字段ID和模型身份仍不翻。
+
+**下一最短接线：**先绑定真实Inspector行的label resolver/setter与owner+field ID，确认原生查表/fallback优先级，再沿既有稳定键或精确显示边界补充；不直接扩大全局TS fallback，不把schema全部机器字段变成“待译键”。实际consumer尚未接，全UI/搜索/字体与§5.2待办仍不勾选。
