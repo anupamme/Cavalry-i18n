@@ -22,7 +22,7 @@ icons/: Tauri 图标集，`icon.png` 是开发态 runtime 与 `npx tauri icon` �
 native/: macOS App Management 的 Objective-C AppKit owner；只在真实写事务返回 typed PermissionDenied 后呈现每屏 nonactivating visual replicant、真实 app file-URL drag 与 helper 生命周期，不读取或修改 TCC，也不参与首次事务 admission。
 src/: Rust command、InstallLayout、Windows 自动发现/Qt runtime/QPA 与 uninstall restore；commands/ 按状态、安装真相、写入和重启拆分，windows_qpa/ 隔离 hash-locked manifest、含 generic 的 rollback 与显式 English 清理，privilege/ 管理单次 UAC 事务。
 tests/: Rust contract tests，守住展示版本/内容 revision 分离、九命令 DTO/固定项目外链、App Management handoff 的固定 permission/viewport/Channel 与无自动授权边界、`main`/`about` 能力、脱敏 Updater 状态、clean-English 采集、Windows restart；macOS真实门分为只读status与单次ignored原生profile Apply动作，Windows另有disposable clone现场门。
-examples/: 显式人工CLI烟测；build-only真实AppHandle复用生产只读status，不运行GUI事件循环、不创建窗口/WebView、不代验renderer或语言切换。
+examples/: 显式人工CLI烟测；build-only真实AppHandle复用生产只读status，不运行GUI事件循环、不创建窗口/WebView；首装Absent前置与当前target/partial资源分账，不代验renderer或语言切换。
 
 依赖边界:
 Tauri 是唯一桌面壳；renderer 文件仍是 UI 真相源。Rust command 返回 renderer 兼容 JSON shape；Tauri-only 权限与 updater command 必须保持可选消费，不把 Tauri/plugin 类型泄漏到 `app.js`。
