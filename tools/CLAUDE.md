@@ -19,6 +19,8 @@ native_resource_bundle.js: 审批/producer/lock及独立纠错登记输入摘要
 native_resource_bundle.test.js: 合成catalog工件合同；锁定身份/notes/格式/厂商默认优先及独立登记、自报metadata拒绝、locale身份覆盖、vendor计数与typed manifest；另验证固定8补充源的计数、碰撞/漂移拒绝和未批缺键，不能代替语义批准或live。
 native_schema_supplement.js: 2.8 nodeDefinitions原始SHA、Forge owner父链、八字段完整schema及Inspector顺序的source-only投影；固定catalogId/source notes与dontTranslate=false、补充target字段及官方键碰撞门，不生成locale译文、不扩展任意ID。
 native_schema_supplement.test.js: 合成nodeDefinitions边界合同；验证8个owner/ID/fallback source及显式DNT=false、父链/schema/UI顺序/重复身份/官方碰撞和原始字节摘要拒绝，不依赖安装、App或profile。
+native_schema_gap_sources.js: 独立source-only的365组owner/attributeId/Core实际fallback固定表；校验调用方定义树的唯一vendor nodeType（允许数字开头）、完整父链、有效根字段schema、递归Inspector声明及必传官方键集中的直接/父级碰撞；定义/官方集完整性和target字节摘要由调用方核验，不读文件、不推断标签、不批准或接入八键/资源producer。
+native_schema_gap_sources.test.js: 固定365 tuple canonical摘要与target source/Core摘要常量合同；以合成根/继承/list/compound定义覆盖数字开头owner/父级、缺失官方证据、无效字段schema、缺UI、UI循环、重复/非法owner、官方碰撞和unknown-key，证明窄源边界不等于live/翻译审批。
 native_official_target.js: 对target官方字段做精确canonical JSON投影，唯一排除新增supplementalKeys/sourceFiles；旧b6c6摘要保持不变，非官方字段值由独立补充门验证。
 native_official_target.test.js: source/provenance共用target合同；冻结官方摘要正例，验证runtime/catalog/native count/安装身份变异失败，并证明补充count/path/hash单独失败且未知字段不被忽略。
 native_user_scope_copy.test.js: 四语 userProfile copy与badge状态投影合同；锁定开发预览/共享profile文案、unset+en的English (default)及当前语言ARIA、显式/Unknown/legacy分流和默认语言不授予hostless Restore；读取user-profile-text→ui-text组合，不代替浏览器布局或现场可见性验收。

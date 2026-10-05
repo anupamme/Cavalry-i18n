@@ -1,5 +1,5 @@
 <!--
-[INPUT]: 依赖现行2.7.2架构、官方2.8.0来源、冻结三语源、用户profile生产事务、真实首屏/恢复、独立副本字体canary及全491定义source交叉证据；WK fixture与无窗口AppHandle各守边界，不合成IPC联动通过
+[INPUT]: 依赖现行2.7.2架构、官方2.8.0来源、固定365条缺源边界与冻结三语源、用户profile生产事务、真实首屏/恢复、独立副本字体canary及全491定义source交叉证据；WK fixture与无窗口AppHandle各守边界，不合成IPC联动通过
 [OUTPUT]: 给出本分支的 2.8 迁移决策、TDD顺序、原4319键质量冻结、官方10278键及独立Forge补充8键、总10286审批、官方待接0与额外schema缺源候选分账的接续边界；不宣称产品已经支持2.8
 [POS]: feat/cavalry-2.8.0 的实施方案入口；调查工具与原始证据不进入产品运行时
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -9,9 +9,9 @@
 更新：2026-10-05
 状态：**整体迁移未完成；逐项办事表以§5.2为当前唯一进度入口。** 官方显示源域已闭合：77模块、10278审批键、剩0；另独立Forge schema域1模块8键准入，总78模块10286审批/每语10481叶（官方10473+补充8，含195自动DNT），34厂商源/身份未改。原4319质量冻结后新增5959键，390厂商日语仅13核证纠错/377保留。512帮助译文已审但consumer未接，Destination Over仍有1项厂商源行为冲突待实测。
 
-当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official使用固定厂商Apple Developer ID requirement，只认证来源、不授予写入/恢复权。当前整仓Node726项通过；native与默认路径全量Rust各372通过/0失败/0warning，7个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章Chromium headless fixture 6项与系统WKWebView fixture 6项均通过；WK审查用prohibited激活策略，记录1个内部隐藏TUINSWindow、0可见/key/main及无自身激活事件，原厂/profile六监视文件前后不变。真实WebKit渲染不等于Tauri AppHandle/实际后端联动或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
+当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official使用固定厂商Apple Developer ID requirement，只认证来源、不授予写入/恢复权。当前整仓Node740项通过（项目锁定Node24.20.0/npm11.19.0，本轮新增14项source-only合同）；native与默认路径全量Rust各372通过/0失败/0warning，7个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章Chromium headless fixture 6项与系统WKWebView fixture 6项均通过；WK审查用prohibited激活策略，记录1个内部隐藏TUINSWindow、0可见/key/main及无自身激活事件，原厂/profile六监视文件前后不变。真实WebKit渲染不等于Tauri AppHandle/实际后端联动或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
 
-完整冻结包历史生产owner动作5/5、四语原厂首屏/正常退出各4/4；随后Hans Apply和本次Forge八项新包的同语言升级各成功一次，合计7次成功用户事务。当前typed locale为zh-Hans，自有strings/receipt存在；English恢复曾因实验副本仍运行被writer guard拒绝，未写profile，不能沿用§16的历史English终态。原厂安装未改。独立ad-hoc副本的Hans工具提示字体canary已观察8条CJK/1条ASCII路径与可读截图，但后台门失败；后续第二轮副本又确认单一视口状态“视口质量：完整”可读，但启动/退出前台约束仍失败；其他视口状态、时间轴、动态属性、搜索/字体身份均须分别验收。完整catalog仍0/51，Switcher IPC未验收。默认2.7发布、版本号与共享feed不变；Windows暂停，不推送或发布。全session私人检查点已本地commit；新实验与明确剩余项见§18，不能把字体小样计入完整UI通过。
+完整冻结包历史生产owner动作5/5、四语原厂首屏/正常退出各4/4；随后Hans Apply和本次Forge八项新包的同语言升级各成功一次，合计7次成功用户事务。当前typed locale为zh-Hans，自有strings/receipt存在；English恢复曾因实验副本仍运行被writer guard拒绝，未写profile，不能沿用§16的历史English终态。原厂安装未改。独立ad-hoc副本的Hans工具提示字体canary已观察8条CJK/1条ASCII路径与可读截图，但后台门失败；后续第二轮副本又确认单一视口状态“视口质量：完整”可读，但启动/退出前台约束仍失败；其他视口状态、时间轴、动态属性、搜索/字体身份均须分别验收。完整catalog仍0/51，Switcher IPC未验收。默认2.7发布、版本号与共享feed不变；Windows暂停，不推送或发布。全session私人检查点及指定会话任务原文已在私人文档仓正常推送并远端核验；新实验与明确剩余项见§18，不能把字体小样计入完整UI通过。
 本文件按用户要求放在产品分支；过程证据与临时队列留在会话级 stage 或私有历史文档库。公开构建、测试和发布不得依赖这些路径，也不打包调查脚本。
 
 > 下文早期阶段的数量、RED、构建与实跑记录属于各自历史检查点；当前键与离线验收状态以上方状态为准。完整官方键资源已闭合，不代表schema生成式标签、真实 UI、独立帮助 consumer 或发行已完成；全定义另有365缺源候选，见§22。
@@ -772,3 +772,16 @@ raw index482的sdfShadow有6字段/6引用、hide=true；483的luminanceBlur有7
 
 
 root随后在deny-default的独立进程sandbox中实际调用一次原厂Core纯`prettifyAttrPath`，365候选去重的238个原始ID全部返回；没有QApplication/Api/Node或App启动。固定exec、只读库map，file-write/network/fork/Mach lookup/register拒绝；九个监视文件SHA/mode前后未变，stdout/stderr及source/binary/policy摘要分别绑定；policy完整SHA为执行后记录，未作执行前完整SHA门，独审已注明且不为补证重跑。`intensityRGB→Intensity RGB`、`useCMYK→Use CMYK`、`fps→Fps`是实际函数输出，不手工猜缩写。此结果只给补充source真实fallback，不证明Inspector/loader/native注册，未监测frontmost、未批准新译或计入0/51；后续以完整owner分区审校，不一键一打包。
+
+
+## 23. 全属性交叉任务接续与固定源边界
+
+2026-10-05：恢复用户“这8个属性键是schema属性键，其他的交叉对比”要求。范围是2.7.2已译属性、2.8实际schema/Inspector声明、完整官方语言源及父级回退的精确身份对齐，不把Forge八项或365候选当作全部产品任务。能沿原生包消费的优先走现有registry；证实原生不可达后才评估旧窄机制，晚期搜索、首帧、字体/输入与模型身份仍独立验收。
+
+- [x] 固定source-only合同：新增纯helper保存365组`(owner, attributeId, Core实际fallback)`，不复制完整厂商definition、不读取私账、不接producer或批准译文。定义/官方集合完整性及原始SHA由调用方核验，helper拒绝schema缺失/无效、Inspector引用缺失、父链缺失/循环和给定官方直接/祖先键碰撞。
+- [x] 真实输入独立验回：491记录/489 owner、全部17对catalog/10473官方叶与238个实际Core输出逐项比对；365固定行完全相等。合法`3dMatrix`数字开头vendor owner曾使旧索引真实失败，改为通用vendor标识符规则而非单项放行；固定候选身份仍锁原格式。
+- [x] 默认测试接线：新增14项离线合同，明确官方键集必须显式提供；`check:app`通过，锁定Node24.20.0/npm11.19.0整仓740/740。此前Node24.21.0的exact版本门失败及并发读取尚未修好的合成父链失败保留，不更改漏洞policy来换绿。
+- [ ] 三语语义准入：A183键/549槽、B182键/546槽草稿均已收齐；A独立全槽审查发现Fade Changes、Kill On Collision、Cell Margins各三语错义，root另形成12槽修订候选（含Fade Time精准度建议），原作者字节保留。CRT荫罩简繁术语待核；B独审进行，World Scale三槽pending。形状验证不等于译文批准。
+- [ ] 原生补充注册与实机消费者：本轮只建立固定源边界；target、审批模块、资源producer及Rust计数仍官方10473+既有Forge8，未把365候选自动加入包。所有候选`liveConsumerVerified:false`，没有GUI启动、profile写入、重建资源或重复打包。
+
+源表canonical UTF-8 JSON+LF SHA **`d2f66a17f1a1fb9eddb26c0d8547088faa8fd99aebc7bd474d97246250f85f8f`**。仅这一固定表及其纯合同进入公开工具链；原始日志、source对照、草稿和审查在私人账及会话stage归档，公开构建不依赖它们。官方10278+补充8、§5.2的26完成/18待办、完整catalog0/51、默认2.7发布和Windows暂停边界均不变。本轮未重跑Rust/live，不以过去372项或historical首屏小样代验新工作。
