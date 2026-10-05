@@ -436,8 +436,8 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 - [x] 默认英语/显式语言/异常Unknown三态接入四语文案；拆独立userProfile copy并保持四语各189键逐字等价与加载/打包顺序合同。
 - [x] Official来源只读验签/5秒期限/子进程回收/异步status、失败unknown及来源不覆盖语言/资源合同；实际原厂验签smoke已通过，不证明notarization。
 - [x] 新状态徽章Chromium headless与系统WKWebView fixture各6/6，CSS viewport 400×484/无横溢出；WK非激活、仅内部hidden窗口、六监视文件未变。整仓Node717、native与默认Rust各370/0失败（各6明确人工ignored）；两种fixture均不证明真实后端联动。
-- [x] 当前真实原厂App/OS默认profile/已审批完整pack经生产native status owner组合只读烟测；临时未创建state模拟首次运行，六vendor文件与profile/manifest字节模式不变，不代验AppHandle/WK或Apply。
-- [ ] 新默认英语+Official在当前真实Tauri/WK与实际只读后端的联动复验；最新standalone WK fixture已过，但不抵扣AppHandle、原生窗口或真实启动行为。
+- [x] 当前真实原厂App/OS默认profile/已审批完整pack经生产native status owner组合只读烟测；原owner烟测以临时未创建state模拟首次运行；新增build-only真实AppHandle调用生产get_status一次，默认profile/完整pack/Official投影通过，10监视文件不变、隔离diagnostics已清理；两者均不代验IPC/WK或Apply。
+- [ ] 新默认英语+Official在当前真实Tauri/WK与实际只读后端的联动复验；standalone WK fixture与build-only真实AppHandle只读烟测分别已过，但尚未连成同一IPC/WebView路径，不抵扣原生窗口或真实启动行为。
 - [ ] 完整产品四语文案/错误/Activity/恢复终态与真实后端联动；去掉预览限制必须有对应事实，不为外观删安全提示。
 
 #### F 缺口、首绘与性能
@@ -611,3 +611,25 @@ root审查发现初稿将查表sourceBytes与实际record.description分开传�
 当前2.8 arm64静态链另闭合单条`primitive`的namespace过滤与map-key原字节：它不是从canonical路径尾推导。固定Node24将这一个运行名与四份原厂MetaData、两个framework、完整record/source身份及既有三语审批绑定，内存仅改其description，非目标内容不变。该回执明确1条候选、其余511运行名未完整认证、complete=false、consumerConnected=false；可信locale、实际C++互操作、安全加载和可逆hover canary仍待证明，不因此勾选512帮助完成。
 
 真实Tauri徽章联动也不走捷径：锁定Tao/Wry创建路径本身请求AppKit激活，生产page lifecycle还会show/focus；仅设visible=false/focused=false不能满足不抢前台。保持E工单未勾，不启动这种伪隐藏烟测；必要时先验证测试专用的禁激活控制，再运行只读生产status/renderer联动。
+
+## 14. 最短链路：无窗口真实 AppHandle 状态验收
+
+2026-10-05：不为只读徽章验证另建message gate、私有ABI driver或测试壳；直接用Tauri `Builder::build` 获得真实AppHandle，调用生产 `commands::get_status` 一次。配置清空windows/tray/plugins、关闭默认菜单，**不调用run/run_iteration、不建WebView、不注册写命令**；`generate_context!(test=true)`仅免除依赖lib已有的重复Info.plist嵌入，真实Wry/AppHandle不替换为mock。
+
+- 新增显式人工例 `src-tauri/examples/native_status_apphandle_smoke.rs`，162行；OS UID/euid及fixed-home前置、真实Preferences首读前symlink门、native-preview配置ID、完整10278/10473/三语零缺口manifest独立守门。非作者静态审查通过后才执行。
+- **实际1/1通过、最终编译0警告**：当前原厂2.8.0、OS默认profile、完整pack，经真实AppHandle生产函数返回`official/en/unset/userProfile/resources available`。这是first-run空receipt范围；真实durable receipt仅absent前置/监视，未冒称已应用翻译状态。
+- PID70135的自有CLI只观察到0激活通知、252次25ms采样无目标前台、无目标WindowServer窗口，前台PID684前后相同；被动监控不保证不漏瞬时行为，也不预防激活。10个vendor/profile/manifest监视文件摘要和mode未变；生产diagnostics在自有临时state写1条并清理。
+- 首次编译误用private OS-home与unstable Manager API的RED、第二份context plist linker warning保留；改用窄OS账户前置与稳定`webview_windows()`，不增产品API、不压制warning。
+- **未验收IPC/bridge/CSP/renderer徽章联动、Switch/Restore或完整三语UI**。§5.2仍26已完成/18未完成、当前全catalog实机0/51，不把独立WK与后端结果拼成联动通过。
+
+人工重复入口（需当前原厂默认profile及已生成完整native resources，默认不自动运行）：
+
+```bash
+cd src-tauri
+CAVALRY_I18N_ENABLE_NATIVE_PREVIEW=1 TAURI_CONFIG="$(cat tauri.native-preview.conf.json)" \
+  cargo build --locked --example native_status_apphandle_smoke
+CAVALRY_I18N_NATIVE_STATUS_SMOKE_APP=/Applications/Cavalry.app \
+  target/debug/examples/native_status_apphandle_smoke
+```
+
+实际机器回执SHA-256：`native-status-apphandle-monitor.json` **9b5d60ad7e335a9d75e615026b09d9c8dd3054d84bd87f8115bc839c83bc6a0b**；运行日志 **0ce226a2df2ac657c0392d37af4e1d7a110a987f12e48aeb161f2f6bc798321b**。进程清单另确认旧PID84091已不存在、当前无Cavalry；不再要求先关闭未知scene，但启动仍走受控原厂背景实验，不能重用已知自激活的盲目`open -g`。
