@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 native_resources 的编译审批/宿主证明、fixed user paths 的耐久事务与 privilege 的同用户路径/all-Cavalry准入。
- * [OUTPUT]: 提供 2.8开发预览的用户语言状态及脱敏 nativeLocaleState（仅锁定原厂fallback确认的Absent投影en+unset，不看系统语言；Known=explicit；Unknown/null/错误typed/读取失败仍为unknown+unrecognized）、receipt强证明的English恢复能力、四阶段应用和原厂正常启动；无法验证兼容宿主时仅允许自有Current profile完成English restore-only，不尝试launch；独立launch前仍拒绝pending/drift/损坏回执及无回执资源残留。
- * [POS]: commands 的macOS native-first编排owner；资源完整性与profile所有权分开证明，纯profile→Status投影不覆盖安装来源事实，宿主探测只读，restore-only只修改自有用户状态，普通启动仍先验证宿主；进程guard仅快照，不承诺OS启动锁或任意外部writer隔离。
+ * [INPUT]: 依赖native_resources的编译审批/宿主证明、fixed user paths的耐久事务与privilege的同用户路径/all-Cavalry准入；用户写入序列化由command facade持共享operation lock，manual smoke调用方显式复用该锁。
+ * [OUTPUT]: 提供2.8开发预览的用户语言状态及脱敏nativeLocaleState（仅锁定原厂fallback确认的Absent投影en+unset，不看系统语言；Known=explicit；Unknown/null/错误typed/读取失败仍为unknown+unrecognized）、receipt强证明的English恢复能力、四阶段应用和原厂正常启动；无法验证兼容宿主时仅允许自有Current profile完成English restore-only，不尝试launch；另挂载一次性ignored真实profile smoke，直接调用apply_inner而不经过公开command的自动重启。
+ * [POS]: commands 的macOS native-first编排owner；资源完整性与profile所有权分开证明，纯profile→Status投影不覆盖安装来源事实，宿主探测只读；manual smoke持共享operation lock并复用生产writer guard/事务，但只执行显式单次profile动作，不启动Cavalry、不验证真实切换UI；进程guard仅快照，不承诺OS启动锁或任意外部writer隔离。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::{
@@ -397,6 +397,10 @@ mod restore_only_tests;
 #[cfg(test)]
 #[path = "tests/native_user_official_independence.rs"]
 mod official_independence_tests;
+
+#[cfg(all(test, target_os = "macos"))]
+#[path = "tests/native_user_profile_apply_smoke.rs"]
+mod manual_profile_apply_smoke;
 
 #[cfg(test)]
 mod tests {

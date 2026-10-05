@@ -633,3 +633,15 @@ CAVALRY_I18N_NATIVE_STATUS_SMOKE_APP=/Applications/Cavalry.app \
 ```
 
 实际机器回执SHA-256：`native-status-apphandle-monitor.json` **9b5d60ad7e335a9d75e615026b09d9c8dd3054d84bd87f8115bc839c83bc6a0b**；运行日志 **0ce226a2df2ac657c0392d37af4e1d7a110a987f12e48aeb161f2f6bc798321b**。进程清单另确认旧PID84091已不存在、当前无Cavalry；不再要求先关闭未知scene，但启动仍走受控原厂背景实验，不能重用已知自激活的盲目`open -g`。
+
+
+## 15. 原厂后台启动：先证最短正常路径
+
+2026-10-05：当前用户进程路径只读前置与原厂main/target SHA、固定Apple requirement通过后，直接`NSWorkspace.openApplication`新建无URL实例，`activates=false`并设置Qt6.9.2的两个局部guard：`QT_MAC_DISABLE_FOREGROUND_APPLICATION_TRANSFORM=1`、`QT_MAC_SET_RAISE_PROCESS=0`。未安装注入器、改bundle、使用test profile、操作scene或隐藏结果来掩盖激活。
+
+- **单次实际English启动通过**：PID74780，真实进程两个guard均读回1；刺激前开始监测，346次配置25ms采样观察0目标激活通知/前台/active/遮挡，前台PID29592前后相同。它只证明本机此次启动，采样不预防激活也不保证不漏瞬时事件；不是全三语、首绘或产品restart验收。
+- 本轮root创建且未编辑实例按PID正常退出，无Save/Discard/forcekill，前台仍29592；locale继续缺键、strings/receipt仍absent，Preferences摘要`9f76ac00cbf805d16fa5f7aa34f59f8977a875c63654941cd5359cdf0212c44e`未变，原厂App未写。
+- **收尾授权边界纠正**：历史辅助用AX默认Untitled标题并把读取失败折叠nil；独审明确该逻辑不能证明一般dirty/recovery状态。此次结果仅限定root-created/noURL/noedit事实，不将它推广为自动退出未知作品的门。后续逐窗记录实际AX状态码，未知作品、恢复窗口或保存对话一律保留，不复用title-only授权。
+- 首次进程前置因不可读PID拒绝，后确证STAT Z无地址空间才另建新前置；不忽略未知live进程。两次Swift编译RED修正后当前150行独立typecheck通过，不用纸面审查冒称可编译。
+
+当前完整catalog实机仍**0/51**、§5.2仍**26/18**；下一步仅复用既有production native profile事务作单动作Switch/重应用/English restore，不调用已知会抢前台的盲目`open -g`，再沿已测guarded路径观察真实翻译。
