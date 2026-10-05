@@ -1,5 +1,5 @@
 <!--
-[INPUT]: 依赖现行2.7.2架构、官方2.8.0来源、冻结三语源、用户profile生产事务及真实首屏/恢复证据；WK fixture与无窗口AppHandle各守边界，不合成IPC联动通过
+[INPUT]: 依赖现行2.7.2架构、官方2.8.0来源、冻结三语源、用户profile生产事务、真实首屏/恢复及独立副本字体canary证据；WK fixture与无窗口AppHandle各守边界，不合成IPC联动通过
 [OUTPUT]: 给出本分支的 2.8 迁移决策、TDD顺序、原4319键质量冻结、10278正式键与剩余0键的接续边界；不宣称产品已经支持2.8
 [POS]: feat/cavalry-2.8.0 的实施方案入口；调查工具与原始证据不进入产品运行时
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -11,7 +11,7 @@
 
 当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official使用固定厂商Apple Developer ID requirement，只认证来源、不授予写入/恢复权。整仓Node717项通过；native与默认路径全量Rust各370通过/0失败，6个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章Chromium headless fixture 6项与系统WKWebView fixture 6项均通过；WK审查用prohibited激活策略，记录1个内部隐藏TUINSWindow、0可见/key/main及无自身激活事件，原厂/profile六监视文件前后不变。真实WebKit渲染不等于Tauri AppHandle/实际后端联动或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
 
-当前完整冻结包已完成生产owner的三语Apply、简体同语言重应用及固定English恢复共5/5；随后四语原厂后台启动、首屏观察及root审查后的正常退出各4/4。三语同10个首屏键显示与资源一致，但不是完整代表catalog验收，现场矩阵仍0/51。当前typed locale为en-GB，自有strings/receipt已删除，非locale偏好语义/mode及六个监视vendor文件未变；不是将最初Absent locale回滚为缺键。画布CJK提示方框与Welcome英文已确证，字体路径及部署入口仍须补齐。后台启动使用经实测的局部Qt guard，不复用自激活的盲目open -g；生产Switcher IPC/renderer联动未验收。默认2.7发布、版本号与共享updater feed不变；Windows暂停，不推送或发布。完整session复盘和证据已在隔离私人账本本地commit，未同步共享目录/远端；当前检查点与明确剩余项见§16。
+完整冻结包历史生产owner动作5/5、四语原厂首屏/正常退出各4/4；随后另一次Hans Apply成功，合计6次成功用户事务。当前typed locale为zh-Hans，自有strings/receipt存在；English恢复曾因实验副本仍运行被writer guard拒绝，未写profile，不能沿用§16的历史English终态。原厂安装未改。独立ad-hoc副本的Hans工具提示字体canary已观察8条CJK/1条ASCII路径与可读截图，但后台门失败；视口状态、时间轴、动态属性、搜索/字体身份均须分别验收。完整catalog仍0/51，Switcher IPC未验收。默认2.7发布、版本号与共享feed不变；Windows暂停，不推送或发布。全session私人检查点已本地commit；新实验与明确剩余项见§18，不能把字体小样计入完整UI通过。
 本文件按用户要求放在产品分支；过程证据与临时队列留在会话级 stage 或私有历史文档库。公开构建、测试和发布不得依赖这些路径，也不打包调查脚本。
 
 > 下文早期阶段的数量、RED、构建与实跑记录属于各自历史检查点；当前键与离线验收状态以上方状态为准。完整键资源已闭合，不代表真实 UI、独立帮助 consumer 或发行已完成。
@@ -426,7 +426,7 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 - [x] 用户scope的typed locale/专属strings/独立receipt事务接进显式macOS preview；资源先、locale最后，旧bundle baseline与QPA不进入此路径。
 - [x] tempfile合同覆盖首次前像、重应用、pending/中断收敛、无关偏好保留、symlink/字节与mode漂移拒绝及empty-only目录清理；乐观比较不冒称OS CAS。
 - [x] fixed OS home、全部Cavalry写者快照准入、受控launch-only、hostless Current-owned English恢复代码与隔离合同；缺receipt/pending/坏证据不授予能力。
-- [ ] 真实Switcher完整Switch/同语言重应用/Restore English，退出重启持久化；生产owner单动作5/5及四语启动/正常退出已过，尚缺同一实际IPC/renderer/Activity链，不用这些分段结果冒领整行。
+- [ ] 真实Switcher完整Switch/同语言重应用/Restore English，退出重启持久化；生产owner历史5动作加后续Hans Apply共6次成功、四语原厂启动/正常退出已过，尚缺同一实际IPC/renderer/Activity链，不用这些分段结果冒领整行。
 - [ ] 真实中断/权限失败/漂移保留/耐久warning与恢复；登录/Keychain、共享副本/旧版影响及卸载保留/恢复语义。
 - [ ] Windows用户文件替换/目录耐久/真实进程准入与恢复（Windows实施暂停）。
 
@@ -443,7 +443,7 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 #### F 缺口、首绘与性能
 
 - [x] 历史现场漏译已对齐原生owner/key，并登记Time Editor/画布中文名称CJK方框；不是一律保留英文。
-- [ ] 对当前完整包排查compiled/动态/自绘/字体/搜索语义与新旧场景，确认必要补充的精确owner/callsite；首屏已证画布CJK方框与英文Welcome，arm64帮助Path的Lato无CJK链已静态绑定，尚未修复。
+- [ ] 对当前完整包排查compiled/动态/自绘/字体/搜索语义与新旧场景，确认必要补充的精确owner/callsite；首屏已证画布CJK方框与英文Welcome，arm64帮助Path的Lato无CJK链已静态绑定，工具帮助仅副本canary修复、其余动态属性/时间轴/搜索及产品部署仍缺证。
 - [ ] 修复确证缺口，若需注入按Qt 6.9.2逐架构ABI重新证明，不扩大为全局绘制hook。
 - [ ] 同机原厂基线与译后冷启动、菜单首开、Quick Add、创建/保存/重开、Timeline播放的CPU/内存/IO/帧时延及首绘对照。
 - [ ] macOS arm64与Intel runtime各自验收；现有Intel静态slice核对不能抵扣实机。
@@ -677,3 +677,27 @@ CAVALRY_I18N_NATIVE_STATUS_SMOKE_APP=/Applications/Cavalry.app \
 - [ ] 双feed production publisher/CI、旧客户端实际接收和未来Release exact-readback仍未完成；默认配置、共享endpoint、版本号及线上Release未改。
 
 首次curl因TLS错误失败，原日志保留；改用GitHub精确asset-ID API正常TLS读回，不用insecure绕过。该测试binary仅编译一次（9.54s/0 warning），三语资源未重建。验证检查点SHA-256 **`40aa4b17ae54f0d16b5205a0748e499515e83b974e39acc402ee51b6022f4dd4`**绑定下载、原签名、准确validator source/binary和实际正负日志；这是历史archive信任证明，不是2.8产品发行证明。
+
+
+## 18. 复用晚期机制与副本字体窄验证
+
+2026-10-05：用户要求不仅迁移键表，还保留2.7.2晚期搜索、首帧、输入/字体身份及时间轴修复；先对照实际调用点，不盲装旧injector或全局改字体。
+
+| 子项 | 实际结果与边界 |
+|---|---|
+| [x] 原厂2.8 arm64字体工厂/调用点补证 | 真实Core `MakeScalableFont`构造24B对象；CTFont→SkTypeface精确身份及完整字形覆盖；不以复制活SkFont/borrowed指针冒充owner |
+| [x] Hans工具提示副本canary | 九条exact native文字中8条CJK借用字体、Space原字体；有限事件日志与主窗PNG显示可读。仅本次副本，不是产品部署或三语全画布通过 |
+| [ ] 本次副本后台启动/正常退出 | 启动观察到1次目标激活、2个前台/active/遮挡样本，后台门失败；先前正常退出请求未退出。保留事实，不据此猜用户/厂商谁触发，不抵扣历史4/4原厂样本 |
+| [x] 视口状态独立离线策略 | 明确`renderFrame → text-path cache` caller，三状态×无后缀/MSAA/Auto九个exact组合，与工具帮助owner隔离。先RED 84/102，普通和ASan/UBSan再各102/102；arm64零warning编译，未部署/实跑，非字体修复完成 |
+| [x] 2.7.2晚期代码差分对照 | 搜索/显示修复进入p9，输入值/字体身份及时间轴修复进入p10；root核p10→p12相关injector/语言/规范/TS路径零差分，不漏最后发布线中的既有机制 |
+| [ ] 属性全域、时间轴与搜索实机对等 | 不能从10278官方键齐全推断动态属性已覆盖；Forge八项只是例子。原生键存在/官方源缺口/动态consumer/DNT分别列账；测量与绘制必须同字体，原始名称和搜索身份不改 |
+
+首轮canary源SHA **`2f72bf2212a50a7f8633bc85ad7d342bd866abb671e20bae461e9297ac9ca9de`**；事件日志SHA **`b00ff729189955043b4e612505780db59d1b018df79235f6a4e00ba4b6f3206b`**，启动回执SHA **`24b628cb4be44e62732b33119a7d47feca13aac56b9459be24d2f21dda018ebb`**。源码、编译、实际加载和截图各自绑定，不用尚未运行的第二轮源替换首轮证据。
+
+副本仅本地ad-hoc签名，不具Official身份。携带厂商restricted identity/keychain entitlements的两次启动被AMFI拒绝，即使strict codesign已通过；移除这些厂商身份声明后才成功启动。只在自有副本放宽DYLD/library validation，未改原厂安装/系统策略或Keychain；不承诺无平台副作用，也不将实验准入失败时退出78的代码直接当产品fallback。
+
+用户已明确两个图层只是测试、允许退出/重启，后又撤销保存要求；不再以保存路径阻塞工作。既有本地`ca`只读readiness返回2.7.2 `bridge_unavailable`，未派发save或安装/替换Bridge，不把它冒充2.8控制能力。后续仍按精确PID、可丢弃测试scene及不抢前台约束操作，不forcekill未知作品或删除正在加载的副本。
+
+**身份与搜索回归单独验：**字体family/style（含Regular/Bold等）、`type:font`默认对象、模型/API identity及用户实际输入不翻。2.8 Group的native显示已有历史小样，但同小样的英文/中文查询存在有限命中反例；Qt regex的CJK清理风险只是底层证据，不夸大为全搜索失败。Fast与Classic分开验输入、结果集、排序和创建身份，原生已覆盖的显示不再叠旧通用翻译。
+
+§5.2仍**26已完成/18待完成**，完整catalog仍**0/51**。512帮助consumer、全属性/UI/三语字体、真实Switcher联动、性能和发行仍未完成；离线构建只生成必要定向fixture，不重复打包。
