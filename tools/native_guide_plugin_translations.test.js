@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖15个正式Cavalry 2.8 Guide/Plugin source-bound模块、approved_modules显式注册、原生投影/资源bundle/格式producer、有限纠错登记与现行术语/菜单审批。
+ * [INPUT]: 依赖15个正式Cavalry 2.8 Guide/Plugin source-bound模块、approved_modules显式注册、官方target域摘要helper、原生投影/资源bundle/格式producer及有限纠错登记。
  * [OUTPUT]: 分开锁定历史批准与现行三语摘要，约束396键完整source身份、390厂商来源槽中13有限纠错/377原样、6DNT、真实producer投影/拒绝及有限语义回归；不含候选译值。
  * [POS]: tools的完整Guide/Plugin入库合同；它只验证source-bound开发预览输入，不读取App/profile、不写public、不证明live UI或release。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -11,6 +11,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { test } = require('node:test');
+const { assertOfficialTarget } = require('./native_official_target');
 
 function findRepositoryRoot() {
   const candidates = [process.cwd(), path.resolve(__dirname, '..'), path.resolve(__dirname, '../..')];
@@ -197,8 +198,8 @@ function updateLeafText(pair, row, replacement, japanese = false) {
 }
 function assertTargetAndCatalogBinding(modules, rows) {
   const targetBytes = fs.readFileSync(path.join(REPO_ROOT, 'tools/cavalry_native_target.json'));
-  assert.equal(sha(targetBytes), TARGET.manifestSha256, '2.8 target/source manifest is source-bound');
-  const target = JSON.parse(targetBytes);
+  const { target, officialTargetSha256 } = assertOfficialTarget(targetBytes);
+  assert.equal(officialTargetSha256, TARGET.manifestSha256, 'official 2.8 target/source domain stays source-bound');
   assert.equal(target.cavalryVersion, '2.8.0');
   const targetCatalogs = new Map(target.catalogs.map(catalog => [catalog.id, catalog]));
   assert.equal(MODULES.length, 15);

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖六完整owner的根审批显示模块、显式registry及公有格式/有限语义合同与producer。
+ * [INPUT]: 依赖六完整owner的根审批显示模块、显式registry、官方target域摘要helper、DNT一致的合成源及公有格式/有限语义合同与producer。
  * [OUTPUT]: 锁定200键/600槽source identity、DNT/技术保留、格式、源note语义和合成fixture上的display-only投影。
  * [POS]: 六owner的默认source-bound合同；固定审定值/有限反例只证明离线200键显示输入，不是通用NLP或真实Cavalry运行证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -12,6 +12,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { test } = require('node:test');
+const { assertOfficialTarget } = require('./native_official_target');
 const REPO_ROOT = path.resolve(__dirname, '..');
 const APPROVAL_SHA256 = '5d6bcbc40285ff92336bb30347e255fe94d890de140f1d69ec25d66ace215196';
 const SPECS = Object.freeze({
@@ -112,8 +113,9 @@ function assertSourceBinding(modules) {
   assert.equal(sha(canonical.map(row => [row.key, row.source])), SOURCE.sourcePairsSha256);
   assert.equal(sha(canonical.map(identity)), SOURCE.identityAndNotesSha256);
   const targetBytes = fs.readFileSync(path.join(REPO_ROOT, 'tools/cavalry_native_target.json'));
-  assert.equal(crypto.createHash('sha256').update(targetBytes).digest('hex'), SOURCE.manifestSha256);
-  const catalog = JSON.parse(targetBytes.toString('utf8')).catalogs.find(row => row.id === 'Definitions/Translation/nodeStrings');
+  const { target, officialTargetSha256 } = assertOfficialTarget(targetBytes);
+  assert.equal(officialTargetSha256, SOURCE.manifestSha256);
+  const catalog = target.catalogs.find(row => row.id === 'Definitions/Translation/nodeStrings');
   assert.equal(catalog.sourceSha256, SOURCE.sourceCatalogSha256);
   assert.equal(catalog.japaneseSha256, SOURCE.vendorJapaneseSha256);
   assert.ok(entries.every(row => row.catalogId === 'Definitions/Translation/nodeStrings'));
@@ -189,7 +191,11 @@ function syntheticCatalog(entries) {
     for (const part of row.fieldPath.slice(0, -1)) cursor = cursor[part] ??= {};
     const leaf = row.fieldPath.at(-1);
     assert.equal(Object.hasOwn(cursor, leaf), false, `${row.key} fixture field path is unique`);
-    cursor[leaf] = { 'UI-text': row.source, notes: [...row.notes] };
+    cursor[leaf] = {
+      'UI-text': row.source,
+      notes: [...row.notes],
+      ...(row.dontTranslate === true ? { dontTranslate: true } : {}),
+    };
   }
   return [...values.values()].map(value => ({ type: 'nodeStrings', value }));
 }

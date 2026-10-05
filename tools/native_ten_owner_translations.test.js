@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖十个完整owner的主代理审批、官方target摘要锁、既有producer/格式门与同目录局部语义合同。
+ * [INPUT]: 依赖十个完整owner的主代理审批、官方target域摘要helper、既有producer/格式门与同目录局部语义合同。
  * [OUTPUT]: 分开锁定历史批准与201键/603现行决策摘要，保持完整source/notes/roles身份、display-only投影和真实旧译反向变异。
  * [POS]: tools 的十owner默认离线审批合同；缺模块/审批/显式注册必须失败，临时stage与私库不参与运行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -12,6 +12,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { test } = require('node:test');
+const { assertOfficialTarget } = require('./native_official_target');
 const { buildNativeResourceBundle } = require('./native_resource_bundle');
 const { assertNativeTranslationFormat } = require('./native_translation_format');
 const {
@@ -109,8 +110,8 @@ function assertFormalRegistration(modules) {
 }
 function assertSourceAndProvenance(modules) {
   const targetBytes = fs.readFileSync(TARGET_PATH);
-  const target = JSON.parse(targetBytes);
-  assert.equal(sha(targetBytes), EXPECTED_SOURCE.targetManifestSha256, 'official native target manifest digest');
+  const { target, officialTargetSha256 } = assertOfficialTarget(targetBytes);
+  assert.equal(officialTargetSha256, EXPECTED_SOURCE.targetManifestSha256, 'official native target manifest digest');
   const catalog = target.catalogs.find(row => row.id === SOURCE_CATALOG_ID);
   assert.ok(catalog, 'official nodeStrings target exists');
   assert.equal(catalog.sourceSha256, EXPECTED_SOURCE.sourceCatalogSha256);

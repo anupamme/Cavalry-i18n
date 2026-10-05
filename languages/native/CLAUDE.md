@@ -2,6 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+forge_attribute_supplement.js: 构建期八个Forge schema回退标签的24槽源绑定审批；五项同owner旧译/三项独立语境核对，源在producer与nodeDefinitions/Core锁闭合，非官方catalog、不改模型、不代验实际消费。
 remaining_node_ui_b_05.js: 构建期最后442节点键，52文字槽29键经1326槽全域非作者与87差分/6上下文准入，24错误28建议；数值衰减/替换文本/二维值/sRGB分流，DestOver只批caption、源行为1未决，不代live。
 remaining_node_ui_b_04.js: 构建期完整449节点键，58文字槽34键经1347槽全域非作者与102槽独审准入，41错误17建议；台湾筆畫/中文投影合法保留、日文突出線端、反馈/名义数据/关节角色分流，不代live。
 remaining_node_ui_a_06.js: 构建期完整402节点键，全1206槽非作者首审、root82文字47键36错误46建议和141独审准入；台湾表格欄/列、每N步幅、句内Shift+Return及补零/数值维度分流，3明度keep独立分记，不代live。

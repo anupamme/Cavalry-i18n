@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖已审定剩余UI分区、共享完整source/格式守门及A05/A06/B04/B05/B06 source-bound真实旧值回退。
+ * [INPUT]: 依赖已审定剩余UI分区、共享source/格式守门与独立schema补充域；官方catalog与补充身份分账。
  * [OUTPUT]: 锁定五个完整分区、有限修订与全registry闭合，保护文本/表格/几何/物理角色和catalog身份。
  * [POS]: tools剩余UI测试后半合同；不读取私账、不调用App、不批准或代表live。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -415,20 +415,24 @@ test('Node B05 keeps full GIF choices and separates numeric decay from physical-
   assert.equal(destinationOverIssue.sourceOrNotesModified, false);
 });
 
-test('approved native UI registry closes 77 modules, 10278 unique keys and all 17 target catalogs', () => {
+test('approved native UI registry keeps 17 official catalogs distinct from eight schema supplements', () => {
   const rows = approvedEntries();
   const uniqueKeys = new Set(rows.map(row => row.key));
-  // 该断言有意先于模块计数：B05缺失时必须报告9836 != 10278，而非误导为模块装配错误。
-  assert.equal(uniqueKeys.size, 10278);
-  assert.equal(rows.length, 10278);
-  assert.equal(APPROVED_MODULES.length, 77);
-  assert.equal(new Set(APPROVED_MODULES).size, 77);
+  // -- 总域扩大只来自显式schema补充；原官方批准域与DNT基数不变 ------
+  assert.equal(uniqueKeys.size, 10286);
+  assert.equal(rows.length, 10286);
+  assert.equal(APPROVED_MODULES.length, 78);
+  assert.equal(new Set(APPROVED_MODULES).size, 78);
 
   assert.equal(TARGET.nativeKeys, 10473);
+  assert.equal(TARGET.supplementalKeys, 8);
   assert.equal(TARGET.catalogs.length, 17);
   const targetCatalogIds = new Set(TARGET.catalogs.map(catalog => catalog.id));
   assert.equal(targetCatalogIds.size, 17);
-  const explicitCatalogRows = rows.filter(row => Object.hasOwn(row, 'catalogId'));
+  const supplements = rows.filter(row => row.catalogId === 'Definitions/nodeDefinitions.json#prettifyAttrPath');
+  assert.equal(supplements.length, 8);
+  assert.equal(rows.length - supplements.length, 10278);
+  const explicitCatalogRows = rows.filter(row => Object.hasOwn(row, 'catalogId') && !supplements.includes(row));
   const compactRows = rows.filter(row => !Object.hasOwn(row, 'catalogId'))
     .sort((a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : 0);
   assert.equal(explicitCatalogRows.length, 8857);
@@ -437,7 +441,8 @@ test('approved native UI registry closes 77 modules, 10278 unique keys and all 1
   const registeredCatalogIds = new Set(explicitCatalogRows.map(row => row.catalogId));
   for (const catalogId of registeredCatalogIds) assert.ok(targetCatalogIds.has(catalogId), catalogId);
   assert.deepEqual([...registeredCatalogIds].sort(), [...targetCatalogIds].sort());
-  assert.equal(TARGET.nativeKeys - uniqueKeys.size, 195, 'the source-derived automatic-DNT remainder stays fixed');
+  assert.equal(TARGET.nativeKeys + TARGET.supplementalKeys - uniqueKeys.size, 195,
+    'the source-derived automatic-DNT remainder stays fixed');
 
   const expectedLocales = [...LOCALES].sort();
   for (const row of rows) {

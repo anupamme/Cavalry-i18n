@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖status的真实native只读owner、编译期审批资源和OS home路径；真实App/repo必须由人工环境变量明确选择，完整性另验manifest，不从available布尔推导。
+ * [INPUT]: 依赖status的真实native只读owner、10481键编译审批资源和OS home路径；App/repo须人工选择，manifest另验官方10473/补充8，不从available推导。
  * [OUTPUT]: 提供默认忽略的跨来源/资源/profile组合烟测，仅验证当前原厂默认英语状态；保留实际用户文件与bundle的字节/模式，不创建测试state。
  * [POS]: status的测试子模块；使用真实codesign与生产profile读取，但临时缺失state只模拟首次运行，不代验Tauri AppHandle、WK、Apply或真实翻译UI。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -41,8 +41,13 @@ fn native_default_official_status_reads_actual_profile_without_writes() {
     let manifest: serde_json::Value =
         serde_json::from_slice(&fs::read(&manifest_path).unwrap()).unwrap();
     assert_eq!(manifest["complete"], true);
-    assert_eq!(manifest["approvedUIKeys"], 10278);
-    assert_eq!(manifest["nativeKeys"], 10473);
+    assert_eq!(manifest["approvedUIKeys"], 10286);
+    assert_eq!(manifest["nativeKeys"], 10481);
+    assert_eq!(manifest["supplementalKeys"], 8);
+    assert_eq!(
+        manifest["nativeKeys"].as_u64().unwrap() - manifest["supplementalKeys"].as_u64().unwrap(),
+        10473
+    );
     for language in ["zh-Hans", "zh-Hant", "ja_JP"] {
         assert_eq!(manifest["packs"][language]["missing"], 0);
     }

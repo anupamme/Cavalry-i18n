@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 native_resource_bundle 的纯生成入口与合成官方 catalog/审定数据。
- * [OUTPUT]: 验证三语显示工件、厂商默认优先/有限纠错、源身份/格式拒绝与厂商来源槽及缺译记账。
- * [POS]: macOS native UI 接线的构建边界合同；不读取 App/profile、不证明实际显示或完整翻译。
+ * [INPUT]: 依赖 native_resource_bundle 的纯生成入口、合成官方catalog/审定数据及固定schema补充源记录。
+ * [OUTPUT]: 验证三语显示工件、DNT身份一致性、厂商默认优先/有限纠错、格式拒绝与官方/补充来源分计数和碰撞拒绝。
+ * [POS]: macOS native UI 接线的构建边界合同；补充测试只证明有限8键producer契约，不审批译文/不证明实际显示。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -38,6 +38,7 @@ test('native build emits one-language display-only previews with honest fallback
   assert.equal(manifest.cavalryVersion, '2.8.0');
   assert.equal(manifest.approvedUIKeys, 1);
   assert.equal(manifest.nativeKeys, 4);
+  assert.equal(manifest.supplementalKeys, 0);
   assert.equal(manifest.complete, false);
   for (const [code, locale] of [['zh-Hans', 'zh-Hans'], ['zh-Hant', 'zh-Hant'], ['ja_JP', 'ja']]) {
     const pack = JSON.parse(packs[code]);
@@ -123,6 +124,67 @@ test('native build rejects unknown display families and global key collisions', 
   broken[0].source = [{ type: 'nodeStrings', value: { nodeType: 'example', future: { 'UI-text': 'Future' } } }];
   broken[0].japanese = [];
   assert.throws(() => buildNativeResourceBundle(broken, []), /unmapped/);
+});
+test('schema supplements are a fixed source-only eight-key partition with separate counts', () => {
+  const { pairs, approved } = fixture();
+  const { FIXED_SOURCE_ROWS } = require('./native_schema_supplement');
+  const supplements = FIXED_SOURCE_ROWS.map(row => ({ ...row, fieldPath: [...row.fieldPath], notes: [...row.notes] }));
+  const { manifest, packs } = buildNativeResourceBundle(pairs, approved, undefined, supplements);
+  assert.equal(manifest.nativeKeys, 12);
+  assert.equal(manifest.supplementalKeys, 8);
+  assert.equal(manifest.approvedUIKeys, 1, 'source-only supplement rows do not become approvals');
+  assert.equal(manifest.packs['zh-Hans'].missing, 10);
+  assert.equal(manifest.packs['zh-Hant'].missing, 10);
+  assert.equal(manifest.packs.ja_JP.missing, 9);
+  for (const pack of Object.values(packs)) {
+    const value = JSON.parse(pack)[0].value;
+    assert.equal(value['nodeAttr:forgeDynamicsShape.time'], undefined, 'unreviewed supplement stays omitted');
+    assert.equal(Object.keys(value).length < 12, true);
+  }
+});
+test('schema supplements reject partial, altered, foreign, duplicate and official-colliding identities', () => {
+  const { pairs, approved } = fixture();
+  const { FIXED_SOURCE_ROWS } = require('./native_schema_supplement');
+  const supplements = FIXED_SOURCE_ROWS.map(row => ({ ...row, fieldPath: [...row.fieldPath], notes: [...row.notes] }));
+  assert.throws(() => buildNativeResourceBundle(pairs, approved, undefined, supplements.slice(0, 7)), /exactly eight|eight source/i);
+  for (const delta of [
+    { key: 'nodeAttr:otherOwner.time' },
+    { owner: 'shape' },
+    { source: 'Clock' },
+    { fieldPath: ['attributes', 'other'] },
+    { catalogId: 'Definitions/Translation/nodeStrings' },
+    { dontTranslate: true },
+    { extra: 'unaudited' },
+  ]) {
+    const changed = supplements.map(row => ({ ...row, fieldPath: [...row.fieldPath], notes: [...row.notes] }));
+    Object.assign(changed[0], delta);
+    assert.throws(() => buildNativeResourceBundle(pairs, approved, undefined, changed), /supplement|schema|identity|source/i);
+  }
+  const duplicate = [...supplements, supplements[0]];
+  assert.throws(() => buildNativeResourceBundle(pairs, approved, undefined, duplicate), /exactly eight|duplicate/i);
+  const collidingPairs = structuredClone(pairs);
+  collidingPairs[0].source[0].value['nodeAttr:forgeDynamicsShape.time'] = { 'UI-text': 'Time' };
+  collidingPairs[0].japanese[0].value['nodeAttr:forgeDynamicsShape.time'] = { 'UI-text': 'Time' };
+  assert.throws(() => buildNativeResourceBundle(collidingPairs, approved, undefined, supplements), /collision|duplicate/i);
+});
+test('supplement approvals bind dontTranslate and normalize an omitted false flag', () => {
+  const { pairs } = fixture();
+  const { FIXED_SOURCE_ROWS } = require('./native_schema_supplement');
+  const supplements = FIXED_SOURCE_ROWS.map(row => ({ ...row, fieldPath: [...row.fieldPath], notes: [...row.notes] }));
+  const source = supplements[0];
+  const approval = {
+    ...structuredClone(source),
+    translations: {
+      'zh-Hans': { decision: 'translate', text: '时间' },
+      'zh-Hant': { decision: 'translate', text: '時間' },
+      ja_JP: { decision: 'translate', text: '時間' },
+    },
+  };
+  const absentDnt = structuredClone(approval);
+  delete absentDnt.dontTranslate;
+  assert.equal(buildNativeResourceBundle(pairs, [absentDnt], undefined, supplements).manifest.packs['zh-Hans'].reviewed, 1);
+  assert.throws(() => buildNativeResourceBundle(pairs, [{ ...approval, dontTranslate: true }], undefined, supplements), /dontTranslate/i);
+  assert.throws(() => buildNativeResourceBundle(pairs, [{ ...approval, dontTranslate: 'false' }], undefined, supplements), /dontTranslate.*boolean/i);
 });
 test('native preview build rejects stale approval or target input instead of recompiling old packs', () => {
   const { validateBuildFreshness } = require('./native_resource_bundle');

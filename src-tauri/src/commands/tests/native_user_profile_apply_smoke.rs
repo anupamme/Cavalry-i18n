@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖显式锁定的2.8原厂App、native-preview资源、OS用户profile与state；通过native_user生产owner和operation_lock执行。
- * [OUTPUT]: 提供默认ignored、一次只写一个明确语言的实际profile smoke；验证完整pack、receipt/pack SHA、固定English恢复、非locale偏好语义/mode及六个vendor文件零漂移。
+ * [OUTPUT]: 提供默认ignored的单语言profile smoke及旧owned pack升级准入fixture；分别验证当前原像与新10481键资源、receipt/pack SHA、English恢复和vendor/非locale零漂移。
  * [POS]: commands/tests 的真实用户文件动作合同；直接调用apply_inner，不经过会自动restart的公开command，不启动Cavalry、不声称真实UI切换已验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -81,7 +81,6 @@ fn assert_no_preimage_strings(paths: &UserLanguagePaths) {
 
 fn assert_clean_language_action_input(
     paths: &UserLanguagePaths,
-    resources: &native_resources::NativeResources,
     language: &str,
     locale: &LocaleObservation,
     ownership: &ReceiptObservation,
@@ -114,8 +113,8 @@ fn assert_clean_language_action_input(
             );
             assert_eq!(
                 active_strings_sha256,
-                &pack_sha(resources, active_language),
-                "current receipt is not bound to the locked pack"
+                &required_file_image(paths.strings()).0,
+                "current receipt is not bound to the observed owned strings"
             );
             assert_no_preimage_strings(paths);
         }
@@ -123,6 +122,42 @@ fn assert_clean_language_action_input(
             panic!("refusing drifted or pending profile; inspect and recover it manually first")
         }
     }
+}
+
+#[test]
+fn owned_previous_pack_can_upgrade_but_stale_strings_observation_is_rejected() {
+    let temporary = tempfile::tempdir().unwrap();
+    let root = fs::canonicalize(temporary.path()).unwrap();
+    let home = root.join("home");
+    let state = root.join("state");
+    fs::create_dir_all(home.join("Library/Preferences/Cavalry")).unwrap();
+    fs::create_dir_all(&state).unwrap();
+    let paths = UserLanguagePaths::for_user_dirs(&home, &state).unwrap();
+    fs::write(paths.preferences(), br#"{"keep":true}"#).unwrap();
+    let old_pack =
+        br#"[{"type":"strings","language":"zh-Hans","value":{"fixture.key":{"UI-text":"old"}}}]"#;
+    let new_pack =
+        br#"[{"type":"strings","language":"zh-Hans","value":{"fixture.key":{"UI-text":"new"}}}]"#;
+    user_language_files::apply(&paths, "zh-Hans", old_pack).unwrap();
+    let before = user_language_files::read_profile_projection(&paths).unwrap();
+    let resources = native_resources::NativeResources {
+        packs: [("zh-Hans".to_string(), new_pack.to_vec())].into(),
+    };
+    assert_ne!(
+        required_file_image(paths.strings()).0,
+        pack_sha(&resources, "zh-Hans")
+    );
+    assert_clean_language_action_input(&paths, "zh-Hans", &before.locale, &before.ownership);
+    fs::write(paths.strings(), new_pack).unwrap();
+    assert!(
+        std::panic::catch_unwind(|| assert_clean_language_action_input(
+            &paths,
+            "zh-Hans",
+            &before.locale,
+            &before.ownership,
+        ))
+        .is_err()
+    );
 }
 
 #[test]
@@ -176,8 +211,13 @@ fn native_profile_apply_smoke_performs_one_action_without_restart() {
             .expect("preview manifest must be valid JSON");
     assert_eq!(manifest["kind"], "development-preview");
     assert_eq!(manifest["complete"], true);
-    assert_eq!(manifest["approvedUIKeys"], 10278);
-    assert_eq!(manifest["nativeKeys"], 10473);
+    assert_eq!(manifest["approvedUIKeys"], 10286);
+    assert_eq!(manifest["nativeKeys"], 10481);
+    assert_eq!(manifest["supplementalKeys"], 8);
+    assert_eq!(
+        manifest["nativeKeys"].as_u64().unwrap() - manifest["supplementalKeys"].as_u64().unwrap(),
+        10473
+    );
     for product_language in PRODUCT_LANGUAGES {
         assert_eq!(manifest["packs"][product_language]["missing"], 0);
     }
@@ -211,13 +251,7 @@ fn native_profile_apply_smoke_performs_one_action_without_restart() {
     if let Err(error) = crate::privilege::guard_all_cavalry_not_running() {
         panic!("Cavalry process admission failed before profile mutation: {error:?}");
     }
-    assert_clean_language_action_input(
-        &paths,
-        &resources,
-        &language,
-        &before.locale,
-        &before.ownership,
-    );
+    assert_clean_language_action_input(&paths, &language, &before.locale, &before.ownership);
     // -- 只比较语义与mode，保全locale之外的用户字段，不输出原文 ----------
     let mut preferences_before: serde_json::Value =
         serde_json::from_slice(&fs::read(paths.preferences()).unwrap()).unwrap();

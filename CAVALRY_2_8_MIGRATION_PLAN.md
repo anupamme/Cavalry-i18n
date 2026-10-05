@@ -1,17 +1,17 @@
 <!--
 [INPUT]: 依赖现行2.7.2架构、官方2.8.0来源、冻结三语源、用户profile生产事务、真实首屏/恢复及独立副本字体canary证据；WK fixture与无窗口AppHandle各守边界，不合成IPC联动通过
-[OUTPUT]: 给出本分支的 2.8 迁移决策、TDD顺序、原4319键质量冻结、10278正式键与剩余0键的接续边界；不宣称产品已经支持2.8
+[OUTPUT]: 给出本分支的 2.8 迁移决策、TDD顺序、原4319键质量冻结、官方10278键及独立Forge补充8键、总10286审批与剩余0键的接续边界；不宣称产品已经支持2.8
 [POS]: feat/cavalry-2.8.0 的实施方案入口；调查工具与原始证据不进入产品运行时
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 # Cavalry 2.8.0 本地化迁移方案
 
 更新：2026-10-05
-状态：**整体迁移未完成；逐项办事表以§5.2为当前唯一进度入口。** 原生显示源已全部闭合：77模块、10278审批键、剩0；每语10473叶（含195自动DNT），34厂商源/身份未改。原4319质量冻结后新增5959键，390厂商日语仅13核证纠错/377保留。512帮助译文已审但consumer未接，Destination Over仍有1项厂商源行为冲突待实测。
+状态：**整体迁移未完成；逐项办事表以§5.2为当前唯一进度入口。** 官方显示源域已闭合：77模块、10278审批键、剩0；另独立Forge schema域1模块8键准入，总78模块10286审批/每语10481叶（官方10473+补充8，含195自动DNT），34厂商源/身份未改。原4319质量冻结后新增5959键，390厂商日语仅13核证纠错/377保留。512帮助译文已审但consumer未接，Destination Over仍有1项厂商源行为冲突待实测。
 
-当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official使用固定厂商Apple Developer ID requirement，只认证来源、不授予写入/恢复权。整仓Node717项通过；native与默认路径全量Rust各370通过/0失败，6个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章Chromium headless fixture 6项与系统WKWebView fixture 6项均通过；WK审查用prohibited激活策略，记录1个内部隐藏TUINSWindow、0可见/key/main及无自身激活事件，原厂/profile六监视文件前后不变。真实WebKit渲染不等于Tauri AppHandle/实际后端联动或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
+当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official使用固定厂商Apple Developer ID requirement，只认证来源、不授予写入/恢复权。当前整仓Node726项通过；native与默认路径全量Rust各372通过/0失败/0warning，7个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章Chromium headless fixture 6项与系统WKWebView fixture 6项均通过；WK审查用prohibited激活策略，记录1个内部隐藏TUINSWindow、0可见/key/main及无自身激活事件，原厂/profile六监视文件前后不变。真实WebKit渲染不等于Tauri AppHandle/实际后端联动或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
 
-完整冻结包历史生产owner动作5/5、四语原厂首屏/正常退出各4/4；随后另一次Hans Apply成功，合计6次成功用户事务。当前typed locale为zh-Hans，自有strings/receipt存在；English恢复曾因实验副本仍运行被writer guard拒绝，未写profile，不能沿用§16的历史English终态。原厂安装未改。独立ad-hoc副本的Hans工具提示字体canary已观察8条CJK/1条ASCII路径与可读截图，但后台门失败；后续第二轮副本又确认单一视口状态“视口质量：完整”可读，但启动/退出前台约束仍失败；其他视口状态、时间轴、动态属性、搜索/字体身份均须分别验收。完整catalog仍0/51，Switcher IPC未验收。默认2.7发布、版本号与共享feed不变；Windows暂停，不推送或发布。全session私人检查点已本地commit；新实验与明确剩余项见§18，不能把字体小样计入完整UI通过。
+完整冻结包历史生产owner动作5/5、四语原厂首屏/正常退出各4/4；随后Hans Apply和本次Forge八项新包的同语言升级各成功一次，合计7次成功用户事务。当前typed locale为zh-Hans，自有strings/receipt存在；English恢复曾因实验副本仍运行被writer guard拒绝，未写profile，不能沿用§16的历史English终态。原厂安装未改。独立ad-hoc副本的Hans工具提示字体canary已观察8条CJK/1条ASCII路径与可读截图，但后台门失败；后续第二轮副本又确认单一视口状态“视口质量：完整”可读，但启动/退出前台约束仍失败；其他视口状态、时间轴、动态属性、搜索/字体身份均须分别验收。完整catalog仍0/51，Switcher IPC未验收。默认2.7发布、版本号与共享feed不变；Windows暂停，不推送或发布。全session私人检查点已本地commit；新实验与明确剩余项见§18，不能把字体小样计入完整UI通过。
 本文件按用户要求放在产品分支；过程证据与临时队列留在会话级 stage 或私有历史文档库。公开构建、测试和发布不得依赖这些路径，也不打包调查脚本。
 
 > 下文早期阶段的数量、RED、构建与实跑记录属于各自历史检查点；当前键与离线验收状态以上方状态为准。完整键资源已闭合，不代表真实 UI、独立帮助 consumer 或发行已完成。
@@ -407,9 +407,9 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 #### B 三语翻译与资源闭合
 
 - [x] 原4319键全域图形语境复审，62键88槽修订、非作者差分复核与质量冻结。
-- [x] 剩余5959键按完整owner分区审校/裁定/准入，18/18闭合；合计77模块10278审批键，缺键/额外键/重复键均0。
+- [x] 剩余5959键按完整owner分区审校/裁定/准入，18/18闭合；官方合计77模块10278审批键，缺键/额外键/重复键均0；后续独立Forge schema补充8键，总78模块10286审批，不伪造官方目录。
 - [x] 厂商日语390叶逐键边界：仅13条核证误译修正，377原样；英语source和模型/API/字体/机器身份保全。
-- [x] 三语ICU/占位符/HTML/源绑定合同、确定性producer及完整资源摘要核对；每语10473显示叶（含195自动DNT），只生成一次本轮完整pack。
+- [x] 三语ICU/占位符/HTML/源绑定合同、确定性producer及完整资源摘要核对；官方10473+补充8=每语10481显示叶（含195自动DNT）；完整冻结包后仅因新schema源做一次必要更新，不重复App打包。
 - [x] 512条MetaData帮助description完成复用/补译审批和结构保护；此项仅译文，不代表部署。
 - [ ] Destination Over厂商notes与标准操作数方向冲突做隔离行为实验；caption无缺口，源疑问仍开放。
 
@@ -426,7 +426,7 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 - [x] 用户scope的typed locale/专属strings/独立receipt事务接进显式macOS preview；资源先、locale最后，旧bundle baseline与QPA不进入此路径。
 - [x] tempfile合同覆盖首次前像、重应用、pending/中断收敛、无关偏好保留、symlink/字节与mode漂移拒绝及empty-only目录清理；乐观比较不冒称OS CAS。
 - [x] fixed OS home、全部Cavalry写者快照准入、受控launch-only、hostless Current-owned English恢复代码与隔离合同；缺receipt/pending/坏证据不授予能力。
-- [ ] 真实Switcher完整Switch/同语言重应用/Restore English，退出重启持久化；生产owner历史5动作加后续Hans Apply共6次成功、四语原厂启动/正常退出已过，尚缺同一实际IPC/renderer/Activity链，不用这些分段结果冒领整行。
+- [ ] 真实Switcher完整Switch/同语言重应用/Restore English，退出重启持久化；生产owner历史5动作加后续两次Hans Apply共7次成功、四语原厂启动/正常退出已过，尚缺同一实际IPC/renderer/Activity链，不用这些分段结果冒领整行。
 - [ ] 真实中断/权限失败/漂移保留/耐久warning与恢复；登录/Keychain、共享副本/旧版影响及卸载保留/恢复语义。
 - [ ] Windows用户文件替换/目录耐久/真实进程准入与恢复（Windows实施暂停）。
 
@@ -733,3 +733,19 @@ Forge当前源有52属性标签、旧源57，精确缺的五项是`groundFrictio
 PID仅限定动作投递目标，不保证App/Qt不show/raise自己的窗口；CUA是观察/交互入口，也不自动构成后台保证。本轮工具表没有桌面CUA入口，本地亦未发现peekaboo/cua/cliclick/yabai，继续使用已有PID、只读CGWindow截图与可识别AX控件；不把浏览器/模拟器工具冒充Cavalry桌面验收，不为换入口重复启动。
 
 v2源SHA **`952f3e6380729bd24988d653f83a1f1d3d91aefac964b59a760e72303fb0ee81`**与本轮实际加载独立绑定，首轮与v2离线历史证据保留。当前完整catalog仍**0/51**，办事表仍**26/18**，默认2.7配置/feed不变，未推送或发布。
+
+
+## 21. Forge八项沿原生包接入，不另造翻译引擎
+
+2026-10-05：root裁定24槽后，固定八项schema补充独立注册。官方17份catalog/10473叶和旧批准摘要不变；新增字段只作为补充域，producer及Rust均闭合10473+8=10481。固定Core/definition SHA、真实父链/字段类型/Shape顺序与碰撞门约束源，源DNT显式false，审批DNT缺省false且非布尔或冲突拒绝。
+
+- [x] 源与三语资源接线：78模块10286审批；只新增八个精确`nodeAttr:forgeDynamicsShape.*`，三语24槽。新包排除这八项后，原10473条官方字典canonical摘要逐语未变；JA厂商来源仍390。
+- [x] 旧批准身份分账：仅剥离target新增supplement/source字段形成官方投影，仍精确等于历史b6c6摘要；runtime/catalog/count/bundle漂移继续拒绝，补充8/path/SHA另锁。未知字段/canonical bytes异常不忽略。
+- [x] 真实旧owned→新包Hans单动作：生产`apply_inner`/operation lock/writer guard成功，未启动或重启；旧原像核当前receipt/实际strings，而不是错误要求等于新包。postimage再核新编译资源，first-preimage、非locale语义/mode及原厂2851路径保持。当前仍Hans/Current、无pending。
+- [ ] 具体八项的真实Inspector/三语显示：资源已写不等于消费者已经显示；`liveConsumerVerified:false`保持。尚未重启App，不把本动作算catalog或UI通过。
+
+先有资源count真实Rust RED、升级准入tempfile RED和DNT定向RED，修复后资源/旧包fixture通过。完整Node首跑715/722因旧整体target摘要6项和Rust PATH1项失败；修复分域后DNT门又暴露mesh合成source漏Catmull-Rom DNT，724/726失败保留。只修fixture metadata、不改旧批准，最终726/726；native/默认Rust各372/0、7人工ignored，人工profile动作另1/1成功。
+
+新Hans pack SHA **`102c72fc5ea22f0a567c99b4aef3a397bd898652ca8825af01cba41473992ab9`**；正式源及包input SHA **`0a1575cbeed78b7ca4902b6c50488398ae7b61a5ed35679a0d844388495a28a6`**。完整目标SHA与官方投影分别守当前来源和历史批准，不用可写manifest自报授权。独立代码审查无阻塞，原始失败/最终日志与实际smoke源码/二进制摘要各自绑定；不归档raw用户偏好/receipt或重复可执行文件。
+
+继续按owner+ID追49旧独有属性的父级/源处理，不把26 schema仍在全称漏译。PID/CUA边界见§20；本次不启动GUI、不新增App/DMG。§5.2仍26完成/18待办，完整catalog仍0/51，512帮助、时间轴/搜索/字体、IPC、性能和发行不抵扣；默认2.7配置/feed/版本与Windows暂停边界未变。

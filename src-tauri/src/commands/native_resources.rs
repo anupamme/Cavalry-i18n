@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖编译期native预览manifest、公开target摘要锁及context资源候选；安装身份仅在用户动作内验证。
- * [OUTPUT]: 提供不依赖旧JSON布局的bundle发现、源锁/manifest/三语payload完整验证、当前语言payload摘要与2.8原厂宿主只读验证。
+ * [INPUT]: 依赖编译期native manifest、target的17份catalog/独立schema锁及context资源候选；安装身份仅在用户动作内验证。
+ * [OUTPUT]: 提供bundle发现、官方/补充键分账和三语payload完整验证，以及原厂宿主runtime/catalog/schema只读证明。
  * [POS]: commands/native_user的资源边界；不把可修改manifest自报摘要当审批，不写App、profile或状态，不用旧2.7.2 runtime/QPA门。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -30,6 +30,7 @@ struct Manifest {
     #[serde(rename = "approvedUIKeys")]
     approved_ui_keys: usize,
     native_keys: usize,
+    supplemental_keys: usize,
     complete: bool,
     packs: BTreeMap<String, PackMetadata>,
 }
@@ -55,9 +56,11 @@ struct Target {
     executable: String,
     executable_sha256: String,
     native_keys: usize,
+    supplemental_keys: usize,
     vendor_japanese_keys: usize,
     catalogs: Vec<CatalogLock>,
     runtime_files: Vec<RuntimeLock>,
+    source_files: Vec<SourceFileLock>,
 }
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -70,6 +73,12 @@ struct CatalogLock {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct RuntimeLock {
+    path: String,
+    sha256: String,
+}
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+struct SourceFileLock {
     path: String,
     sha256: String,
 }
@@ -97,6 +106,11 @@ fn target() -> Result<Target, String> {
         || target.bundle_id != "com.scenegroup.cavalry"
         || target.executable != "Contents/MacOS/Cavalry"
         || target.native_keys != 10473
+        || target.supplemental_keys != 8
+        || target.source_files.len() != 1
+        || target.source_files[0].path != "Definitions/nodeDefinitions.json"
+        || target.source_files[0].sha256
+            != "96c7ffbda8d8244a111b3ad3e60fe530eb919fe9f93cbdf3577e2e29ca11d48f"
         || target.vendor_japanese_keys != 390
         || target.catalogs.len() != 17
         || paths
@@ -138,7 +152,8 @@ fn load_at(root: &Path, compiled: &[u8]) -> Result<NativeResources, String> {
         || manifest.kind != "development-preview"
         || manifest.cavalry_version != NATIVE_VERSION
         || manifest.target_sha256 != hash(TARGET_BYTES)
-        || manifest.native_keys != target.native_keys
+        || manifest.supplemental_keys != target.supplemental_keys
+        || manifest.native_keys != target.native_keys + target.supplemental_keys
         || manifest.approved_ui_keys == 0
         || manifest.approved_ui_keys > manifest.native_keys
         || manifest.input_sha256.len() != 64
@@ -282,9 +297,9 @@ pub(crate) fn observe_install(selection: &Path) -> Result<(PathBuf, String), Str
 
 // -- 写入前宿主证明：仅原厂2.8目标，拒绝旧wrapper/源漂移，不修补bundle --
 pub(crate) fn verify_host(app: &Path) -> Result<(), String> {
-    verify_host_with_target(app, target()?)
+    verify_host_with_target(app, &target()?)
 }
-fn verify_host_with_target(app: &Path, target: Target) -> Result<(), String> {
+fn verify_host_with_target(app: &Path, target: &Target) -> Result<(), String> {
     let plist_bytes = regular_bytes(&app.join("Contents/Info.plist"))?;
     let info =
         plist::Value::from_reader(std::io::Cursor::new(plist_bytes)).map_err(|e| e.to_string())?;
@@ -306,12 +321,12 @@ fn verify_host_with_target(app: &Path, target: Target) -> Result<(), String> {
     if hash(&regular_bytes(&app.join(&target.executable))?) != target.executable_sha256 {
         return Err("native host executable digest differs".into());
     }
-    for runtime in target.runtime_files {
+    for runtime in &target.runtime_files {
         if hash(&regular_bytes(&app.join(&runtime.path))?) != runtime.sha256 {
             return Err("native host runtime digest differs".into());
         }
     }
-    for catalog in target.catalogs {
+    for catalog in &target.catalogs {
         for (relative, expected) in [
             (&catalog.source, &catalog.source_sha256),
             (&catalog.japanese, &catalog.japanese_sha256),
@@ -319,6 +334,17 @@ fn verify_host_with_target(app: &Path, target: Target) -> Result<(), String> {
             if hash(&regular_bytes(&app.join("Contents/assets").join(relative))?) != *expected {
                 return Err(format!("native host catalog digest differs: {relative}"));
             }
+        }
+    }
+    for source in &target.source_files {
+        if hash(&regular_bytes(
+            &app.join("Contents/assets").join(&source.path),
+        )?) != source.sha256
+        {
+            return Err(format!(
+                "native host supplement source digest differs: {}",
+                source.path
+            ));
         }
     }
     Ok(())
@@ -367,7 +393,8 @@ mod tests {
         let temp = tempfile::tempdir().unwrap();
         let root = temp.path().canonicalize().unwrap();
         let mut manifest = json!({"schemaVersion":1,"kind":"development-preview","cavalryVersion":"2.8.0",
-            "targetSha256":hash(TARGET_BYTES),"inputSha256":"a".repeat(64),"approvedUIKeys":1,"nativeKeys":10473,"complete":false,"packs":{}});
+            "targetSha256":hash(TARGET_BYTES),"inputSha256":"a".repeat(64),"approvedUIKeys":1,
+            "nativeKeys":10481,"supplementalKeys":8,"complete":false,"packs":{}});
         for language in LANGUAGES {
             let vendor = if language == "ja_JP" { 390 } else { 0 };
             let values = (0..1 + vendor)
@@ -379,7 +406,7 @@ mod tests {
                     .unwrap();
             fs::write(root.join(format!("{language}.json")), &bytes).unwrap();
             manifest["packs"][language] = json!({"file":format!("{language}.json"),"nativeLocale":locale,
-                "sha256":hash(&bytes),"bytes":bytes.len(),"reviewed":1,"preserved":0,"vendor":vendor,"missing":10472-vendor});
+                "sha256":hash(&bytes),"bytes":bytes.len(),"reviewed":1,"preserved":0,"vendor":vendor,"missing":10480-vendor});
         }
         let bytes = serde_json::to_vec(&manifest).unwrap();
         fs::write(root.join("manifest.json"), &bytes).unwrap();
@@ -392,6 +419,35 @@ mod tests {
         assert_eq!(load_at(&root, &compiled).unwrap().packs.len(), 3);
         fs::write(root.join("zh-Hans.json"), b"changed").unwrap();
         assert!(load_at(&root, &compiled).unwrap_err().contains("digest"));
+    }
+    #[test]
+    fn schema_supplement_count_is_explicit_and_cannot_masquerade_as_official_catalog() {
+        let (temp, compiled) = approved_fixture();
+        let root = temp.path().canonicalize().unwrap();
+        let mut manifest: serde_json::Value = serde_json::from_slice(&compiled).unwrap();
+        // -- 八项仍缺译的合成包：只改变来源分账，不伪造已显示或已审批 -----
+        manifest["supplementalKeys"] = serde_json::json!(8);
+        manifest["nativeKeys"] = serde_json::json!(10481);
+        let bytes = serde_json::to_vec(&manifest).unwrap();
+        fs::write(root.join("manifest.json"), &bytes).unwrap();
+        assert!(
+            load_at(&root, &bytes).is_ok(),
+            "a source-bound supplement must have its own count"
+        );
+        for (field, value) in [
+            ("supplementalKeys", 0),
+            ("supplementalKeys", 9),
+            ("nativeKeys", 10473),
+        ] {
+            let mut drift = manifest.clone();
+            drift[field] = serde_json::json!(value);
+            let bytes = serde_json::to_vec(&drift).unwrap();
+            fs::write(root.join("manifest.json"), &bytes).unwrap();
+            assert!(
+                load_at(&root, &bytes).is_err(),
+                "source counts must not drift"
+            );
+        }
     }
     #[test]
     fn complete_claim_and_target_approval_cannot_drift_even_with_matching_manifest_bytes() {
@@ -423,6 +479,7 @@ mod tests {
         fs::write(root.join(&lock.executable), b"main").unwrap();
         lock.executable_sha256 = hash(b"main");
         lock.catalogs.clear();
+        lock.source_files.clear();
         for runtime in &mut lock.runtime_files {
             let path = root.join(&runtime.path);
             fs::create_dir_all(path.parent().unwrap()).unwrap();
@@ -430,7 +487,7 @@ mod tests {
             runtime.sha256 = hash(b"runtime");
         }
         fs::write(root.join(&lock.runtime_files[0].path), b"foreign runtime").unwrap();
-        assert!(verify_host_with_target(&root, lock)
+        assert!(verify_host_with_target(&root, &lock)
             .unwrap_err()
             .contains("runtime digest"));
     }
@@ -454,8 +511,21 @@ mod tests {
             fs::write(&path, b"runtime").unwrap();
             runtime.sha256 = hash(b"runtime");
         }
-
-        verify_host_with_target(&root, lock).unwrap();
+        for source in &mut lock.source_files {
+            let path = root.join("Contents/assets").join(&source.path);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(&path, b"schema").unwrap();
+            source.sha256 = hash(b"schema");
+        }
+        // -- 同一positive宿主先通过，再变异schema；缺口来源不是装饰性元数据 --
+        let path = root
+            .join("Contents/assets")
+            .join(&lock.source_files[0].path);
+        verify_host_with_target(&root, &lock).unwrap();
+        fs::write(&path, b"foreign schema").unwrap();
+        assert!(verify_host_with_target(&root, &lock)
+            .unwrap_err()
+            .contains("supplement source digest"));
     }
     #[test]
     fn explicit_compile_approval_loads_the_generated_development_packs() {

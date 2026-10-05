@@ -2,8 +2,8 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-native_status_readonly_smoke.rs: status的人工ignored子模块；明确App/repo与native编译后，真实原厂验签、pack和OS profile一次组合投影，manifest独立断言10278/10473/complete/三语missing0而非从available猜完整性，要求默认locale Absent/无strings且前后摘要模式不变；用缺失临时state模拟首次运行，不创建它，不启动WK/Cavalry或验证真实Apply。
-native_user_profile_apply_smoke.rs: native_user的人工ignored写入子模块；每次要求显式真实App/repo/固定native-preview state目录及单一语言，先验完整pack/host/profile并持production operation lock，再直调`apply_inner`复用真实writer guard；验证翻译Current receipt与pack SHA、English的en-GB恢复、profile postimage与非locale偏好语义/mode及vendor六文件/pack/diagnostics不变；失败不自动回滚或重试，不启动/重启Cavalry，也不冒称UI验收。
+native_status_readonly_smoke.rs: status的人工ignored子模块；明确App/repo与native编译后组合真实原厂验签、pack和OS profile，manifest独立断言10286审批/10481总叶/8补充/10473官方与三语missing0，而非从available猜完整性；要求默认locale Absent/无strings且前后摘要模式不变，缺失临时state不创建，不启动WK/Cavalry或验证Apply。
+native_user_profile_apply_smoke.rs: 默认tempfile合同证明旧owned pack可升级且陈旧strings观察拒绝；人工ignored单动作先验新10481键pack/host与当前receipt实际原像，持production operation lock直调`apply_inner`及writer guard；验证新receipt/pack SHA、English恢复、非locale语义/mode及vendor六文件/pack/diagnostics不变。新包摘要只约束postimage，不能反过来拒绝有效旧原像；失败不自动回滚/重试，不启动Cavalry，不冒称UI验收。
 runtime.rs: 验证补丁回执跨源更新/安装绑定且观察零写入， Resources 与 `_up_` 候选顺序、macOS injector定位与显式legacy restart runner、Windows generic plugin 的 child-only 环境，以及 apply/restart 在失败前不 spawn 的边界；legacy runner合同绕开preview OS-home profile admission，原生准入由独立fixture测试覆盖。
 user_language.rs: 纯 JSON Preferences.locale 投影合同；验证 native locale 映射、畸形 typed locale/unsupported language 零变更拒绝、缺失/原值前像、字段/metadata drift 下 test-only CAS rollback 与 fixed English helper；不接触文件系统、IPC 或真实 profile。
 user_language_files.rs: 临时 profile 的事务/恢复合同；验证一次 receipt 记录原像与缺失目录意图、strings 先于 locale、同语言重应用保留首原像、absent 回滚、固定 en-GB、坏 receipt/IO 拒绝、prepublish drift 零写入、symlink 与 empty-only 清理；Unix 验证 durable path，Windows fixture fail-closed，明确不声称 OS CAS。

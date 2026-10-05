@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖显式官方assets根、cavalry_native_target摘要锁、已审UI模块/独立有限纠错登记及native/ICU纯投影。
- * [OUTPUT]: 提供三语预览/确定性manifest；vendor统计原厂来源槽含已批有限纠错，形状与Rust资源门保持一致，缺译保留fallback。
+ * [INPUT]: 依赖官方assets、精确官方target域helper、显式DNT补充source、审批模块、纠错登记及native/ICU纯投影。
+ * [OUTPUT]: 提供三语预览/确定性manifest与区分官方/补充总量的CLI摘要；批准必须匹配source DNT，缺译保留fallback。
  * [POS]: macOS用户语言事务的构建输入owner；源身份/格式不符拒绝发布，不复制原厂catalog、不读私库或用户profile。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -11,19 +11,26 @@ const path = require('node:path');
 const { createHash, randomUUID } = require('node:crypto');
 const { collectNativeCatalog, resolveTranslations, renderNativePack } = require('./native_language_pack');
 const { assertNativeTranslationFormat } = require('./native_translation_format');
+const { sourceEntries, validateSupplementEntries } = require('./native_schema_supplement');
+const { assertOfficialTarget } = require('./native_official_target');
 const { APPROVED_VENDOR_CORRECTIONS } = require('../languages/native/approved_vendor_corrections');
 const LANGUAGES = Object.freeze(['zh-Hans', 'zh-Hant', 'ja_JP']);
 const sha256 = value => createHash('sha256').update(value).digest('hex');
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 // -- 单一装配：源绑定先于任何输出，missing不会填入未经审批旧候选 ------
-function buildNativeResourceBundle(pairs, approved, trustedVendorCorrections = APPROVED_VENDOR_CORRECTIONS) {
+function buildNativeResourceBundle(pairs, approved, trustedVendorCorrections = APPROVED_VENDOR_CORRECTIONS,
+  supplementalEntries = []) {
   const entries = [];
   for (const pair of [...pairs].sort((a, b) => a.id.localeCompare(b.id, 'en'))) {
     const collected = collectNativeCatalog(pair.id, pair.source, pair.japanese);
     if (collected.unmapped.length) throw new Error(`unmapped native display leaves: ${pair.id}`);
     entries.push(...collected.entries);
   }
+  if (!Array.isArray(supplementalEntries)) throw new Error('native schema supplement entries must be an array');
+  const supplements = supplementalEntries.length
+    ? validateSupplementEntries(supplementalEntries, entries) : [];
+  entries.push(...supplements);
   const indexed = new Map();
   for (const row of entries) {
     if (indexed.has(row.key)) throw new Error(`duplicate native key: ${row.key}`);
@@ -35,6 +42,12 @@ function buildNativeResourceBundle(pairs, approved, trustedVendorCorrections = A
     seen.add(row.key);
     const source = indexed.get(row.key);
     if (!source) throw new Error(`unknown approved key: ${row.key}`);
+    if (Object.hasOwn(row, 'dontTranslate') && typeof row.dontTranslate !== 'boolean') {
+      throw new Error(`approved dontTranslate must be boolean for ${row.key}`);
+    }
+    if ((row.dontTranslate === true) !== (source.dontTranslate === true)) {
+      throw new Error(`approved dontTranslate differs for ${row.key}`);
+    }
     for (const field of ['source', 'notes', 'catalogId', 'owner', 'fieldPath']) {
       if ((field === 'source' || field === 'notes' || Object.hasOwn(row, field)) && !same(row[field], source[field])) {
         throw new Error(`approved ${field} differs for ${row.key}`);
@@ -52,7 +65,8 @@ function buildNativeResourceBundle(pairs, approved, trustedVendorCorrections = A
   const packs = {};
   const manifest = {
     schemaVersion: 1, kind: 'development-preview', cavalryVersion: '2.8.0',
-    approvedUIKeys: approved.length, nativeKeys: entries.length, complete: false, packs: {},
+    approvedUIKeys: approved.length, nativeKeys: entries.length,
+    supplementalKeys: supplements.length, complete: false, packs: {},
   };
   for (const language of LANGUAGES) {
     const reviews = approved.map(row => {
@@ -96,7 +110,8 @@ function safeRegularFile(root, relative) {
 function buildFromAssetRoot(assetRoot) {
   const root = fs.realpathSync(assetRoot);
   const targetBytes = fs.readFileSync(path.join(__dirname, 'cavalry_native_target.json'));
-  const target = JSON.parse(targetBytes);
+  const { target } = assertOfficialTarget(targetBytes);
+  const sourceLock = target.sourceFiles?.[0];
   const pairs = target.catalogs.map(catalog => {
     const source = safeRegularFile(root, catalog.source);
     const japanese = safeRegularFile(root, catalog.japanese);
@@ -105,9 +120,14 @@ function buildFromAssetRoot(assetRoot) {
     }
     return { id: catalog.id, source: JSON.parse(source), japanese: JSON.parse(japanese) };
   });
+  const nodeDefinitions = safeRegularFile(root, sourceLock.path);
+  if (sha256(nodeDefinitions) !== sourceLock.sha256) throw new Error('native schema supplement source digest differs');
+  const supplements = sourceEntries(nodeDefinitions);
   const { approvedEntries } = require('../languages/native/approved_modules');
-  const result = buildNativeResourceBundle(pairs, approvedEntries());
-  if (result.manifest.nativeKeys !== target.nativeKeys || result.manifest.packs.ja_JP.vendor !== target.vendorJapaneseKeys) {
+  const result = buildNativeResourceBundle(pairs, approvedEntries(), undefined, supplements);
+  if (result.manifest.nativeKeys !== target.nativeKeys + target.supplementalKeys
+      || result.manifest.supplementalKeys !== target.supplementalKeys
+      || result.manifest.packs.ja_JP.vendor !== target.vendorJapaneseKeys) {
     throw new Error('native target key/vendor cardinality differs');
   }
   result.manifest.targetSha256 = sha256(targetBytes);
@@ -123,7 +143,8 @@ function inputDigest() {
     'languages/native/approved_vendor_corrections.js',
     ...APPROVED_MODULES.map(name => `languages/native/${name}.js`),
     'tools/native_resource_bundle.js', 'tools/native_language_pack.js',
-    'tools/native_translation_format.js', 'package-lock.json',
+    'tools/native_translation_format.js', 'tools/native_schema_supplement.js',
+    'tools/native_official_target.js', 'package-lock.json',
   ].sort();
   const repo = path.resolve(__dirname, '..');
   return sha256(JSON.stringify(files.map(file => [file, sha256(safeRegularFile(repo, file))])));
@@ -177,7 +198,15 @@ if (require.main === module) {
     if (args.length !== 2 || args[0] !== '--assets-root') throw new Error('usage: native_resource_bundle.js --assets-root <official Contents/assets>');
     const result = buildFromAssetRoot(args[1]);
     const output = publishBuildOutput(result);
-    console.log(JSON.stringify({ output, approvedUIKeys: result.manifest.approvedUIKeys, nativeKeys: result.manifest.nativeKeys, complete: result.manifest.complete, packs: result.manifest.packs }, null, 2));
+    console.log(JSON.stringify({
+      output,
+      approvedUIKeys: result.manifest.approvedUIKeys,
+      nativeKeys: result.manifest.nativeKeys,
+      officialCatalogKeys: result.manifest.nativeKeys - result.manifest.supplementalKeys,
+      supplementalKeys: result.manifest.supplementalKeys,
+      complete: result.manifest.complete,
+      packs: result.manifest.packs,
+    }, null, 2));
   } catch (error) { console.error(`[native-resource-bundle] ${error.message}`); process.exitCode = 1; }
 }
 module.exports = { buildNativeResourceBundle, buildFromAssetRoot, publishBuildOutput, validateBuildFreshness };

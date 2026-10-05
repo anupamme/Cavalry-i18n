@@ -142,5 +142,12 @@
       "path": "Contents/Frameworks/QtCore.framework/Versions/A/QtCore",
       "sha256": "14586420535bb8511b1668d14e0e61c6b964014d34bc4313166616b93f6298b4"
     }
+  ],
+  "supplementalKeys": 8,
+  "sourceFiles": [
+    {
+      "path": "Definitions/nodeDefinitions.json",
+      "sha256": "96c7ffbda8d8244a111b3ad3e60fe530eb919fe9f93cbdf3577e2e29ca11d48f"
+    }
   ]
 }
