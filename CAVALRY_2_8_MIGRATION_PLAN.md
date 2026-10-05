@@ -769,3 +769,6 @@ raw index482的sdfShadow有6字段/6引用、hide=true；483的luminanceBlur有7
 **最短接续：**先核当前生成式fallback和通用Inspector resolver，再按确证owner域补原生包；能原生消费的不叠旧全量翻译。2.7.2旧译/窄机制可作来源和设计对照，但旧loader的author前缀合同不同（§3.5），不能承诺把2.8全局strings直接塞回2.7生效；原生确实接不到才按新2.8调用点/ABI复用旧窄方法，不移植旧成品。
 
 本轮无App启动/profile写入/资源重建或打包，未批准365候选。官方10278+补充8、§5.2的26完成/18待办及完整catalog0/51均不变；下一项先核非Forge候选及真实fallback来源，而不是重复构建。
+
+
+root随后在deny-default的独立进程sandbox中实际调用一次原厂Core纯`prettifyAttrPath`，365候选去重的238个原始ID全部返回；没有QApplication/Api/Node或App启动。固定exec、只读库map，file-write/network/fork/Mach lookup/register拒绝；九个监视文件SHA/mode前后未变，stdout/stderr及source/binary/policy摘要分别绑定；policy完整SHA为执行后记录，未作执行前完整SHA门，独审已注明且不为补证重跑。`intensityRGB→Intensity RGB`、`useCMYK→Use CMYK`、`fps→Fps`是实际函数输出，不手工猜缩写。此结果只给补充source真实fallback，不证明Inspector/loader/native注册，未监测frontmost、未批准新译或计入0/51；后续以完整owner分区审校，不一键一打包。
