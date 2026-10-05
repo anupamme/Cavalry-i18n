@@ -452,7 +452,7 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 
 - [x] 原生资源与显式debug预览构建通路、编译期审批陈旧拒绝及native预览独立identifier/state；默认旧发布资源排除native构建期源。
 - [x] 固定p12旧feed离线producer与字节/URL/原签名保留合同完成；只生成工件，不意味着旧客户端通道已隔离。
-- [ ] 独立2.8生产profile/endpoint与冻结legacy feed接进publisher/CI，旧p11/p12实际接收合同、archive签名及两个feed exact-readback。
+- [ ] 独立2.8生产profile/endpoint与冻结legacy feed接进publisher/CI，旧p11/p12实际接收合同及两个feed exact-readback；固定p12三平台真实archive签名已3/3通过（§17），不代验生产接线。
 - [ ] 正式macOS包及安装/更新/恢复/卸载验收；只在源与消费者闭合后做必要打包，不反复出中间包。
 - [ ] Windows 2.8实施/实机/installer验收（暂停，不借macOS结果宣布完成）。
 - [ ] 最终版本/发行资产、签名身份与公开Release闭环；没有凭据和验证不得声称Developer ID/notarized，未经授权不push/tag/release。
@@ -666,3 +666,14 @@ CAVALRY_I18N_NATIVE_STATUS_SMOKE_APP=/Applications/Cavalry.app \
 **确定的下一步缺口：**三语画布工具帮助和Viewport Quality显示CJK方框，Welcome消息及动态窗口标题仍英文。arm64静态链为`TransformTool::getHelpStrings` → registry → Viewport text-path cache → `MakePathFromText` → Lato Regular → Skia字形Path；原厂Lato没有CJK覆盖，Qt面板字体正常不能代验这条链。原厂2.8启用Hardened Runtime，缺少DYLD环境变量与关闭Library Validation的授权，用户strings包也没有字体入口；不得据此盲装旧2.7 injector、全局改字体或重签用户原厂App。先复用已有原生消费者与加载入口；确需签名/部署边界变化时单独裁决最小方案。
 
 机器检查点SHA-256 **`f6a380f136e7b0f3ca0b9bc387cf3cd374810791787e46e905e9941fedd9039e`**绑定5动作、四语PID/PNG/AX/审查/正常退出及最终profile事实。原始过程证据仅留会话stage/私人文档，公开构建和发布不依赖它们。
+
+## 17. 固定旧版 archive 的真实签名核验
+
+2026-10-05：复用现有`src-tauri/tests/updater_signature_contract.rs`的显式ignored流式门，不新增验签框架、不重新打包。实际读回[固定p12 Release](https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.7.2-p12)的三项updater payload；公开`latest.json`与2521B tracked fixture逐字一致，[p12客户端配置](https://raw.githubusercontent.com/daftAI2026/Cavalry-i18n/cavalry-2.7.2-p12/src-tauri/tauri.conf.json)公钥与当前共享配置相同。2554B冻结feed只固定三个URL，三份原签名不变。
+
+- [x] macOS aarch64、macOS x64、历史Windows EXE三个真实payload的SHA/size/API asset身份匹配，原manifest对应签名实际3/3通过；未安装或执行任何payload，也不抵扣Windows 2.8实施。
+- [x] 真实复制的Windows历史payload在offset128变异一字节，现有密码学门按预期拒绝；不是只验证签名格式、key ID或GitHub摘要。
+- [x] 验后lsof无引用，精确删除3个下载payload、坏复制和失败空part共23,353,474逻辑字节；保留小型签名文本、源/manifest快照、摘要和正负日志，不冒称物理释放量。
+- [ ] 双feed production publisher/CI、旧客户端实际接收和未来Release exact-readback仍未完成；默认配置、共享endpoint、版本号及线上Release未改。
+
+首次curl因TLS错误失败，原日志保留；改用GitHub精确asset-ID API正常TLS读回，不用insecure绕过。该测试binary仅编译一次（9.54s/0 warning），三语资源未重建。验证检查点SHA-256 **`40aa4b17ae54f0d16b5205a0748e499515e83b974e39acc402ee51b6022f4dd4`**绑定下载、原签名、准确validator source/binary和实际正负日志；这是历史archive信任证明，不是2.8产品发行证明。
