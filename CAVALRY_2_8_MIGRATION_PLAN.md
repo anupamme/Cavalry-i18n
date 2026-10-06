@@ -957,3 +957,16 @@ Activity视觉的过早归因已纠正：先前后台/bound AX截图completed区
 按用户指定私档继续核字体历史，四session筛出相关51完整可见原话，保留UUID/UTC/JSONL行及行SHA，不代替已恢复的462全文。2.7.2 exact ToolHelp/GetPath和Timeline双caller修复确有历史实现；私档2026-09-22有arm64三语六名称/15终态截图和短时播放验证，Intel仍只有静态/编译。当前2.8 native纯资源路径未接这套窄字体能力，不能把已审批译文等同CJK绘制。只复用已有2.8 v2 exact GetPath策略作新独占epoch必要验证，不全局换字体/改用户输入或原厂字体文件；Timeline独立measure/draw存在完整名称与NUL视图差异，仍需最小明确准入。callsite族枚举的direct范围与indirect/virtual未知分别登记，不冒“全部已修”。
 
 本节只新增item20完成信用，catalog仍0/51；item21/28/29/31/32及性能、Intel/Windows/发行待验。整仓Node754/native Rust379为此前同源码回归，本次docs/live检查不编造新的全量测试。会话stage原始21读回、root汇总/独审和字体历史另归私档，不参与公开构建。
+
+
+## 35. 接续私档闭环、字体副本签名纠错与免登录验证复用（2026-10-06）
+
+§34的五次真实事务/21摘要、root汇总与独审、51字体原话与逐行核回、328 direct调用族审稿、搜索/Timeline/Activity分账及headless夹具另归私人提交`2ab19b65a3f371da7c3a1bdadf7812e698441a29`，普通push完成。94个明确自有远端文件、其中85份原字节副本与source/index/remote逐项核验相等；三个旧冻结tree和共享checkout的Git枚举dirty摘要不变。首次预检误拒no-index diff+原始log末尾空行的exit3，未stage/commit/push且释锁，失败单独保存；限定更正后无rebase或并发重试。成功临时clone已在clean/remote包含commit/释锁/读者停止后精确移除；旧Official57冲突稿及共享checkout保持。该批不含本节新字体App、dylib或runtime证据。
+
+字体没有完成信用。root-owned 2.8 Hans exact18 GetPath副本的首次签名错误保留vendor application/team/keychain受限字段，CUA实启约13秒超时；root独立限域OS日志明确amfid `Code=-424: adhoc signed but contains restricted entitlements`，PID90142被终止，constructor receipt absent。不是字体代码或profile根因，责任在本次未完整复用历史最小副本签名。错误签名与首次失败不抹除；两键修正只是未启动的中间静态状态，不为区分单键再做启动A/B。随后直接复用旧v2实跑过的三键minimal（allow-DYLD/unsigned-executable-memory/disable-library-validation），保留hardened runtime，只作用于自有副本，不改正式App、任何Framework/Qt、系统权限或用户作品。
+
+新实启PID2976已真实创建exclusive receipt，original导出/映像合同、子进程注入变量清除、PingFangSC真实Skia候选及CONTRACT_READY已证。只有ASCII Space保持原字体事件，仍无CJK文字效果；CUA见Canva Welcome，不输入凭据或接受协议。欢迎页close引出通用Quit-unsaved默认No，root未选择Yes/Discard或强杀，后来精确PID absent原因未证，不能称normal exit通过。前后Hans10846/receipt及其他偏好和42有限vendor行保全，不泛称全部文件零写。
+
+用户进一步明确允许实际电脑测试，并指出私档已有不用处理登录页的验证经验。现成tracked macOS acceptance的exposeMainWindow/exposeTransformWorkspace以测试进程内Qt取消modal并隐藏SignInDialog/Welcome，直接检查真实主工作区，不登录、不复制或伪造账号。下一步复用该有限流程为test-only helper，不把2.7 Qt6.6.3全matrix误作2.8 Qt6.9.2通过；旧exclusive receipt冻结，下一epoch仅更新receipt路径、同Hans18策略实际102/102复跑通过，尚未启动下一epoch。
+
+本节不新增语言事务或完成行：当前27/44、17待办、13成功语言事务、catalog0/51。三语54项自绘固定文字已独立source绑定，CoreText候选覆盖只证明本机glyph映射，不冒runtime/日语截图修复；各工具/层的indirect/virtual未知与Timeline测量/绘制仍分账。默认2.7/feed/版本及Windows暂停不变，公开仅本地checkpoint，未push/tag/release；当前阶段无新全仓Node/Rust/App/DMG重建结论。
