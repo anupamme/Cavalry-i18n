@@ -11,7 +11,7 @@
 
 当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official显示须固定厂商Apple Developer ID来源验证与内置en/ja、无Switcher覆盖共同成立；旧来源-only语义已按§25收紧，不授予写入/恢复权。当前整仓Node754项通过（项目锁定Node24.20.0/npm11.19.0；§23历史740、§24–27历史752）；历史native与默认路径全量Rust各372通过/0失败/0warning，§24双Rust各373通过；§25 Official语义复验两配置各378通过/7 ignored/0warning（默认资源空数组仅测试覆盖）；§27/28本轮显式native Rust379通过/0失败/7 ignored/0warning，默认Rust未重跑；7个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章Chromium headless fixture 6项与系统WKWebView fixture 6项均通过；WK审查用prohibited激活策略，记录1个内部隐藏TUINSWindow、0可见/key/main及无自身激活事件，原厂/profile六监视文件前后不变。真实WebKit渲染不等于Tauri AppHandle/实际后端联动或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
 
-完整冻结包历史生产owner动作5/5、四语原厂首屏/正常退出各4/4；随后Hans Apply与Forge旧包升级各一次，§26又经真实Tauri IPC完成新364资源的Hans同语言Update并正常启动，合计8次成功用户事务。当前typed locale为zh-Hans，自有strings/receipt存在；English恢复曾因实验副本仍运行被writer guard拒绝，未写profile，不能沿用§16的历史English终态。原厂安装未改。独立ad-hoc副本的Hans工具提示字体canary已观察8条CJK/1条ASCII路径与可读截图，但后台门失败；第二轮副本确认单一视口状态“视口质量：完整”可读，启动/退出前台约束仍失败。§26原厂普通Inspector另见Forge八补充Hans标题8/8；Timeline同名中文仍方框，新364消费、其他动态属性、搜索/字体身份待验。完整catalog仍0/51；Hans只读status和同语言Update真实IPC小门已闭，但Restore/其他语言与Activity视觉未闭。默认2.7发布、版本号与共享feed不变；Windows暂停，不公开推送或发布。历史全session私人检查点及指定会话任务原文已正常push并远端核验；新增Official57文件发布遇根CLAUDE并发冲突停止，隔离草稿保留，不能声称新私档已push。新实验与明确剩余项见§26，不把小样或离线绿计入完整UI。
+完整冻结包历史生产owner动作5/5、四语原厂首屏/正常退出各4/4；随后Hans Apply与Forge旧包升级各一次，§26又经真实Tauri IPC完成新364资源的Hans同语言Update并正常启动，合计8次成功用户事务。当前typed locale为zh-Hans，自有strings/receipt存在；English恢复曾因实验副本仍运行被writer guard拒绝，未写profile，不能沿用§16的历史English终态。原厂安装未改。独立ad-hoc副本的Hans工具提示字体canary已观察8条CJK/1条ASCII路径与可读截图，但后台门失败；第二轮副本确认单一视口状态“视口质量：完整”可读，启动/退出前台约束仍失败。§26原厂普通Inspector另见Forge八补充Hans标题8/8；Timeline同名中文仍方框，新364消费、其他动态属性、搜索/字体身份待验。完整catalog仍0/51；Hans只读status和同语言Update真实IPC小门已闭，但Restore/其他语言与Activity视觉未闭。默认2.7发布、版本号与共享feed不变；Windows暂停，不公开推送或发布。历史全session私人检查点及指定会话任务原文已正常push并远端核验；新增Official57文件发布遇根CLAUDE并发冲突停止，隔离草稿保留，不能声称该57份已push；本轮全462原话与接续证据另以98686cd1普通push，54文件远端逐字节核回/45副本原字节保全、无rebase、锁已释，见§30。新实验与明确剩余项见§26，不把小样或离线绿计入完整UI。
 本文件按用户要求放在产品分支；过程证据与临时队列留在会话级 stage 或私有历史文档库。公开构建、测试和发布不得依赖这些路径，也不打包调查脚本。
 
 > 下文早期阶段的数量、RED、构建与实跑记录属于各自历史检查点；当前键与离线验收状态以上方状态为准。完整官方键资源已闭合，不代表schema生成式标签、真实 UI、独立帮助 consumer 或发行已完成；全定义另有365缺源候选，见§22。
@@ -879,3 +879,14 @@ root随后在deny-default的独立进程sandbox中实际调用一次原厂Core�
 raw2671身份分母与历史4 unresolved/1 namespace分类不覆盖重写。继续从真实定义/官方catalog与2.7exact-owner对照缩小边界：cameraGuide.shape同时是tab id，官方tabs.shape已有标题、不是声明属性；renderQueueItem裸remapToTimecode无根字段，但targets.remapToTimecode有真实compound schema/控制器/官方caption，不能新增裸键或把静态同名当运行alias证明；goalModifier.inputShape与toonOutlines.ignoreTarget仍只是无schema/catalog的orphan order项，不借inputPoints或connectShape的字段语义。grainFilter.time有独立插件Time source与sceneGroup命名空间，不是nodeStrings漏键，2.8 int与旧double差异也不回写模型。
 
 root验收的是静态结构归属，不是控件可见性；source adapter/target/365批准caption不变。先恢复非Forge Voronoi/CRT观察，再只读确认Goal Modifier/Toon Stroke是否真正呈现orphan行；若出现才追实际owner。真实目标不能靠自动造alias或加裸键达成，26/44、catalog0/51不变。
+
+
+## 30. 全原话私人归档已落远端与帮助接续（2026-10-06）
+
+私人新接续冻结档已普通提交并推送`98686cd12592f7ccfbd3d44e47844e5f9d29fe86`。54个明确自有文件逐个对比远端blob，全部字节相等；其中45份原始副本逐项size/SHA与source-manifest一致，包括462条可见业务原话人读全文、用户/助手索引和完整发布Skill。首次空白检查确实失败并释锁：原话Markdown硬换行、原始日志EOF空行与patch上下文不得修剪。局部属性仅对这45个精确副本设`-text`、实际报警10路径设`-whitespace`，新地图/摘要/属性文件仍严格检查；重新限定暂存后index原字节核回、cached检查通过，不把此处理推广为源码或全仓豁免。
+
+发布没有rebase或并发重试，最终commit在远端历史中，临时checkout干净、匹配token锁已释放。共享私库HEAD/status及三份其他任务修改的SHA前后相等；旧Official57冲突clone不重试、不解除、不删除，不能借本次发布称旧57份已远端落盘。公开分支仍只做本地检查点，未公开push/tag/release。
+
+压缩后按工具协议恢复CUA文档仍返回Transport closed：没有新App启动、作品编辑、profile写事务或live信用。帮助主线继续核512说明从MetaData到真实运行名/文档副本/语言来源的接缝；已证primitive只是一条静态绑定，其余511身份、可信locale与真实C++互操作不自动推广。先复用原厂已有加载与消费者，未证明的分支不写猜测key，不把帮助塞入UI-text或改原厂MetaData。
+
+总进度仍26/44、18待办，完整catalog0/51；source三语10846/missing0仅资源分母。非Forge Voronoi/CRT实屏、Activity、三语Switch/Restore/持久化、帮助、晚期字体/搜索/输入身份、性能及发行继续按§5.2验收；默认2.7/feed/版本及Windows暂停不变。
