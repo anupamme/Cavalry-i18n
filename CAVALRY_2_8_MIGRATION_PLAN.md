@@ -911,3 +911,14 @@ CUA仍Transport closed，但按exact unix PID读取AX角色/窗口和激活后�
 普通leaf真实map key是裸name，namespace.name只是另一显示local；generic同名碰撞分支可清空已有doc，但当前384候选间无重复裸名，不把getBoundingBox三个源行说成已发生冲突。TextEdit逐成员复制到自有map，再以hover词精确find/popup的静态寿命链已核证；真实C++互操作、可信locale、缓存刷新与live仍未闭。既有primitive单行绑定不自动扩成384，更不能把111子项写成现成运行key。先验证最小owned-copy接缝及语言来源，全512另需真实class/def消费策略，不往UI-text或原厂MetaData塞译文冒完成。
 
 本节没有新build/test/App打包或Apply，沿用§28的754 Node/native Rust379及7人工ignored结果。26/44、18待办、完整catalog0/51不变；非Forge两caption不代其它属性/搜索/字体/Activity/恢复/帮助/性能/发行。默认2.7/feed/版本和Windows暂停不变。
+
+
+## 32. 交叉私档远端闭环与源字体核回（2026-10-06）
+
+§31的新交叉原话/矩阵/帮助分支及精确CRT画面、保存前后自有scene和退出收据另以`caff20106d2cfae4f8390941e68ba11f3bc89eb7`普通push。39个明确自有路径远端逐blob字节相等，其中30原始副本source/index/remote的size/SHA/bytes全等；非作者再次核回39/30。旧45副本冻结档的Git tree完全不变，精确属性只对30副本设-text、实际报警2路径设-whitespace，新地图/摘要仍严格；root私库全局图无几何变更。首次precheck误把no-index的差异exit1当失败，已无commit/push释锁保留，并据真实空白输出修正；不是并发rebase重试。本批无rebase、远端包含实际commit、最终clean且锁已释；共享私库HEAD/status及外来dirty文件SHA前后相等，旧Official57冲突仍不动。公开本地§31检查点`232e176`未push。
+
+字体问题与翻译资源是两种独立能力。只读原厂`CanvaSans-Regular.otf`与`Lato-Regular.ttf`，标准库解析Unicode cmap format4/12；再以CoreText文件descriptor精确URL及真实family/PostScript identity独立查询，同两字体×七固定样本的glyph IDs/覆盖状态逐字符相等。ASCII Space均全覆盖，而扫描线、固定Hans/Hant/JA与混排样本的CJK缺glyph。没有注册字体、安装依赖、调用Cavalry库或启动App，字体原文件不改。这证明两份source字体的覆盖，不等于截图当时的runtime font/caller绑定，也不称字体已修复。
+
+既有2.8 arm64 Timeline静态独审已找到paintNodeText/$_46的measure与draw两个不同调用点；现有GetPath-only工具/viewport canary不经过它们。测量12pt、绘制12×scale的同字体对象允许字号变化，必须选同一完整覆盖typeface，不能要求整份font字节恒等或照搬2.7的memcpy facade。接续优先复用已有真实2.8字体工厂/精确双caller证据，做独立受限canary；厂商/用户原文保持不变，Intel与真实布局另验，不先恢复全量injector。
+
+两源字体探针不增加Node/Rust或live验收完成数；26/44、18待办、完整catalog0/51保持。实际用户仍Hans10845旧partial、8次成功语言事务，没有新Apply；原厂/Cavalry/Preview进程本轮正常退出后均不在，默认2.7/feed/版本和Windows暂停不变。
