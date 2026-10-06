@@ -1,5 +1,5 @@
 <!--
-[INPUT]: 依赖现行2.7.2架构、官方2.8.0来源、固定365条缺源边界与冻结三语源、用户profile生产事务、真实首屏/恢复、独立副本字体canary、全491定义source交叉、Hans真实Tauri只读联动/同语言Update及Forge八标题实屏；WK fixture与AppHandle各守边界，保存超时不冒consumer通过
+[INPUT]: 依赖现行2.7.2架构、官方2.8.0来源、固定365条缺源边界与冻结三语源、用户profile生产事务、真实首屏/恢复、独立副本字体canary、全491定义source交叉、49条完整交叉原话/晚期八类机制、Hans真实Tauri联动及Forge/CRT限域实屏；512帮助源与原厂两caller分开核证
 [OUTPUT]: 给出2.8迁移/TDD与44项进度；官方10278/Forge8/缺源365合计10651审批、三语10846派生输出，World Scale仅caption单键追加；历史partial与当前source完整分账，不宣称产品已经支持2.8
 [POS]: feat/cavalry-2.8.0 的实施方案入口；调查工具与原始证据不进入产品运行时
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -11,7 +11,7 @@
 
 当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official显示须固定厂商Apple Developer ID来源验证与内置en/ja、无Switcher覆盖共同成立；旧来源-only语义已按§25收紧，不授予写入/恢复权。当前整仓Node754项通过（项目锁定Node24.20.0/npm11.19.0；§23历史740、§24–27历史752）；历史native与默认路径全量Rust各372通过/0失败/0warning，§24双Rust各373通过；§25 Official语义复验两配置各378通过/7 ignored/0warning（默认资源空数组仅测试覆盖）；§27/28本轮显式native Rust379通过/0失败/7 ignored/0warning，默认Rust未重跑；7个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章Chromium headless fixture 6项与系统WKWebView fixture 6项均通过；WK审查用prohibited激活策略，记录1个内部隐藏TUINSWindow、0可见/key/main及无自身激活事件，原厂/profile六监视文件前后不变。真实WebKit渲染不等于Tauri AppHandle/实际后端联动或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
 
-完整冻结包历史生产owner动作5/5、四语原厂首屏/正常退出各4/4；随后Hans Apply与Forge旧包升级各一次，§26又经真实Tauri IPC完成新364资源的Hans同语言Update并正常启动，合计8次成功用户事务。当前typed locale为zh-Hans，自有strings/receipt存在；English恢复曾因实验副本仍运行被writer guard拒绝，未写profile，不能沿用§16的历史English终态。原厂安装未改。独立ad-hoc副本的Hans工具提示字体canary已观察8条CJK/1条ASCII路径与可读截图，但后台门失败；第二轮副本确认单一视口状态“视口质量：完整”可读，启动/退出前台约束仍失败。§26原厂普通Inspector另见Forge八补充Hans标题8/8；Timeline同名中文仍方框，新364消费、其他动态属性、搜索/字体身份待验。完整catalog仍0/51；Hans只读status和同语言Update真实IPC小门已闭，但Restore/其他语言与Activity视觉未闭。默认2.7发布、版本号与共享feed不变；Windows暂停，不公开推送或发布。历史全session私人检查点及指定会话任务原文已正常push并远端核验；新增Official57文件发布遇根CLAUDE并发冲突停止，隔离草稿保留，不能声称该57份已push；本轮全462原话与接续证据另以98686cd1普通push，54文件远端逐字节核回/45副本原字节保全、无rebase、锁已释，见§30。新实验与明确剩余项见§26，不把小样或离线绿计入完整UI。
+完整冻结包历史生产owner动作5/5、四语原厂首屏/正常退出各4/4；随后Hans Apply与Forge旧包升级各一次，§26又经真实Tauri IPC完成新364资源的Hans同语言Update并正常启动，合计8次成功用户事务。当前typed locale为zh-Hans，自有strings/receipt存在；English恢复曾因实验副本仍运行被writer guard拒绝，未写profile，不能沿用§16的历史English终态。原厂安装未改。独立ad-hoc副本的Hans工具提示字体canary已观察8条CJK/1条ASCII路径与可读截图，但后台门失败；第二轮副本确认单一视口状态“视口质量：完整”可读，启动/退出前台约束仍失败。§26原厂普通Inspector另见Forge八补充Hans标题8/8；Timeline同名中文仍方框；§31另闭非Forge CRT两Hanscaption实屏，其他新caption/动态属性、搜索/字体身份待验。完整catalog仍0/51；Hans只读status和同语言Update真实IPC小门已闭，但Restore/其他语言与Activity视觉未闭。默认2.7发布、版本号与共享feed不变；Windows暂停，不公开推送或发布。历史全session私人检查点及指定会话任务原文已正常push并远端核验；新增Official57文件发布遇根CLAUDE并发冲突停止，隔离草稿保留，不能声称该57份已push；本轮全462原话与接续证据另以98686cd1普通push，54文件远端逐字节核回/45副本原字节保全、无rebase、锁已释，见§30。最新交叉范围/CRT小门/帮助384候选与111子项未消费边界见§31，不把小样或离线绿计入完整UI。
 本文件按用户要求放在产品分支；过程证据与临时队列留在会话级 stage 或私有历史文档库。公开构建、测试和发布不得依赖这些路径，也不打包调查脚本。
 
 > 下文早期阶段的数量、RED、构建与实跑记录属于各自历史检查点；当前键与离线验收状态以上方状态为准。完整官方键资源已闭合，不代表schema生成式标签、真实 UI、独立帮助 consumer 或发行已完成；全定义另有365缺源候选，见§22。
@@ -890,3 +890,24 @@ root验收的是静态结构归属，不是控件可见性；source adapter/targ
 压缩后按工具协议恢复CUA文档仍返回Transport closed：没有新App启动、作品编辑、profile写事务或live信用。帮助主线继续核512说明从MetaData到真实运行名/文档副本/语言来源的接缝；已证primitive只是一条静态绑定，其余511身份、可信locale与真实C++互操作不自动推广。先复用原厂已有加载与消费者，未证明的分支不写猜测key，不把帮助塞入UI-text或改原厂MetaData。
 
 总进度仍26/44、18待办，完整catalog0/51；source三语10846/missing0仅资源分母。非Forge Voronoi/CRT实屏、Activity、三语Switch/Restore/持久化、帮助、晚期字体/搜索/输入身份、性能及发行继续按§5.2验收；默认2.7/feed/版本及Windows暂停不变。
+
+
+## 31. 完整交叉范围、非Forge消费与帮助分支（2026-10-06）
+
+在全部145用户原话基础上逐条语义复读，另索引49条完整相关原话（核心交叉及催办8条），每条ordinal/UUID/路径/行/UTC/raw_text与原档相等；不截最后一句、不把口误改写成新要求。明确要求包括全属性对比、2.7晚期机制、搜索和字体选项，不能只盯Forge；输入行为/模型身份是项目合同派生审查，不伪造为用户原句。八类旧线矩阵分别对照compiled owner、自绘工具字体、Timeline measure/draw、Fast、Classic、字体选项/身份、placeholder/append、Guide/plugin/独立帮助。p9/p10/p12按peeled commit核证；所审injector/TS/whitelist在p10至p12无diff。Mac p12 append不具Windows那套exact-owner gate，不能借历史机制直接搬成2.8全局hook。
+
+### 31.1 CRT普通Inspector的真实Hans小门
+
+CUA仍Transport closed，但按exact unix PID读取AX角色/窗口和激活后的原生菜单已可用。只打开root自有已保存CRT场景，沿旧Hans10845 partial用户包观察，没有新Apply。初次有限AX树仅7个frame节点、目标空，不据此判漏译；系统截图以exact PID74655/CGWindow17359/owner/title守门。原生Edit菜单全选后“在属性编辑器中显示”，普通Inspector实际可读「扫描线模式」「扫描线粗细」，主代理与非作者图像独审一致，对应实际包两精确caption键。只闭这两个Hans标签的可见/可读门，不闭tooltip、参数行为、输入提交、Shadow Mask另tab或Hant/JA，更不抵扣完整catalog。
+
+同画面Scene Tree中文可读，而Timeline同层名仍tofu、自绘快捷键help若干glyph异常；不是“底层没译”，也不能把合法原生默认名改回英文掩盖问题。下一步须核2.8自己的measure/draw双边字体接缝，工具Path副本canary不代Timeline。
+
+正常quit先-1712，随后确见Save/Cancel/Discard对话框，不能称已退出。确认唯一自有CRT文档后选择默认Save，正常退出续行、exact PID消失，无Discard或强杀。仅自有scene字节改变：nodes/nodeMeta序列重排；按唯一nodeId核完整对象相等、其余顶级值相等、CRT对象相等，未序列化默认参数不认证。实际Preferences/strings/receipt三明确文件的size/mode/SHA与早先基线相等，vendor executable摘要不变；不声称全profile/全App零写。
+
+### 31.2 512帮助源不等于512现成消费者
+
+固定2.8 arm64原厂四份MetaData/两framework摘要核回。408根record包含401根description（392 function/9 property）和7个无description class，class内部另111说明（98 methods/13 properties），共512。原厂getDocumentation的class分支直接清理并推进根iterator，未见子数组语义遍历；主caller的cavalry/ctx/api/ui又排除17个def根叶，所以384只是结构准入候选，不是逐行或live认证。独审和root另核第二direct caller：acrJSMath::formatForCompleter以cavalry/ctx调用同loader，是主链子集，不改变384上限、不接def或class子项；不能说只有一个caller或全产品绝无其它间接reader。
+
+普通leaf真实map key是裸name，namespace.name只是另一显示local；generic同名碰撞分支可清空已有doc，但当前384候选间无重复裸名，不把getBoundingBox三个源行说成已发生冲突。TextEdit逐成员复制到自有map，再以hover词精确find/popup的静态寿命链已核证；真实C++互操作、可信locale、缓存刷新与live仍未闭。既有primitive单行绑定不自动扩成384，更不能把111子项写成现成运行key。先验证最小owned-copy接缝及语言来源，全512另需真实class/def消费策略，不往UI-text或原厂MetaData塞译文冒完成。
+
+本节没有新build/test/App打包或Apply，沿用§28的754 Node/native Rust379及7人工ignored结果。26/44、18待办、完整catalog0/51不变；非Forge两caption不代其它属性/搜索/字体/Activity/恢复/帮助/性能/发行。默认2.7/feed/版本和Windows暂停不变。
