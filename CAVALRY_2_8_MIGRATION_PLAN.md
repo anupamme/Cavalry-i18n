@@ -1,5 +1,5 @@
 <!--
-[INPUT]: 依赖现行2.7.2架构、官方2.8.0来源、固定365条缺源边界与冻结三语源、用户profile生产事务、真实首屏/恢复、独立副本字体canary、全491定义source交叉、49条完整交叉原话/晚期八类机制、Hans真实Tauri联动及Forge/CRT限域实屏；512帮助源与原厂两caller分开核证
+[INPUT]: 依赖现行2.7.2架构、官方2.8.0来源、固定365条缺源边界与冻结三语源、用户profile生产事务、真实首屏/恢复、独立副本字体canary、全491定义source交叉、49条完整交叉原话/晚期八类机制、Hans真实Tauri联动及Forge/CRT限域实屏；512帮助源与原厂两caller分开核证；源字体双实现与Timeline纯fake-original夹具另证，不冒运行时修复
 [OUTPUT]: 给出2.8迁移/TDD与44项进度；官方10278/Forge8/缺源365合计10651审批、三语10846派生输出，World Scale仅caption单键追加；历史partial与当前source完整分账，不宣称产品已经支持2.8
 [POS]: feat/cavalry-2.8.0 的实施方案入口；调查工具与原始证据不进入产品运行时
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -922,3 +922,15 @@ CUA仍Transport closed，但按exact unix PID读取AX角色/窗口和激活后�
 既有2.8 arm64 Timeline静态独审已找到paintNodeText/$_46的measure与draw两个不同调用点；现有GetPath-only工具/viewport canary不经过它们。测量12pt、绘制12×scale的同字体对象允许字号变化，必须选同一完整覆盖typeface，不能要求整份font字节恒等或照搬2.7的memcpy facade。接续优先复用已有真实2.8字体工厂/精确双caller证据，做独立受限canary；厂商/用户原文保持不变，Intel与真实布局另验，不先恢复全量injector。
 
 两源字体探针不增加Node/Rust或live验收完成数；26/44、18待办、完整catalog0/51保持。实际用户仍Hans10845旧partial、8次成功语言事务，没有新Apply；原厂/Cavalry/Preview进程本轮正常退出后均不在，默认2.7/feed/版本和Windows暂停不变。
+
+
+## 33. Timeline纯观察夹具与字体准备私档（2026-10-06）
+
+先证因果，再修字体。本轮实际交付只有固定样本「扫描线」的纯C++观察策略/fake-original夹具；runtime wrapper、Mach-O resolver/loader、映像准入、厂商ABI、安装与App接线均未实现。两个已核arm64 return PC仅作为fixture输入常量，不把静态候选称live命中。源字体14样本/cmap与CoreText一致、双架构Timeline静态接缝、合成夹具和§31真实截图分别分账。
+
+- **实际RED→GREEN**：有界prefix错误策略把「扫描线 NUL x」的9字节measure前缀当完整owner；最终强化夹具两项关联断言失败/exit1，严格完整witness门后109断言/exit0，非作者在独立scratch复现两端。参数指纹、对象身份、NaN float位型与original恰一次只在fake签名下证明，不代真实ABI。初次1-fail原始log被作者后续重放覆盖，当前只能保存root曾见工具输出的明确摘录，不能伪称原字节/hash已恢复；最终种子/日志原样保留。
+- **主代理独立检查**：同冻结source复制到自有临时目录，ASan+UBSan编译/运行109断言、exit0/无诊断，临时build移除、源码不变。首次detect_leaks=1被平台不支持拒绝，属setup失败；关闭该选项后才跑夹具，LeakSanitizer未运行/未通过。没有重跑全仓Node/Rust，沿用§28的754/native379和7manual ignored；0a48cc0之后公开差分仅本计划/根地图，不冒新App或资源构建。
+- **必须先补的运行事实**：measure只给strlen长度，mock完整owner-span witness不是已证明的真实std::string；缺失/不完整时不记录而仍透传一次。顺序pending计数没有同render-item身份，known-PC坏指针可读性也未证明。root接续先查真实owner范围/寿命及同一实例数据流，之后才裁决runtime实现/安装；不替字体、不新增全局hook、不照搬旧2.7 memcpy facade。
+- **保全与私档**：本轮再核三明确profile size/mode/SHA及vendor executable与CRT退出基线相等，ps pid/comm未见Cavalry或自有preview；不归档raw profile，不泛称全App所有文件零写。字体准备另以`3a7ad64a50d2ddec0dfd0ea16969b4053310ed9e`普通push：22原字节副本、实际commit31路径全等，最新远端26档案路径+5父导航逐项比较全等；无rebase/retry，clean/匹配token锁已释。旧986/caff两冻结tree不变，共享私库Git枚举dirty快照前后相等；root私库L1未在本批修改，旧Official57冲突草稿不动。发布脚本已独审链接/锁边界，软硬链接拒绝、既有副本不重写，新文件独占创建、父导航原子替换；纯helper六场景外部synthetic文件未被改变。非作者最后再核31/22及L2/L3/旧两tree一致；确认所有读者停止、三自有commit在新fetch远端历史、无未提交/未发布内容并释锁后，只精确移除本轮成功临时clone，旧失败clone/共享checkout保留。
+
+§5.2仍26/44、18待办、完整catalog0/51。实际用户仍Hans10845旧partial/8成功语言事务，无新Apply/App启动、无字体live修复声明。默认2.7/feed/version与Windows暂停不变，公开仓只本地提交、不push/tag/release；计划历史尚未获准压缩，本轮不擅自删改。
