@@ -1,5 +1,5 @@
 <!--
-[INPUT]: 依赖现行2.7.2架构、官方2.8.0来源、固定365条缺源边界与冻结三语源、用户profile生产事务、真实首屏/恢复、独立副本字体canary、全491定义source交叉、49条完整交叉原话/晚期八类机制、Hans真实Tauri联动及Forge/CRT限域实屏；512帮助源与原厂两caller分开核证；源字体双实现与Timeline纯fake-original夹具另证，不冒运行时修复
+[INPUT]: 依赖现行2.7.2架构、官方2.8.0来源、固定365条缺源边界与冻结三语源、用户profile生产事务、真实首屏/恢复、独立副本字体canary、全491定义source交叉、49条完整交叉原话/晚期八类机制、Hans真实Tauri联动及Forge/CRT限域实屏；512帮助源与原厂两caller分开核证；源字体双实现与Timeline纯fake-original夹具另证；本轮5次真实Switch/重应用/Restore及各语正常退出/重启证据独立核回，不冒字体运行时修复
 [OUTPUT]: 给出2.8迁移/TDD与44项进度；官方10278/Forge8/缺源365合计10651审批、三语10846派生输出，World Scale仅caption单键追加；历史partial与当前source完整分账，不宣称产品已经支持2.8
 [POS]: feat/cavalry-2.8.0 的实施方案入口；调查工具与原始证据不进入产品运行时
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -11,7 +11,7 @@
 
 当前代码与离线验收：显式macOS开发预览已接用户事务、状态与四语UI；新装Absent locale按核证的en-GB fallback显示默认英语，异常仍Unknown；Official显示须固定厂商Apple Developer ID来源验证与内置en/ja、无Switcher覆盖共同成立；旧来源-only语义已按§25收紧，不授予写入/恢复权。当前整仓Node754项通过（项目锁定Node24.20.0/npm11.19.0；§23历史740、§24–27历史752）；历史native与默认路径全量Rust各372通过/0失败/0warning，§24双Rust各373通过；§25 Official语义复验两配置各378通过/7 ignored/0warning（默认资源空数组仅测试覆盖）；§27/28本轮显式native Rust379通过/0失败/7 ignored/0warning，默认Rust未重跑；7个显式人工门在默认全量运行中ignored；另手动真实原厂来源与真实status组合只读smoke各1项通过，六文件前后摘要未变。四语徽章Chromium headless fixture 6项与系统WKWebView fixture 6项均通过；WK审查用prohibited激活策略，记录1个内部隐藏TUINSWindow、0可见/key/main及无自身激活事件，原厂/profile六监视文件前后不变。真实WebKit渲染不等于Tauri AppHandle/实际后端联动或Cavalry UI。测试用PathBuf归入cfg(test)后，两配置全量复验与真实只读smoke均零编译warning；格式/生产编译检查通过。
 
-完整冻结包历史生产owner动作5/5、四语原厂首屏/正常退出各4/4；随后Hans Apply与Forge旧包升级各一次，§26又经真实Tauri IPC完成新364资源的Hans同语言Update并正常启动，合计8次成功用户事务。当前typed locale为zh-Hans，自有strings/receipt存在；English恢复曾因实验副本仍运行被writer guard拒绝，未写profile，不能沿用§16的历史English终态。原厂安装未改。独立ad-hoc副本的Hans工具提示字体canary已观察8条CJK/1条ASCII路径与可读截图，但后台门失败；第二轮副本确认单一视口状态“视口质量：完整”可读，启动/退出前台约束仍失败。§26原厂普通Inspector另见Forge八补充Hans标题8/8；Timeline同名中文仍方框；§31另闭非Forge CRT两Hanscaption实屏，其他新caption/动态属性、搜索/字体身份待验。完整catalog仍0/51；Hans只读status和同语言Update真实IPC小门已闭，但Restore/其他语言与Activity视觉未闭。默认2.7发布、版本号与共享feed不变；Windows暂停，不公开推送或发布。历史全session私人检查点及指定会话任务原文已正常push并远端核验；新增Official57文件发布遇根CLAUDE并发冲突停止，隔离草稿保留，不能声称该57份已push；本轮全462原话与接续证据另以98686cd1普通push，54文件远端逐字节核回/45副本原字节保全、无rebase、锁已释，见§30。最新交叉范围/CRT小门/帮助384候选与111子项未消费边界见§31，不把小样或离线绿计入完整UI。
+历史8次成功用户事务保留；§34新增当前真实Tauri/WK的Hans同语言Update、Hant Switch、JA Switch、Restore English和Hans handback共5次成功，累计13次。三语当前10846逐字节与derived相等；每语及English正常退出、显式正常启动、再退出持久读回，其他偏好语义和42个厂商有限监视行不变；最终Hans10846、receipt完整、Cavalry已正常退出，无作品编辑/丢弃。English恢复精确回到首次**显式en-GB**且自有strings/receipt消失，真实Official可见；它不代default Absent英语。Activity经真实前台Raise后四完成行/marker与Outcome可见，撤回此前由后台截图空白作CSS缺陷的过早判断，无CSS修改。第20项完整流程已闭，§5.2为27完成/17待办；完整catalog仍0/51、完整四语错误与新caption/动态属性、搜索/字体仍待验。历史2.7字体修复及三语arm64实屏确有私档；2.8两代GetPath副本只有工具提示/单视口有限正例，后台/退出门失败，不覆盖Timeline，字体修复不勾选。默认2.7发布、版本号/feed和Windows暂停不变，不公开push/tag/release；源包完整不是产品完整。私人98686cd1/caff2010/3a7ad64a三次普通push和远端字节读回属于已出版历史检查点；旧Official57并发冲突草稿未push。当前新增真实流程/字体历史与callsite证据由会话stage保全，再按私档Skill独立归档，不修改旧冻结档。
 本文件按用户要求放在产品分支；过程证据与临时队列留在会话级 stage 或私有历史文档库。公开构建、测试和发布不得依赖这些路径，也不打包调查脚本。
 
 > 下文早期阶段的数量、RED、构建与实跑记录属于各自历史检查点；当前键与离线验收状态以上方状态为准。完整官方键资源已闭合，不代表schema生成式标签、真实 UI、独立帮助 consumer 或发行已完成；全定义另有365缺源候选，见§22。
@@ -394,7 +394,7 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 
 ### 5.2 整个2.8迁移的逐项办事表
 
-核对日期：2026-10-06。全流程44项中26完成/18待办，未加权，不编造总百分比；最新源接线见§28。`[x]`只表示该行明确限定的完成条件已达到；代码/fixture、历史小样、当前完整live、正式发行分账，不互相冒领。无权重依据，不给整个迁移编造百分比。后续每完成一项，在同次代码/文档检查点勾选并保留证据范围。
+核对日期：2026-10-06。全流程44项中27完成/17待办，未加权，不编造总百分比；最新源接线见§28、真实完整流程见§34。`[x]`只表示该行明确限定的完成条件已达到；代码/fixture、历史小样、当前完整live、正式发行分账，不互相冒领。无权重依据，不给整个迁移编造百分比。后续每完成一项，在同次代码/文档检查点勾选并保留证据范围。
 
 #### A 厂商调查与架构裁决
 
@@ -426,7 +426,7 @@ Slit Scan完整48键经AGY/宝玉Skill、Grok实际end_turn全144值及Luna全�
 - [x] 用户scope的typed locale/专属strings/独立receipt事务接进显式macOS preview；资源先、locale最后，旧bundle baseline与QPA不进入此路径。
 - [x] tempfile合同覆盖首次前像、重应用、pending/中断收敛、无关偏好保留、symlink/字节与mode漂移拒绝及empty-only目录清理；乐观比较不冒称OS CAS。
 - [x] fixed OS home、全部Cavalry写者快照准入、受控launch-only、hostless Current-owned English恢复代码与隔离合同；缺receipt/pending/坏证据不授予能力。
-- [ ] 真实Switcher完整Switch/同语言重应用/Restore English，退出重启持久化；生产owner历史5动作加后续两次Hans Apply与§26真实Tauri Hans Update共8次成功；该Update的IPC/正常启动/AX阶段与终态已见，Restore/其他语言、Activity视觉和新包退出持久化仍待验，不冒领整行。
+- [x] 真实Switcher完整Switch/同语言重应用/Restore English，退出重启持久化；§34经当前真实Tauri/WK完成Hans Update/Hant/JA Switch/English Restore/Hans handback五动作，全部正常退出及显式正常启动持久读回、strings/receipt精确相等、其他偏好和42厂商有限行保全；前台Activity四行/终态可见。历史8+本次5=13，不代default Absent/完整四语错误、字体或catalog。
 - [ ] 真实中断/权限失败/漂移保留/耐久warning与恢复；登录/Keychain、共享副本/旧版影响及卸载保留/恢复语义。
 - [ ] Windows用户文件替换/目录耐久/真实进程准入与恢复（Windows实施暂停）。
 
@@ -934,3 +934,26 @@ CUA仍Transport closed，但按exact unix PID读取AX角色/窗口和激活后�
 - **保全与私档**：本轮再核三明确profile size/mode/SHA及vendor executable与CRT退出基线相等，ps pid/comm未见Cavalry或自有preview；不归档raw profile，不泛称全App所有文件零写。字体准备另以`3a7ad64a50d2ddec0dfd0ea16969b4053310ed9e`普通push：22原字节副本、实际commit31路径全等，最新远端26档案路径+5父导航逐项比较全等；无rebase/retry，clean/匹配token锁已释。旧986/caff两冻结tree不变，共享私库Git枚举dirty快照前后相等；root私库L1未在本批修改，旧Official57冲突草稿不动。发布脚本已独审链接/锁边界，软硬链接拒绝、既有副本不重写，新文件独占创建、父导航原子替换；纯helper六场景外部synthetic文件未被改变。非作者最后再核31/22及L2/L3/旧两tree一致；确认所有读者停止、三自有commit在新fetch远端历史、无未提交/未发布内容并释锁后，只精确移除本轮成功临时clone，旧失败clone/共享checkout保留。
 
 §5.2仍26/44、18待办、完整catalog0/51。实际用户仍Hans10845旧partial/8成功语言事务，无新Apply/App启动、无字体live修复声明。默认2.7/feed/version与Windows暂停不变，公开仓只本地提交、不push/tag/release；计划历史尚未获准压缩，本轮不擅自删改。
+
+
+## 34. 当前真实三语Switch、English恢复和退出重启（2026-10-06）
+
+本次仅为CUA精确绑定生成一次fresh debug App，原包manifest `5944a16e…`，裸debug/打包exe SHA同为`43c114b9…`；没有DMG或正式发行。旧打包App确实资源陈旧，但不能据此推论当时裸exe也陈旧，embedded manifest后核已纠正。原厂2.8安装与默认2.7发布配置不变。
+
+真实Tauri/WK→单一bridge→生产command，preview PID32201：
+
+| 动作 | Started UTC | Finished UTC | 退出后显式正常启动 PID |
+|---|---|---|---|
+| Hans同语言Update | 11:20:38.991 | 11:21:24.177 | 33546→35316 |
+| Hant Switch | 11:28:15.548 | 11:29:07.686 | 37765→38398 |
+| JA Switch | 11:31:14.863 | 11:32:12.393 | 39494→41575 |
+| Restore English | 11:36:01.972 | 11:36:56.197 | 45556→51569 |
+| Hans handback | 11:44:11.326 | 11:44:21.445 | 54897→59928 |
+
+五次Finished均ok/committed，无pending、错误、权限需求。三语actual strings10846与各derived逐字节相等；receipt locale/bytes/mode相等，首次preimage仍显式en-GB+无strings。日语locale/strings tag为`ja`，产品action/receipt为`ja_JP`，不能强行同码。English Restore删除自有strings/receipt并回到显式en-GB；退出和正常重启保持English，不借此勾选item28的default Absent。所有读回其他Preferences语义SHA `a5a17c9d…` 与8厂商/34catalog有限监视不变，不冒全bundle逐文件认证。最终Hans10846/current receipt、正常退出无Cavalry PID。root只观察空白未修改Untitled，没有load/edit/save/discard用户作品。Luna Max独立复算21来源摘要/全部谓词一致，原44项第20行达成，当前27/44、17待办。历史第1–33节数量不回写。
+
+Activity视觉的过早归因已纠正：先前后台/bound AX截图completed区空白不能证CSS产品缺陷；English Restore和Hans handback后在真实窗口暴露的`Raise`动作下，未改源码，四completed行/marker与Outcome均可见，Hans启动Checking spinner亦可见。真实捕获/前台时序原因未定；不修CSS。root原始CUA像素只在工具输出，未保存PNG，不把Luna的headless几何或root转述冒成独立像素验收。第一次Quit后再查目标AX引起新PID，已保留非no-writer记录，后续用观察preview+只读ps确认退出；首次collector外type断言失败无profile写入，也另存原始失败。
+
+按用户指定私档继续核字体历史，四session筛出相关51完整可见原话，保留UUID/UTC/JSONL行及行SHA，不代替已恢复的462全文。2.7.2 exact ToolHelp/GetPath和Timeline双caller修复确有历史实现；私档2026-09-22有arm64三语六名称/15终态截图和短时播放验证，Intel仍只有静态/编译。当前2.8 native纯资源路径未接这套窄字体能力，不能把已审批译文等同CJK绘制。只复用已有2.8 v2 exact GetPath策略作新独占epoch必要验证，不全局换字体/改用户输入或原厂字体文件；Timeline独立measure/draw存在完整名称与NUL视图差异，仍需最小明确准入。callsite族枚举的direct范围与indirect/virtual未知分别登记，不冒“全部已修”。
+
+本节只新增item20完成信用，catalog仍0/51；item21/28/29/31/32及性能、Intel/Windows/发行待验。整仓Node754/native Rust379为此前同源码回归，本次docs/live检查不编造新的全量测试。会话stage原始21读回、root汇总/独审和字体历史另归私档，不参与公开构建。

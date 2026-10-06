@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-native_resources.rs: macOS显式预览的资源/宿主只读门；bundle发现只看Info/executable，不用2.7旧JSON布局吞掉2.8安装；manifest逐字绑定编译审批，三语pack摘要与显示schema闭合，宿主main/Api/Core/QtCore及17对catalog锁定2.8，独立nodeDefinitions锁证明Forge8与缺源365的373补充源；manifest官方10473与补充373分账，总10846，World Scale未决使三语各10845输出/missing1/complete:false且保持可读，不冒称扩充厂商catalog；不以hash证明profile路径或Qt TestMode，release/live另验。
+native_resources.rs: macOS显式预览的资源/宿主只读门；bundle发现只看Info/executable，不用2.7旧JSON布局吞掉2.8安装；manifest逐字绑定编译审批，三语pack摘要与显示schema闭合，宿主main/Api/Core/QtCore及17对catalog锁定2.8，独立nodeDefinitions锁证明Forge8与缺源365的373补充源；manifest官方10473与补充373分账，总10846，World Scale单caption批准后当前三语各10846输出/missing0/complete:true，仍可识别撤批后的合法partial包，不冒称扩充厂商catalog；不以hash证明profile路径或Qt TestMode，release/live另验。
 native_official.rs: 固定Developer-ID requirement、canonical bundle/可显示版本/原厂executable的5秒OS验签只证明vendor_origin；最终Official显示还需native_user证明内置locale与无Switcher覆盖，不授予恢复或写入许可。
 native_user.rs: 原厂来源与内置English/日语+无receipt/专属strings共同准入Official；自有翻译/漂移/未知不宣称官方，资源与恢复能力不被徽章覆写； 2.8用户级native-first编排；typed profile/receipt与desired pack摘要分别投影currentLang/patchStatus；基于锁定的2.8原厂activeLocale fallback，只有locale键Absent投影`currentLang=en`并同时保留`unset`以标明默认值，不读取系统语言；Known为explicit，null/错误typed/未知raw locale/JSON损坏或读取失败均保持`unknown+unrecognized`；profile语言不伪造厂商来源，最终Official显示门还要求无Switcher覆盖；强Current-owned postimage独立投影English restore能力；无兼容宿主时只有该强证明可走受保护English restore-only，不触碰vendor且不启动，空事务回执/pending/耐久warning均不冒作成功；独立restart只读拒绝pending/drift/损坏receipt及无回执的strings残留；另挂载默认ignored的真实profile单动作smoke，持共享operation lock并直接调用`apply_inner`，不经过自动重启、不启动Cavalry且不代验实际UI。
 patch_receipt.rs: 已应用补丁的历史源身份；随包语言、平台 runtime、wrapper 与 Switcher 版本构成内容地址，严格绑定安装根/宿主 revision/语言，版本比较只读，不写成功状态。
