@@ -2,6 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+native-display-tests/: 项目显示技能的四份标准库离线维护测试；依赖技能脚本与场景，不运行App，不自动加入test:contracts。
 native_schema_gap_translations.test.js: 离线源绑定准入合同；守365键/1095槽与旧364冻结摘要；World Scale单键source/decision/独审绑定，真实producer完整与仅撤销该批准时missing1分开守门；不读App或私账。
 native_remaining_ui_contract.js: 纯测试共享完整分区摘要/源/格式/三语producer和有限实际修订守门，原42合同逻辑等价提取，不自动注册测试或读取私账/App。
 native_remaining_ui_final_repair_cases.js: 构建期剩余UI后半分区纯静态回退数据，Global06的112文字槽/6物理键决定、Node A04/A05/A06与B04/B05/B06分别绑定77/98/82/58/52/40个冻结源身份及旧值；不依赖私账，不以数据生成代验批准。

@@ -3,6 +3,7 @@
 
 成员清单
 baoyu-translate/: 上游三模式翻译技能，固定来源版本并按 Cavalry UI 资源边界接入；现有偏好独立保存在 .baoyu-skills。
+cavalry-native-display-check/: macOS 2.8显示验收；按语言/场景合批，渐进路由可复用脚本、标准场景与分项证据。
 
 依赖边界:
 技能与语义配置只被 Agent 使用；不得成为产品构建、运行时或实机验收的替身。

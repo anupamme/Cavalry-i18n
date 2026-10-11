@@ -2,7 +2,7 @@
 HTML + Javascript + Rust (Tauri) + Objective-C++ / C++ (Qt Injector / Windows generic translator + QPA delegate)
 
 <directory>
-.agents/ - 本仓 Agent 技能发现入口，只安装 baoyu-translate 的完整项目级技能，记录固定上游来源并与现存 Cavalry 翻译偏好分离；不参与产品构建或运行 (1 子目录: skills)
+.agents/ - 项目技能发现入口；翻译偏好与macOS原生显示验收分别路由，显示按语言/场景合批，脚本自测留tools；不参与产品构建或运行 (1 子目录: skills)
 .baoyu-skills/ - 项目本地 Agent 技能扩展配置，约束翻译偏好与术语来源 (Markdown)
 .github/ - GitHub Actions 自动化与 Issue 模板入口；普通 PR/main 按路径风险选择 Runner 并由稳定 ci_gate 汇总，未知路径 fail-closed；main-contained tag preflight 阻断旁支发布，tag 验证三平台 updater 签名与 provenance/SBOM/toolchain，七项用户资产逐字节回读后公开 (YAML)
 desktop-patcher/ - 旧桌面补丁器产物镜像，仅保留 injector 生成物与预编译 dylib (C++, dylib)
