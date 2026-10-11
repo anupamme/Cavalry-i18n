@@ -59,6 +59,11 @@ UTF-8按钮文案用`QString::fromUtf8`，全选复用平台SelectAll绑定。
 
 操作真实Tauri/WK，不用fixture bridge替代。
 按exact PID读本次AX树，取得可用按钮后才开始动作。
+同进程名并存时，System Events引用可按名称错绑。
+用AXUIElementCreateApplication建立PID句柄。
+再用AXUIElementGetPid及CGWindow owner核回同PID。
+AX树初次不含WebArea时，有限等待其就绪。
+不把空树或其他App的英文按钮判成该副本语言失败。
 窗口出现不证明bootstrap完成；不复用历史序号。
 对语言combobox执行其实际AXPress。
 选项可暴露为AXStaticText：文字在description，name/value为空。
@@ -66,3 +71,14 @@ UTF-8按钮文案用`QString::fromUtf8`，全选复用平台SelectAll绑定。
 分别执行Switch或Update，普通Switch直接执行；Restore English仍确认。
 读取真实Outcome和新进程结果；先保护临时恢复记录再退出副本。
 这只覆盖实际操作，不从AX动作返回推导产品事务成功。
+
+## Switcher界面语言
+
+目标语言Select只改Cavalry语言，不是Switcher界面语言。
+在系统Language & Region中，为获准Switcher选择应用专属语言。
+先退出该副本，再保存语言；不改全局语言列表。
+系统询问重新启动时，选不重启，再正常打开精确App路径。
+同identifier的旧副本会让系统显示旧名称；按实际PID与App路径验收。
+等语言保存及真实WebArea就绪，再合批验主窗、About和本批动作。
+测试后经同一设置恢复原值；原键不存在时删除临时应用行。
+读回单键及实际窗口；不从启动参数或源码四语存在推导显示通过。
