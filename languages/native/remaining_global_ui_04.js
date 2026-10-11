@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 绑定 Cavalry 2.8 官方显示源与完整 source/notes/身份，Luna Max作者、非作者全域/差分审校与root返修批准。
- * [OUTPUT]: 提供 449 个完整分区源绑定三语决定；审批谱系只保留构建期，不进入运行时包。
- * [POS]: languages/native 的第 04 剩余全局 UI 分区显式批准输入；不修改模型/API，不证明部署、live 或发行。
+ * [OUTPUT]: 提供449键原审批与已批准调色板提示类别revision；不改source/vendorJapanese。
+ * [POS]: 第04剩余全局UI审批输入；类别revision保留旧摘要，liveApproval为false。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -94,7 +94,7 @@ const entries = [
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["palette.menu.selectLayersWithColor"],"source":"Select Layers with Color","notes":["Menu item; selects every layer in the scene that uses this swatch’s colour."],"key":"palette.menu.selectLayersWithColor","vendorJapanese":"Select Layers with Color","translations":{"zh-Hans":{"decision":"translate","text":"选择使用此颜色的图层"},"zh-Hant":{"decision":"translate","text":"選取使用該顏色的圖層"},"ja_JP":{"decision":"translate","text":"この色を使用しているレイヤーを選択"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["palette.menu.setGradientFromPalette"],"source":"Set Gradient From Palette","notes":["Menu item; fills a gradient attribute’s stops using the colours from this palette."],"key":"palette.menu.setGradientFromPalette","vendorJapanese":"Set Gradient From Palette","translations":{"zh-Hans":{"decision":"translate","text":"从调色板设置渐变"},"zh-Hant":{"decision":"translate","text":"從調色盤設定漸層"},"ja_JP":{"decision":"translate","text":"パレットからグラデーションを設定"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["palette.menu.setW3CName"],"source":"Set W3C Name","notes":["Menu item; \"W3C\" refers to the standard set of named CSS colour names (e.g. \"Tomato\", \"SteelBlue\") defined by the W3C."],"key":"palette.menu.setW3CName","vendorJapanese":"Set W3C Name","translations":{"zh-Hans":{"decision":"translate","text":"设置 W3C 名称"},"zh-Hant":{"decision":"translate","text":"設定 W3C 名稱"},"ja_JP":{"decision":"translate","text":"W3C 名を設定"}}},
-  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["palette.placeholder.createPalette"],"source":"Create a palette to begin.","notes":["Placeholder text inviting the user to create a colour palette."],"key":"palette.placeholder.createPalette","vendorJapanese":"Create a palette to begin.","translations":{"zh-Hans":{"decision":"translate","text":"创建调色板以开始。"},"zh-Hant":{"decision":"translate","text":"建立調色盤以開始。"},"ja_JP":{"decision":"translate","text":"パレットを作成する。"}}},
+  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["palette.placeholder.createPalette"],"source":"Create a palette to begin.","notes":["Placeholder text inviting the user to create a colour palette."],"key":"palette.placeholder.createPalette","vendorJapanese":"Create a palette to begin.","translations":{"zh-Hans":{"decision":"translate","text":"创建调色板以开始"},"zh-Hant":{"decision":"translate","text":"建立調色盤以開始"},"ja_JP":{"decision":"translate","text":"パレットを作成する"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["palette.placeholder.dragColors"],"source":"Drag colors here.","notes":["Placeholder text in an empty colour palette, inviting the user to drag colours in."],"key":"palette.placeholder.dragColors","vendorJapanese":"Drag colors here.","translations":{"zh-Hans":{"decision":"translate","text":"将颜色拖到此处"},"zh-Hant":{"decision":"translate","text":"將顏色拖曳到此處"},"ja_JP":{"decision":"translate","text":"ここにカラーをドラッグしてください"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["palette.placeholder.dragColours"],"source":"Drag colours here.","notes":["Placeholder text in an empty colour palette, inviting the user to drag colours in."],"key":"palette.placeholder.dragColours","vendorJapanese":"Drag colours here.","translations":{"zh-Hans":{"decision":"translate","text":"将颜色拖到此处"},"zh-Hant":{"decision":"translate","text":"將顏色拖曳到此處"},"ja_JP":{"decision":"translate","text":"ここにカラーをドラッグしてください"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["palette.placeholder.noProjectSet"],"source":"No Project Set.","notes":["Placeholder/status text; \"Project\" is a named container/workspace concept in the app."],"key":"palette.placeholder.noProjectSet","vendorJapanese":"No Project Set.","translations":{"zh-Hans":{"decision":"translate","text":"尚未设置项目"},"zh-Hant":{"decision":"translate","text":"尚未設定專案"},"ja_JP":{"decision":"translate","text":"プロジェクトが設定されていません"}}},
@@ -506,3 +506,39 @@ const entries = [
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["referenceProvider.log.readFailed"],"source":"Failed to read Reference. Please check the file is valid.","notes":["\"Reference\" refers to an image or video asset used for tracing."],"key":"referenceProvider.log.readFailed","vendorJapanese":"Failed to read Reference. Please check the file is valid.","translations":{"zh-Hans":{"decision":"translate","text":"无法读取参考素材。请检查文件是否有效。"},"zh-Hant":{"decision":"translate","text":"無法讀取參考素材。請檢查檔案是否有效。"},"ja_JP":{"decision":"translate","text":"参照素材を読み込めませんでした。ファイルが有効か確認してください。"}}},
 ];
 module.exports = { provenance, entries };
+
+module.exports.provenance.emptyRegionPromptPunctuationRevision = {
+  "revisionId": "empty-region-prompt-no-terminal-full-stop-20261012-r1",
+  "approvalState": "approved-source-bound-category-revision",
+  "requestedBy": "user",
+  "approvedBy": "primary-agent",
+  "changedKeys": 1,
+  "changedLocaleSlots": 3,
+  "previousDecisionSha256": "c847daaccf680aa1c7e2451b15754ce8f6a2e511763a6e171f9a9050e68a8d09",
+  "currentDecisionSha256": "b6135fa896ea0a76431730c4b1c8e9aa4c3ad58eefcc2e0e49580c57284b4775",
+  "changes": [
+    {
+      "key": "palette.placeholder.createPalette",
+      "source": "Create a palette to begin.",
+      "sourceIdentitySha256": "6c9ffbfeff280820260b84192ca4a7db1b5a0e2012a5c0c8366c1899c6f0180f",
+      "previousTranslations": {
+        "zh-Hans": "创建调色板以开始。",
+        "zh-Hant": "建立調色盤以開始。",
+        "ja_JP": "パレットを作成する。"
+      },
+      "currentTranslations": {
+        "zh-Hans": "创建调色板以开始",
+        "zh-Hant": "建立調色盤以開始",
+        "ja_JP": "パレットを作成する"
+      },
+      "changedLocales": [
+        "zh-Hans",
+        "zh-Hant",
+        "ja_JP"
+      ]
+    }
+  ],
+  "sourceIdentityChanged": false,
+  "vendorJapaneseChanged": false,
+  "liveApproval": false
+};

@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 绑定 Cavalry 2.8 官方显示源与完整 source/notes/身份，Luna Max作者、非作者全域/差分审校与root返修批准。
- * [OUTPUT]: 提供 449 个完整分区源绑定三语决定；审批谱系只保留构建期，不进入运行时包。
- * [POS]: languages/native 的第 05 剩余全局 UI 分区显式批准输入；不修改模型/API，不证明部署、live 或发行。
+ * [OUTPUT]: 提供449键原审批、空场景历史修订与已批准空区类别revision；source不变。
+ * [POS]: 第05剩余全局UI输入；类别revision保留单键历史摘要，liveApproval为false。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -119,7 +119,7 @@ const entries = [
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["renderQueue.notification.fileFinished"],"source":"{0} has finished rendering","notes":["System notification text shown when a single render finishes.","placeholder0 - the finished file’s name.","Example - \"MyRender.mp4 has finished rendering\""],"key":"renderQueue.notification.fileFinished","vendorJapanese":"{0} has finished rendering","translations":{"zh-Hans":{"decision":"translate","text":"{0} 已完成渲染"},"zh-Hant":{"decision":"translate","text":"{0} 已完成算繪"},"ja_JP":{"decision":"translate","text":"{0} のレンダリングが完了しました"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["renderQueue.notification.renderComplete"],"source":"Render Complete","notes":["System notification title shown once rendering finishes."],"key":"renderQueue.notification.renderComplete","vendorJapanese":"Render Complete","translations":{"zh-Hans":{"decision":"translate","text":"渲染完成"},"zh-Hant":{"decision":"translate","text":"算繪完成"},"ja_JP":{"decision":"translate","text":"レンダリングの完了"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["renderQueue.tooltip.moreOptions"],"source":"More options","notes":["Tooltip for the toolbar's overflow (three-dot) menu button."],"key":"renderQueue.tooltip.moreOptions","vendorJapanese":"More options","translations":{"zh-Hans":{"decision":"translate","text":"更多选项"},"zh-Hant":{"decision":"translate","text":"更多選項"},"ja_JP":{"decision":"translate","text":"その他のオプション"}}},
-  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["renderQueue.tree.placeholder"],"source":"Drag in Compositions or use the ‘+ Current Composition’ button.","notes":["Placeholder text shown in the empty Render Queue list, referring to a ‘+ Current Composition’ button by its literal label."],"key":"renderQueue.tree.placeholder","vendorJapanese":"Drag in Compositions or use the ‘+ Current Composition’ button.","translations":{"zh-Hans":{"decision":"translate","text":"将合成拖入此处，或使用“+ 当前合成”按钮。"},"zh-Hant":{"decision":"translate","text":"將合成拖曳至此，或使用「+ 目前合成」按鈕。"},"ja_JP":{"decision":"translate","text":"コンポジションをここにドラッグするか、「+ 現在のコンポジション」ボタンを使ってください。"}}},
+  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["renderQueue.tree.placeholder"],"source":"Drag in Compositions or use the ‘+ Current Composition’ button.","notes":["Placeholder text shown in the empty Render Queue list, referring to a ‘+ Current Composition’ button by its literal label."],"key":"renderQueue.tree.placeholder","vendorJapanese":"Drag in Compositions or use the ‘+ Current Composition’ button.","translations":{"zh-Hans":{"decision":"translate","text":"将合成拖入此处，或使用“+ 当前合成”按钮"},"zh-Hant":{"decision":"translate","text":"將合成拖曳至此，或使用「+ 目前合成」按鈕"},"ja_JP":{"decision":"translate","text":"コンポジションをここにドラッグするか、「+ 現在のコンポジション」ボタンを使ってください"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["renderQueue.window.title"],"source":"Render Manager","notes":["Window title for the Render Queue/Manager."],"key":"renderQueue.window.title","vendorJapanese":"Render Manager","translations":{"zh-Hans":{"decision":"translate","text":"渲染管理器"},"zh-Hant":{"decision":"translate","text":"算繪管理器"},"ja_JP":{"decision":"translate","text":"レンダーマネージャー"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["renderVideo.log.codecCtxAllocFailed"],"source":"Could not allocate codec context.","notes":["\"Codec context\" refers to an internal data structure used by the video encoder."],"key":"renderVideo.log.codecCtxAllocFailed","vendorJapanese":"Could not allocate codec context.","translations":{"zh-Hans":{"decision":"translate","text":"无法分配编解码器上下文。"},"zh-Hant":{"decision":"translate","text":"無法配置編解碼器上下文。"},"ja_JP":{"decision":"translate","text":"コーデックコンテキストを割り当てられませんでした。"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["renderVideo.log.codecNotFound"],"source":"Could not find codec.","notes":["\"Codec\" (short for coder-decoder) is the software component that encodes or decodes video."],"key":"renderVideo.log.codecNotFound","vendorJapanese":"Could not find codec.","translations":{"zh-Hans":{"decision":"translate","text":"找不到编解码器。"},"zh-Hant":{"decision":"translate","text":"找不到編解碼器。"},"ja_JP":{"decision":"translate","text":"コーデックが見つかりません。"}}},
@@ -225,7 +225,7 @@ const entries = [
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["sceneTree.menu.unparent"],"source":"Un-Parent","notes":["Context-menu item removing a layer’s parent, moving it to the top level."],"key":"sceneTree.menu.unparent","vendorJapanese":"Un-Parent","translations":{"zh-Hans":{"decision":"translate","text":"解除父级"},"zh-Hant":{"decision":"translate","text":"解除父級"},"ja_JP":{"decision":"translate","text":"親子付けを解除"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["sceneTree.menu.wireframe"],"source":"Wireframe","notes":["Context-menu item toggling wireframe (outline-only) display for a shape."],"key":"sceneTree.menu.wireframe","vendorJapanese":"Wireframe","translations":{"zh-Hans":{"decision":"translate","text":"线框"},"zh-Hant":{"decision":"translate","text":"線框"},"ja_JP":{"decision":"translate","text":"ワイヤーフレーム"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["sceneTree.notes.placeholder"],"source":"Notes added here will appear as tooltips when hovering over Layers in the Scene Window.","notes":["Placeholder text in the layer notes field, explaining that notes appear as tooltips over layers in the Scene Window."],"key":"sceneTree.notes.placeholder","vendorJapanese":"Notes added here will appear as tooltips when hovering over Layers in the Scene Window.","translations":{"zh-Hans":{"decision":"translate","text":"在此添加的备注会在场景窗口中悬停于图层上时显示为工具提示。"},"zh-Hant":{"decision":"translate","text":"在此新增的備註會在場景視窗中將游標停在圖層上時顯示為工具提示。"},"ja_JP":{"decision":"translate","text":"ここに追加したメモは、シーンウィンドウでレイヤーにカーソルを合わせるとツールチップとして表示されます。"}}},
-  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["sceneTree.placeholder.empty"],"source":"Use the Create menu to add a Layer to the active Composition.","notes":["Placeholder text; ‘Create menu’ names the app’s menu for adding layers."],"key":"sceneTree.placeholder.empty","vendorJapanese":"Use the Create menu to add a Layer to the active Composition.","translations":{"zh-Hans":{"decision":"translate","text":"使用“创建”菜单向当前合成添加图层。"},"zh-Hant":{"decision":"translate","text":"使用「建立」選單將圖層新增至作用中的合成。"},"ja_JP":{"decision":"translate","text":"作成メニューからアクティブなコンポジションにレイヤーを追加してください。"}}},
+  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["sceneTree.placeholder.empty"],"source":"Use the Create menu to add a Layer to the active Composition.","notes":["Placeholder text; ‘Create menu’ names the app’s menu for adding layers."],"key":"sceneTree.placeholder.empty","vendorJapanese":"Use the Create menu to add a Layer to the active Composition.","translations":{"zh-Hans":{"decision":"translate","text":"使用“创建”菜单向当前合成添加图层"},"zh-Hant":{"decision":"translate","text":"使用「建立」選單將圖層新增至作用中的合成"},"ja_JP":{"decision":"translate","text":"作成メニューからアクティブなコンポジションにレイヤーを追加してください"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["sceneTree.tooltip.active"],"source":"Active","notes":["Tooltip on a column/icon indicating whether a layer is active (enabled)."],"key":"sceneTree.tooltip.active","vendorJapanese":"Active","translations":{"zh-Hans":{"decision":"translate","text":"已启用"},"zh-Hant":{"decision":"translate","text":"已啟用"},"ja_JP":{"decision":"translate","text":"有効"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["sceneTree.tooltip.animationOffsetValue"],"source":"Animation Offset Value.","notes":["Tooltip describing a column that shows a per-layer time offset applied to that layer’s animation."],"key":"sceneTree.tooltip.animationOffsetValue","vendorJapanese":"Animation Offset Value.","translations":{"zh-Hans":{"decision":"translate","text":"动画偏移值。"},"zh-Hant":{"decision":"translate","text":"動畫偏移值。"},"ja_JP":{"decision":"translate","text":"アニメーションオフセット値。"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["sceneTree.tooltip.combinedKeyframeValue"],"source":"Combined Keyframe Layers value.","notes":["Tooltip describing a column that shows the combined value from multiple Keyframe Layers."],"key":"sceneTree.tooltip.combinedKeyframeValue","vendorJapanese":"Combined Keyframe Layers value.","translations":{"zh-Hans":{"decision":"translate","text":"组合关键帧图层值。"},"zh-Hant":{"decision":"translate","text":"組合關鍵幀圖層值。"},"ja_JP":{"decision":"translate","text":"結合キーフレームレイヤー値。"}}},
@@ -518,3 +518,78 @@ const entries = [
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["timeline.window.title"],"source":"Timeline","notes":["Window title for the panel showing the Composition’s timeline and playhead."],"key":"timeline.window.title","vendorJapanese":"Timeline","translations":{"zh-Hans":{"decision":"translate","text":"时间轴"},"zh-Hant":{"decision":"translate","text":"時間軸"},"ja_JP":{"decision":"translate","text":"タイムライン"}}},
 ];
 module.exports = { provenance, entries };
+
+// -- 空场景标点：只批两中文槽，保留原分区审批与日文整句 ----------
+module.exports.provenance.placeholderPunctuationRevision = {
+  approvedBy: 'primary-agent',
+  approvalState: 'approved-source-bound-single-key-revision',
+  approvedAtUtc: '2026-10-07T16:45:35.861Z',
+  approvalReceiptSha256: '627d3ad23100c57414945653480d14348ec4de21745b2c9df4b3f4c449d11a38',
+  instructionSha256: '02743b357b3397df540ba72078cfb38cabe4d2458c26c05bc5c7ef70996708ed',
+  key: 'sceneTree.placeholder.empty',
+  locales: ['zh-Hans', 'zh-Hant'],
+  changedLocaleSlots: 2,
+  sourceIdentitySha256: '55a060123823f081dca83215c96fa91f76a2ae61b0b519fdb8271279d0ed8421',
+  previousDecisionSha256: '98b48d199a2dbc1c025ff3fc739960abfc677f82f6764fe9df16a3000093f095',
+  currentDecisionSha256: '56526b577657cbefe6ce948b76fc64883ff67e851000d9dee08218757337cab6',
+  sourceIdentityChanged: false,
+  vendorJapaneseChanged: false,
+  liveApproval: false,
+};
+
+// -- 后续日文单键修订：独立绑定批准摘要，不改历史中文审批 -----------
+module.exports.provenance.placeholderJapaneseNoFullStopRevision = {
+  requestedBy: 'user',
+  approvedBy: 'primary-agent',
+  approvalState: 'approved-source-bound-single-key-revision',
+  approvedAtUtc: '2026-10-08T08:46:47.837771+00:00',
+  approvalReceiptSha256: '00a264bcdc50bf6d04cf66fc5725f6aeecb17701e71538dbe785358b0caa14b9',
+  instructionSha256: '4be7cfbda9b09b6641fbebea0d5ae616c0edc9990d2fc34bf465b30677424f04',
+  key: 'sceneTree.placeholder.empty',
+  locales: ['ja_JP'],
+  changedLocaleSlots: 1,
+  sourceIdentitySha256: '55a060123823f081dca83215c96fa91f76a2ae61b0b519fdb8271279d0ed8421',
+  previousDecisionSha256: '56526b577657cbefe6ce948b76fc64883ff67e851000d9dee08218757337cab6',
+  currentDecisionSha256: 'd7847dfbdfb272d04d2195b413bc631bf581562a8be8dac207fd1cce9a18522b',
+  previousTranslationSha256: '3a2247768d158751629448520096b81e1c0ccb164f41d1003d961dd4525fa827',
+  currentTranslationSha256: 'a3806eb28782ba57f6d098135bfa1275eca94e6cc873cec3de52fd7a12c5a180',
+  sourceIdentityChanged: false,
+  vendorJapaneseChanged: false,
+  liveApproval: false,
+};
+
+module.exports.provenance.emptyRegionPromptPunctuationRevision = {
+  "revisionId": "empty-region-prompt-no-terminal-full-stop-20261012-r1",
+  "approvalState": "approved-source-bound-category-revision",
+  "requestedBy": "user",
+  "approvedBy": "primary-agent",
+  "changedKeys": 1,
+  "changedLocaleSlots": 3,
+  "previousDecisionSha256": "d7847dfbdfb272d04d2195b413bc631bf581562a8be8dac207fd1cce9a18522b",
+  "currentDecisionSha256": "69df262e0cab07feda1ac427bcdde4ebe9f46bd9e6915046ac029c12e42116eb",
+  "changes": [
+    {
+      "key": "renderQueue.tree.placeholder",
+      "source": "Drag in Compositions or use the ‘+ Current Composition’ button.",
+      "sourceIdentitySha256": "1f5538dae739597f64d4e4dfe1c841ec60b78d6afde2f72d0c6d1d44fe53f27e",
+      "previousTranslations": {
+        "zh-Hans": "将合成拖入此处，或使用“+ 当前合成”按钮。",
+        "zh-Hant": "將合成拖曳至此，或使用「+ 目前合成」按鈕。",
+        "ja_JP": "コンポジションをここにドラッグするか、「+ 現在のコンポジション」ボタンを使ってください。"
+      },
+      "currentTranslations": {
+        "zh-Hans": "将合成拖入此处，或使用“+ 当前合成”按钮",
+        "zh-Hant": "將合成拖曳至此，或使用「+ 目前合成」按鈕",
+        "ja_JP": "コンポジションをここにドラッグするか、「+ 現在のコンポジション」ボタンを使ってください"
+      },
+      "changedLocales": [
+        "zh-Hans",
+        "zh-Hant",
+        "ja_JP"
+      ]
+    }
+  ],
+  "sourceIdentityChanged": false,
+  "vendorJapaneseChanged": false,
+  "liveApproval": false
+};

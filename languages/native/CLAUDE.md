@@ -13,17 +13,17 @@ remaining_node_ui_a_05.js: 构建期完整414节点键，98文字槽43键经一�
 remaining_node_ui_a_04.js: 构建期完整443节点键源绑定准入，77文字槽42键经一份全域首审与126非作者差分验收，25错误52建议；成熟Transform/Curl/融合球/文字框/投影合法词形保护，不代live。
 remaining_global_ui_06.js: 构建期最后385键全局UI源绑定准入，112文字槽/52键及6物理键preserve决定经完整非作者1155槽首审和156槽独审；投影端点中文合法保留，不改DNT/source，不证明live。
 remaining_node_ui_b_03.js: 构建期完整第三节点B449键；非作者1347槽全审、root50文字槽31键（13错误37建议）、93槽独立差分与6正确Row guard后准入，台湾欄/列和LocalTime分钟数量/数值乘法分流，不证明live。
-remaining_global_ui_05.js: 构建期完整第五全局449键；一份非作者全1347槽、root133文字槽/73键（68错误65建议）及216+3槽独立验回准入，ScriptSafety18联合句法/父子关系方向/关键帧插值角色分流，不证明live。
+remaining_global_ui_05.js: 构建期第五全局449键；保留sceneTree两中文与JA单键旧摘要；Render Queue空区提示1键/3槽类别修订已批准，liveApproval仍false。
 remaining_node_ui_b_02.js: 构建期完整第二节点B分区450键/31-owner；非作者全1350槽审读、root38槽/21键（23错误15建议）裁定及63+3槽独立验回后准入，物理冲量/HSV明度/子网格/挤出端面分流，Extrude合法行业词形与Combine现代繁中仅建议；保留ConnectShape版本语义差异，非live证明。
-remaining_global_ui_04.js: 构建期完整第四全局显示分区449键；非作者全1347槽审读、root92问题键有限154槽修订（93错误/61建议）及非作者249+3槽验回后准入，Alpha/JSON/HSV/Graph Editor与计数按角色分流，合法借词保留；不证明部署/live。
+remaining_global_ui_04.js: 构建期完整第四全局显示分区449键；保留原1347槽摘要；Palette空区提示1键/3槽类别修订已批准，source/vendorJapanese不变，liveApproval仍false。
 remaining_node_ui_b_01.js: 构建期完整第一节点B分区428键；非作者1284槽全审、root128槽/58键有限修订（69错误/59建议）与非作者174槽验回后准入，数值/图像混合、文本行/几何端点、HSV/Oklab/Body按角色分流，合法日语混合模式不改；不证明部署/live。
 remaining_node_ui_a_03.js: 构建期完整22-owner第三节点A分区438键；非作者1314槽全审、root21键45槽裁定（26错误/19建议）和两阶段63槽非作者验回后准入。布局换行/数值倍率/Oklab/图像适配/过滤动作按角色分流，Knot保守起始方向与原notes歧义共记，不证明算法/live。
 remaining_node_ui_a_02.js: 构建期完整31-owner第二节点A分区433键；非作者Luna Max全1299槽实读、root裁定13键21槽并经另一非作者39槽差分验回后准入。Fixture按碰撞形状、Body泛称物体、Still按静止状态，源8边/HTML不变；17错误与4自然度建议分记，不证明部署/live。
 approved_vendor_corrections.js: 构建期厂商日语有限纠错登记，13项确证错误已正式应用及独立差分验回；独立于UI译键装配，精确绑定key/源身份/新译与root批准回执摘要，metadata不能自报授权，377其余厂商原值不改。
 remaining_node_ui_a_01.js: 构建期完整26-owner第一节点A分区406键；Luna Max作者由独立root重新全读1218槽、13键18槽修订和39槽差分验回后批准；区分几何端部、台湾表格欄/列、数值相乘与图像正片叠底、颜色过渡和泛指物体，不证明部署/live。
-remaining_global_ui_01.js: 构建期完整第一剩余UI分区418键；Luna Max出稿、独立root全1254槽及54键语义差分/2键polish验回后显式批准，保护字体完整名、运动学、CLI/模型身份、烘焙简化与缓动caption，不证明部署或live。
-remaining_global_ui_02.js: 构建期完整第二剩余UI分区446键；独立root全1338槽及55键返修验回后显式批准，绑定渐层色标、曲线/Scene、剪贴板cut、Canva Sheets显示名与安全/期限语义，不改变内部ID或运行行为。
-remaining_global_ui_03.js: 构建期完整第三剩余UI分区449键；Luna Max原稿经独立root全1347槽审读、25键32槽修订及差分验回后批准，保护无计数plural、MCP主动发起警告、API原名和现行节点caption；另root实读两条Forge词表一致性更正6槽，不证明部署/live。
+remaining_global_ui_01.js: 构建期完整第一剩余UI分区418键；保留原审批摘要；输入/输出连接槽3键/6槽类别修订已批准，source/vendorJapanese不变，liveApproval仍false。
+remaining_global_ui_02.js: 构建期完整第二剩余全局UI分区446键；保留原审批摘要；书签/输入连接空区2键/6槽类别修订已批准，source/vendorJapanese不变，liveApproval仍false。
+remaining_global_ui_03.js: 构建期完整第三剩余全局UI分区449键；保留JS Snippet单键历史摘要；Mesh Explorer空区1键/3槽类别修订已批准，source/vendorJapanese不变，liveApproval仍false。
 guides.js: 构建期完整catalog源绑定审批，98个canonical显示键；厂商日语默认优先、纠错只依独立登记、DNT不改，Luna Max双全域审读与主代理修订审批后经显式producer装配，不证明模型改写、部署或live。
 plugins_bilateral_blur.js: 构建期完整catalog源绑定审批，8个canonical显示键；厂商日语默认优先、纠错只依独立登记、DNT不改，Luna Max双全域审读与主代理修订审批后经显式producer装配，不证明模型改写、部署或live。
 plugins_box_blur.js: 构建期完整catalog源绑定审批，4个canonical显示键；厂商日语默认优先、纠错只依独立登记、DNT不改，Luna Max双全域审读与主代理修订审批后经显式producer装配，不证明模型改写、部署或live。
@@ -85,7 +85,7 @@ metadata_supplement.js: 构建期源绑定数据，四份脚本 MetaData 的 34 
 ai_studio_reuse_and_credits.js: 构建期源绑定数据，审校复用 AI 工作室剩余 26 条并补齐 AI 用量 19 条；AGY 修复超过阈值、重置时长/日期，Grok 审稿后由主代理裁定。
 canva_and_assets.js: 构建期源绑定数据，完整覆盖预检 44 条、上传 7 条与素材 20 条，保留原生 ICU 分支、导出能力和修复方向，审稿不等于实机通过。
 ai_studio_supplement.js: 构建期源绑定数据，103 条 AI 工作室完整缺口域由宝玉 Skill 驱动 AGY 出稿修订、Grok 审稿、主代理润色；只提供显示译值，不作运行时或布局证明。
-reviewed_translations.js: CommonJS 的构建期已审译文数据，按 2.8 原生 key 与当前英语源绑定三语决策，保留官方上下文及 AGY/宝玉 skill/Grok 审校来源；当前仅含九条 AI Studio 补译，不是可部署包。
+reviewed_translations.js: CommonJS构建期数据；保留九条AI Studio source/notes与原审批来源；results空区提示1键/3槽类别修订已批准，source/notes不变，liveApproval仍false。
 
 依赖边界:
 本轮质量状态: 原4319键/63模块、12957槽全域非作者复审与62键88槽修订冻结；13厂商日语核证纠错/377原样。完整剩余分区已准入18/18（含冻结前4分区），冻结后新增5959键/14分区；当前77模块/10278正式键（100.0%），余0；全部六全局2596键正式。主/尾58、native/Skill380、源14实际全过/0fail/0skip；内存三语各10473投影（10278+195自动DNT），missing0、complete:true。全部18剩余分区准入，另显式全量15合同实际全过；DestinationOver有1个厂商源行为冲突仍待隔离实机验证，不等于译值缺口。历史回执不重写，该键冻结验收不含部署/live；维护者随后授权本机真实UI测试，需另记现场证据。

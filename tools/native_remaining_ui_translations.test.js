@@ -1,12 +1,13 @@
 /**
  * [INPUT]: 依赖显式审批的剩余全局/节点UI模块、有限真实回退样本、原生格式/显示投影与完整源身份摘要。
- * [OUTPUT]: 锁定十三个剩余UI分区5643键合同及A02/A03/A04/B01/B02/B03/Global04/Global05/Global06回退，保护源身份、数值/图形/几何分流；缺正式模块保持RED。
+ * [OUTPUT]: 锁定十三分区5643键及有限旧值回退；保留空提示单键修订的历史摘要，缺模块保持RED。
  * [POS]: tools 的剩余 UI 入库合同，不读取私有审稿台账或真实 App，不构建安装包、不证明 live。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
 
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { test } = require('node:test');
@@ -21,7 +22,7 @@ const EXPECTED = Object.freeze({
   keyset: '52eafda8b630fda1d0db989431c44cd0b5a9cefbb3f1e4b8623d2d96a0aea5b9',
   pairs: '1be4cac074ffbc705377dd077081cd3de266665db7168b007d880f8c3b50def1',
   identity: '2f793d682566c6aaa89ecf8e5773c983e7bb2e0cfbb2217a9ed2191bbd10ca0f',
-  decisions: '8213e937c52702d3521307a78186525aca2ff6da5c324309b57b3feabcef717a',
+  decisions: 'c1e493e5cc6a4604332fa30c20f7413ca8fe4d140e5748952fabe88ac4a936fd',
 });
 const data = () => require(`../languages/native/${MODULE}.js`);
 const SECOND = Object.freeze({
@@ -29,15 +30,17 @@ const SECOND = Object.freeze({
   keyset: 'b501d809c4e085487affe277e6efad483f8b8a5191315c11b610d14b0afda80b',
   pairs: '4f97b56b96453ce64b66105673cbfccae19f56c78d3cb039ebc5c0ae36dac2ee',
   identity: '39d1ae3b24ffa19b8bd313bee6d548066dd202605f74bef108b42ab86439adf0',
-  decisions: 'd0aceeb063fcb70d7095ff2811dd1e1482fda3a84953c7d751b5507e430de6f3',
+  decisions: '789b487b5d1de31b07b0e6b909c130765952f68baeacfb80e2aa1527e0152cc9',
 });
 const THIRD = Object.freeze({
   module: 'remaining_global_ui_03', keys: 449,
   keyset: '2514f48ddc037f584bc7c8c8cecbe8e7b96d774d1e31e608f5fe75cbc6cfaf53',
   pairs: '5fc6c8ac0328518af8a503da997a6e91cde4bd21b6a55861ff3e87f42e00f4b1',
   identity: '9f00f5ed8da037da09d1541145c3ecdcabb14602d55b035a107aeb1faa4ab171',
-  decisions: '4a3acb743bac44afae3a9133ac14237a4c89331d4182904bce719055937bcb0b',
+  decisions: 'c29731dbea989fd14d415b66abae8a4db7c3e486918b47f5ecfc9bd091586e92',
 });
+const THIRD_PRE_SNIPPET_PLACEHOLDER_REVISION = '4a3acb743bac44afae3a9133ac14237a4c89331d4182904bce719055937bcb0b';
+const THIRD_PRE_EMPTY_REGION_CATEGORY = '9bbb25315a1668d929038af82d731ee8b753f650d46326dff0f8ff9ecb8883be';
 const NODE_A_FIRST = Object.freeze({
   module: 'remaining_node_ui_a_01', keys: 406,
   keyset: '3971fab3774ad87877588b43115fb03de0d158ffb25f25b70de73c789b00177f',
@@ -82,7 +85,7 @@ const FOURTH = Object.freeze({
   "keyset": "606a6c62f2c57d7ada57fe5f92a2624951f00bd2b79ff48cddb518f5d0d15d73",
   "pairs": "c9b65b5c63d0dbadb360c96e10c63b4ac67c588363d7e39484c73693a2386dbd",
   "identity": "70f592eb213fc2c05e6c77a7f8a266a1b523577c7a4efc8e8d6ee89ba38184c9",
-  "decisions": "c847daaccf680aa1c7e2451b15754ce8f6a2e511763a6e171f9a9050e68a8d09"
+  "decisions": "b6135fa896ea0a76431730c4b1c8e9aa4c3ad58eefcc2e0e49580c57284b4775"
 });
 const NODE_B_SECOND = Object.freeze({
   "module": "remaining_node_ui_b_02",
@@ -98,8 +101,10 @@ const FIFTH = Object.freeze({
   "keyset": "68b480d922efb6bd848d621d0cf24f90a801b4ffa0c0831301f29c3c41fb9274",
   "pairs": "36a49731406e9ba620f97a9ec850e08b8fe7a5b650935cb0bca9d1c5bf87f5f9",
   "identity": "84fbbd6a808875d08c4df6a6098f5ec752b8dde175562d58c2b9b1ab6737c496",
-  "decisions": "98b48d199a2dbc1c025ff3fc739960abfc677f82f6764fe9df16a3000093f095"
+  "decisions": "69df262e0cab07feda1ac427bcdde4ebe9f46bd9e6915046ac029c12e42116eb"
 });
+const FIFTH_PRE_JA_DECISIONS = '56526b577657cbefe6ce948b76fc64883ff67e851000d9dee08218757337cab6';
+const FIFTH_PRE_EMPTY_REGION_CATEGORY = 'd7847dfbdfb272d04d2195b413bc631bf581562a8be8dac207fd1cce9a18522b';
 const NODE_B_THIRD = Object.freeze({
   "module": "remaining_node_ui_b_03",
   "keys": 449,
@@ -515,6 +520,140 @@ test('node UI B02 separates physical impulse, HSV value, submeshes and extrude e
 });
 
 // -- 第五全局UI：有限旧值回退与联合句法 --------------------------
+test('global UI05 scopes placeholder punctuation revisions and restores both historical summaries', () => {
+  const { entries, provenance } = require('../languages/native/remaining_global_ui_05');
+  const row = entries.find(
+    entry => entry.key === 'sceneTree.placeholder.empty'
+  );
+  assert.ok(row);
+  assert.deepEqual(identity(row), [
+    'sceneTree.placeholder.empty',
+    'Definitions/Translation/appStrings',
+    null,
+    ['sceneTree.placeholder.empty'],
+    'Use the Create menu to add a Layer to the active Composition.',
+    ['Placeholder text; ‘Create menu’ names the app’s menu for adding layers.'],
+    false,
+    'Use the Create menu to add a Layer to the active Composition.',
+    undefined,
+    undefined,
+  ]);
+  assert.equal(row.translations['zh-Hans'].decision, 'translate');
+  assert.equal(row.translations['zh-Hans'].text, '使用“创建”菜单向当前合成添加图层');
+  assert.equal(row.translations['zh-Hant'].decision, 'translate');
+  assert.equal(row.translations['zh-Hant'].text, '使用「建立」選單將圖層新增至作用中的合成');
+  assert.equal(row.translations.ja_JP.text, '作成メニューからアクティブなコンポジションにレイヤーを追加してください');
+  assert.doesNotMatch(row.translations['zh-Hans'].text, /。$/);
+  assert.doesNotMatch(row.translations['zh-Hant'].text, /。$/);
+  assert.doesNotMatch(row.translations.ja_JP.text, /。$/);
+  const chineseRevision = provenance.placeholderPunctuationRevision;
+  assert.equal(chineseRevision.approvedBy, 'primary-agent');
+  assert.equal(chineseRevision.key, row.key);
+  assert.deepEqual(chineseRevision.locales, ['zh-Hans', 'zh-Hant']);
+  assert.equal(chineseRevision.changedLocaleSlots, 2);
+  assert.equal(chineseRevision.sourceIdentitySha256, nativeSourceIdentitySha256(row));
+  assert.equal(chineseRevision.liveApproval, false);
+  assert.equal(chineseRevision.currentDecisionSha256, FIFTH_PRE_JA_DECISIONS);
+  assert.equal(chineseRevision.previousDecisionSha256,
+    '98b48d199a2dbc1c025ff3fc739960abfc677f82f6764fe9df16a3000093f095');
+  assert.equal(provenance.approvalReceiptSha256,
+    'e2381d3f033e09c47f8f54addc372218bc6d9308cf16b86a815c5b2497075e2c');
+  const japaneseRevision = provenance.placeholderJapaneseNoFullStopRevision;
+  assert.equal(japaneseRevision.requestedBy, 'user');
+  assert.equal(japaneseRevision.approvedBy, 'primary-agent');
+  assert.equal(japaneseRevision.approvalState, 'approved-source-bound-single-key-revision');
+  assert.equal(japaneseRevision.approvalReceiptSha256,
+    '00a264bcdc50bf6d04cf66fc5725f6aeecb17701e71538dbe785358b0caa14b9');
+  assert.equal(japaneseRevision.key, row.key);
+  assert.deepEqual(japaneseRevision.locales, ['ja_JP']);
+  assert.equal(japaneseRevision.changedLocaleSlots, 1);
+  assert.equal(japaneseRevision.sourceIdentitySha256, nativeSourceIdentitySha256(row));
+  assert.equal(japaneseRevision.sourceIdentityChanged, false);
+  assert.equal(japaneseRevision.vendorJapaneseChanged, false);
+  assert.equal(japaneseRevision.liveApproval, false);
+  assert.equal(japaneseRevision.previousDecisionSha256, FIFTH_PRE_JA_DECISIONS);
+  assert.equal(japaneseRevision.currentDecisionSha256, FIFTH_PRE_EMPTY_REGION_CATEGORY);
+  assert.equal(japaneseRevision.instructionSha256,
+    '4be7cfbda9b09b6641fbebea0d5ae616c0edc9990d2fc34bf465b30677424f04');
+  assert.equal(japaneseRevision.previousTranslationSha256,
+    crypto.createHash('sha256')
+      .update('作成メニューからアクティブなコンポジションにレイヤーを追加してください。')
+      .digest('hex'));
+  assert.equal(japaneseRevision.currentTranslationSha256,
+    crypto.createHash('sha256').update(row.translations.ja_JP.text).digest('hex'));
+  // -- 仅恢复日文即回到两中文修订后的旧完整摘要 -------------------
+  const beforeJapanese = structuredClone(entries);
+  const categoryRevision = provenance.emptyRegionPromptPunctuationRevision.changes
+    .find(change => change.key === 'renderQueue.tree.placeholder');
+  const renderQueuePlaceholder = beforeJapanese.find(entry => entry.key === categoryRevision.key);
+  for (const locale of LOCALES) {
+    renderQueuePlaceholder.translations[locale].text = categoryRevision.previousTranslations[locale];
+  }
+  beforeJapanese.find(entry => entry.key === row.key).translations.ja_JP.text += '。';
+  assert.equal(hash(decisionRows(beforeJapanese)), japaneseRevision.previousDecisionSha256);
+  // -- 再恢复两中文即回到其历史审批摘要 ---------------------------
+  const historical = structuredClone(beforeJapanese);
+  const historicalRow = historical.find(entry => entry.key === row.key);
+  for (const locale of chineseRevision.locales) historicalRow.translations[locale].text += '。';
+  assert.equal(hash(decisionRows(historical)), chineseRevision.previousDecisionSha256);
+});
+
+test('global UI03 JS Snippet placeholder keeps CJK punctuation out through the producer', () => {
+  const { entries, provenance } = require('../languages/native/remaining_global_ui_03');
+  const row = entries.find(entry => entry.key === 'jsSnippets.placeholder');
+  const expected = {
+    'zh-Hans': '将一些 JavaScript 拖到此处以创建代码片段',
+    'zh-Hant': '將一些 JavaScript 拖曳至此以建立程式碼片段',
+    ja_JP: 'JavaScriptをここにドラッグしてスニペットを作成します',
+  };
+  assert.ok(row);
+  assert.equal(row.source, 'Drag some JavaScript here to make a Snippet.');
+  assert.equal(row.vendorJapanese, row.source);
+  const revision = provenance.jsSnippetPlaceholderNoFullStopRevision;
+  assert.equal(revision.requestedBy, 'user');
+  assert.equal(revision.approvedBy, 'primary-agent');
+  assert.equal(revision.key, row.key);
+  assert.deepEqual(revision.locales, LOCALES);
+  assert.equal(revision.changedLocaleSlots, 3);
+  assert.equal(revision.sourceIdentitySha256, nativeSourceIdentitySha256(row));
+  assert.equal(revision.previousDecisionSha256, THIRD_PRE_SNIPPET_PLACEHOLDER_REVISION);
+  assert.equal(revision.currentDecisionSha256, THIRD_PRE_EMPTY_REGION_CATEGORY);
+  assert.equal(revision.sourceIdentityChanged, false);
+  assert.equal(revision.vendorJapaneseChanged, false);
+  assert.equal(revision.liveApproval, false);
+  assert.equal(provenance.approvalReceiptSha256,
+    '4c744a0e2b48fe04581430ed2125540b02aee0f6874dced9665b3e91172fc6e4');
+
+  for (const locale of LOCALES) {
+    assert.equal(row.translations[locale].decision, 'translate');
+    assert.equal(row.translations[locale].text, expected[locale]);
+    assert.doesNotMatch(row.translations[locale].text, /[。.]$/u);
+    assert.equal(revision.translations[locale].previous.endsWith('。'), true);
+    assert.equal(revision.translations[locale].previousSha256,
+      crypto.createHash('sha256').update(revision.translations[locale].previous).digest('hex'));
+    assert.equal(revision.translations[locale].current, expected[locale]);
+    assert.equal(revision.translations[locale].currentSha256,
+      crypto.createHash('sha256').update(expected[locale]).digest('hex'));
+    const reviews = entries.map(entry => ({ key: entry.key, source: entry.source, ...entry.translations[locale] }));
+    const resolved = resolveTranslations(entries, locale, reviews);
+    const [record] = JSON.parse(renderNativePack(resolved));
+    assert.deepEqual(record.value[row.key], { 'UI-text': expected[locale] });
+  }
+
+  const historical = structuredClone(entries);
+  const categoryRevision = provenance.emptyRegionPromptPunctuationRevision.changes
+    .find(change => change.key === 'meshExplorer.empty');
+  const meshExplorer = historical.find(entry => entry.key === categoryRevision.key);
+  for (const locale of LOCALES) {
+    meshExplorer.translations[locale].text = categoryRevision.previousTranslations[locale];
+  }
+  const historicalRow = historical.find(entry => entry.key === row.key);
+  for (const locale of revision.locales) {
+    historicalRow.translations[locale].text = revision.translations[locale].previous;
+  }
+  assert.equal(hash(decisionRows(historical)), revision.previousDecisionSha256);
+});
+
 test('global UI05 pins 133 finite source-bound repairs and every actual old-value rollback', () => {
   const rows = require('../languages/native/remaining_global_ui_05').entries;
   assert.equal(GLOBAL_FIFTH_REPAIRS.length, 133);

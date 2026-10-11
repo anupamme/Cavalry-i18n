@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖官方 2.8 app catalog 的原生键/源/notes、项目级宝玉 Skill 指导的 AGY 初稿与 Grok 独立校验
- * [OUTPUT]: 提供九条 AI Studio 的源绑定三语审定决策及来源，不输出用户可直接部署的语言包
- * [POS]: languages/native 的首批补译输入；与旧 overlay 分离，由构建期投影生成显示包，厂商日语优先规则不变
+ * [OUTPUT]: 提供九条AI Studio源绑定决定与已批准空区提示类别revision，不输出部署包
+ * [POS]: languages/native首批补译输入；类别修订保留原source审批，不改厂商日语优先规则
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -177,15 +177,15 @@ module.exports = {
       "translations": {
         "zh-Hans": {
           "decision": "translate",
-          "text": "生成的作品将显示在此处。"
+          "text": "生成的作品将显示在此处"
         },
         "zh-Hant": {
           "decision": "translate",
-          "text": "生成的作品將顯示在此處。"
+          "text": "生成的作品將顯示在此處"
         },
         "ja_JP": {
           "decision": "translate",
-          "text": "生成されたアートワークはここに表示されます。"
+          "text": "生成されたアートワークはここに表示されます"
         }
       }
     },
@@ -211,4 +211,40 @@ module.exports = {
       }
     }
   ]
+};
+
+module.exports.provenance.emptyRegionPromptPunctuationRevision = {
+  "revisionId": "empty-region-prompt-no-terminal-full-stop-20261012-r1",
+  "approvalState": "approved-source-bound-category-revision",
+  "requestedBy": "user",
+  "approvedBy": "primary-agent",
+  "changedKeys": 1,
+  "changedLocaleSlots": 3,
+  "previousDecisionSha256": "0bcc4702aeb179ca3cdc1617887d1f5d76fbe1492c2134fed8166ec89ce9e7dc",
+  "currentDecisionSha256": "94ef3918d6199a6f76bfb16adf33d0809af070f08866fabdeb9c9d2407c2961e",
+  "changes": [
+    {
+      "key": "aiStudio.results.emptyHint",
+      "source": "Generated artwork will appear here.",
+      "sourceIdentitySha256": "80bc4b33b37afeb5137cbfc55bdd58e3e5538ecfdee9a67dd74efe856c7d4f10",
+      "previousTranslations": {
+        "zh-Hans": "生成的作品将显示在此处。",
+        "zh-Hant": "生成的作品將顯示在此處。",
+        "ja_JP": "生成されたアートワークはここに表示されます。"
+      },
+      "currentTranslations": {
+        "zh-Hans": "生成的作品将显示在此处",
+        "zh-Hant": "生成的作品將顯示在此處",
+        "ja_JP": "生成されたアートワークはここに表示されます"
+      },
+      "changedLocales": [
+        "zh-Hans",
+        "zh-Hant",
+        "ja_JP"
+      ]
+    }
+  ],
+  "sourceIdentityChanged": false,
+  "vendorJapaneseChanged": false,
+  "liveApproval": false
 };

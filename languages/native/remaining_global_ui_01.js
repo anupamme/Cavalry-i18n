@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 绑定 Cavalry 2.8 官方显示源与完整 source/notes/身份，Luna Max 作者和独立 root 全域审校及返修批准。
- * [OUTPUT]: 提供 418 个完整分区源绑定三语决定；审批谱系只保留构建期，不进入运行时包。
- * [POS]: languages/native 的第 01 剩余全局 UI 显式批准输入；不修改模型/API，不证明部署、live 或发行。
+ * [OUTPUT]: 提供418键原审批与已批准空槽提示类别revision；不改source/vendorJapanese。
+ * [POS]: 第01剩余全局UI审批输入；类别revision保留旧摘要，liveApproval为false。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  * 本轮图形语境有限修订经非作者验回/root审定；冻结源与历史批准仍保全。
  */
@@ -232,8 +232,8 @@ const entries = [
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["attributeEditor.gradientStops.menu.deleteIndexed"],"source":"Delete {0}","notes":["Menu item that deletes one gradient stop.","placeholder0 - the stop’s 1-based number.","Example - \"Delete 3\""],"key":"attributeEditor.gradientStops.menu.deleteIndexed","vendorJapanese":"Delete {0}","translations":{"zh-Hans":{"decision":"translate","text":"删除 {0}"},"zh-Hant":{"decision":"translate","text":"刪除 {0}"},"ja_JP":{"decision":"translate","text":"{0} を削除"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["attributeEditor.gradientStops.menu.sort"],"source":"Sort","notes":["Menu item; reorders a gradient’s colour stops by their position along the gradient."],"key":"attributeEditor.gradientStops.menu.sort","vendorJapanese":"Sort","translations":{"zh-Hans":{"decision":"translate","text":"排序"},"zh-Hant":{"decision":"translate","text":"排序"},"ja_JP":{"decision":"translate","text":"並べ替え"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["attributeEditor.ikControls.tooltip.loadUI"],"source":"Open IK Control UI in Attribute Editor.","notes":["Tooltip; IK = Inverse Kinematics. Opens the control widget for this IK chain directly inside the Attribute Editor rather than the viewport."],"key":"attributeEditor.ikControls.tooltip.loadUI","vendorJapanese":"Open IK Control UI in Attribute Editor.","translations":{"zh-Hans":{"decision":"translate","text":"在属性编辑器中打开 IK 控制界面。"},"zh-Hant":{"decision":"translate","text":"在屬性編輯器中開啟 IK 控制介面。"},"ja_JP":{"decision":"translate","text":"属性エディタで逆運動学コントロール画面を開く。"}}},
-  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["attributeEditor.input.placeholder.connectBehaviour"],"source":"Connect a Behaviour or Utility here.","notes":["Placeholder text; \"Behaviour\" and \"Utility\" are node-type category names in the app."],"key":"attributeEditor.input.placeholder.connectBehaviour","vendorJapanese":"Connect a Behaviour or Utility here.","translations":{"zh-Hans":{"decision":"translate","text":"在此连接行为节点或实用节点。"},"zh-Hant":{"decision":"translate","text":"在此連接行為節點或實用節點。"},"ja_JP":{"decision":"translate","text":"ビヘイビアまたはユーティリティノードをここに接続"}}},
-  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["attributeEditor.input.placeholder.connectLayerAttribute"],"source":"Connect a Layer or Attribute here.","notes":["Placeholder text; \"Layer\" and \"Attribute\" are node-graph element types in the app."],"key":"attributeEditor.input.placeholder.connectLayerAttribute","vendorJapanese":"Connect a Layer or Attribute here.","translations":{"zh-Hans":{"decision":"translate","text":"在此处连接图层或属性。"},"zh-Hant":{"decision":"translate","text":"在此處連接圖層或屬性。"},"ja_JP":{"decision":"translate","text":"ここにレイヤーまたは属性を接続"}}},
+  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["attributeEditor.input.placeholder.connectBehaviour"],"source":"Connect a Behaviour or Utility here.","notes":["Placeholder text; \"Behaviour\" and \"Utility\" are node-type category names in the app."],"key":"attributeEditor.input.placeholder.connectBehaviour","vendorJapanese":"Connect a Behaviour or Utility here.","translations":{"zh-Hans":{"decision":"translate","text":"在此连接行为节点或实用节点"},"zh-Hant":{"decision":"translate","text":"在此連接行為節點或實用節點"},"ja_JP":{"decision":"translate","text":"ビヘイビアまたはユーティリティノードをここに接続"}}},
+  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["attributeEditor.input.placeholder.connectLayerAttribute"],"source":"Connect a Layer or Attribute here.","notes":["Placeholder text; \"Layer\" and \"Attribute\" are node-graph element types in the app."],"key":"attributeEditor.input.placeholder.connectLayerAttribute","vendorJapanese":"Connect a Layer or Attribute here.","translations":{"zh-Hans":{"decision":"translate","text":"在此处连接图层或属性"},"zh-Hant":{"decision":"translate","text":"在此處連接圖層或屬性"},"ja_JP":{"decision":"translate","text":"ここにレイヤーまたは属性を接続"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["attributeEditor.input.placeholder.dragAsset"],"source":"Drag in or connect an Asset","notes":["Placeholder text; \"Asset\" refers to an imported file (image, video, etc.) used in the project."],"key":"attributeEditor.input.placeholder.dragAsset","vendorJapanese":"Drag in or connect an Asset","translations":{"zh-Hans":{"decision":"translate","text":"拖入或连接素材"},"zh-Hant":{"decision":"translate","text":"拖入或連接素材"},"ja_JP":{"decision":"translate","text":"アセットをドラッグまたは接続"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["attributeEditor.input.placeholder.dragShapeLayer"],"source":"Drag a Shape layer here","notes":["Placeholder text; \"Shape layer\" refers to a vector shape-type layer in the scene."],"key":"attributeEditor.input.placeholder.dragShapeLayer","vendorJapanese":"Drag a Shape layer here","translations":{"zh-Hans":{"decision":"translate","text":"将形状图层拖到此处"},"zh-Hant":{"decision":"translate","text":"將形狀圖層拖曳至此"},"ja_JP":{"decision":"translate","text":"シェイプレイヤーをここにドラッグ"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["attributeEditor.input.placeholder.dragSmartFolder"],"source":"Drag in a Smart Folder","notes":["Placeholder text; \"Smart Folder\" is a named feature (auto-populating asset folder)."],"key":"attributeEditor.input.placeholder.dragSmartFolder","vendorJapanese":"Drag in a Smart Folder","translations":{"zh-Hans":{"decision":"translate","text":"将智能文件夹拖入此处"},"zh-Hant":{"decision":"translate","text":"將智慧型資料夾拖入此處"},"ja_JP":{"decision":"translate","text":"スマートフォルダーをここにドラッグ"}}},
@@ -269,7 +269,7 @@ const entries = [
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["attributeEditor.menu.unmuteInput"],"source":"Unmute Input","notes":["Menu item; re-enables an input connection that was previously muted (silenced), the opposite of Mute Input."],"key":"attributeEditor.menu.unmuteInput","vendorJapanese":"Unmute Input","translations":{"zh-Hans":{"decision":"translate","text":"恢复输入"},"zh-Hant":{"decision":"translate","text":"恢復輸入"},"ja_JP":{"decision":"translate","text":"入力のミュートを解除"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["attributeEditor.output.placeholder.addBackground"],"source":"Click the + button to add a background","notes":["Placeholder text; \"background\" refers to a shape layer added behind this one, not a background colour."],"key":"attributeEditor.output.placeholder.addBackground","vendorJapanese":"Click the + button to add a background","translations":{"zh-Hans":{"decision":"translate","text":"单击 + 按钮添加背景图层"},"zh-Hant":{"decision":"translate","text":"按一下 + 按鈕新增背景圖層"},"ja_JP":{"decision":"translate","text":"+ ボタンをクリックして背景レイヤーを追加"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["attributeEditor.output.placeholder.addPlacementUtility"],"source":"Click the + button to add a Placement Utility","notes":["Placeholder text; \"Placement Utility\" is a named node type."],"key":"attributeEditor.output.placeholder.addPlacementUtility","vendorJapanese":"Click the + button to add a Placement Utility","translations":{"zh-Hans":{"decision":"translate","text":"单击 + 按钮添加放置辅助节点"},"zh-Hant":{"decision":"translate","text":"按一下 + 按鈕新增放置輔助節點"},"ja_JP":{"decision":"translate","text":"+ ボタンをクリックして配置ユーティリティノードを追加"}}},
-  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["attributeEditor.output.placeholder.dragConnection"],"source":"Drag a connection from here.","notes":["Placeholder text inviting the user to drag a new connection out to another node."],"key":"attributeEditor.output.placeholder.dragConnection","vendorJapanese":"Drag a connection from here.","translations":{"zh-Hans":{"decision":"translate","text":"从此处拖出连接。"},"zh-Hant":{"decision":"translate","text":"從此處拖出連線。"},"ja_JP":{"decision":"translate","text":"ここから接続をドラッグ"}}},
+  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["attributeEditor.output.placeholder.dragConnection"],"source":"Drag a connection from here.","notes":["Placeholder text inviting the user to drag a new connection out to another node."],"key":"attributeEditor.output.placeholder.dragConnection","vendorJapanese":"Drag a connection from here.","translations":{"zh-Hans":{"decision":"translate","text":"从此处拖出连接"},"zh-Hant":{"decision":"translate","text":"從此處拖出連線"},"ja_JP":{"decision":"translate","text":"ここから接続をドラッグ"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["attributeEditor.output.tooltip.addPlacementUtility"],"source":"Add a Placement Utility","notes":["Tooltip for a button that adds a Placement Utility node (controls how instances/copies are positioned) to this output."],"key":"attributeEditor.output.tooltip.addPlacementUtility","vendorJapanese":"Add a Placement Utility","translations":{"zh-Hans":{"decision":"translate","text":"添加放置辅助节点"},"zh-Hant":{"decision":"translate","text":"新增放置輔助節點"},"ja_JP":{"decision":"translate","text":"配置ユーティリティノードを追加"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["attributeEditor.output.tooltip.addTextBackground"],"source":"Add a Text Background","notes":["Tooltip for a button that adds a background shape sized to fit behind this text layer."],"key":"attributeEditor.output.tooltip.addTextBackground","vendorJapanese":"Add a Text Background","translations":{"zh-Hans":{"decision":"translate","text":"添加文本背景"},"zh-Hant":{"decision":"translate","text":"新增文字背景"},"ja_JP":{"decision":"translate","text":"テキスト背景を追加"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["attributeEditor.placeholder.addControlNotes"],"source":"Add some notes to help describe the control.","notes":["Placeholder text in a notes field, inviting the user to write a description of what a Control Centre control does."],"key":"attributeEditor.placeholder.addControlNotes","vendorJapanese":"Add some notes to help describe the control.","translations":{"zh-Hans":{"decision":"translate","text":"添加备注以帮助描述该控件。"},"zh-Hant":{"decision":"translate","text":"加入備註以協助描述該控制項。"},"ja_JP":{"decision":"translate","text":"コントロールの説明に役立つメモを追加します。"}}},
@@ -484,5 +484,78 @@ module.exports.provenance.graphicsReaudit = {
   ],
   "sourceIdentityChanged": false,
   "officialVendorChanged": false,
+  "liveApproval": false
+};
+
+module.exports.provenance.emptyRegionPromptPunctuationRevision = {
+  "revisionId": "empty-region-prompt-no-terminal-full-stop-20261012-r1",
+  "approvalState": "approved-source-bound-category-revision",
+  "requestedBy": "user",
+  "approvedBy": "primary-agent",
+  "changedKeys": 3,
+  "changedLocaleSlots": 6,
+  "previousDecisionSha256": "8213e937c52702d3521307a78186525aca2ff6da5c324309b57b3feabcef717a",
+  "currentDecisionSha256": "c1e493e5cc6a4604332fa30c20f7413ca8fe4d140e5748952fabe88ac4a936fd",
+  "changes": [
+    {
+      "key": "attributeEditor.input.placeholder.connectBehaviour",
+      "source": "Connect a Behaviour or Utility here.",
+      "sourceIdentitySha256": "ef69c9b4856c83865f2ad13d04dc9b092f1a17b328a9269cf0ae8c07a62bc7dc",
+      "previousTranslations": {
+        "zh-Hans": "在此连接行为节点或实用节点。",
+        "zh-Hant": "在此連接行為節點或實用節點。",
+        "ja_JP": "ビヘイビアまたはユーティリティノードをここに接続"
+      },
+      "currentTranslations": {
+        "zh-Hans": "在此连接行为节点或实用节点",
+        "zh-Hant": "在此連接行為節點或實用節點",
+        "ja_JP": "ビヘイビアまたはユーティリティノードをここに接続"
+      },
+      "changedLocales": [
+        "zh-Hans",
+        "zh-Hant"
+      ]
+    },
+    {
+      "key": "attributeEditor.input.placeholder.connectLayerAttribute",
+      "source": "Connect a Layer or Attribute here.",
+      "sourceIdentitySha256": "06da7f39263de8b49f8b467c6c1a6bf580d276bd574b6df215960977932648ba",
+      "previousTranslations": {
+        "zh-Hans": "在此处连接图层或属性。",
+        "zh-Hant": "在此處連接圖層或屬性。",
+        "ja_JP": "ここにレイヤーまたは属性を接続"
+      },
+      "currentTranslations": {
+        "zh-Hans": "在此处连接图层或属性",
+        "zh-Hant": "在此處連接圖層或屬性",
+        "ja_JP": "ここにレイヤーまたは属性を接続"
+      },
+      "changedLocales": [
+        "zh-Hans",
+        "zh-Hant"
+      ]
+    },
+    {
+      "key": "attributeEditor.output.placeholder.dragConnection",
+      "source": "Drag a connection from here.",
+      "sourceIdentitySha256": "f31912670fea569b7bbf0da8760a52fadff9d4cbf4915ee93af4b282f2a89647",
+      "previousTranslations": {
+        "zh-Hans": "从此处拖出连接。",
+        "zh-Hant": "從此處拖出連線。",
+        "ja_JP": "ここから接続をドラッグ"
+      },
+      "currentTranslations": {
+        "zh-Hans": "从此处拖出连接",
+        "zh-Hant": "從此處拖出連線",
+        "ja_JP": "ここから接続をドラッグ"
+      },
+      "changedLocales": [
+        "zh-Hans",
+        "zh-Hant"
+      ]
+    }
+  ],
+  "sourceIdentityChanged": false,
+  "vendorJapaneseChanged": false,
   "liveApproval": false
 };

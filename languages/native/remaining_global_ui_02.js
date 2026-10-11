@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 绑定 Cavalry 2.8 官方显示源与完整 source/notes/身份，Luna Max 作者和独立 root 全域审校及返修批准。
- * [OUTPUT]: 提供 446 个完整分区源绑定三语决定；审批谱系只保留构建期，不进入运行时包。
- * [POS]: languages/native 的第 02 剩余全局 UI 显式批准输入；不修改模型/API，不证明部署、live 或发行。
+ * [OUTPUT]: 提供446键原审批与已批准空面板提示类别revision；不改source/vendorJapanese。
+ * [POS]: 第02剩余全局UI审批输入；类别revision保留旧摘要，liveApproval为false。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  * 本轮图形语境有限修订经非作者验回/root审定；冻结源与历史批准仍保全。
  */
@@ -383,7 +383,7 @@ const entries = [
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["dgView.bookmark.indexed"],"source":"Bookmark {0}","notes":["\"Bookmark\" refers to a saved camera position. Auto-generated name for an unnamed bookmark.","placeholder0 - a numeric index.","Example - \"Bookmark 3\""],"key":"dgView.bookmark.indexed","vendorJapanese":"Bookmark {0}","translations":{"zh-Hans":{"decision":"translate","text":"书签 {0}"},"zh-Hant":{"decision":"translate","text":"書籤 {0}"},"ja_JP":{"decision":"translate","text":"ブックマーク {0}"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["dgView.bookmark.manage"],"source":"Manage Bookmarks...","notes":["Menu item; the ellipsis indicates it opens a further dialog. \"Bookmarks\" refers to saved camera positions."],"key":"dgView.bookmark.manage","vendorJapanese":"Manage Bookmarks...","translations":{"zh-Hans":{"decision":"translate","text":"管理书签…"},"zh-Hant":{"decision":"translate","text":"管理書籤…"},"ja_JP":{"decision":"translate","text":"ブックマークを管理…"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["dgView.bookmark.namePromptLabel"],"source":"Bookmark Name:","notes":["Field label. \"Bookmark\" refers to a saved camera position."],"key":"dgView.bookmark.namePromptLabel","vendorJapanese":"Bookmark Name:","translations":{"zh-Hans":{"decision":"translate","text":"书签名称："},"zh-Hant":{"decision":"translate","text":"書籤名稱："},"ja_JP":{"decision":"translate","text":"ブックマーク名:"}}},
-  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["dgView.bookmark.placeholder"],"source":"No bookmarks yet.","notes":["\"Bookmarks\" refers to saved camera positions."],"key":"dgView.bookmark.placeholder","vendorJapanese":"No bookmarks yet.","translations":{"zh-Hans":{"decision":"translate","text":"尚无书签。"},"zh-Hant":{"decision":"translate","text":"尚無書籤。"},"ja_JP":{"decision":"translate","text":"ブックマークはまだありません。"}}},
+  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["dgView.bookmark.placeholder"],"source":"No bookmarks yet.","notes":["\"Bookmarks\" refers to saved camera positions."],"key":"dgView.bookmark.placeholder","vendorJapanese":"No bookmarks yet.","translations":{"zh-Hans":{"decision":"translate","text":"尚无书签"},"zh-Hant":{"decision":"translate","text":"尚無書籤"},"ja_JP":{"decision":"translate","text":"ブックマークはまだありません"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["dgView.bookmark.saveAction"],"source":"Save Bookmark...","notes":["Menu/button label; the ellipsis indicates it opens a further dialog. \"Bookmark\" refers to a saved camera position."],"key":"dgView.bookmark.saveAction","vendorJapanese":"Save Bookmark...","translations":{"zh-Hans":{"decision":"translate","text":"保存书签…"},"zh-Hant":{"decision":"translate","text":"儲存書籤…"},"ja_JP":{"decision":"translate","text":"ブックマークを保存…"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["dgView.bookmark.savePromptTitle"],"source":"Save Bookmark","notes":["Dialog title. \"Bookmark\" refers to a saved camera position (viewport view)."],"key":"dgView.bookmark.savePromptTitle","vendorJapanese":"Save Bookmark","translations":{"zh-Hans":{"decision":"translate","text":"保存书签"},"zh-Hant":{"decision":"translate","text":"儲存書籤"},"ja_JP":{"decision":"translate","text":"ブックマークを保存"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["dgView.button.clearAll"],"source":"Clear All","notes":["Button label. \"Clear\" is a verb (remove/empty)."],"key":"dgView.button.clearAll","vendorJapanese":"Clear All","translations":{"zh-Hans":{"decision":"translate","text":"全部清除"},"zh-Hant":{"decision":"translate","text":"全部清除"},"ja_JP":{"decision":"translate","text":"すべて消去"}}},
@@ -475,7 +475,7 @@ const entries = [
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["expression.hint.runMac"],"source":"<b><i>Command + Return</i></b> to run the expression.","notes":["Keyboard-shortcut hint shown on macOS. \"Command\" is the name of the macOS ⌘ key; \"Return\" is the Enter/Return key. \"expression\" = a scripted formula."],"key":"expression.hint.runMac","vendorJapanese":"<b><i>Command + Return</i></b> to run the expression.","translations":{"zh-Hans":{"decision":"translate","text":"按 <b><i>Command + Return</i></b> 运行表达式。"},"zh-Hant":{"decision":"translate","text":"按 <b><i>Command + Return</i></b> 執行運算式。"},"ja_JP":{"decision":"translate","text":"<b><i>Command + Return</i></b> でエクスプレッションを実行します。"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["expression.hint.runWin"],"source":"<b><i>Control + Return</i></b> to run the expression.","notes":["Keyboard-shortcut hint shown on Windows. \"Control\" is the Ctrl key name. \"expression\" = a scripted formula."],"key":"expression.hint.runWin","vendorJapanese":"<b><i>Control + Return</i></b> to run the expression.","translations":{"zh-Hans":{"decision":"translate","text":"按 <b><i>Control + Return</i></b> 运行表达式。"},"zh-Hant":{"decision":"translate","text":"按 <b><i>Control + Return</i></b> 執行運算式。"},"ja_JP":{"decision":"translate","text":"<b><i>Control + Return</i></b> でエクスプレッションを実行します。"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["expressionEditor.log.exprError"],"source":"Attribute Expression Error: {0}","notes":["\"Expression\" = a scripted formula attached to an attribute.","placeholder0 - the underlying error message.","Example - \"Attribute Expression Error: unexpected token at position 4\""],"key":"expressionEditor.log.exprError","vendorJapanese":"Attribute Expression Error: {0}","translations":{"zh-Hans":{"decision":"translate","text":"属性表达式错误：{0}"},"zh-Hant":{"decision":"translate","text":"屬性運算式錯誤：{0}"},"ja_JP":{"decision":"translate","text":"属性エクスプレッションエラー: {0}"}}},
-  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["expressionEditor.placeholder.noInputConnection"],"source":"No input connection.","notes":["\"connection\" = a link between node attributes."],"key":"expressionEditor.placeholder.noInputConnection","vendorJapanese":"No input connection.","translations":{"zh-Hans":{"decision":"translate","text":"没有输入连接。"},"zh-Hant":{"decision":"translate","text":"沒有輸入連接。"},"ja_JP":{"decision":"translate","text":"入力接続がありません。"}}},
+  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["expressionEditor.placeholder.noInputConnection"],"source":"No input connection.","notes":["\"connection\" = a link between node attributes."],"key":"expressionEditor.placeholder.noInputConnection","vendorJapanese":"No input connection.","translations":{"zh-Hans":{"decision":"translate","text":"没有输入连接"},"zh-Hant":{"decision":"translate","text":"沒有輸入連接"},"ja_JP":{"decision":"translate","text":"入力接続がありません"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["feedback.button.send"],"source":"Send","notes":["\"Send\" is a verb: submit the form."],"key":"feedback.button.send","vendorJapanese":"Send","translations":{"zh-Hans":{"decision":"translate","text":"发送"},"zh-Hant":{"decision":"translate","text":"傳送"},"ja_JP":{"decision":"translate","text":"送信"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["feedback.combo.bug"],"source":"Bug","notes":["Dropdown option: a category of feedback (a software defect report)."],"key":"feedback.combo.bug","vendorJapanese":"Bug","translations":{"zh-Hans":{"decision":"translate","text":"缺陷"},"zh-Hant":{"decision":"translate","text":"錯誤"},"ja_JP":{"decision":"translate","text":"バグ"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["feedback.combo.featureRequest"],"source":"Feature Request","notes":["Dropdown option: a category of feedback (a request for a new feature)."],"key":"feedback.combo.featureRequest","vendorJapanese":"Feature Request","translations":{"zh-Hans":{"decision":"translate","text":"功能请求"},"zh-Hant":{"decision":"translate","text":"功能請求"},"ja_JP":{"decision":"translate","text":"機能リクエスト"}}},
@@ -513,5 +513,61 @@ module.exports.provenance.graphicsReaudit = {
   ],
   "sourceIdentityChanged": false,
   "officialVendorChanged": false,
+  "liveApproval": false
+};
+
+module.exports.provenance.emptyRegionPromptPunctuationRevision = {
+  "revisionId": "empty-region-prompt-no-terminal-full-stop-20261012-r1",
+  "approvalState": "approved-source-bound-category-revision",
+  "requestedBy": "user",
+  "approvedBy": "primary-agent",
+  "changedKeys": 2,
+  "changedLocaleSlots": 6,
+  "previousDecisionSha256": "d0aceeb063fcb70d7095ff2811dd1e1482fda3a84953c7d751b5507e430de6f3",
+  "currentDecisionSha256": "789b487b5d1de31b07b0e6b909c130765952f68baeacfb80e2aa1527e0152cc9",
+  "changes": [
+    {
+      "key": "dgView.bookmark.placeholder",
+      "source": "No bookmarks yet.",
+      "sourceIdentitySha256": "93b4ad12cfce685cc4734e3a9d1e836de7fdd912fe1528b3a6cc4b1ac0268ead",
+      "previousTranslations": {
+        "zh-Hans": "尚无书签。",
+        "zh-Hant": "尚無書籤。",
+        "ja_JP": "ブックマークはまだありません。"
+      },
+      "currentTranslations": {
+        "zh-Hans": "尚无书签",
+        "zh-Hant": "尚無書籤",
+        "ja_JP": "ブックマークはまだありません"
+      },
+      "changedLocales": [
+        "zh-Hans",
+        "zh-Hant",
+        "ja_JP"
+      ]
+    },
+    {
+      "key": "expressionEditor.placeholder.noInputConnection",
+      "source": "No input connection.",
+      "sourceIdentitySha256": "fcaef79fe1b3ff7bb692e12796ef9740d66490477e4f6aac1878fe933a58a2de",
+      "previousTranslations": {
+        "zh-Hans": "没有输入连接。",
+        "zh-Hant": "沒有輸入連接。",
+        "ja_JP": "入力接続がありません。"
+      },
+      "currentTranslations": {
+        "zh-Hans": "没有输入连接",
+        "zh-Hant": "沒有輸入連接",
+        "ja_JP": "入力接続がありません"
+      },
+      "changedLocales": [
+        "zh-Hans",
+        "zh-Hant",
+        "ja_JP"
+      ]
+    }
+  ],
+  "sourceIdentityChanged": false,
+  "vendorJapaneseChanged": false,
   "liveApproval": false
 };

@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 绑定 Cavalry 2.8 官方显示源与完整 source/notes/身份，Luna Max 作者和独立 root 全域审校及返修批准。
- * [OUTPUT]: 提供 449 个完整分区源绑定三语决定；审批谱系只保留构建期，不进入运行时包。
- * [POS]: languages/native 的第 03 剩余全局 UI 显式批准输入；不修改模型/API，不证明部署、live 或发行。
+ * [OUTPUT]: 提供449键原审批与已批准空区短提示类别revision；英文source保留。
+ * [POS]: 第03剩余全局UI输入；保留JS单键历史摘要，liveApproval为false。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  * 本轮图形语境有限修订经非作者验回/root审定；冻结源与历史批准仍保全。
  */
@@ -293,7 +293,7 @@ const entries = [
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["jsSnippets.menu.exportSelected"],"source":"Export Selected...","notes":["Menu item; \"Selected\" refers to the currently selected Snippets (saved, reusable pieces of JavaScript code)."],"key":"jsSnippets.menu.exportSelected","vendorJapanese":"Export Selected...","translations":{"zh-Hans":{"decision":"translate","text":"导出所选代码片段..."},"zh-Hant":{"decision":"translate","text":"匯出所選程式碼片段..."},"ja_JP":{"decision":"translate","text":"選択したスニペットをエクスポート..."}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["jsSnippets.menu.import"],"source":"Import...","notes":["Menu item; imports Snippets (saved, reusable pieces of JavaScript code)."],"key":"jsSnippets.menu.import","vendorJapanese":"Import...","translations":{"zh-Hans":{"decision":"translate","text":"导入..."},"zh-Hant":{"decision":"translate","text":"匯入..."},"ja_JP":{"decision":"translate","text":"インポート..."}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["jsSnippets.menu.runSnippet"],"source":"Run Snippet","notes":["Menu item; \"Snippet\" = a saved, reusable piece of JavaScript code."],"key":"jsSnippets.menu.runSnippet","vendorJapanese":"Run Snippet","translations":{"zh-Hans":{"decision":"translate","text":"运行代码片段"},"zh-Hant":{"decision":"translate","text":"執行程式碼片段"},"ja_JP":{"decision":"translate","text":"スニペットを実行"}}},
-  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["jsSnippets.placeholder"],"source":"Drag some JavaScript here to make a Snippet.","notes":["\"Snippet\" = a saved, reusable piece of JavaScript code."],"key":"jsSnippets.placeholder","vendorJapanese":"Drag some JavaScript here to make a Snippet.","translations":{"zh-Hans":{"decision":"translate","text":"将一些 JavaScript 拖到此处以创建代码片段。"},"zh-Hant":{"decision":"translate","text":"將一些 JavaScript 拖曳至此以建立程式碼片段。"},"ja_JP":{"decision":"translate","text":"JavaScriptをここにドラッグしてスニペットを作成します。"}}},
+  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["jsSnippets.placeholder"],"source":"Drag some JavaScript here to make a Snippet.","notes":["\"Snippet\" = a saved, reusable piece of JavaScript code."],"key":"jsSnippets.placeholder","vendorJapanese":"Drag some JavaScript here to make a Snippet.","translations":{"zh-Hans":{"decision":"translate","text":"将一些 JavaScript 拖到此处以创建代码片段"},"zh-Hant":{"decision":"translate","text":"將一些 JavaScript 拖曳至此以建立程式碼片段"},"ja_JP":{"decision":"translate","text":"JavaScriptをここにドラッグしてスニペットを作成します"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["jsSnippets.search.placeholder"],"source":"Search for a Snippet","notes":["\"Snippet\" = a saved, reusable piece of JavaScript code."],"key":"jsSnippets.search.placeholder","vendorJapanese":"Search for a Snippet","translations":{"zh-Hans":{"decision":"translate","text":"搜索代码片段"},"zh-Hant":{"decision":"translate","text":"搜尋程式碼片段"},"ja_JP":{"decision":"translate","text":"スニペットを検索"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["jsSnippets.tooltip.options"],"source":"Snippet Library Options","notes":["\"Snippet\" = a saved, reusable piece of JavaScript code."],"key":"jsSnippets.tooltip.options","vendorJapanese":"Snippet Library Options","translations":{"zh-Hans":{"decision":"translate","text":"代码片段库选项"},"zh-Hant":{"decision":"translate","text":"程式碼片段庫選項"},"ja_JP":{"decision":"translate","text":"スニペットライブラリのオプション"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["jsSnippets.window.title"],"source":"Snippet Editor","notes":["\"Snippet\" = a saved, reusable piece of JavaScript code."],"key":"jsSnippets.window.title","vendorJapanese":"Snippet Editor","translations":{"zh-Hans":{"decision":"translate","text":"代码片段编辑器"},"zh-Hant":{"decision":"translate","text":"程式碼片段編輯器"},"ja_JP":{"decision":"translate","text":"スニペットエディター"}}},
@@ -381,7 +381,7 @@ const entries = [
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["menuUtils.menu.editComponent"],"source":"Edit Component","notes":["Menu item; \"Component\" is the name of a reusable node-graph building block."],"key":"menuUtils.menu.editComponent","vendorJapanese":"Edit Component","translations":{"zh-Hans":{"decision":"translate","text":"编辑组件"},"zh-Hant":{"decision":"translate","text":"編輯組件"},"ja_JP":{"decision":"translate","text":"コンポーネントを編集"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["menuUtils.menu.noGroups"],"source":"No Groups in this Composition.","notes":["Disabled-menu explanation; \"Groups\" = grouped layers; \"Composition\" is Cavalry’s project/scene term."],"key":"menuUtils.menu.noGroups","vendorJapanese":"No Groups in this Composition.","translations":{"zh-Hans":{"decision":"translate","text":"此合成中没有编组。"},"zh-Hant":{"decision":"translate","text":"此合成中沒有群組。"},"ja_JP":{"decision":"translate","text":"このコンポジションにグループはありません。"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["menuUtils.menu.noUserScripts"],"source":"No User Scripts Installed...","notes":["Disabled-menu explanation; \"User Scripts\" = user-installed JavaScript scripts."],"key":"menuUtils.menu.noUserScripts","vendorJapanese":"No User Scripts Installed...","translations":{"zh-Hans":{"decision":"translate","text":"未安装用户脚本..."},"zh-Hant":{"decision":"translate","text":"未安裝使用者腳本..."},"ja_JP":{"decision":"translate","text":"ユーザースクリプトがインストールされていません..."}}},
-  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["meshExplorer.empty"],"source":"Select a Shape to see its internal mesh structure.","notes":["Empty-state message; \"Shape\" = a Cavalry shape object; \"mesh\" is the underlying geometry data of a shape."],"key":"meshExplorer.empty","vendorJapanese":"Select a Shape to see its internal mesh structure.","translations":{"zh-Hans":{"decision":"translate","text":"选择一个形状以查看其内部网格结构。"},"zh-Hant":{"decision":"translate","text":"選取形狀以檢視其內部網格結構。"},"ja_JP":{"decision":"translate","text":"シェイプを選択すると内部メッシュ構造が表示されます。"}}},
+  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["meshExplorer.empty"],"source":"Select a Shape to see its internal mesh structure.","notes":["Empty-state message; \"Shape\" = a Cavalry shape object; \"mesh\" is the underlying geometry data of a shape."],"key":"meshExplorer.empty","vendorJapanese":"Select a Shape to see its internal mesh structure.","translations":{"zh-Hans":{"decision":"translate","text":"选择一个形状以查看其内部网格结构"},"zh-Hant":{"decision":"translate","text":"選取形狀以檢視其內部網格結構"},"ja_JP":{"decision":"translate","text":"シェイプを選択すると内部メッシュ構造が表示されます"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["meshExplorer.lock.tooltip"],"source":"Locks the current shape. The Reload button can override the lock.","notes":["\"Reload button\" refers to a specific UI button named \"Reload\"; \"override\" is a verb."],"key":"meshExplorer.lock.tooltip","vendorJapanese":"Locks the current shape. The Reload button can override the lock.","translations":{"zh-Hans":{"decision":"translate","text":"锁定当前形状。重新加载按钮可覆盖此锁定。"},"zh-Hant":{"decision":"translate","text":"鎖定目前形狀。重新載入按鈕可以覆寫此鎖定。"},"ja_JP":{"decision":"translate","text":"現在のシェイプをロックします。再読み込みボタンでロックを解除できます。"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["meshExplorer.reload.tooltip"],"source":"Reload the current Shape.","notes":["Tooltip for a \"Reload\" button; \"Shape\" = a Cavalry shape object."],"key":"meshExplorer.reload.tooltip","vendorJapanese":"Reload the current Shape.","translations":{"zh-Hans":{"decision":"translate","text":"重新加载当前形状。"},"zh-Hant":{"decision":"translate","text":"重新載入目前形狀。"},"ja_JP":{"decision":"translate","text":"現在のシェイプを再読み込み"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["meshExplorer.row.childMeshes"],"source":"Child Meshes: {0}","notes":["Label showing how many child sub-meshes a shape has.","placeholder0 - that count.","Example - \"Child Meshes: 3\""],"key":"meshExplorer.row.childMeshes","vendorJapanese":"Child Meshes: {0}","translations":{"zh-Hans":{"decision":"translate","text":"子网格数：{0}"},"zh-Hant":{"decision":"translate","text":"子網格數：{0}"},"ja_JP":{"decision":"translate","text":"子メッシュ数: {0}"}}},
@@ -545,5 +545,79 @@ module.exports.provenance.graphicsReaudit = {
   ],
   "sourceIdentityChanged": false,
   "officialVendorChanged": false,
+  "liveApproval": false
+};
+
+// -- JS片段空提示：只修三语尾标点，保留原分区审批 ------------------
+module.exports.provenance.jsSnippetPlaceholderNoFullStopRevision = {
+  revisionId: 'c3-js-snippets-placeholder-no-full-stop-20261012-r1',
+  requestedBy: 'user',
+  approvedBy: 'primary-agent',
+  approvalState: 'approved-source-bound-single-key-revision',
+  approvedAtUtc: '2026-10-11T18:44:27Z',
+  key: 'jsSnippets.placeholder',
+  locales: ['zh-Hans', 'zh-Hant', 'ja_JP'],
+  changedLocaleSlots: 3,
+  sourceIdentitySha256: '0becf45879cffcaa1583c3b5840590cbf3a330a4e36fae9e269d371264a87a30',
+  previousDecisionSha256: '4a3acb743bac44afae3a9133ac14237a4c89331d4182904bce719055937bcb0b',
+  currentDecisionSha256: '9bbb25315a1668d929038af82d731ee8b753f650d46326dff0f8ff9ecb8883be',
+  translations: {
+    'zh-Hans': {
+      previous: '将一些 JavaScript 拖到此处以创建代码片段。',
+      previousSha256: 'e8ae386b0e7192afb54dc22c6ecf60ff8895919b1a32933b325b071145b06945',
+      current: '将一些 JavaScript 拖到此处以创建代码片段',
+      currentSha256: '7da5b16bad7699825b91d316854b6f723535317a252d944a3b2d444b975956fc'
+    },
+    'zh-Hant': {
+      previous: '將一些 JavaScript 拖曳至此以建立程式碼片段。',
+      previousSha256: '193a51a16434a15b46eb005ae1b2425726c23f7603b0a9210980808cea8534d0',
+      current: '將一些 JavaScript 拖曳至此以建立程式碼片段',
+      currentSha256: '50438884baf0dc6c7c1baf7c047184a41438c98a6fedbcee621b433f2a6aef7a'
+    },
+    ja_JP: {
+      previous: 'JavaScriptをここにドラッグしてスニペットを作成します。',
+      previousSha256: '3973ae852aec27b08fb0e2f873e2340fe7d2275e63909070ba49b5af384347a7',
+      current: 'JavaScriptをここにドラッグしてスニペットを作成します',
+      currentSha256: 'ae791297152af1f279d2b98589bc6d6f805ece654b089eaccb874b83c5238d4c'
+    }
+  },
+  sourceIdentityChanged: false,
+  vendorJapaneseChanged: false,
+  liveApproval: false
+};
+
+module.exports.provenance.emptyRegionPromptPunctuationRevision = {
+  "revisionId": "empty-region-prompt-no-terminal-full-stop-20261012-r1",
+  "approvalState": "approved-source-bound-category-revision",
+  "requestedBy": "user",
+  "approvedBy": "primary-agent",
+  "changedKeys": 1,
+  "changedLocaleSlots": 3,
+  "previousDecisionSha256": "9bbb25315a1668d929038af82d731ee8b753f650d46326dff0f8ff9ecb8883be",
+  "currentDecisionSha256": "c29731dbea989fd14d415b66abae8a4db7c3e486918b47f5ecfc9bd091586e92",
+  "changes": [
+    {
+      "key": "meshExplorer.empty",
+      "source": "Select a Shape to see its internal mesh structure.",
+      "sourceIdentitySha256": "1981bba508448de31141a0bb8a080e7717d3683d25dd28beb4d110c78c2281bd",
+      "previousTranslations": {
+        "zh-Hans": "选择一个形状以查看其内部网格结构。",
+        "zh-Hant": "選取形狀以檢視其內部網格結構。",
+        "ja_JP": "シェイプを選択すると内部メッシュ構造が表示されます。"
+      },
+      "currentTranslations": {
+        "zh-Hans": "选择一个形状以查看其内部网格结构",
+        "zh-Hant": "選取形狀以檢視其內部網格結構",
+        "ja_JP": "シェイプを選択すると内部メッシュ構造が表示されます"
+      },
+      "changedLocales": [
+        "zh-Hans",
+        "zh-Hant",
+        "ja_JP"
+      ]
+    }
+  ],
+  "sourceIdentityChanged": false,
+  "vendorJapaneseChanged": false,
   "liveApproval": false
 };
