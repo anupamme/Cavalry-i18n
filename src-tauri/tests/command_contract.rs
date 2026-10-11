@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::commands 的注册表与跨平台序列化 payload
- * [OUTPUT]: 对外提供 command 名称、权限动作、platform、Status 补丁回执状态/版本兼容/官方恢复能力/owned native English restore capability/受控nativeLocaleState与固定 false的旧macOS handoff hint、Action restore-only结果、About创建时原生交通灯配置与Windows main-owner生命周期、稳定errorCode、可组合warningCodes、Windows residue、Updater DTO与camelCase JSON shape contract tests
+ * [OUTPUT]: 对外提供 command 名称、权限动作、platform、Status 补丁回执状态/版本兼容/官方恢复能力/owned native English restore capability/受控nativeLocaleState与固定 false的旧macOS handoff hint、Action restore-only结果、About固定窗口尺寸与创建时原生交通灯配置/Windows main-owner生命周期、稳定errorCode、可组合warningCodes、Windows residue、Updater DTO与camelCase JSON shape contract tests
  * [POS]: src-tauri/tests 的 renderer API 守门，保持九命令和旧字段兼容，并显式暴露平台差异、Managed Legacy/版本只读字段、固定项目外链、可本土化错误、Windows runtime residue 与脱敏更新状态
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -51,6 +51,23 @@ fn macos_and_windows_about_entries_share_one_native_window_owner() {
     assert!(!lib_rs.contains("cavalryI18nShowAbout"));
     assert!(about_rs.contains("ABOUT_WINDOW_LABEL: &str = \"about\""));
     assert!(about_rs.contains("ABOUT_BODY_WIDTH: f64 = 288.0"));
+    assert!(about_rs.contains("ABOUT_BODY_HEIGHT: f64 = 314.0"));
+    assert!(about_rs.contains("ABOUT_TITLEBAR_HEIGHT: f64 = 40.0"));
+    assert!(about_rs.contains("WINDOW_SHADOW_INSET: f64 = 10.0"));
+    assert!(
+        about_rs.contains("ABOUT_BODY_HEIGHT + ABOUT_TITLEBAR_HEIGHT + WINDOW_SHADOW_INSET * 2.0")
+    );
+    assert!(about_rs.contains("ABOUT_BODY_HEIGHT + ABOUT_TITLEBAR_HEIGHT;"));
+    assert_eq!(
+        314.0_f64 + 40.0,
+        354.0,
+        "macOS About content plus Overlay titlebar"
+    );
+    assert_eq!(
+        314.0_f64 + 40.0 + 10.0 * 2.0,
+        374.0,
+        "Windows About plus compositor shadow inset"
+    );
     assert!(about_rs.contains("WebviewUrl::App(\"about.html\".into())"));
     assert!(about_rs.contains(".initialization_script(ABOUT_PLATFORM_INIT_SCRIPT)"));
     assert!(about_rs.contains(".title_bar_style(tauri::TitleBarStyle::Overlay)"));

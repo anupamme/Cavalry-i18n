@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、语义 token/图标表、user-profile-text→ui-text四语字典、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review补丁状态与fake bridge/动态目录、nativeDefaultEnglish/nativeOfficialDefaultEnglish/nativeOwnedHans preview fixture、Restore/remediation/permission handoff、Issue form、来源通知/窗口配置、冻结bridge API与scope/locale/resource策略合同。
- * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、主页面 20px padding 派生的 10px 同行动作关系、无重复视觉标题但保留 OS 标题的 About、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、跨平台 reconciliation Restore、版本只读门禁、普通验证失败才显露固定报告入口/四语文案且不得要求重装或不可见详情、typed 缺失基线错误才要求重装的 Activity 原位合同、仅消费后端只读清理投影、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源；另锁定 installation/userProfile DTO 投影、原厂English/Japanese与unknown+owned zh-Hans徽章矩阵、scope不推断安装来源、共享配置确认、固定英文 Restore、Switch-only resource gate 与 hostless owned-only strict grant、nativeRestoreOnly结果不启动及 host-probe不能伪造 Channel error 三项回归、三类固定 native 错误路由、仅 explicit Cavalry 2.8.0 preview + installed 2.7.2 时显露的闭合 legacyRelease 项和四语标签。
+ * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、主页面 20px padding 派生的 10px 同行动作关系、无重复视觉标题但保留 OS 标题的 About（含官方 Phosphor Regular XLogo 与固定同组件链接）、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、跨平台 reconciliation Restore、版本只读门禁、普通验证失败才显露固定报告入口/四语文案且不得要求重装或不可见详情、typed 缺失基线错误才要求重装的 Activity 原位合同、仅消费后端只读清理投影、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源；另锁定 installation/userProfile DTO 投影、原厂English/Japanese与unknown+owned zh-Hans徽章矩阵、scope不推断安装来源、共享配置确认、固定英文 Restore、Switch-only resource gate 与 hostless owned-only strict grant、nativeRestoreOnly结果不启动及 host-probe不能伪造 Channel error 三项回归、三类固定 native 错误路由、仅 explicit Cavalry 2.8.0 preview + installed 2.7.2 时显露的闭合 legacyRelease 项和四语标签。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -120,6 +120,7 @@ test('UI Review renders the exact production shell and replaces only the data br
     aboutProduction,
     'review About may inject a base and fixture bridge, but may not copy or edit production UI'
   );
+  assert.match(workspace, /\.window\[data-surface="about"\] \{ width: 320px; height: 354px;/, 'About review frame must include the added fixed-link row');
   assert.match(review, /<script src="\/fixture\.js"><\/script>\s*<script src="\.\/tauri-bridge\.js"><\/script>/);
   assert.match(workspace, /<iframe id="reviewFrame"[^>]*><\/iframe>/);
   assert.match(workspace, /data-view="handoff"[^>]*><span>权限 handoff<\/span>/);
@@ -665,7 +666,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(selectControl, /alignPopupItemToTrigger\(selected >= 0 \? list\.children\[activeIndex\] : popupPlaceholder\)/);
   assert.match(selectControl, /root\.dataset\.placeholder = String\(!hasSelection\)/);
   assert.match(selectControl, /select\.value = options\.some\([\s\S]*?\? previousValue : '';/);
-  assert.doesNotMatch(html, /id="about(?:Dialog|Title|Version|CloseButton|RepositoryLink|RepositoryLabel|LicenseLink|LicenseLabel)"/, 'About content must not remain in the main window');
+  assert.doesNotMatch(html, /id="about(?:Dialog|Title|Version|CloseButton|TwitterLink|TwitterLabel|RepositoryLink|RepositoryLabel|LicenseLink|LicenseLabel)"/, 'About content must not remain in the main window');
   assert.match(html, /id="aboutControl"[^>]*data-tooltip-state="closed"[^>]*hidden/);
   assert.match(aboutControl, /createAboutControl/);
   assert.match(aboutControl, /button\.append\(icons\.create\('infoCircle'\)\)/);
@@ -687,18 +688,29 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(aboutPage, /<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/about-window\.js"><\/script>/);
   assert.match(aboutPage, /<script src="\.\/user-profile-text\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/icons\.js"><\/script>/);
   assert.match(aboutPage, /<img class="about-app-icon" src="\.\/app-icon\.png" alt="" aria-hidden="true" \/>/);
+  const twitterRow = aboutPage.match(/<a id="aboutTwitterLink" class="about-link" href="#twitter">([\s\S]*?)<\/a>/)?.[1] || '';
+  assert.match(aboutPage, /<a id="aboutTwitterLink" class="about-link" href="#twitter">[\s\S]*?<span id="aboutTwitterLabel">@daftAI<\/span>[\s\S]*?<\/a>\s*<a id="aboutRepositoryLink" class="about-link"/);
+  assert.match(twitterRow, /<svg class="about-link-icon" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false">/);
+  assert.equal(
+    twitterRow.match(/<path d="([^"]+)"/)?.[1],
+    'M214.75,211.71l-62.6-98.38,61.77-67.95a8,8,0,0,0-11.84-10.76L143.24,99.34,102.75,35.71A8,8,0,0,0,96,32H48a8,8,0,0,0-6.75,12.3l62.6,98.37-61.77,68a8,8,0,1,0,11.84,10.76l58.84-64.72,40.49,63.63A8,8,0,0,0,160,224h48a8,8,0,0,0,6.75-12.29ZM164.39,208,62.57,48h29L193.43,208Z',
+    'About must use the upstream Phosphor Regular XLogo path, not a generic close X or the retired Twitter bird'
+  );
+  assert.doesNotMatch(twitterRow, /M23\.953 4\.57/, 'About must not regress to the Twitter bird');
+  assert.equal((aboutPage.match(/class="about-link"/g) || []).length, 3, 'About keeps Twitter, GitHub, and license rows on one link component');
   assert.match(aboutPage, /id="aboutRepositoryLink"[\s\S]*?class="about-link-icon"[\s\S]*?id="aboutRepositoryLabel"/);
   assert.match(aboutWindow, /getSwitcherVersion\(\)/);
   assert.match(aboutWindow, /cavalryIcons\.create\('close'\)/);
   assert.match(aboutWindow, /cavalryI18n\.closeAboutWindow\(\)/);
   assert.match(aboutWindow, /openProjectLink\(link\)/);
   assert.match(aboutWindow, /wireProjectLink\('#aboutRepositoryLink', 'repository', showProjectLinkError\)/);
+  assert.match(aboutWindow, /wireProjectLink\('#aboutTwitterLink', 'twitter', showProjectLinkError\)/);
   assert.match(aboutWindow, /wireProjectLink\('#aboutLicenseLink', 'license', showProjectLinkError\)/);
   assert.match(aboutWindow, /createToastControl/);
   assert.match(aboutWindow, /projectLinkFailedTitle/);
   assert.doesNotMatch(aboutWindow, /showAbout/);
   assert.doesNotMatch(aboutPage, /https?:\/\//, 'About page must use fixed bridge ids, not renderer URLs');
-  assert.match(bridge, /PROJECT_LINK_MANIFEST = Object\.freeze\(\['repository', 'license', 'reportIssue', 'legacyRelease'\]\)/);
+  assert.match(bridge, /PROJECT_LINK_MANIFEST = Object\.freeze\(\['twitter', 'repository', 'license', 'reportIssue', 'legacyRelease'\]\)/);
   assert.match(bridge, /invoke\('open_project_link', \{ link \}\)/);
   assert.match(bridge, /showAbout:\s*\(\) => invoke\('show_about'\)\.then\(normalizeAction\)/);
   assert.match(bridge, /closeAboutWindow:\s*\(\) => invokeWindow\('close', 'about'\)/);

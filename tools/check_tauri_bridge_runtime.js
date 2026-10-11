@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/user-profile-text/ui-text/language-scope/version-guidance/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 camelCase scope/受控 currentLang/nativeLocaleState/error code 白名单、四语 installation Official badge 对原厂 English/Japanese 的显示及后端 unknown+owned zh-Hans 的隐藏、不按 locale 推断来源、严格 owned-only hostless English Restore 与 nativeRestoreOnly no-launch 语义、用户级英文三阶段 copy 与安装级 Cavalry copy 的隔离、用户级共享副本确认与资源门、失败回执 reconciliation 刷新且保留 failure Activity、未知语言重应用、固定三类 native 错误和跨副本退出提示、用户配置恢复阶段文案、2.8 preview 中仅为 2.7.2 安装显示的 fixed legacyRelease link，以及 installation 原合同、权限事务、任务流、组件状态机、Updater Channel、About 和 Toast。
+ * [OUTPUT]: 验证 camelCase scope/受控 currentLang/nativeLocaleState/error code 白名单、四语 installation Official badge 对原厂 English/Japanese 的显示及后端 unknown+owned zh-Hans 的隐藏、不按 locale 推断来源、严格 owned-only hostless English Restore 与 nativeRestoreOnly no-launch 语义、用户级英文三阶段 copy 与安装级 Cavalry copy 的隔离、用户级共享副本确认与资源门、失败回执 reconciliation 刷新且保留 failure Activity、未知语言重应用、固定三类 native 错误和跨副本退出提示、用户配置恢复阶段文案、2.8 preview 中仅为 2.7.2 安装显示的 fixed legacyRelease link，以及 installation 原合同、权限事务、任务流、组件状态机、Updater Channel、About Twitter/X 固定链接分发和 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -50,7 +50,7 @@ function runtime({
   aboutPlatform = 'other',
   projectLinkResult = { ok: true },
 } = {}) {
-  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutRepositoryLink', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'legacyReleaseButton', 'reportIssueButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
+  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutTwitterLink', 'aboutRepositoryLink', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'legacyReleaseButton', 'reportIssueButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   const calls = [];
   const channels = [];
@@ -492,6 +492,21 @@ test('project links keep fixed bridge ids and report browser failure inside the 
   assert.equal(viewport.children.length, 1);
   assert.match(viewport.children[0].textContent, /Couldn’t open the project link/);
   assert.match(viewport.children[0].textContent, /default browser/);
+});
+
+test('About Twitter/X row dispatches only its fixed follow link id', async () => {
+  for (const locale of ['en-US', 'zh-CN', 'zh-TW', 'ja-JP']) {
+    const r = bootAbout({ locale });
+    await flush();
+    dispatch(r.elements['#aboutTwitterLink'], 'click', { preventDefault() {} });
+    await flush();
+
+    assert.deepEqual(
+      JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'open_project_link'))),
+      [{ command: 'open_project_link', payload: { link: 'twitter' } }],
+      locale
+    );
+  }
 });
 
 test('Windows About chrome uses the shared X and closes only the fixed about label', async () => {

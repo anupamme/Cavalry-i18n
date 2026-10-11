@@ -1,5 +1,5 @@
 <!--
-[INPUT]: 依赖 renderer 实际适配的 shadcn/ui、Base UI 与 Phosphor 固定源码及其 MIT 许可证。
+[INPUT]: 依赖 renderer 实际适配的 shadcn/ui、Base UI、Phosphor 固定源码及其 MIT 许可证。
 [OUTPUT]: 对外提供 renderer 内组件行为与 SVG path 的来源、锁定版本和版权通知。
 [POS]: renderer 的第三方归因边界；只记录进入本地源码的材料，不引入运行时依赖。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -43,6 +43,10 @@ Source: https://github.com/phosphor-icons/core
 Selected Regular SVG paths are adapted into the local semantic icon registry,
 including ArrowCircleUp for updates, the Cavalry launch Play glyph, and the
 Windows caption Info, Minus, Square, Copy, and X glyphs.
+
+The About Twitter/X row uses the Phosphor Regular `x-logo.svg` asset from
+upstream commit `2b75f3ad12b420c9504ef05df8d2564a28f8500e`:
+https://github.com/phosphor-icons/core/blob/2b75f3ad12b420c9504ef05df8d2564a28f8500e/assets/regular/x-logo.svg
 
 Licensed under the MIT License. The full license text is available at:
 https://github.com/phosphor-icons/core/blob/main/LICENSE
