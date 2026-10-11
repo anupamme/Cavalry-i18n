@@ -70,6 +70,11 @@ AX树初次不含WebArea时，有限等待其就绪。
 当前语言有更新时description含同源徽章，按本次描述选项。
 分别执行Switch或Update，普通Switch直接执行；Restore English仍确认。
 读取真实Outcome和新进程结果；先保护临时恢复记录再退出副本。
+后台WK的AX树已更新，不保证CG画面已绘制。
+动作前激活精确副本；终态后再采同PID原图。
+若原图仍是旧帧，保留旧图，不重发业务动作。
+激活后补采并独立判图，不将AX匹配直接判像素通过。
+运行写者拒绝须核typed错误、Activity及profile字节/mode不变。
 这只覆盖实际操作，不从AX动作返回推导产品事务成功。
 
 ## Switcher界面语言
