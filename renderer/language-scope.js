@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 ui-text 提供的四语文案，以及业务层传入的状态、Dialog 和事务回调。
- * [OUTPUT]: 提供 installation/userProfile 的控制门、unset+English默认与Unknown的只读徽章投影、用户级确认文案选择、仅严格 true 的 owned-English hostless Restore 准入、用户恢复时不声称宿主验证成功的阶段文案路由与固定错误文案。
+ * [OUTPUT]: 提供 installation/userProfile 控制门、unset+English默认与Unknown徽章、仅Restore确认、owned-English hostless Restore准入、恢复阶段文案与固定错误文案。
  * [POS]: renderer 的语言范围策略层；用户级设置覆盖同一用户配置中的所有 Cavalry 副本，appPath 仍由业务层作为重启目标。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -106,20 +106,15 @@
       return isUserProfile() ? 'cavalryStillRunningUserProfile' : 'cavalryStillRunning';
     }
     function showConfirmation(action, nextLanguage, handlers) {
-      if (!isUserProfile()) return false;
-      const restoring = action === 'restore';
-      const language = restoring ? 'en' : nextLanguage;
+      if (!isUserProfile() || action !== 'restore' || nextLanguage !== 'en') return false;
       handlers.showModal({
-        title: text(restoring ? 'nativeUserProfileRestoreConfirmTitle' : 'nativeUserProfileSwitchConfirmTitle'),
-        body: text(
-          restoring ? 'nativeUserProfileRestoreConfirmBody' : 'nativeUserProfileSwitchConfirmBody',
-          { language: languageLabel(language, handlers.languages) }
-        ),
-        primary: text(restoring ? 'restore' : 'apply'),
+        title: text('nativeUserProfileRestoreConfirmTitle'),
+        body: text('nativeUserProfileRestoreConfirmBody'),
+        primary: text('restore'),
         secondary: text('cancel'),
         onPrimary: () => {
           handlers.closeModal();
-          void handlers.runApply(language).catch(handlers.onFailure);
+          void handlers.runApply('en').catch(handlers.onFailure);
         },
         onSecondary: handlers.closeModal,
       });

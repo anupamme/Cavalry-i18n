@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖冻结 bridge 的 installation/userProfile 状态投影、有序阶段事件、language-scope/version-guidance 策略、Permission handoff、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、按 scope 呈现当前语言或 userProfile 英文默认状态与确认/恢复策略、结构化默认安装候选显示、用户级共享语言变更的显式风险确认与跨副本退出提示、资源不可用时仅禁 Switch、用户级英文恢复的宿主无关验证阶段、严格 nativeRestoreOnly 结果的未启动终态、失败回执触发的只读 reconciliation 刷新、精确版本门控的 legacyRelease 下载入口，以及既有安装级 Switch/Restore、权限分流、Updater 与外围失败 Toast。
+ * [OUTPUT]: 对外提供跨平台单任务流、按 scope 呈现当前语言或 userProfile 英文默认状态与确认/恢复策略、结构化默认安装候选显示、用户级Switch直达事务与跨副本退出提示、资源不可用时仅禁 Switch、用户级英文恢复的宿主无关验证阶段、严格 nativeRestoreOnly 结果的未启动终态、失败回执触发的只读 reconciliation 刷新、精确版本门控的 legacyRelease 下载入口，以及既有安装级 Switch/Restore、权限分流、Updater 与外围失败 Toast。
  * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不扫描、推断或展示 Switcher 内部 journal/签名清理；启动只消费后端只读 scope/版本/语言/回执投影，appPath 始终是重启目标；固定 userProfile 预览提示逐批资源边界，事务错误只映射本地固定文案，Windows 与 installation 文案/路径保持原样。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -502,7 +502,7 @@ function closeModal() {
 
 function showRestoreConfirmation() {
   if (languageScope.showConfirmation('restore', 'en', {
-    showModal, closeModal, runApply, onFailure: recoverOperationFailure, languages: state.languages,
+    showModal, closeModal, runApply, onFailure: recoverOperationFailure,
   })) return;
   const restoreAction = state.platform === 'macos' ? 'restore-official' : 'en';
   showModal({
@@ -658,7 +658,7 @@ function requestApply() {
   }
   const nextLanguage = languageSelect.value;
   if (languageScope.showConfirmation('switch', nextLanguage, {
-    showModal, closeModal, runApply, onFailure: recoverOperationFailure, languages: state.languages,
+    showModal, closeModal, runApply, onFailure: recoverOperationFailure,
   })) return;
   void runApply(nextLanguage).catch(recoverOperationFailure);
 }

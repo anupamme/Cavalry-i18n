@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 无运行时依赖；四语用户配置语言状态、共享预览和固定英文恢复文案只由ui-text.js消费。
- * [OUTPUT]: 对外提供 NATIVE_USER_PROFILE_TEXT 四语字典，收口默认英文显示、共享配置确认、资源/恢复故障与原生恢复阶段copy。
+ * [INPUT]: 无运行时依赖；四语用户配置语言状态、共享范围提示和固定英文恢复文案只由ui-text.js消费。
+ * [OUTPUT]: 对外提供 NATIVE_USER_PROFILE_TEXT 四语字典，收口默认英文显示、Restore确认、资源/恢复故障与原生恢复阶段copy。
  * [POS]: renderer 的用户级copy数据层；作为UI_TEXT的内聚子域，在主窗口、About与测试harness中先于ui-text.js加载。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -18,10 +18,8 @@ const NATIVE_USER_PROFILE_TEXT = Object.freeze({
     nativeUserLanguageConflict: "The shared language change could not be completed safely. Recovery records have been preserved. Check the Cavalry user configuration and retry; do not delete recovery data.",
     nativeUserLanguagePermissionDenied: "The Switcher could not write Cavalry settings for this user. Check the user file permissions, then retry.",
     cavalryStillRunningUserProfile: "Save your work and quit every running Cavalry copy in this user profile, including other versions, then retry. The Switcher will not close them.",
-    nativeUserProfileSwitchConfirmTitle: "Change language for this user profile?",
-    nativeUserProfileSwitchConfirmBody: "This Cavalry 2.8 native preview changes the shared language setting to {language} for every Cavalry copy in this user profile, including other versions. Save your work and quit all running copies yourself before continuing. The installation shown above remains the copy the Switcher launches. Language resources are still being added; this preview does not represent full language support.",
     nativeUserProfileRestoreConfirmTitle: "Restore English for this user profile?",
-    nativeUserProfileRestoreConfirmBody: "This sets the shared language setting to English for every Cavalry copy in this user profile, including other versions; it does not restore a previous locale. Save your work and quit all running copies yourself. The installation shown above remains the copy the Switcher launches.",
+    nativeUserProfileRestoreConfirmBody: "This sets the shared language setting to English for every Cavalry copy in this user profile, including other versions; it does not restore a previous locale. Save your work and quit all running copies yourself. For a Switcher-managed copy, this also restores the selected installation’s original vendor files. That copy is the one the Switcher launches.",
     nativeEnglishRestoreOnlyOutcome: "English restored. No verified compatible installation; Cavalry was not started.",
     phaseVerifyEnglishRestoreRunningTitle: "Checking English recovery state",
     phaseVerifyEnglishRestoreCompletedTitle: "English recovery state checked",
@@ -46,10 +44,8 @@ const NATIVE_USER_PROFILE_TEXT = Object.freeze({
     nativeUserLanguageConflict: "无法安全完成共享语言更改。已保留恢复记录。请检查 Cavalry 用户配置后重试；不要删除恢复数据。",
     nativeUserLanguagePermissionDenied: "无法写入当前用户的 Cavalry 配置。请检查该用户的文件权限后重试。",
     cavalryStillRunningUserProfile: "请保存工作并退出此用户配置下所有运行中的 Cavalry 副本，包括其他版本，然后重试。语言切换器不会替你关闭它们。",
-    nativeUserProfileSwitchConfirmTitle: "更改此用户配置的语言？",
-    nativeUserProfileSwitchConfirmBody: "此 Cavalry 2.8 原生预览会将此用户配置下所有 Cavalry 副本（包括其他版本）的共享语言设置切换为{language}。继续前，请保存工作并自行退出所有运行中的副本。上方显示的安装仍是切换器将重新启动的目标。语言资源仍在逐步完善；此预览不代表完整语言支持。",
     nativeUserProfileRestoreConfirmTitle: "将此用户配置恢复为英文？",
-    nativeUserProfileRestoreConfirmBody: "这会将此用户配置下所有 Cavalry 副本（包括其他版本）的共享语言设置固定为英文，而非恢复先前语言。请保存工作并自行退出所有运行中的副本。上方显示的安装仍是切换器将重新启动的目标。",
+    nativeUserProfileRestoreConfirmBody: "这会将此用户配置下所有 Cavalry 副本（包括其他版本）的共享语言设置固定为英文，而非恢复先前语言。请保存工作并自行退出所有运行中的副本。若所选副本由切换器管理，此操作也会恢复它的原厂文件。切换器仍启动此副本。",
     nativeEnglishRestoreOnlyOutcome: "已恢复英文。未验证到兼容安装，Cavalry 未启动。",
     phaseVerifyEnglishRestoreRunningTitle: "正在核验英文恢复状态",
     phaseVerifyEnglishRestoreCompletedTitle: "已核验英文恢复状态",
@@ -74,10 +70,8 @@ const NATIVE_USER_PROFILE_TEXT = Object.freeze({
     nativeUserLanguageConflict: "無法安全完成共享語言變更。還原記錄已保留。請檢查 Cavalry 使用者設定後重試；不要刪除還原資料。",
     nativeUserLanguagePermissionDenied: "無法寫入目前使用者的 Cavalry 設定。請檢查該使用者的檔案權限後重試。",
     cavalryStillRunningUserProfile: "請先儲存工作並結束此使用者設定檔中所有執行中的 Cavalry 副本，包括其他版本，然後重試。語言切換器不會代你關閉它們。",
-    nativeUserProfileSwitchConfirmTitle: "要變更此使用者設定檔的語言嗎？",
-    nativeUserProfileSwitchConfirmBody: "此 Cavalry 2.8 原生預覽會將此使用者設定檔中所有 Cavalry 副本（包括其他版本）的共享語言設定切換為{language}。繼續前，請儲存工作並自行結束所有執行中的副本。上方顯示的安裝仍是切換器重新啟動的目標。語言資源仍在逐步完善；此預覽不代表完整語言支援。",
     nativeUserProfileRestoreConfirmTitle: "要將此使用者設定檔還原為英文嗎？",
-    nativeUserProfileRestoreConfirmBody: "這會將此使用者設定檔中所有 Cavalry 副本（包括其他版本）的共享語言設定固定為英文，而不是還原先前語言。請儲存工作並自行結束所有執行中的副本。上方顯示的安裝仍是切換器重新啟動的目標。",
+    nativeUserProfileRestoreConfirmBody: "這會將此使用者設定檔中所有 Cavalry 副本（包括其他版本）的共享語言設定固定為英文，而不是還原先前語言。請儲存工作並自行結束所有執行中的副本。若所選副本由切換器管理，此操作也會還原它的原廠檔案。切換器仍啟動此副本。",
     nativeEnglishRestoreOnlyOutcome: "已還原英文。未能驗證相容安裝，Cavalry 未啟動。",
     phaseVerifyEnglishRestoreRunningTitle: "正在核驗英文還原狀態",
     phaseVerifyEnglishRestoreCompletedTitle: "已核驗英文還原狀態",
@@ -102,10 +96,8 @@ const NATIVE_USER_PROFILE_TEXT = Object.freeze({
     nativeUserLanguageConflict: "共有言語の変更を安全に完了できませんでした。復旧記録は保持されています。Cavalry のユーザー設定を確認して再試行してください。復旧データは削除しないでください。",
     nativeUserLanguagePermissionDenied: "このユーザーの Cavalry 設定に書き込めませんでした。ユーザーファイルのアクセス権を確認してから再試行してください。",
     cavalryStillRunningUserProfile: "作業を保存し、このユーザープロファイル内で実行中のすべての Cavalry コピー（他のバージョンを含む）を終了してから再試行してください。スイッチャーが終了させることはありません。",
-    nativeUserProfileSwitchConfirmTitle: "このユーザープロファイルの言語を切り替えますか？",
-    nativeUserProfileSwitchConfirmBody: "この Cavalry 2.8 ネイティブプレビューでは、このユーザープロファイル内のすべての Cavalry コピー（他のバージョンを含む）の共有言語設定を{language}に変更します。続行する前に作業を保存し、実行中のコピーをすべて終了してください。上に表示されたインストール先が、スイッチャーの起動対象として維持されます。言語リソースは順次追加中で、完全対応を示すものではありません。",
     nativeUserProfileRestoreConfirmTitle: "このユーザープロファイルを英語に戻しますか？",
-    nativeUserProfileRestoreConfirmBody: "このユーザープロファイル内のすべての Cavalry コピー（他のバージョンを含む）の共有言語設定を英語に固定します。以前の言語には戻りません。作業を保存し、実行中のコピーをすべて終了してください。上に表示されたインストール先が、スイッチャーの起動対象として維持されます。",
+    nativeUserProfileRestoreConfirmBody: "このユーザープロファイル内のすべての Cavalry コピー（他のバージョンを含む）の共有言語設定を英語に固定します。以前の言語には戻りません。作業を保存し、実行中のコピーをすべて終了してください。選択したコピーがスイッチャーの管理下にある場合、元のベンダーファイルも復元します。スイッチャーはそのコピーを起動します。",
     nativeEnglishRestoreOnlyOutcome: "英語に戻しました。互換性のあるインストールを確認できないため、Cavalry は起動していません。",
     phaseVerifyEnglishRestoreRunningTitle: "英語への復元状態を確認中",
     phaseVerifyEnglishRestoreCompletedTitle: "英語への復元状態を確認しました",

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/user-profile-text/ui-text/language-scope/version-guidance/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 camelCase scope/受控 currentLang/nativeLocaleState/error code 白名单、四语 installation Official badge 对原厂 English/Japanese 的显示及后端 unknown+owned zh-Hans 的隐藏、不按 locale 推断来源、严格 owned-only hostless English Restore 与 nativeRestoreOnly no-launch 语义、用户级英文三阶段 copy 与安装级 Cavalry copy 的隔离、用户级共享副本确认与资源门、失败回执 reconciliation 刷新且保留 failure Activity、未知语言重应用、固定三类 native 错误和跨副本退出提示、用户配置恢复阶段文案、2.8 preview 中仅为 2.7.2 安装显示的 fixed legacyRelease link，以及 installation 原合同、权限事务、任务流、组件状态机、Updater Channel、About Twitter/X 固定链接分发和 Toast。
+ * [OUTPUT]: 验证 camelCase scope/受控 currentLang/nativeLocaleState/error code 白名单、四语 installation Official badge 对原厂 English/Japanese 的显示及后端 unknown+owned zh-Hans 的隐藏、不按 locale 推断来源、严格 owned-only hostless English Restore 与 nativeRestoreOnly no-launch 语义、用户级英文三阶段 copy 与安装级 Cavalry copy 的隔离、用户级Switch立即apply/Restore确认与资源门、失败回执 reconciliation 刷新且保留 failure Activity、未知语言重应用、固定三类 native 错误和跨副本退出提示、用户配置恢复阶段文案、2.8 preview 中仅为 2.7.2 安装显示的 fixed legacyRelease link、About Twitter 固定链接分发，以及 installation 原合同、权限事务、任务流、组件状态机、Updater Channel 与 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1488,7 +1488,7 @@ test('unset native locale shows vendor-default English without selecting a langu
     'installation badges ignore the native-only locale state');
 });
 
-test('native user-profile Switch discloses shared scope and keeps the selected app as launch target', async () => {
+test('native user-profile Switch applies immediately without a confirmation modal', async () => {
   const r = boot({
     status: {
       languageScope: 'userProfile', nativeResourceAvailable: true, currentLang: 'unknown',
@@ -1503,15 +1503,10 @@ test('native user-profile Switch discloses shared scope and keeps the selected a
   chooseLanguage(r);
   assert.equal(r.elements['#applyButton'].disabled, false, 'unknown language must remain re-applicable');
   r.elements['#applyButton'].listeners.get('click')[0]();
-
-  assert.equal(r.elements['#modalBackdrop'].open, true, 'user-profile changes require explicit confirmation');
-  assert.match(r.elements['#modalBody'].textContent, /all Cavalry copies|every Cavalry copy/i);
-  assert.match(r.elements['#modalBody'].textContent, /other versions/i);
-  assert.match(r.elements['#modalBody'].textContent, /save.*work.*quit.*all/i);
-  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 0);
-
-  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  assert.equal(r.elements['#modalBackdrop'].open, false, 'normal user-profile Switch must not show confirmation');
   await flush();
+  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 1,
+    'normal user-profile Switch starts the selected transaction without a confirmation click');
   const apply = r.calls.find(({ command }) => command === 'apply_language');
   assert.equal(apply.payload.appPath, '/Applications/Cavalry.app');
 });
@@ -1559,9 +1554,9 @@ test('typed native user-profile failures stay local and never open App Managemen
     await flush();
     chooseLanguage(r);
     r.elements['#applyButton'].listeners.get('click')[0]();
-    assert.equal(r.elements['#modalBackdrop'].open, true);
-    r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+    assert.equal(r.elements['#modalBackdrop'].open, false, 'a normal Switch failure must not require a confirmation click');
     await flush();
+    assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 1);
 
     assert.match(activityText(r), messagePattern, `${errorCode} must have fixed localized copy`);
     assert.equal(r.elements['#permissionButton'].hidden, true, `${errorCode} must not route to permission settings`);
@@ -1599,8 +1594,9 @@ test('native conflict reconciliation preserves the failure Activity and unlocks 
     assert.equal(r.elements['#restoreButton'].disabled, true, 'clean English starts without Restore');
     chooseLanguage(r);
     r.elements['#applyButton'].listeners.get('click')[0]();
-    r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+    assert.equal(r.elements['#modalBackdrop'].open, false);
     await flush();
+    assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 1);
 
     assert.equal(statusReads, 2, 'reconciliation status must be refreshed after the failed write');
     assert.equal(r.elements['#currentLanguage'].textContent, 'Unknown');
@@ -1623,8 +1619,9 @@ test('user-profile running-process failure asks users to quit every copy without
   await flush();
   chooseLanguage(r);
   r.elements['#applyButton'].listeners.get('click')[0]();
-  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  assert.equal(r.elements['#modalBackdrop'].open, false);
   await flush();
+  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 1);
 
   assert.match(activityText(r), /quit every running Cavalry copy|all running.*Cavalry.*copies/i);
   assert.match(activityText(r), /other versions/i);
@@ -1642,8 +1639,9 @@ test('user-profile recovery phase describes user configuration records, not bund
   await flush();
   chooseLanguage(r);
   r.elements['#applyButton'].listeners.get('click')[0]();
-  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  assert.equal(r.elements['#modalBackdrop'].open, false);
   await flush();
+  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 1);
 
   assert.match(activityText(r), /user configuration recovery record.*checked|recovery record.*confirmed/i);
   assert.doesNotMatch(activityText(r), /recovery files ready|English files|official baseline/i);
