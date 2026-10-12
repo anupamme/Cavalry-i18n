@@ -1,16 +1,19 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 native_metadata_help.js 的 name-bound description 索引、旧四语 MetaData documents 与显式 source/可选译文 SHA-256 approvals
- * [OUTPUT]: 对外提供三语 source-bound reviews 和未批准项台账，不写回旧文档或投影任何机器字段
- * [POS]: tools 的 metadata 旧译复用边界；只读取旧 description，后续仍由 projectMetadataHelp 做投影与模板复核
+ * [INPUT]: 依赖旧四语 MetaData、显式复用 SHA 审批与 source-bound 新说明
+ * [OUTPUT]: 提供三语source-bound reviews、缺项台账、384非def根表与17def根表
+ * [POS]: tools 的帮助审定装配边界；只组合既有审批，不读安装或写 runtime 资源
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
 
 const { createHash } = require('node:crypto');
-const { collectMetadataDescriptions } = require('./native_metadata_help.js');
-
-const LOCALES = Object.freeze(['zh-Hans', 'zh-Hant', 'ja_JP']);
+const {
+  METADATA_FILE_NAMES,
+  METADATA_LOCALES: LOCALES,
+  buildRuntimeRootHelpTable,
+  collectMetadataDescriptions,
+} = require('./native_metadata_help.js');
 const compare = (left, right) => left < right ? -1 : left > right ? 1 : 0;
 
 function requireRecord(value, name) {
@@ -128,4 +131,101 @@ function resolveApprovedMetadataReuse({ file, source, legacyDocuments, approvals
   return { reviews, missingApprovals };
 }
 
-module.exports = { resolveApprovedMetadataReuse };
+function metadataFileForKey(key) {
+  const file = METADATA_FILE_NAMES.find(candidate => key.startsWith(`${candidate}#/`));
+  if (!file) throw new Error(`unsupported metadata approval key: ${key}`);
+  return file;
+}
+
+function requireExactKeys(value, expected, name) {
+  requireRecord(value, name);
+  const actual = Object.keys(value).sort(compare);
+  const wanted = [...expected].sort(compare);
+  if (actual.length !== wanted.length || actual.some((key, index) => key !== wanted[index])) {
+    throw new Error(`${name} must contain exactly: ${wanted.join(', ')}`);
+  }
+}
+
+function buildApprovedRuntimeRootHelpTable({
+  metadataDocuments,
+  legacyDocuments,
+  reuseApprovals,
+  supplementEntries,
+}) {
+  requireRecord(metadataDocuments, 'metadataDocuments');
+  if (!Array.isArray(reuseApprovals)) throw new Error('reuseApprovals must be an array');
+  if (!Array.isArray(supplementEntries)) throw new Error('supplementEntries must be an array');
+
+  const approvalsByFile = new Map(METADATA_FILE_NAMES.map(file => [file, []]));
+  for (const approval of reuseApprovals) {
+    requireRecord(approval, 'metadata approval');
+    const key = requireKey(approval.key, 'metadata approval key');
+    approvalsByFile.get(metadataFileForKey(key)).push(approval);
+  }
+
+  const reviewsByLocale = Object.fromEntries(LOCALES.map(locale => [locale, []]));
+  const missingByKey = new Map();
+  for (const file of METADATA_FILE_NAMES) {
+    const result = resolveApprovedMetadataReuse({
+      file,
+      source: metadataDocuments[file],
+      legacyDocuments,
+      approvals: approvalsByFile.get(file),
+    });
+    for (const locale of LOCALES) reviewsByLocale[locale].push(...result.reviews[locale]);
+    for (const missing of result.missingApprovals) {
+      if (missingByKey.has(missing.key)) throw new Error(`duplicate missing metadata key: ${missing.key}`);
+      missingByKey.set(missing.key, missing);
+    }
+  }
+
+  const sourceEntries = new Map();
+  for (const file of METADATA_FILE_NAMES) {
+    for (const entry of collectMetadataDescriptions(file, metadataDocuments[file])) {
+      sourceEntries.set(entry.key, entry);
+    }
+  }
+
+  const supplementByKey = new Map();
+  for (const supplement of supplementEntries) {
+    requireRecord(supplement, 'metadata supplement');
+    const key = requireKey(supplement.key, 'metadata supplement key');
+    if (supplementByKey.has(key)) throw new Error(`duplicate metadata supplement key: ${key}`);
+    const missing = missingByKey.get(key);
+    if (!missing) throw new Error(`metadata supplement is not an unapproved source: ${key}`);
+    const source = sourceEntries.get(key);
+    if (!source || supplement.source !== source.source || missing.source !== source.source) {
+      throw new Error(`metadata supplement source differs for ${key}`);
+    }
+    requireExactKeys(supplement.translations, LOCALES, `metadata supplement translations for ${key}`);
+    supplementByKey.set(key, supplement);
+
+    for (const locale of LOCALES) {
+      const translation = requireRecord(supplement.translations[locale], `metadata supplement ${locale}/${key}`);
+      if (translation.decision !== 'translate') {
+        throw new Error(`metadata supplement must translate ${locale}/${key}`);
+      }
+      if (typeof translation.text !== 'string' || !translation.text.trim()) {
+        throw new Error(`metadata supplement text must be non-empty for ${locale}/${key}`);
+      }
+      reviewsByLocale[locale].push({ key, source: source.source, text: translation.text });
+    }
+  }
+
+  if (supplementByKey.size !== missingByKey.size) {
+    throw new Error(`metadata supplements do not cover missing approvals: ${missingByKey.size - supplementByKey.size}`);
+  }
+
+  const table = buildRuntimeRootHelpTable({ metadataDocuments, reviewsByLocale });
+  return {
+    ...table,
+    counts: {
+      ...table.counts,
+      reusedApprovals: reuseApprovals.length,
+      supplementedDescriptions: supplementByKey.size,
+      reviewedDescriptions: table.counts.descriptionLeaves,
+    },
+  };
+}
+
+module.exports = { buildApprovedRuntimeRootHelpTable, resolveApprovedMetadataReuse };

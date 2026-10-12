@@ -81,7 +81,7 @@ menus_view_window.js: 构建期源绑定数据，View 33 与 Window 38 条完整
 menus_comp_animation.js: 构建期源绑定数据，Animation 49 与 Composition 53 条完整菜单经 AGY 3.8 Flash 执行模式/宝玉 Skill 修订、Grok 与 Luna 核对、主代理审定；不把旧候选或离线合同作实机完成证明。
 menus_file_edit_create_help.js: 构建期源绑定数据，File/Edit/Create/Help 四个完整菜单域共 84 条经 AGY/宝玉 Skill 修订、Grok 核对和主代理审定；保留 ICU、助记键与导出用途，非实机布局证明。
 metadata_reuse_manifest.js: 构建期显式审批，478 条旧说明以稳定键、当前源摘要和三语译值摘要绑定；477 同键同源加 1 条 replaceAsset 跨文件迁移，不复制旧参数或冗余译文。
-metadata_supplement.js: 构建期源绑定数据，四份脚本 MetaData 的 34 条真正新说明经 AGY/宝玉 Skill 修订、Grok 审稿和主代理润色；仅改 description，保留代码模板、参数和签名。
+metadata_supplement.js: 构建期源绑定数据，四份脚本 MetaData 的 34 条新说明只改 description；帮助复用器与 Cavalry 2.8 候选生成器读取它，不注册运行时 UI。
 ai_studio_reuse_and_credits.js: 构建期源绑定数据，审校复用 AI 工作室剩余 26 条并补齐 AI 用量 19 条；AGY 修复超过阈值、重置时长/日期，Grok 审稿后由主代理裁定。
 canva_and_assets.js: 构建期源绑定数据，完整覆盖预检 44 条、上传 7 条与素材 20 条，保留原生 ICU 分支、导出能力和修复方向，审稿不等于实机通过。
 ai_studio_supplement.js: 构建期源绑定数据，103 条 AI 工作室完整缺口域由宝玉 Skill 驱动 AGY 出稿修订、Grok 审稿、主代理润色；只提供显示译值，不作运行时或布局证明。

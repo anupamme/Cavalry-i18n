@@ -36,15 +36,19 @@ native_slit_scan_translations.test.js: Node 的 Slit Scan 48键/144译值默认�
 native_align_distortion_glow_translations.test.js: 官方catalogId+owner双身份选择，不把同owner schema补键反写旧批准分母；Node的三完整owner/100键默认审批合同；锁定官方source/notes/身份、300决策、对齐方向/HSV/RGB/半径强度/预览/Xor/Porter-Duff与18共享模式，22个实际修订逐一原稿回退变异；缺模块先真实RED，stage诊断不代表正式入库或live。
 native_array_distribution_translations.test.js: Node 的 Array完整4键/12值默认合同；锁定官方source/notes/身份摘要、手工坐标列表/计数方向/序列索引与三语审定文字，12个实际译值反向变异保护Array非网格和日语配置语法；正式模块缺失真实RED，source-only stage不代表审批或live。
 native_auto_animate_translations.test.js: Node 离线 autoAnimate 128 叶入库合同；锁定 owner/source/notes 与稳定键摘要、三语格式、当前进度模式/层级标签引用、相机变焦/几何缩放与可逆进退场、显示投影不写模型身份和厂商日语优先，先RED后入库，不调用服务或App。
-native_metadata_reuse.js: Node 的已审帮助复用解析器；显式源摘要审批后读取旧三语 description，可绑定译值摘要和跨文件 key，输出 reviews/未批台账，不复制旧签名或自动批准候选。
+native_metadata_reuse.js: Node 的已审帮助复用解析器；显式源摘要审批后复用旧三语 description，供独立候选生成器装配 main/def 根表；不复制旧签名或自动批准候选。
 native_metadata_reuse.test.js: Node 的纯复用合同；锁定未审批不复用、源/译值摘要漂移、旧语言完整性、迁移映射与机器字段不混入 reviews。
+native_help_popup_rows.js: 纯投影四份官方 MetaData 的根类型、参数与返回行；不读取安装或运行时状态。
+native_help_popup_rows.test.js: 纯投影合同；锁定 main/def 根、参数/返回格式和输入集合。
+build_native_help_description_table.js: 校验官方 MetaData 与源绑定审批；在仓外生成独立帮助说明表和布局行表。
+build_native_help_description_table.test.js: 离线生成器合同；锁定元数据身份、审批摘要、确定性输出与仓外路径。
 native_translation_inventory.js: Node 的全量纯队列编排器；组合官方 source/日语 catalog 与旧 JSON/TS 候选，按 registry key 排序，dontTranslate 与厂商日语优先，候选分类不代表审定或完成。
 native_translation_inventory.test.js: Node 的离线全量队列合同；锁定来源清单、跨 catalog 撞键、未映射叶、同源多键和互斥三语计数，期望文件清单仍由调用方核对。
 native_translation_candidates.js: Node 的旧译纯索引；从已知 JSON 显示角色及 TS 提取精确英语候选和来源，保留歧义，不以规范化匹配或模型身份自动批准复用。
 native_translation_candidates.test.js: Node 的旧译角色/身份合同；覆盖稳定 owner、数组重排、显示专用来源、重复身份隔离、空译及多义同源，不把单候选当翻译通过。
 native_translation_format.js: Node 的构建期格式门；使用固定 FormatJS ICU AST 比对参数、分支、offset、逐分支 #，另保留旧占位符与 HTML 技术属性，不引入运行时解释器。
 native_translation_format.test.js: Node 的合成格式合同；验证 ICU 语法/语义、参数新增删除、legacy tokens、HTML 属性字节和 Unicode，不能证明原厂 ICU 求值或界面布局。
-native_metadata_help.js: Node 的脚本帮助纯投影；按 function/class/method/property 名生成稳定 description 键，只修改已审说明并保留签名和技术模板，不走 UI ICU 门。
+native_metadata_help.js: Node 的脚本帮助纯投影；按 function/class/method/property 名生成稳定 description 键，供复用审核与候选表生成器共享；保留签名和技术模板，不走 UI ICU 门。
 native_metadata_help.test.js: Node 的 metadata 身份/技术保真合同；覆盖方法和属性重排、参数不变、未知说明、source 漂移与缺译保留，不写安装或调用翻译服务。
 native_translation_reviews.test.js: Node 的补译入库合同；核验 UI/形状/OpenType/累加渲染与帮助说明的完整源绑定、三语决策、格式/代码/标签引用和显示投影，锁定字形访问而非全选、基字相对位置/字母匹配及源纠错/字符串缩短/自动宽度条件；首批九条不是范围上限。
 project_translation_skill.test.js: Node 的项目级翻译技能配置合同；验证可发现元数据、上游及安装摘要、Markdown 依赖与 EXTEND 四语词表路径，不发翻译请求、不承担产品运行时。

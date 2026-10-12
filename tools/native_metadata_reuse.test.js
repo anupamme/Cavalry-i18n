@@ -8,6 +8,8 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const { createHash } = require('node:crypto');
 const { test } = require('node:test');
 
@@ -239,4 +241,156 @@ test('rejects duplicated legacy identities and does not copy any old machine fie
     file, source, legacyDocuments: prior,
     approvals: [{ key: keyFor(file, 'known'), sourceSha256: hash(text) }],
   }), /duplicate metadata entity name/);
+});
+
+function runtimeRootDocuments() {
+  return {
+    'api_function_metadata.json': [
+      { name: 'zRoot', namespace: '@JS_GUI_API', description: 'Z root source.' },
+      { name: 'defRoot', namespace: '@JS_DEFORMER', description: 'Def root source.' },
+    ],
+    'core_api_function_metadata.json': [{
+      name: 'Mesh', type: 'class',
+      methods: [{ name: 'nestedMethod', description: 'Nested method source.' }],
+      properties: [{ name: 'nestedProperty', description: 'Nested property source.' }],
+    }],
+    'gui_api_function_metadata.json': [
+      { name: 'aRoot', namespace: '@JS_CTX', description: 'A root source.' },
+    ],
+    'widget_api_function_metadata.json': [],
+  };
+}
+
+function rootSupplement(key, source) {
+  return {
+    key,
+    source,
+    translations: Object.fromEntries(['zh-Hans', 'zh-Hant', 'ja_JP'].map(locale => [locale, {
+      decision: 'translate', text: `${locale}: ${source}`,
+    }])),
+  };
+}
+
+function runtimeRootApprovalInputs() {
+  const documents = runtimeRootDocuments();
+  const sourceText = 'Z root source.';
+  const legacyByLocale = Object.fromEntries(LOCALES.map(locale => [locale, {
+    'api_function_metadata.json': [{
+      name: 'zRoot',
+      description: locale === 'en' ? sourceText : `${locale}: reviewed old translation.`,
+    }],
+    'core_api_function_metadata.json': [],
+    'gui_api_function_metadata.json': [],
+    'widget_api_function_metadata.json': [],
+  }]));
+  const reuse = [{ key: keyFor('api_function_metadata.json', 'zRoot'), sourceSha256: hash(sourceText) }];
+  const supplements = [
+    rootSupplement(keyFor('api_function_metadata.json', 'defRoot'), 'Def root source.'),
+    rootSupplement('core_api_function_metadata.json#/Mesh/methods/nestedMethod/description', 'Nested method source.'),
+    rootSupplement('core_api_function_metadata.json#/Mesh/properties/nestedProperty/description', 'Nested property source.'),
+    rootSupplement(keyFor('gui_api_function_metadata.json', 'aRoot'), 'A root source.'),
+  ];
+  return { documents, legacy: legacyDocuments(legacyByLocale), reuse, supplements };
+}
+
+test('assembles the approved 384-root producer from reuse approvals and source-bound supplements', () => {
+  const input = runtimeRootApprovalInputs();
+  const result = api().buildApprovedRuntimeRootHelpTable({
+    metadataDocuments: input.documents,
+    legacyDocuments: input.legacy,
+    reuseApprovals: input.reuse,
+    supplementEntries: input.supplements,
+  });
+
+  assert.deepEqual(result.entries.map(row => row.runtimeName), ['aRoot', 'zRoot']);
+  assert.deepEqual(result.counts, {
+    descriptionLeaves: 5,
+    rootDescriptionLeaves: 3,
+    candidateRoots: 2,
+    excludedDefRoots: 1,
+    nestedDescriptions: 2,
+    reusedApprovals: 1,
+    supplementedDescriptions: 4,
+    reviewedDescriptions: 5,
+  });
+  assert.deepEqual(result.entries[1].translations, {
+    'zh-Hans': 'zh-Hans: reviewed old translation.',
+    'zh-Hant': 'zh-Hant: reviewed old translation.',
+    ja_JP: 'ja_JP: reviewed old translation.',
+  });
+
+  assert.throws(() => api().buildApprovedRuntimeRootHelpTable({
+    metadataDocuments: input.documents,
+    legacyDocuments: input.legacy,
+    reuseApprovals: input.reuse,
+    supplementEntries: input.supplements.slice(1),
+  }), /do not cover missing approvals/);
+
+  const stale = structuredClone(input.supplements);
+  stale[0].source = 'Stale source.';
+  assert.throws(() => api().buildApprovedRuntimeRootHelpTable({
+    metadataDocuments: input.documents,
+    legacyDocuments: input.legacy,
+    reuseApprovals: input.reuse,
+    supplementEntries: stale,
+  }), /metadata supplement source differs/);
+});
+
+const OFFICIAL_28_METADATA_SHA256 = Object.freeze({
+  'api_function_metadata.json': '700a10cd761ad1b262964a998bd6a2480c3fc12754630fb66fba425f116e7ec8',
+  'core_api_function_metadata.json': 'ae76107c590b6b8bda39c11b167318d1092dc5863a60c056c394f7f647856229',
+  'gui_api_function_metadata.json': 'f19af900076a973172ebbdcc4bd033b1e487c69b8fcc3ccfdc189fc8f5e9c47e',
+  'widget_api_function_metadata.json': '25478df251d984df00be067d0dda3ae84365d85a1fe7cba8a6bc69f8834d937d',
+});
+
+test('builds isolated 384 main and 17 def tables from SHA-locked official 2.8 approvals', {
+  skip: !process.env.CAVALRY_2_8_METADATA_DIR,
+}, () => {
+  const sourceDirectory = process.env.CAVALRY_2_8_METADATA_DIR;
+  assert.ok(path.isAbsolute(sourceDirectory), 'metadata source directory must be absolute');
+  const metadataDocuments = Object.fromEntries(FILES.map(file => {
+    const bytes = fs.readFileSync(path.join(sourceDirectory, file));
+    assert.equal(createHash('sha256').update(bytes).digest('hex'), OFFICIAL_28_METADATA_SHA256[file], `${file} official SHA-256`);
+    return [file, JSON.parse(bytes.toString('utf8'))];
+  }));
+  const targetLocales = ['en', 'zh-Hans', 'zh-Hant', 'ja_JP'];
+  const legacy = Object.fromEntries(targetLocales.map(locale => [locale, Object.fromEntries(FILES.map(file => [
+    file,
+    JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'languages', locale, 'MetaData', file), 'utf8')),
+  ]))]));
+  const reuseManifest = require('../languages/native/metadata_reuse_manifest.js');
+  const supplement = require('../languages/native/metadata_supplement.js');
+
+  const result = api().buildApprovedRuntimeRootHelpTable({
+    metadataDocuments,
+    legacyDocuments: legacy,
+    reuseApprovals: reuseManifest.approvals,
+    supplementEntries: supplement.entries,
+  });
+
+  assert.equal(result.counts.descriptionLeaves, 512);
+  assert.equal(result.counts.rootDescriptionLeaves, 401);
+  assert.equal(result.counts.candidateRoots, 384);
+  assert.equal(result.counts.excludedDefRoots, 17);
+  assert.equal(result.counts.nestedDescriptions, 111);
+  assert.equal(result.counts.reusedApprovals, 478);
+  assert.equal(result.counts.supplementedDescriptions, 34);
+  assert.equal(result.counts.reviewedDescriptions, 512);
+  assert.equal(result.entries.length, 384);
+  assert.equal(result.defEntries.length, 17);
+  assert.equal(new Set(result.entries.map(row => row.runtimeName)).size, 384);
+  assert.equal(new Set(result.defEntries.map(row => row.runtimeName)).size, 17);
+  assert.deepEqual(result.entries.map(row => row.runtimeName),
+    [...result.entries.map(row => row.runtimeName)].sort());
+  const mainBounds = result.entries.find(row => row.runtimeName === 'getBoundingBox');
+  const defBounds = result.defEntries.find(row => row.runtimeName === 'getBoundingBox');
+  assert.ok(mainBounds, 'official main table contains getBoundingBox');
+  assert.ok(defBounds, 'official def table contains getBoundingBox');
+  assert.notEqual(mainBounds.sourceDescription, defBounds.sourceDescription,
+    'same bare runtime name retains independent source descriptions');
+  for (const row of result.entries) {
+    assert.ok(row.runtimeName);
+    assert.ok(row.sourceDescription);
+    for (const locale of ['zh-Hans', 'zh-Hant', 'ja_JP']) assert.ok(row.translations[locale]);
+  }
 });

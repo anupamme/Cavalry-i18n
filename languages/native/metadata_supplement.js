@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖官方 2.8 四份脚本 MetaData 源与签名上下文、宝玉 Skill 驱动 AGY 修订、Grok 独立审稿
  * [OUTPUT]: 提供 34 条真正新增 description 的源绑定三语审定输入，不提供函数签名或运行时包
- * [POS]: languages/native 的脚本帮助补译域；由 metadata 投影层只替换说明，不混入原生 UI ICU registry
+ * [POS]: 仅替换脚本帮助description；顿号空格支持QLabel自然断词，不混入原生UI ICU registry
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -63,9 +63,9 @@ module.exports = {
     },
     { key: "api_function_metadata.json#/generateHarmoniousPalette/description", source: "Generates a harmonious palette of hex colours from a base colour. type is \"monochromatic\", \"analogous\", \"complementary\", \"splitComplementary\", \"triadic\", \"square\", \"rectangular\", \"circular\", or \"goldenRatio\". options.harmonic=true and options.colorSpace=\"RGB\"|\"LAB\" are honoured. count is clamped to the same per-type maxima used by the Color Window's Generator.",
       notes: ["Script help; machine parameters, types and identifiers remain unchanged."],
-      translations: { "zh-Hans": {"decision": "translate", "text": "根据基础颜色生成协调的十六进制颜色调色板。type 可以是 \"monochromatic\"、\"analogous\"、\"complementary\"、\"splitComplementary\"、\"triadic\"、\"square\"、\"rectangular\"、\"circular\" 或 \"goldenRatio\"。支持 options.harmonic=true 以及 options.colorSpace=\"RGB\"|\"LAB\"。count 会被限制在颜色窗口生成器所采用的各类型最大值以内。"},
-        "zh-Hant": {"decision": "translate", "text": "根據基礎顏色產生協調的十六進位顏色調色盤。type 可以是 \"monochromatic\"、\"analogous\"、\"complementary\"、\"splitComplementary\"、\"triadic\"、\"square\"、\"rectangular\"、\"circular\" 或 \"goldenRatio\"。支援 options.harmonic=true 以及 options.colorSpace=\"RGB\"|\"LAB\"。count 會被限制在顏色視窗產生器所採用的各類型最大值以內。"},
-        ja_JP: {"decision": "translate", "text": "ベースカラーから調和のとれた 16 進数カラーのパレットを生成します。type には \"monochromatic\"、\"analogous\"、\"complementary\"、\"splitComplementary\"、\"triadic\"、\"square\"、\"rectangular\"、\"circular\"、または \"goldenRatio\" を指定します。options.harmonic=true および options.colorSpace=\"RGB\"|\"LAB\" に対応しています。count はカラーウィンドウのジェネレーターで使用されるタイプごとの最大値と同じ範囲に制限されます。"} }
+      translations: { "zh-Hans": {"decision": "translate", "text": "根据基础颜色生成协调的十六进制颜色调色板。type 可以是 \"monochromatic\"、 \"analogous\"、 \"complementary\"、 \"splitComplementary\"、 \"triadic\"、 \"square\"、 \"rectangular\"、 \"circular\" 或 \"goldenRatio\"。支持 options.harmonic=true 以及 options.colorSpace=\"RGB\"|\"LAB\"。count 会被限制在颜色窗口生成器所采用的各类型最大值以内。"},
+        "zh-Hant": {"decision": "translate", "text": "根據基礎顏色產生協調的十六進位顏色調色盤。type 可以是 \"monochromatic\"、 \"analogous\"、 \"complementary\"、 \"splitComplementary\"、 \"triadic\"、 \"square\"、 \"rectangular\"、 \"circular\" 或 \"goldenRatio\"。支援 options.harmonic=true 以及 options.colorSpace=\"RGB\"|\"LAB\"。count 會被限制在顏色視窗產生器所採用的各類型最大值以內。"},
+        ja_JP: {"decision": "translate", "text": "ベースカラーから調和のとれた 16 進数カラーのパレットを生成します。type には \"monochromatic\"、 \"analogous\"、 \"complementary\"、 \"splitComplementary\"、 \"triadic\"、 \"square\"、 \"rectangular\"、 \"circular\"、 または \"goldenRatio\" を指定します。options.harmonic=true および options.colorSpace=\"RGB\"|\"LAB\" に対応しています。count はカラーウィンドウのジェネレーターで使用されるタイプごとの最大値と同じ範囲に制限されます。"} }
     },
     { key: "api_function_metadata.json#/getAssetURI/description", source: "Returns the URI of an asset. For file based assets this is the absolute file path.",
       notes: ["Script help; machine parameters, types and identifiers remain unchanged."],

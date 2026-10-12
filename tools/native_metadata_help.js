@@ -1,18 +1,27 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖调用方提供的四份官方 MetaData 数组与 source-bound 审定 description，不读取安装或翻译服务
- * [OUTPUT]: 对外提供按 name/owner 收集的稳定说明键，以及只改 description 的深拷贝投影和 missing 台账
- * [POS]: tools 的 metadata help 构建期纯数据边界；保留参数、签名、对象投影/字面模板，区别于 UI ICU 门
+ * [INPUT]: 依赖调用方提供的四份官方 MetaData 数组与 source-bound 三语说明审定，不读安装或翻译服务
+ * [OUTPUT]: 提供稳定说明键、description-only投影、384非def根表与17def根表
+ * [POS]: tools 的帮助构建期纯数据边界；保留机器字段和模板，独立于 UI ICU 门
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
 
-const METADATA_FILES = new Set([
+const METADATA_FILE_NAMES = Object.freeze([
   'api_function_metadata.json',
   'core_api_function_metadata.json',
   'gui_api_function_metadata.json',
   'widget_api_function_metadata.json',
 ]);
+const METADATA_FILES = new Set(METADATA_FILE_NAMES);
+const METADATA_LOCALES = Object.freeze(['zh-Hans', 'zh-Hant', 'ja_JP']);
+const RUNTIME_ROOT_NAMESPACES = new Set([
+  '@JS_CORE_API',
+  '@JS_CTX',
+  '@JS_GUI_API',
+  '@JS_WIDGET_API',
+]);
+const DEF_SOURCE_NAMESPACE = '@JS_DEFORMER';
 const ENTITY_COLLECTIONS = ['methods', 'properties'];
 const compare = (left, right) => left < right ? -1 : left > right ? 1 : 0;
 
@@ -264,4 +273,126 @@ function projectMetadataHelp(file, source, reviews) {
   return { file, document: projected, missing };
 }
 
-module.exports = { collectMetadataDescriptions, projectMetadataHelp };
+function requireExactKeys(value, expected, name) {
+  requireRecord(value, name);
+  const actual = Object.keys(value).sort(compare);
+  const wanted = [...expected].sort(compare);
+  if (actual.length !== wanted.length || actual.some((key, index) => key !== wanted[index])) {
+    throw new Error(`${name} must contain exactly: ${wanted.join(', ')}`);
+  }
+}
+
+function metadataFileForReviewKey(key) {
+  if (typeof key !== 'string' || !key.trim()) throw new Error('metadata review key must be non-empty');
+  const file = METADATA_FILE_NAMES.find(candidate => key.startsWith(`${candidate}#/`));
+  if (!file) throw new Error(`unsupported metadata review key: ${key}`);
+  return file;
+}
+
+function buildRuntimeRootHelpTable({ metadataDocuments, reviewsByLocale }) {
+  requireExactKeys(metadataDocuments, METADATA_FILE_NAMES, 'metadataDocuments');
+  requireExactKeys(reviewsByLocale, METADATA_LOCALES, 'reviewsByLocale');
+
+  const candidateRows = [];
+  const defRows = [];
+  const runtimeNames = new Set();
+  const defRuntimeNames = new Set();
+  const counts = {
+    descriptionLeaves: 0,
+    rootDescriptionLeaves: 0,
+    candidateRoots: 0,
+    excludedDefRoots: 0,
+    nestedDescriptions: 0,
+  };
+
+  for (const file of METADATA_FILE_NAMES) {
+    const source = metadataDocuments[file];
+    const entries = collectMetadataDescriptions(file, source);
+    const rootsByName = new Map(source.map(entity => [entity.name, entity]));
+    counts.descriptionLeaves += entries.length;
+
+    for (const entry of entries) {
+      if (entry.entityPath.length !== 1) {
+        counts.nestedDescriptions += 1;
+        continue;
+      }
+
+      counts.rootDescriptionLeaves += 1;
+      const entity = rootsByName.get(entry.entityPath[0]);
+      const namespace = entity?.namespace;
+      if (namespace === DEF_SOURCE_NAMESPACE) {
+        counts.excludedDefRoots += 1;
+        if (defRuntimeNames.has(entity.name)) {
+          throw new Error(`duplicate runtime def name: ${entity.name}`);
+        }
+        defRuntimeNames.add(entity.name);
+        defRows.push({
+          key: entry.key,
+          runtimeName: entity.name,
+          sourceDescription: entry.source,
+        });
+        continue;
+      }
+      if (!RUNTIME_ROOT_NAMESPACES.has(namespace)) {
+        throw new Error(`unsupported runtime root namespace at ${entry.key}: ${String(namespace)}`);
+      }
+      if (runtimeNames.has(entity.name)) {
+        throw new Error(`duplicate runtime root name: ${entity.name}`);
+      }
+      runtimeNames.add(entity.name);
+      candidateRows.push({
+        key: entry.key,
+        runtimeName: entity.name,
+        sourceDescription: entry.source,
+      });
+    }
+  }
+
+  const translationsByKey = new Map(
+    [...candidateRows, ...defRows].map(row => [row.key, {}]),
+  );
+  for (const locale of METADATA_LOCALES) {
+    const reviews = reviewsByLocale[locale];
+    if (!Array.isArray(reviews)) throw new Error(`reviews for ${locale} must be an array`);
+    const reviewsByFile = new Map(METADATA_FILE_NAMES.map(file => [file, []]));
+    for (const review of reviews) {
+      requireRecord(review, `metadata review for ${locale}`);
+      const file = metadataFileForReviewKey(review.key);
+      reviewsByFile.get(file).push(review);
+    }
+
+    for (const file of METADATA_FILE_NAMES) {
+      const projection = projectMetadataHelp(file, metadataDocuments[file], reviewsByFile.get(file));
+      if (projection.missing.length > 0) {
+        throw new Error(`missing approved metadata descriptions for ${locale}/${file}: ${projection.missing.length}`);
+      }
+      for (const review of reviewsByFile.get(file)) {
+        const translation = translationsByKey.get(review.key);
+        if (translation) translation[locale] = review.text;
+      }
+    }
+  }
+
+  candidateRows.sort((left, right) => compare(left.runtimeName, right.runtimeName));
+  defRows.sort((left, right) => compare(left.runtimeName, right.runtimeName));
+  const projectEntries = rows => rows.map(({ key, runtimeName, sourceDescription }) => {
+    const translations = translationsByKey.get(key);
+    if (!translations || METADATA_LOCALES.some(locale => !translations[locale])) {
+      throw new Error(`missing runtime root translation: ${runtimeName}`);
+    }
+    return { runtimeName, sourceDescription, translations };
+  });
+  const entries = projectEntries(candidateRows);
+  const defEntries = projectEntries(defRows);
+
+  counts.candidateRoots = entries.length;
+  return { entries, defEntries, counts };
+}
+
+module.exports = {
+  METADATA_FILE_NAMES,
+  METADATA_LOCALES,
+  buildRuntimeRootHelpTable,
+  collectMetadataDescriptions,
+  projectMetadataHelp,
+};

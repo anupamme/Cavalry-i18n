@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 native_metadata_help.js 的 metadata description 身份收集与审定投影接口，使用合成四文件 schema
- * [OUTPUT]: 验证 name/path 稳定性、仅 description 写回、缺失台账、source binding 与对象/代码模板保真
- * [POS]: tools 的 metadata 帮助翻译合同；不读 Cavalry、profile 或磁盘，不将代码示例送入 UI ICU 格式门
+ * [INPUT]: 依赖 native_metadata_help.js 的说明身份、审定投影及根表接口，使用合成或锁定四文件源
+ * [OUTPUT]: 验证 source binding、384非def根、17def根与嵌套边界
+ * [POS]: tools 的脚本帮助合同；只用显式源和审定译文，不接 UI ICU 或运行时消费
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -204,4 +204,139 @@ test('preserves optional fields and mixed outer metadata projection schemas byte
   /object templates differ/);
   assert.equal(project(actualPaletteLookupSource, actualPaletteLookupSource).document[0].description,
     actualPaletteLookupSource);
+});
+
+const runtimeMetadataFiles = [
+  'api_function_metadata.json',
+  'core_api_function_metadata.json',
+  'gui_api_function_metadata.json',
+  'widget_api_function_metadata.json',
+];
+const runtimeLocales = ['zh-Hans', 'zh-Hant', 'ja_JP'];
+
+function runtimeRootFixture() {
+  return {
+    'api_function_metadata.json': [
+      { name: 'zRoot', namespace: '@JS_GUI_API', description: 'Z root source.' },
+      { name: 'defRoot', namespace: '@JS_DEFORMER', description: 'Def root source.' },
+    ],
+    'core_api_function_metadata.json': [{
+      name: 'Mesh', type: 'class',
+      methods: [{ name: 'nestedMethod', description: 'Nested method source.' }],
+      properties: [{ name: 'nestedProperty', description: 'Nested property source.' }],
+    }],
+    'gui_api_function_metadata.json': [
+      { name: 'aRoot', namespace: '@JS_CTX', description: 'A root source.' },
+    ],
+    'widget_api_function_metadata.json': [],
+  };
+}
+
+function runtimeRootReviews(documents) {
+  const all = runtimeMetadataFiles.flatMap(file => api().collectMetadataDescriptions(file, documents[file]));
+  return Object.fromEntries(runtimeLocales.map(locale => [locale, all.map(({ key, source }) => ({
+    key, source, text: `${locale}: ${source}`,
+  }))]));
+}
+
+test('builds deterministic isolated main/def root tables and excludes nested descriptions', () => {
+  const documents = runtimeRootFixture();
+  const reviewsByLocale = runtimeRootReviews(documents);
+  const result = api().buildRuntimeRootHelpTable({ metadataDocuments: documents, reviewsByLocale });
+
+  assert.deepEqual(result.entries.map(row => row.runtimeName), ['aRoot', 'zRoot']);
+  assert.deepEqual(result.entries[0], {
+    runtimeName: 'aRoot',
+    sourceDescription: 'A root source.',
+    translations: {
+      'zh-Hans': 'zh-Hans: A root source.',
+      'zh-Hant': 'zh-Hant: A root source.',
+      ja_JP: 'ja_JP: A root source.',
+    },
+  });
+  assert.deepEqual(result.defEntries, [{
+    runtimeName: 'defRoot',
+    sourceDescription: 'Def root source.',
+    translations: {
+      'zh-Hans': 'zh-Hans: Def root source.',
+      'zh-Hant': 'zh-Hant: Def root source.',
+      ja_JP: 'ja_JP: Def root source.',
+    },
+  }]);
+  assert.deepEqual(result.counts, {
+    descriptionLeaves: 5,
+    rootDescriptionLeaves: 3,
+    candidateRoots: 2,
+    excludedDefRoots: 1,
+    nestedDescriptions: 2,
+  });
+
+  const reordered = structuredClone(documents);
+  reordered['api_function_metadata.json'].reverse();
+  assert.deepEqual(
+    api().buildRuntimeRootHelpTable({ metadataDocuments: reordered, reviewsByLocale }).entries,
+    result.entries,
+  );
+  assert.deepEqual(
+    api().buildRuntimeRootHelpTable({ metadataDocuments: reordered, reviewsByLocale }).defEntries,
+    result.defEntries,
+  );
+});
+
+test('keeps same bare name isolated between main and def projections', () => {
+  const documents = {
+    'api_function_metadata.json': [
+      { name: 'getBoundingBox', namespace: '@JS_DEFORMER', description: 'Returns deformer bounds.' },
+    ],
+    'core_api_function_metadata.json': [],
+    'gui_api_function_metadata.json': [
+      { name: 'getBoundingBox', namespace: '@JS_GUI_API', description: 'Returns UI bounds.' },
+    ],
+    'widget_api_function_metadata.json': [],
+  };
+  const reviewsByLocale = runtimeRootReviews(documents);
+  const result = api().buildRuntimeRootHelpTable({ metadataDocuments: documents, reviewsByLocale });
+
+  assert.equal(result.entries[0].runtimeName, 'getBoundingBox');
+  assert.equal(result.entries[0].sourceDescription, 'Returns UI bounds.');
+  assert.equal(result.defEntries[0].runtimeName, 'getBoundingBox');
+  assert.equal(result.defEntries[0].sourceDescription, 'Returns deformer bounds.');
+});
+
+test('rejects missing/stale reviews, duplicate bare runtime names, and unknown namespaces', () => {
+  const documents = runtimeRootFixture();
+  const reviewsByLocale = runtimeRootReviews(documents);
+  const incomplete = structuredClone(reviewsByLocale);
+  incomplete['zh-Hant'] = incomplete['zh-Hant'].filter(review => !review.key.endsWith('#/Mesh/properties/nestedProperty/description'));
+  assert.throws(() => api().buildRuntimeRootHelpTable({ metadataDocuments: documents, reviewsByLocale: incomplete }),
+    /missing approved metadata descriptions/);
+
+  const stale = structuredClone(reviewsByLocale);
+  stale['ja_JP'].find(review => review.key.endsWith('#/aRoot/description')).source = 'Changed source.';
+  assert.throws(() => api().buildRuntimeRootHelpTable({ metadataDocuments: documents, reviewsByLocale: stale }),
+    /metadata review source differs/);
+
+  const duplicate = structuredClone(documents);
+  duplicate['widget_api_function_metadata.json'].push({
+    name: 'aRoot', namespace: '@JS_WIDGET_API', description: 'Another source with the same bare name.',
+  });
+  assert.throws(() => api().buildRuntimeRootHelpTable({
+    metadataDocuments: duplicate, reviewsByLocale: runtimeRootReviews(duplicate),
+  }), /duplicate runtime root name: aRoot/);
+
+  const unknownNamespace = structuredClone(documents);
+  unknownNamespace['widget_api_function_metadata.json'].push({
+    name: 'unknownRoot', namespace: '@JS_OTHER', description: 'Unknown namespace source.',
+  });
+  assert.throws(() => api().buildRuntimeRootHelpTable({
+    metadataDocuments: unknownNamespace, reviewsByLocale: runtimeRootReviews(unknownNamespace),
+  }), /unsupported runtime root namespace/);
+
+  const duplicateDef = structuredClone(documents);
+  duplicateDef['core_api_function_metadata.json'].push({
+    name: 'defRoot', namespace: '@JS_DEFORMER', description: 'Duplicate def source.',
+  });
+  assert.throws(() => api().buildRuntimeRootHelpTable({
+    metadataDocuments: duplicateDef, reviewsByLocale: runtimeRootReviews(duplicateDef),
+  }), /duplicate runtime def name: defRoot/);
 });
