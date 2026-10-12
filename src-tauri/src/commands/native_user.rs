@@ -2,6 +2,7 @@
  * [INPUT]: 依赖native_resources的编译审批/宿主证明、fixed user paths的耐久事务与privilege的同用户路径/all-Cavalry准入；用户写入序列化由command facade持共享operation lock，manual smoke调用方显式复用该锁。
  * [OUTPUT]: 提供2.8开发预览的typed用户语言状态、强Current-owned English恢复能力及四阶段事务；Official显示还须内置English/日语且无Switcher receipt/专属strings覆盖，不把原厂App来源冒作当前翻译官方；异常仍Unknown，hostless仅自有Current restore-only。
  * [POS]: commands的native-first编排owner；厂商来源与profile语言分别取证后合成Official显示门，资源新旧/可用性与恢复许可不随徽章变化；manual ignored smoke直调apply_inner而非公开命令自动重启，进程guard仅快照，不承诺OS启动锁或任意外部writer隔离。
+ * apply_profile仅向commands父域暴露，复用本模块的profile事务；它不进入renderer IPC。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::{
@@ -156,7 +157,7 @@ fn transaction_error(error: &str) -> ActionPayload {
         code == "nativeUserLanguageConflict" || code == "nativeUserLanguagePermissionDenied";
     payload
 }
-fn apply_profile<R: OperationReporter>(
+pub(super) fn apply_profile<R: OperationReporter>(
     paths: &UserLanguagePaths,
     language: &str,
     bytes: Option<&[u8]>,
