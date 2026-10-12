@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 injector/native 候选源、Qt 6.9.2公开头与同bundle Cavalry 2.8 arm64 Frameworks。
-[OUTPUT]: 说明字体、FPS、标题、帮助、Guide正文、布局、Fast、Easing与Mesh提示候选边界。
+[OUTPUT]: 说明字体、FPS、标题、帮助、Guide正文、布局、Fast、Easing与213槽GetPath文本边界。
 [POS]: 原生候选模块入口；加载、搜索消费与生命周期由消费端另验。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -42,8 +42,13 @@ FPS requires Core return `+0x69a70` and Extension return `+0x23c7bc`.
 The candidate verifies the FPS `MakePathFromText` call at Extension `+0x23c7b8`.
 This owner stays separate from the Viewport quality cache owner.
 It copies at most 512 UTF-8 bytes into the existing text snapshot.
-It selects one of three 31-entry fixed UI lanes from `gLocale`.
-Each lane keeps the original 27 entries and appends four Mesh tool hints.
+It selects one of three 71-entry fixed UI lanes from `gLocale`.
+Each lane keeps the original 27 entries and four Mesh tool hints.
+Each lane then appends 40 approved fixed ToolHelp strings.
+The 93-row baseline fixture preserves the old 31-entry lane byte-for-byte.
+The ToolHelp source contract checks 44 keys, two existing matches, and two duplicate pairs.
+It emits 40 distinct new tuples per locale; `Delete` stays preserved.
+The Skeleton handle-drag suffix is a fragment, not a standalone row.
 The Mesh hints cover Bind positions, edge creation, and Soft Selection.
 The fixed lanes also include Transform, Edit Shape, and Viewport quality text.
 It replaces the font only for an exact owner and exact text match.

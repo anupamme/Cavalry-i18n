@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖GetPath FPS/cache owner、三语文本表、字体选择与标题策略。
- * [OUTPUT]: 验证双返回地址、FPS前缀、覆盖顺序与标题边界。
+ * [OUTPUT]: 验证双返回地址、71项lane、40条ToolHelp及FPS与标题边界。
  * [POS]: 纯合同测试；不加载App、vendor framework或candidate dylib。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -454,7 +454,7 @@ bool fixedTextLaneUsesExactOwnerAndBytes(
     const native_getpath_font::TextEntry (&entries)[N], const char *prefix)
 {
     using namespace native_getpath_font;
-    static_assert(N == kEntriesPerLocale && N == 31);
+    static_assert(N == kEntriesPerLocale && N == 71);
 
     for (std::size_t i = 0; i < N; ++i) {
         const TextEntry &entry = entries[i];
@@ -462,8 +462,9 @@ bool fixedTextLaneUsesExactOwnerAndBytes(
         const std::size_t size = std::strlen(entry.text);
         const Owner wrongOwner = entry.owner == Owner::ToolHelp
             ? Owner::ViewportStatus : Owner::ToolHelp;
-        if (exactText(entry.text, size, 0, entry.owner, entries, N) !=
-                static_cast<int>(i) ||
+        const int matched = exactText(entry.text, size, 0, entry.owner, entries, N);
+        if (matched < 0 || entries[matched].owner != entry.owner ||
+            std::strcmp(entries[matched].text, entry.text) != 0 ||
             exactText(entry.text, size, 0, wrongOwner, entries, N) != -1 ||
             exactText(entry.text, size, 0, Owner::Unknown, entries, N) != -1 ||
             exactText(entry.text, size, 1, entry.owner, entries, N) != -1)
@@ -486,6 +487,21 @@ bool fixedTextLaneUsesExactOwnerAndBytes(
                      entries, N) == -1;
 }
 
+template <std::size_t N>
+bool appendedGetPathRowsStayToolHelp(
+    const native_getpath_font::TextEntry (&entries)[N])
+{
+    using namespace native_getpath_font;
+    static_assert(N == kEntriesPerLocale && N == 71);
+    for (std::size_t index = 31; index < N; ++index) {
+        if (entries[index].owner != Owner::ToolHelp || !entries[index].text ||
+            std::strcmp(entries[index].text, "Delete") == 0 ||
+            std::strcmp(entries[index].text, "Space") == 0)
+            return false;
+    }
+    return true;
+}
+
 bool allFixedGetPathTextLanesRespectExactGate()
 {
     using namespace native_getpath_font;
@@ -495,7 +511,10 @@ bool allFixedGetPathTextLanesRespectExactGate()
                   kEntriesPerLocale);
     static_assert(sizeof(kJaJpEntries) / sizeof(kJaJpEntries[0]) ==
                   kEntriesPerLocale);
-    return fixedTextLaneUsesExactOwnerAndBytes(kZhHansEntries, "启用贝塞尔角度") &&
+    return appendedGetPathRowsStayToolHelp(kZhHansEntries) &&
+        appendedGetPathRowsStayToolHelp(kZhHantEntries) &&
+        appendedGetPathRowsStayToolHelp(kJaJpEntries) &&
+        fixedTextLaneUsesExactOwnerAndBytes(kZhHansEntries, "启用贝塞尔角度") &&
         fixedTextLaneUsesExactOwnerAndBytes(kZhHantEntries, "啟用貝茲角度") &&
         fixedTextLaneUsesExactOwnerAndBytes(kJaJpEntries, "ベジェ角度");
 }
@@ -641,6 +660,7 @@ int main()
     std::puts("GREEN: FPS prefix matches approved locales and non-empty suffixes only");
     if (!extensionGotMustMatchThisInterposer()) return fail(4);
     if (!allFixedGetPathTextLanesRespectExactGate()) return fail(6);
+    std::puts("GREEN: 40 appended ToolHelp rows retain owner and exclude preserved labels");
     if (!titleProjectionRequiresEmptySourcesAndPreservesSameAddressNames()) return fail(7);
     return 0;
 }

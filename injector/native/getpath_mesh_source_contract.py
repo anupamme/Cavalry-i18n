@@ -1,7 +1,7 @@
 """
 [INPUT]: 依赖冻结的81项基线表与remaining_global_ui_06四个Mesh键。
-[OUTPUT]: 验证三语GetPath lane仅追加12项且旧行逐字节保留。
-[POS]: 候选合同辅助器；不参与产品运行或文本投影。
+[OUTPUT]: 验证旧81项与四条Mesh源行仍处于原序前缀。
+[POS]: Mesh前缀合同；新增ToolHelp尾部由独立源合同约束。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 """
 from __future__ import annotations
@@ -89,8 +89,8 @@ def verify_mesh_getpath_contract(root: pathlib.Path,
     for locale, lane in LANES.items():
         old_body = _lane_body(baseline, lane)
         new_body = _lane_body(current, lane)
-        if _row_count(old_body) != 27 or _row_count(new_body) != 31:
-            raise ValueError(f"{locale} GetPath lane must grow from 27 to 31 rows")
+        if _row_count(old_body) != 27 or _row_count(new_body) < 31:
+            raise ValueError(f"{locale} GetPath lane must retain 27 rows and four Mesh rows")
         if not new_body.startswith(old_body):
             raise ValueError(f"{locale} GetPath lane changed one of its frozen 27 rows")
         if len(new_body) <= len(old_body):
@@ -101,11 +101,11 @@ def verify_mesh_getpath_contract(root: pathlib.Path,
             for index, key in enumerate(KEYS)
         ]
         actual = _mesh_tail(new_body[len(old_body):])
-        if actual != expected:
-            raise ValueError(f"{locale} Mesh GetPath tail differs from approved source")
+        if actual[:4] != expected:
+            raise ValueError(f"{locale} first four appended Mesh rows differ from approved source")
 
-    if _row_count(current) != 93:
-        raise ValueError("GetPath must contain exactly 93 fixed locale rows")
+    if _row_count(current) < 93:
+        raise ValueError("GetPath must retain the 93 original fixed locale rows")
 
 
 def main() -> int:
