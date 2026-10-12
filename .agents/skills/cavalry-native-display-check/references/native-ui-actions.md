@@ -190,6 +190,11 @@ qobject_cast后不再限定元类名；库存为空先看该owner已有原PNG。
 
 从批准Help入口打开选择页；读回后再点唯一OptionWidget。
 选择页标签使用QLabel；正文使用QTextBrowser。
+先按Guide owner筛选，再核同名标签唯一。
+同文DockableTabWidget不算Guide重复命中。
+页面切换只发送一次动作，再有限等待目标正文。
+`ok=true`和事件已派发不证明目标页已出现。
+Done已返回选择页时，沿用该页，不再打开Help。
 正文须属于唯一可见OnboardingGuideView。
 用宿主Qt解析批准HTML，再比较实际正文全文。
 固定图片占位符须同时核U+FFFC与图片片段位置。
