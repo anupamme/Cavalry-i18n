@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-batch-plan.md: 总账与批次映射；锁定已验完整底座，原厂对照与候选回归分账。
+batch-plan.md: 总账与批次映射；当前完整候选共用唯一入口，历史只读对照，重验后替换成功底座。
 surfaces.md: Timeline测量/绘制、Viewport、四种质量文字状态、FPS与固定帮助矩阵。
 test-fixtures.md: 场景复制/正常打开、Script标准Run、内容加载证明与新增模板条件。
 workspace-helper.md: 已批准helper的启动、匹配、有限等待、精确PID清理和恢复归属。
