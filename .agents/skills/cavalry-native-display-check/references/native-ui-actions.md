@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖批准显示键、宿主Qt驱动、控件库存与原生窗口图。
-[OUTPUT]: 提供控件动作、候选准入、条件消费与Guide路由方法。
+[OUTPUT]: 提供控件动作、popup归属、拖动接收者与Guide路由方法。
 [POS]: 固定控件动作参考；帮助正文和搜索另行路由。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -13,8 +13,13 @@ CUA走不通时先查私人文档成功驱动；PID只证明进程归属。
 新调用先核host导入与同App Qt导出；头文件声明不证明导出。
 dynamic_lookup只延迟解析，不补符号。缺getter标未读，不伪造空值。
 原生子窗覆盖父控件时，visibleRegion为空不等于不可见。
-先核同MainDock父链、原生子窗暴露和全局边界。
+主控件先核同MainDock父链、原生子窗暴露和全局边界。
+已知子菜单沿批准父QAction的menu()绑定。
+用子菜单isVisible与原图核显示，不用visibleRegion否定popup。
+macOS系统Help复用已验AX入口，不假设它有Qt QMenuBar。
 按已证接收者派发事件，再看同PID原图。
+属性连接拖动保持press接收者，move和release不逐点换widgetAt。
+宿主自行按global坐标找drop；另核连接后态与Guide推进。
 新事件适配先在独立fixture核通道，再验厂商控件身份与消费。
 构建后核客户端实际解析路径和已加载库的监听目录。
 模块入口与构建快照须指向同一mailbox。
