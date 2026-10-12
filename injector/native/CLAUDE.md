@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 本目录保存 Cavalry 2.8 macOS arm64 字体、FPS、标题、帮助、Guide、Fast、Easing与Mesh提示候选组件。
-GetPath每语lane由27→31→71项；保留旧81+Mesh12槽，再追加120个ToolHelp槽。
+GetPath每语lane由27→31→75项；保留旧81+Mesh12槽，再追加120个批准文本槽与12个组合槽。
 本目录候选均不进入2.7发布链。
 帮助说明、帮助布局、Guide正文与Fast C1适配已加入单一候选源。
 main与def两条已证caller各读独立source-bound表。
@@ -14,7 +14,7 @@ Easing只投影精确20个预设显示标签；回调捕获的枚举身份保持
 
 成员清单
 native_font_candidate.mm: 从主可执行定位Frameworks；接通getter、FPS、字体、标题、帮助、Guide正文与Easing显示hook。
-candidate_contract_test.cpp: 验证FPS双返回点、prefix、旧owner、字体覆盖、标题回退与71项GetPath lane。
+candidate_contract_test.cpp: 验证FPS双返回点、prefix、旧owner、字体覆盖、标题回退与75项GetPath lane。
 guide_body_abi_contract.h: 锁定唯一Guide正文caller、尾跳callee、双映像UUID与Qt setter符号。
 guide_body_policy.h: 仅把精确Keep going source映射到三语固定短文案；英文与未知输入透传。
 guide_body_runtime.inc: 复用同TU gLocale；ABI失败只关投影，未知caller单次调用Qt原setter。
@@ -26,7 +26,7 @@ easing_menu_contract_test.cpp: vendor-free验证20项表形状、精确匹配、
 candidate_static_contract_test.py: 用合成反汇编锁定目标符号边界，并拒绝混合FAT UUID。
 check_candidate_contract.py: 核GetPath来源与Mesh前缀、FPS调用字节、ABI、QtCore 6.9.2及two-level fixup。
 build_candidate.sh: 生成说明/布局与20项Easing表；直链同bundle Qt，核Guide与Easing纯合同。
-README.md: 说明字体/FPS/标题/帮助/Guide/Fast/Easing边界；每制品独立回归，实机分项见项目总账。
+README.md: 说明字体/FPS/标题/帮助/Guide/Fast/Easing与225槽边界；实机分项见项目总账。
 fast_search_unicode_adapter.mm: 以可执行路径定位同bundle；仅固定Fast C1调用改Unicode选项。
 fast_search_unicode_abi_contract.h: 锁定Qt 6.9.2符号、Extension UUID、调用字节、正则与选项。
 fast_search_unicode_policy.h: 短路校验caller、原选项与pattern；保留单次原C1透传。
@@ -35,12 +35,12 @@ native_image_paths.h: 规范主可执行路径并比较已加载映像路径；�
 getpath_font_abi.h: 声明七参 GetPath 原型；保留 x0-x4、s0/s1 及原异常语义。
 getpath_font_abi_contract.h: 锁定 GetPath与FPS调用窗、两个owner返回点、字体 factory与Skia ABI。
 getpath_font_adapter.inc: 用唯一gLocale选固定lane或FPS前缀，再调用共享字体核心。
-getpath_font_policy.h: 定义缓存/FPS owner、71项lane、512字节上限与exactText门。
-getpath_font_texts.inc: 保存213条固定UI文本；三语lane各71行，保留旧93行前缀并追加40行ToolHelp。
+getpath_font_policy.h: 定义缓存/FPS owner、75项lane、512字节上限与exactText门。
+getpath_font_texts.inc: 保存225条固定UI文本；三语lane各75行，原213条逐字节保全。
 getpath_font_texts.81.baseline.inc: 冻结原81条三语lane；新合同逐字节核对旧行前缀。
 getpath_font_texts.93.baseline.inc: 冻结扩表前93槽和原31行lane；ToolHelp源合同按固定SHA核前缀。
 getpath_mesh_source_contract.py: 核原81槽与四条Mesh源行仍在前缀；不放宽Mesh键或顺序。
-getpath_toolhelp_source_contract.py: 核44个批准源键、2个旧命中、2组去重与每语40个精确新行。
+getpath_toolhelp_source_contract.py: 核44个批准键、2个旧命中、2组去重及每语40行与4个固定前缀组合。
 getpath_font_veneer.S: 精确三指令 veneer；保存 x30/x29 并尾跳 dispatcher。
 getpath_owner_adapter.h: 单读帧记录；分别验证Core→FPS与Core→cache→producer链。
 native_locale_abi_contract.h: 锁定 activeLocale 入口、Extension 调用窗、stub 与 GOT 偏移。

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖GetPath FPS/cache owner、三语文本表、字体选择与标题策略。
- * [OUTPUT]: 验证双返回地址、71项lane、40条ToolHelp及FPS与标题边界。
+ * [OUTPUT]: 验证双返回地址、75项lane、44条ToolHelp及FPS与标题边界。
  * [POS]: 纯合同测试；不加载App、vendor framework或candidate dylib。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -454,7 +454,7 @@ bool fixedTextLaneUsesExactOwnerAndBytes(
     const native_getpath_font::TextEntry (&entries)[N], const char *prefix)
 {
     using namespace native_getpath_font;
-    static_assert(N == kEntriesPerLocale && N == 71);
+    static_assert(N == kEntriesPerLocale && N == 75);
 
     for (std::size_t i = 0; i < N; ++i) {
         const TextEntry &entry = entries[i];
@@ -492,7 +492,7 @@ bool appendedGetPathRowsStayToolHelp(
     const native_getpath_font::TextEntry (&entries)[N])
 {
     using namespace native_getpath_font;
-    static_assert(N == kEntriesPerLocale && N == 71);
+    static_assert(N == kEntriesPerLocale && N == 75);
     for (std::size_t index = 31; index < N; ++index) {
         if (entries[index].owner != Owner::ToolHelp || !entries[index].text ||
             std::strcmp(entries[index].text, "Delete") == 0 ||
@@ -500,6 +500,38 @@ bool appendedGetPathRowsStayToolHelp(
             return false;
     }
     return true;
+}
+
+template <std::size_t N>
+bool appendedCompositeRowsAreExact(
+    const native_getpath_font::TextEntry (&entries)[N],
+    const char *optionDrag, const char *shiftDrag,
+    const char *commandDrag, const char *skeletonSuffix)
+{
+    using namespace native_getpath_font;
+    static_assert(N == kEntriesPerLocale && N == 75);
+    const std::array<const char *, 4> expected = {
+        optionDrag, shiftDrag, commandDrag, skeletonSuffix};
+    for (std::size_t offset = 0; offset < expected.size(); ++offset) {
+        const std::size_t index = 71 + offset;
+        if (entries[index].owner != Owner::ToolHelp || !entries[index].text ||
+            std::strcmp(entries[index].text, expected[offset]) != 0 ||
+            exactText(expected[offset], std::strlen(expected[offset]), 0,
+                      Owner::ToolHelp, entries, N) != static_cast<int>(index))
+            return false;
+    }
+
+    constexpr char fixedPrefix[] = "Option/Alt + ";
+    const std::string wrongPrefix = "Alt/Option + " +
+        std::string(optionDrag + sizeof(fixedPrefix) - 1);
+    const std::string partial = std::string(optionDrag).substr(
+        0, std::strlen(optionDrag) - 1);
+    return exactText(wrongPrefix.data(), wrongPrefix.size(), 0,
+                     Owner::ToolHelp, entries, N) == -1 &&
+        exactText(fixedPrefix, sizeof(fixedPrefix) - 1, 0,
+                  Owner::ToolHelp, entries, N) == -1 &&
+        exactText(partial.data(), partial.size(), 0,
+                  Owner::ToolHelp, entries, N) == -1;
 }
 
 bool allFixedGetPathTextLanesRespectExactGate()
@@ -514,6 +546,15 @@ bool allFixedGetPathTextLanesRespectExactGate()
     return appendedGetPathRowsStayToolHelp(kZhHansEntries) &&
         appendedGetPathRowsStayToolHelp(kZhHantEntries) &&
         appendedGetPathRowsStayToolHelp(kJaJpEntries) &&
+        appendedCompositeRowsAreExact(
+            kZhHansEntries, "Option/Alt + 拖拽", "Shift + 拖拽",
+            "Cmd/Ctrl + 拖拽", "Option/Alt + 单击控制柄并拖动") &&
+        appendedCompositeRowsAreExact(
+            kZhHantEntries, "Option/Alt + 拖曳", "Shift + 拖曳",
+            "Cmd/Ctrl + 拖曳", "Option/Alt + 按一下控制柄並拖曳") &&
+        appendedCompositeRowsAreExact(
+            kJaJpEntries, "Option/Alt + ドラッグ", "Shift + ドラッグ",
+            "Cmd/Ctrl + ドラッグ", "Option/Alt + ハンドルをクリックしてドラッグ") &&
         fixedTextLaneUsesExactOwnerAndBytes(kZhHansEntries, "启用贝塞尔角度") &&
         fixedTextLaneUsesExactOwnerAndBytes(kZhHantEntries, "啟用貝茲角度") &&
         fixedTextLaneUsesExactOwnerAndBytes(kJaJpEntries, "ベジェ角度");
@@ -660,7 +701,7 @@ int main()
     std::puts("GREEN: FPS prefix matches approved locales and non-empty suffixes only");
     if (!extensionGotMustMatchThisInterposer()) return fail(4);
     if (!allFixedGetPathTextLanesRespectExactGate()) return fail(6);
-    std::puts("GREEN: 40 appended ToolHelp rows retain owner and exclude preserved labels");
+    std::puts("GREEN: 44 appended ToolHelp rows include four exact composite shortcuts");
     if (!titleProjectionRequiresEmptySourcesAndPreservesSameAddressNames()) return fail(7);
     return 0;
 }

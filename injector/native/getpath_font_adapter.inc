@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖GetPath owner、213项固定lane与唯一 native gLocale。
- * [OUTPUT]: 为213项固定文本与FPS格式串调用Caller::Draw共享字形核心。
+ * [INPUT]: 依赖GetPath owner、225项固定lane与唯一 native gLocale。
+ * [OUTPUT]: 为225项固定文本与FPS格式串调用Caller::Draw共享字形核心。
  * [POS]: 未知ABI/owner/locale/prefix或空参数只透传一次，不建候选字体。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */

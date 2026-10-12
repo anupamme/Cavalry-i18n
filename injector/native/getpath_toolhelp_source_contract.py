@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖冻结93项表、remaining_global_ui_06.js与40组批准UTF-8译文。
-[OUTPUT]: 核对旧93项前缀、两条既有命中及每语40条新ToolHelp行。
+[INPUT]: 依赖冻结93项表、213项前像SHA、44个直接键与固定前缀。
+[OUTPUT]: 核对旧前缀、40条批准行及每语4条派生组合行。
 [POS]: GetPath文本的source-bound合同；不参与运行时投影。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 """
@@ -16,6 +16,7 @@ import sys
 from collections import defaultdict
 
 BASELINE_SHA256 = "45f03bfedb747a729d2a71f7f2f3b021c14046d2f72c524c2494f6d1f30e2147"
+BASELINE_213_LANES_SHA256 = "785452552f4d75f34f27c9d4f465583483fb9dabc932ce243932d6ab55e61224"
 SOURCE_RELATIVE = pathlib.Path("languages/native/remaining_global_ui_06.js")
 BASELINE_NAME = "getpath_font_texts.93.baseline.inc"
 LANES = {
@@ -60,6 +61,21 @@ KNOWN_EXISTING_MATCHES = {
     "tool.pen.help.disableSnapping": "tool.editShape.help.disableSnapping",
 }
 SUFFIX_KEY = "tool.skeleton.shortcut.clickHandleDragSuffix"
+COMPOSITE_ROWS = (
+    ("tool.shared.shortcut.drag", "Option/Alt + "),
+    ("tool.shared.shortcut.drag", "Shift + "),
+    ("tool.shared.shortcut.drag", "Cmd/Ctrl + "),
+    (SUFFIX_KEY, "Option/Alt + "),
+)
+COMPOSITE_SOURCE_TEXTS = {
+    "tool.shared.shortcut.drag": "Drag",
+    SUFFIX_KEY: "click handle + drag",
+}
+COMPOSITE_BLOCK = re.compile(
+    r'(?m)^    // 7[1-4] ToolHelp: composite source=[A-Za-z0-9_.]+; '
+    r'fixed prefix="(?:\\.|[^"\\])*"\n'
+    r'    \{native_getpath_font::Owner::ToolHelp, "(?:\\.|[^"\\])*"\},(?:\n|$)'
+)
 
 
 def require(condition: bool, message: str) -> None:
@@ -101,6 +117,19 @@ def _lane_body(table: str, lane: str) -> str:
     return table[start:end]
 
 
+def _pre_composite_lane_bytes(table: str) -> tuple[bytes, int]:
+    chunks: list[str] = []
+    removed = 0
+    for lane in LANES.values():
+        marker = f"static constexpr TextEntry {lane}[] = {{\n"
+        body = _lane_body(table, lane)
+        legacy_body, count = COMPOSITE_BLOCK.subn("", body)
+        removed += count
+        legacy_body = legacy_body.rstrip("\n")
+        chunks.append(marker + legacy_body + "\n};\n")
+    return "".join(chunks).encode("utf-8"), removed
+
+
 def _rows(body: str, lane: str) -> list[dict[str, object]]:
     pattern = re.compile(
         r"(?m)^\s*//\s*(\d+)\s+(ToolHelp|ViewportStatus):\s*([^\r\n]+)\r?\n"
@@ -109,15 +138,28 @@ def _rows(body: str, lane: str) -> list[dict[str, object]]:
     matches = list(pattern.finditer(body))
     parsed: list[dict[str, object]] = []
     for match in matches:
-        keys = [part.strip() for part in match.group(3).split(" + ")]
+        descriptor = match.group(3)
+        composite = re.fullmatch(
+            r'composite source=([A-Za-z0-9_.]+); fixed prefix=("(?:\\.|[^"\\])*")',
+            descriptor,
+        )
+        if composite:
+            keys = [composite.group(1)]
+            prefix = ast.literal_eval(composite.group(2))
+        else:
+            keys = [part.strip() for part in descriptor.split(" + ")]
+            prefix = None
         owner = match.group(4)
         require(match.group(2) == owner, f"owner/comment mismatch in {lane}: {keys}")
-        parsed.append({
+        row: dict[str, object] = {
             "index": int(match.group(1)),
             "owner": owner,
             "keys": keys,
             "text": ast.literal_eval(match.group(5)),
-        })
+        }
+        if composite:
+            row["compositePrefix"] = prefix
+        parsed.append(row)
     return parsed
 
 
@@ -128,7 +170,7 @@ def _approved(root: pathlib.Path) -> tuple[dict[str, dict], dict[str, int], dict
     require(set(DIRECT_KEYS).isdisjoint(PRESERVE_KEYS), "preserve key entered translate set")
     for key in (*DIRECT_KEYS, *PRESERVE_KEYS, SUFFIX_KEY):
         require(key in records, f"approved source key is missing: {key}")
-    for key in DIRECT_KEYS:
+    for key in (*DIRECT_KEYS, SUFFIX_KEY):
         entry = records[key]
         require(entry.get("catalogId") == "Definitions/Translation/appStrings" and
                 entry.get("fieldPath") == [key], f"source identity differs: {key}")
@@ -144,6 +186,9 @@ def _approved(root: pathlib.Path) -> tuple[dict[str, dict], dict[str, int], dict
         require(all(entry.get("translations", {}).get(locale, {}).get("decision") == "preserve" and
                     entry.get("translations", {}).get(locale, {}).get("text") == source
                     for locale in LANES), f"preserve decision differs: {key}")
+    for key, source in COMPOSITE_SOURCE_TEXTS.items():
+        require(records[key].get("source") == source,
+                f"fixed composite source text differs: {key}")
     return records, lines, raw_lines
 
 
@@ -159,6 +204,11 @@ def verify_toolhelp_source_contract(
     baseline = baseline_bytes.decode("utf-8")
     target_path = table_path.resolve() if table_path else source / "getpath_font_texts.inc"
     target = target_path.read_text(encoding="utf-8")
+    pre_composite, composite_blocks = _pre_composite_lane_bytes(target)
+    require(composite_blocks in (0, 12),
+            f"expected no composite rows or 12 appended rows; found {composite_blocks}")
+    require(_sha256(pre_composite) == BASELINE_213_LANES_SHA256,
+            "pre-composite 213-row lane bytes differ")
     records, source_lines, _ = _approved(root)
 
     baseline_rows: dict[str, dict[str, list[dict[str, object]]]] = {}
@@ -171,10 +221,10 @@ def verify_toolhelp_source_contract(
         require(len(old_rows) == 31, f"baseline lane must hold 31 entries: {locale}")
         if not new_body.startswith(old_body):
             raise ValueError(f"first 31 bytes/rows changed in {locale} lane")
-        if len(new_rows) != 71:
-            raise ValueError(f"{locale} lane must contain 71 rows; found {len(new_rows)}")
-        require([row["index"] for row in new_rows] == list(range(71)),
-                f"{locale} row indexes must be contiguous 0..70")
+        if len(new_rows) != 75:
+            raise ValueError(f"{locale} lane must contain 75 rows; found {len(new_rows)}")
+        require([row["index"] for row in new_rows] == list(range(75)),
+                f"{locale} row indexes must be contiguous 0..74")
         baseline_rows[locale] = {"rows": old_rows}
         current_rows[locale] = {"rows": new_rows}
         space = old_rows[3]
@@ -220,9 +270,9 @@ def verify_toolhelp_source_contract(
 
     for locale in LANES:
         tail = current_rows[locale]["rows"][31:]
-        require(len(tail) == 40, f"{locale} tail must contain 40 new rows")
+        require(len(tail) == 44, f"{locale} tail must contain 44 new rows")
         expected_text_index = list(LANES).index(locale)
-        for index, (row, (triple, keys)) in enumerate(zip(tail, expected_new)):
+        for index, (row, (triple, keys)) in enumerate(zip(tail[:40], expected_new)):
             require(row["index"] == 31 + index and row["owner"] == "ToolHelp",
                     f"new row owner/index differs: {locale}/{31 + index}")
             require(row["keys"] == keys, f"source keys differ in {locale}/{31 + index}: {row['keys']}")
@@ -230,6 +280,20 @@ def verify_toolhelp_source_contract(
                     f"approved UTF-8 translation differs: {locale}/{keys}")
         require(all(row["text"] not in PRESERVE_KEYS.values() for row in tail),
                 f"preserved key text entered new {locale} rows")
+
+        for offset, (source_key, prefix) in enumerate(COMPOSITE_ROWS):
+            entry = records[source_key]
+            source_text = prefix + entry["source"]
+            require(source_text not in {
+                str(item["text"]) for item in baseline_rows[locale]["rows"]
+            }, f"composite source unexpectedly exists in 93-row baseline: {source_text}")
+            expected_text = prefix + entry["translations"][locale]["text"]
+            row = tail[40 + offset]
+            require(row["index"] == 71 + offset and row["owner"] == "ToolHelp" and
+                    row["keys"] == [source_key] and row.get("compositePrefix") == prefix,
+                    f"composite source/prefix/order differs: {locale}/{71 + offset}")
+            require(row["text"] == expected_text,
+                    f"composite text differs from fixed prefix plus approved fragment: {locale}/{source_key}")
 
     suffix = records[SUFFIX_KEY]
     suffix_triple = tuple(suffix["translations"][locale]["text"] for locale in LANES)
@@ -239,12 +303,16 @@ def verify_toolhelp_source_contract(
             "Space preserve value changed")
     return {
         "baselineSha256": BASELINE_SHA256,
+        "preserved213LaneSha256": BASELINE_213_LANES_SHA256,
+        "preserved213ByteExact": True,
         "currentTableSha256": _sha256(target_path.read_bytes()),
         "directTranslatedKeys": len(DIRECT_KEYS),
         "uniqueTriples": len(grouped),
         "existingExactMatches": existing_matches,
         "newRowsPerLocale": 40,
-        "totalNewSlots": 120,
+        "compositeRowsPerLocale": 4,
+        "compositeKinds": 4,
+        "totalNewSlots": 132,
         "deletePreserved": True,
         "spaceAlreadyInBaseline": True,
         "skeletonSuffixExcluded": True,
@@ -264,7 +332,7 @@ def main() -> int:
         print(f"FAIL: {error}", file=sys.stderr)
         return 1
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    print("PASS: frozen 93 rows, exact existing matches, and 40 approved ToolHelp rows per locale")
+    print("PASS: frozen 93 rows, 40 approved ToolHelp rows, and four fixed-prefix composites per locale")
     return 0
 
 

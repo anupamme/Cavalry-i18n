@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖213项固定source key、owner、UTF-8文本与原joiner。
- * [OUTPUT]: 提供三条互斥71项固定文本lane，不包含locale状态或字体descriptor。
+ * [INPUT]: 依赖44个批准键、固定前缀、owner与UTF-8文本。
+ * [OUTPUT]: 提供三条75项lane，保留原213项并追加12个组合行。
  * [POS]: GetPath exactText的静态数据；运行时只按共享gLocale选一条lane。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -148,6 +148,14 @@ static constexpr TextEntry kZhHansEntries[] = {
     {native_getpath_font::Owner::ToolHelp, "创建新关键帧。"},
     // 70 ToolHelp: tool.tracking.help.removeTracker
     {native_getpath_font::Owner::ToolHelp, "删除选中的跟踪点。"},
+    // 71 ToolHelp: composite source=tool.shared.shortcut.drag; fixed prefix="Option/Alt + "
+    {native_getpath_font::Owner::ToolHelp, "Option/Alt + 拖拽"},
+    // 72 ToolHelp: composite source=tool.shared.shortcut.drag; fixed prefix="Shift + "
+    {native_getpath_font::Owner::ToolHelp, "Shift + 拖拽"},
+    // 73 ToolHelp: composite source=tool.shared.shortcut.drag; fixed prefix="Cmd/Ctrl + "
+    {native_getpath_font::Owner::ToolHelp, "Cmd/Ctrl + 拖拽"},
+    // 74 ToolHelp: composite source=tool.skeleton.shortcut.clickHandleDragSuffix; fixed prefix="Option/Alt + "
+    {native_getpath_font::Owner::ToolHelp, "Option/Alt + 单击控制柄并拖动"},
 };
 static constexpr TextEntry kZhHantEntries[] = {
     // 00 ToolHelp: tool.transform.help.enableSnapping
@@ -292,6 +300,14 @@ static constexpr TextEntry kZhHantEntries[] = {
     {native_getpath_font::Owner::ToolHelp, "建立新關鍵幀。"},
     // 70 ToolHelp: tool.tracking.help.removeTracker
     {native_getpath_font::Owner::ToolHelp, "刪除選取的追蹤點。"},
+    // 71 ToolHelp: composite source=tool.shared.shortcut.drag; fixed prefix="Option/Alt + "
+    {native_getpath_font::Owner::ToolHelp, "Option/Alt + 拖曳"},
+    // 72 ToolHelp: composite source=tool.shared.shortcut.drag; fixed prefix="Shift + "
+    {native_getpath_font::Owner::ToolHelp, "Shift + 拖曳"},
+    // 73 ToolHelp: composite source=tool.shared.shortcut.drag; fixed prefix="Cmd/Ctrl + "
+    {native_getpath_font::Owner::ToolHelp, "Cmd/Ctrl + 拖曳"},
+    // 74 ToolHelp: composite source=tool.skeleton.shortcut.clickHandleDragSuffix; fixed prefix="Option/Alt + "
+    {native_getpath_font::Owner::ToolHelp, "Option/Alt + 按一下控制柄並拖曳"},
 };
 static constexpr TextEntry kJaJpEntries[] = {
     // 00 ToolHelp: tool.transform.help.enableSnapping
@@ -436,5 +452,13 @@ static constexpr TextEntry kJaJpEntries[] = {
     {native_getpath_font::Owner::ToolHelp, "新しいキーフレームを作成します。"},
     // 70 ToolHelp: tool.tracking.help.removeTracker
     {native_getpath_font::Owner::ToolHelp, "選択したトラッカーを削除します。"},
+    // 71 ToolHelp: composite source=tool.shared.shortcut.drag; fixed prefix="Option/Alt + "
+    {native_getpath_font::Owner::ToolHelp, "Option/Alt + ドラッグ"},
+    // 72 ToolHelp: composite source=tool.shared.shortcut.drag; fixed prefix="Shift + "
+    {native_getpath_font::Owner::ToolHelp, "Shift + ドラッグ"},
+    // 73 ToolHelp: composite source=tool.shared.shortcut.drag; fixed prefix="Cmd/Ctrl + "
+    {native_getpath_font::Owner::ToolHelp, "Cmd/Ctrl + ドラッグ"},
+    // 74 ToolHelp: composite source=tool.skeleton.shortcut.clickHandleDragSuffix; fixed prefix="Option/Alt + "
+    {native_getpath_font::Owner::ToolHelp, "Option/Alt + ハンドルをクリックしてドラッグ"},
 };
 } // namespace native_getpath_font

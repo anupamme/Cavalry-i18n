@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖候选源码、GetPath81/93基线、批准ToolHelp源与锁定Frameworks。
-[OUTPUT]: 核验字体、FPS、标题、Fast、Mesh前缀与213槽GetPath表。
+[OUTPUT]: 核验字体、FPS、标题、Fast、Mesh前缀与225槽GetPath表。
 [POS]: 候选静态门；核GetPath精确veneer、source-bound文本与二进制ABI。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 """
@@ -451,12 +451,12 @@ def main() -> None:
             "getPathEntries(locale)" in getpath and
             "dispatchVerifiedText(" in getpath,
             "GetPath必须用唯一native locale lane及共享字体核心")
-    require("kEntriesPerLocale = 71" in policy and
+    require("kEntriesPerLocale = 75" in policy and
             "kMaxTextBytes = 512" in policy and
             "kMaxTextBytes" in getpath and
             "Owner::ViewportFps" in policy and
-            len(re.findall(r"\{native_getpath_font::Owner::(?:ToolHelp|ViewportStatus),", texts)) == 213,
-            "GetPath必须保留512上限和213条固定UI文本")
+            len(re.findall(r"\{native_getpath_font::Owner::(?:ToolHelp|ViewportStatus),", texts)) == 225,
+            "GetPath必须保留512上限和225条固定UI文本")
     fps_entry = native_entry(
         root, "languages/native/remaining_global_ui_06.js", "viewport.fps")
     fps_rows = [line for line in (
@@ -625,7 +625,7 @@ def main() -> None:
         "PASS: runtime original-entry and Extension GOT gates",
         "PASS: native getter once/exception and GetPath unknown-owner source gates",
         "PASS: exact FPS direct caller bytes and two-return owner contract",
-        "PASS: one gLocale, 512-byte GetPath cap, 213 source-bound UI strings",
+        "PASS: one gLocale, 512-byte GetPath cap, 225 source-bound UI strings",
         "PASS: exact Gui::updateAppTitle caller, format pointer/length and descriptor",
         "PASS: fmt10 ABI probe matches sret x8, format view x0/x1, args x2/x3",
         "PASS: title projection uses catalog labels and source-empty plus fallback guards",

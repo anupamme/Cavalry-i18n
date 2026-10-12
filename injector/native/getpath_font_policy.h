@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖native GetPath owner、locale标签、共享UTF-8策略与固定文本lane。
- * [OUTPUT]: 提供owner枚举、71项lane、512字节边界与FPS前缀门。
+ * [OUTPUT]: 提供owner枚举、75项lane、512字节边界与FPS前缀门。
  * [POS]: GetPath静态匹配策略；不保存locale状态或字体descriptor。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -15,7 +15,7 @@
 namespace native_getpath_font {
 enum class Owner : std::uint8_t { Unknown, ToolHelp, ViewportStatus, ViewportFps };
 struct TextEntry { Owner owner; const char *text; };
-inline constexpr std::size_t kEntriesPerLocale = 71;
+inline constexpr std::size_t kEntriesPerLocale = 75;
 inline constexpr std::size_t kMaxTextBytes = 512;
 
 inline Owner pathOwner(std::uintptr_t coreReturn, std::uintptr_t cacheReturn,
