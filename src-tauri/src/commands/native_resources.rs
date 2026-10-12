@@ -1,7 +1,12 @@
 /**
- * [INPUT]: 依赖编译期native manifest、target的17份catalog/独立schema锁及context资源候选；安装身份仅在用户动作内验证。
- * [OUTPUT]: 提供bundle发现、官方/补充键分账和三语payload完整验证与诚实missing分母，以及原厂宿主runtime/catalog/schema只读证明。
- * [POS]: commands/native_user的资源边界；不把可修改manifest自报摘要当审批，不写App、profile或状态，不用旧2.7.2 runtime/QPA门。
+ * [INPUT]: 依赖编译期manifest、冻结target及插件caption1/隐藏schema gap1常量。
+ * [OUTPUT]: 验证资源补充375/总键10848；target基线仍锁补充373。
+ * [POS]: commands的资源边界；不写App、profile或状态。
+ * manifest自报digest不作审批；target摘要供baseline source复用。
+ * status逐字绑定manifest，只核三份regular文件和长度，不读payload。
+ * apply只读所选pack并验长度与SHA，不解析JSON value。
+ * NativeResources完整读取仅供既有tests/smoke；状态digest不授予apply写许可。
+ * host只核Info/main；catalog/schema源锁在构建期，hook ABI由加载映像门验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::context::resource_candidates;
@@ -17,6 +22,8 @@ const TARGET_BYTES: &[u8] = include_bytes!("../../../tools/cavalry_native_target
 const COMPILED_MANIFEST: &[u8] =
     include_bytes!(concat!(env!("OUT_DIR"), "/native_preview_manifest.json"));
 pub(crate) const NATIVE_VERSION: &str = "2.8.0";
+pub(crate) const PLUGIN_CAPTION_SUPPLEMENT_KEYS: usize = 1;
+pub(crate) const BACKGROUND_RENDERING_GAP_KEYS: usize = 1;
 const LANGUAGES: [&str; 3] = ["zh-Hans", "zh-Hant", "ja_JP"];
 
 #[derive(Debug, Deserialize)]
@@ -82,9 +89,14 @@ struct SourceFileLock {
     path: String,
     sha256: String,
 }
+#[cfg(test)]
 #[derive(Debug)]
 pub(crate) struct NativeResources {
     pub(crate) packs: BTreeMap<String, Vec<u8>>,
+}
+#[derive(Debug)]
+pub(crate) struct NativeResourceDigests {
+    pub(crate) packs: BTreeMap<String, String>,
 }
 pub(crate) fn preview_enabled() -> bool {
     !COMPILED_MANIFEST.is_empty()
@@ -92,6 +104,10 @@ pub(crate) fn preview_enabled() -> bool {
 fn hash(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
+pub(crate) fn baseline_target_sha256() -> String {
+    hash(TARGET_BYTES)
+}
+
 fn target() -> Result<Target, String> {
     let target: Target = serde_json::from_slice(TARGET_BYTES).map_err(|e| e.to_string())?;
     let mut paths = target
@@ -126,7 +142,7 @@ fn target() -> Result<Target, String> {
 }
 
 // -- 资源读取不跟随任何路径链symlink；manifest固定于同一编译候选 -----
-fn regular_bytes(path: &Path) -> Result<Vec<u8>, String> {
+fn regular_metadata(path: &Path) -> Result<fs::Metadata, String> {
     let root = Path::new("/");
     let relative = path
         .strip_prefix(root)
@@ -136,9 +152,16 @@ fn regular_bytes(path: &Path) -> Result<Vec<u8>, String> {
     if !metadata.is_file() || metadata.file_type().is_symlink() {
         return Err("native resource is not a regular file".into());
     }
+    Ok(metadata)
+}
+fn regular_bytes(path: &Path) -> Result<Vec<u8>, String> {
+    regular_metadata(path)?;
     fs::read(path).map_err(|e| e.to_string())
 }
-fn load_at(root: &Path, compiled: &[u8]) -> Result<NativeResources, String> {
+fn regular_file_size(path: &Path) -> Result<u64, String> {
+    Ok(regular_metadata(path)?.len())
+}
+fn approved_manifest_at(root: &Path, compiled: &[u8]) -> Result<Manifest, String> {
     if compiled.is_empty() {
         return Err("native preview was not enabled at compile time".into());
     }
@@ -152,8 +175,15 @@ fn load_at(root: &Path, compiled: &[u8]) -> Result<NativeResources, String> {
         || manifest.kind != "development-preview"
         || manifest.cavalry_version != NATIVE_VERSION
         || manifest.target_sha256 != hash(TARGET_BYTES)
-        || manifest.supplemental_keys != target.supplemental_keys
-        || manifest.native_keys != target.native_keys + target.supplemental_keys
+        || manifest.supplemental_keys
+            != target.supplemental_keys
+                + PLUGIN_CAPTION_SUPPLEMENT_KEYS
+                + BACKGROUND_RENDERING_GAP_KEYS
+        || manifest.native_keys
+            != target.native_keys
+                + target.supplemental_keys
+                + PLUGIN_CAPTION_SUPPLEMENT_KEYS
+                + BACKGROUND_RENDERING_GAP_KEYS
         || manifest.approved_ui_keys == 0
         || manifest.approved_ui_keys > manifest.native_keys
         || manifest.input_sha256.len() != 64
@@ -162,7 +192,6 @@ fn load_at(root: &Path, compiled: &[u8]) -> Result<NativeResources, String> {
     {
         return Err("native manifest target/shape differs".into());
     }
-    let mut packs = BTreeMap::new();
     let mut complete = true;
     for language in LANGUAGES {
         let info = manifest
@@ -183,22 +212,62 @@ fn load_at(root: &Path, compiled: &[u8]) -> Result<NativeResources, String> {
             return Err("native payload metadata differs".into());
         }
         complete &= info.missing == 0;
-        let bytes = regular_bytes(&root.join(&info.file))?;
-        if bytes.len() != info.bytes || hash(&bytes) != info.sha256 {
-            return Err("native payload digest differs".into());
-        }
-        validate_pack(
-            &bytes,
-            &info.native_locale,
-            manifest.native_keys - info.missing,
-        )?;
-        packs.insert(language.into(), bytes);
     }
     if complete != manifest.complete {
         return Err("native coverage claim differs".into());
     }
+    Ok(manifest)
+}
+fn load_approved_pack_at(
+    root: &Path,
+    manifest: &Manifest,
+    language: &str,
+) -> Result<Vec<u8>, String> {
+    if !LANGUAGES.contains(&language) {
+        return Err("native manifest lacks a product language".into());
+    }
+    let info = manifest
+        .packs
+        .get(language)
+        .ok_or("native manifest lacks a product language")?;
+    let bytes = regular_bytes(&root.join(&info.file))?;
+    if bytes.len() != info.bytes || hash(&bytes) != info.sha256 {
+        return Err("native payload digest differs".into());
+    }
+    Ok(bytes)
+}
+fn load_status_at(root: &Path, compiled: &[u8]) -> Result<NativeResourceDigests, String> {
+    let manifest = approved_manifest_at(root, compiled)?;
+    let mut packs = BTreeMap::new();
+    for language in LANGUAGES {
+        let info = manifest
+            .packs
+            .get(language)
+            .ok_or("native manifest lacks a product language")?;
+        if regular_file_size(&root.join(&info.file))? != info.bytes as u64 {
+            return Err("native payload size differs".into());
+        }
+        packs.insert(language.into(), info.sha256.clone());
+    }
+    Ok(NativeResourceDigests { packs })
+}
+fn load_language_at(root: &Path, compiled: &[u8], language: &str) -> Result<Vec<u8>, String> {
+    let manifest = approved_manifest_at(root, compiled)?;
+    load_approved_pack_at(root, &manifest, language)
+}
+#[cfg(test)]
+fn load_at(root: &Path, compiled: &[u8]) -> Result<NativeResources, String> {
+    let manifest = approved_manifest_at(root, compiled)?;
+    let mut packs = BTreeMap::new();
+    for language in LANGUAGES {
+        packs.insert(
+            language.into(),
+            load_approved_pack_at(root, &manifest, language)?,
+        );
+    }
     Ok(NativeResources { packs })
 }
+#[cfg(test)]
 fn validate_pack(bytes: &[u8], locale: &str, keys: usize) -> Result<(), String> {
     let value: serde_json::Value = serde_json::from_slice(bytes).map_err(|e| e.to_string())?;
     let records = value.as_array().ok_or("native pack is not an array")?;
@@ -232,7 +301,7 @@ fn validate_pack(bytes: &[u8], locale: &str, keys: usize) -> Result<(), String> 
     }
     Ok(())
 }
-pub(crate) fn load_resources(repo: &Path, resources: &Path) -> Result<NativeResources, String> {
+fn resource_root(repo: &Path, resources: &Path) -> Result<PathBuf, String> {
     let candidates = resource_candidates(
         repo,
         resources,
@@ -242,11 +311,31 @@ pub(crate) fn load_resources(repo: &Path, resources: &Path) -> Result<NativeReso
         ],
         Path::new("src-tauri/target/native-language-packs"),
     );
-    let root = candidates
+    candidates
         .into_iter()
         .find(|p| fs::symlink_metadata(p).is_ok())
-        .ok_or("native resource bundle is unavailable")?;
-    load_at(&root, COMPILED_MANIFEST)
+        .ok_or_else(|| "native resource bundle is unavailable".into())
+}
+#[cfg(test)]
+pub(crate) fn load_resources(repo: &Path, resources: &Path) -> Result<NativeResources, String> {
+    load_at(&resource_root(repo, resources)?, COMPILED_MANIFEST)
+}
+pub(crate) fn load_status_resources(
+    repo: &Path,
+    resources: &Path,
+) -> Result<NativeResourceDigests, String> {
+    load_status_at(&resource_root(repo, resources)?, COMPILED_MANIFEST)
+}
+pub(crate) fn load_language_resource(
+    repo: &Path,
+    resources: &Path,
+    language: &str,
+) -> Result<Vec<u8>, String> {
+    load_language_at(
+        &resource_root(repo, resources)?,
+        COMPILED_MANIFEST,
+        language,
+    )
 }
 
 // -- 启动只看bundle显示身份，不用2.7旧JSON布局决定2.8是否存在 -----
@@ -321,32 +410,6 @@ fn verify_host_with_target(app: &Path, target: &Target) -> Result<(), String> {
     if hash(&regular_bytes(&app.join(&target.executable))?) != target.executable_sha256 {
         return Err("native host executable digest differs".into());
     }
-    for runtime in &target.runtime_files {
-        if hash(&regular_bytes(&app.join(&runtime.path))?) != runtime.sha256 {
-            return Err("native host runtime digest differs".into());
-        }
-    }
-    for catalog in &target.catalogs {
-        for (relative, expected) in [
-            (&catalog.source, &catalog.source_sha256),
-            (&catalog.japanese, &catalog.japanese_sha256),
-        ] {
-            if hash(&regular_bytes(&app.join("Contents/assets").join(relative))?) != *expected {
-                return Err(format!("native host catalog digest differs: {relative}"));
-            }
-        }
-    }
-    for source in &target.source_files {
-        if hash(&regular_bytes(
-            &app.join("Contents/assets").join(&source.path),
-        )?) != source.sha256
-        {
-            return Err(format!(
-                "native host supplement source digest differs: {}",
-                source.path
-            ));
-        }
-    }
     Ok(())
 }
 
@@ -394,7 +457,7 @@ mod tests {
         let root = temp.path().canonicalize().unwrap();
         let mut manifest = json!({"schemaVersion":1,"kind":"development-preview","cavalryVersion":"2.8.0",
             "targetSha256":hash(TARGET_BYTES),"inputSha256":"a".repeat(64),"approvedUIKeys":1,
-            "nativeKeys":10846,"supplementalKeys":373,"complete":false,"packs":{}});
+            "nativeKeys":10848,"supplementalKeys":375,"complete":false,"packs":{}});
         for language in LANGUAGES {
             let vendor = if language == "ja_JP" { 390 } else { 0 };
             let values = (0..1 + vendor)
@@ -406,7 +469,7 @@ mod tests {
                     .unwrap();
             fs::write(root.join(format!("{language}.json")), &bytes).unwrap();
             manifest["packs"][language] = json!({"file":format!("{language}.json"),"nativeLocale":locale,
-                "sha256":hash(&bytes),"bytes":bytes.len(),"reviewed":1,"preserved":0,"vendor":vendor,"missing":10845-vendor});
+                "sha256":hash(&bytes),"bytes":bytes.len(),"reviewed":1,"preserved":0,"vendor":vendor,"missing":10847-vendor});
         }
         let bytes = serde_json::to_vec(&manifest).unwrap();
         fs::write(root.join("manifest.json"), &bytes).unwrap();
@@ -421,14 +484,116 @@ mod tests {
         assert!(load_at(&root, &compiled).unwrap_err().contains("digest"));
     }
     #[test]
+    fn status_readiness_does_not_hash_an_unselected_same_size_payload() {
+        let (temp, compiled) = approved_fixture();
+        let root = temp.path().canonicalize().unwrap();
+        let path = root.join("zh-Hans.json");
+        let mut bytes = fs::read(&path).unwrap();
+        bytes[0] = if bytes[0] == b' ' { b'!' } else { b' ' };
+        fs::write(path, bytes).unwrap();
+        let status = load_status_at(&root, &compiled).unwrap();
+        let approved: serde_json::Value = serde_json::from_slice(&compiled).unwrap();
+        assert_eq!(
+            status.packs["zh-Hans"],
+            approved["packs"]["zh-Hans"]["sha256"].as_str().unwrap()
+        );
+    }
+    #[test]
+    fn status_metadata_requires_three_regular_files_with_approved_sizes() {
+        for failure in ["missing", "wrong-size", "symlink"] {
+            let (temp, compiled) = approved_fixture();
+            let root = temp.path().canonicalize().unwrap();
+            let path = root.join("zh-Hans.json");
+            match failure {
+                "missing" => fs::remove_file(&path).unwrap(),
+                "wrong-size" => {
+                    let mut bytes = fs::read(&path).unwrap();
+                    bytes.push(b' ');
+                    fs::write(&path, bytes).unwrap();
+                }
+                "symlink" => {
+                    fs::remove_file(&path).unwrap();
+                    std::os::unix::fs::symlink(root.join("ja_JP.json"), &path).unwrap();
+                }
+                _ => unreachable!(),
+            }
+            assert!(
+                load_status_at(&root, &compiled).is_err(),
+                "status metadata must reject {failure} packs"
+            );
+        }
+    }
+    #[test]
+    fn selected_language_load_does_not_require_an_unselected_pack() {
+        let (temp, compiled) = approved_fixture();
+        let root = temp.path().canonicalize().unwrap();
+        fs::remove_file(root.join("zh-Hans.json")).unwrap();
+        let selected = load_language_at(&root, &compiled, "ja_JP").unwrap();
+        let approved: serde_json::Value = serde_json::from_slice(&compiled).unwrap();
+        assert_eq!(
+            hash(&selected),
+            approved["packs"]["ja_JP"]["sha256"].as_str().unwrap()
+        );
+    }
+    #[test]
+    fn selected_language_load_rejects_its_own_digest_drift() {
+        let (temp, compiled) = approved_fixture();
+        let root = temp.path().canonicalize().unwrap();
+        let path = root.join("ja_JP.json");
+        let mut bytes = fs::read(&path).unwrap();
+        bytes[0] = if bytes[0] == b' ' { b'!' } else { b' ' };
+        fs::write(path, bytes).unwrap();
+        assert!(load_language_at(&root, &compiled, "ja_JP")
+            .unwrap_err()
+            .contains("digest"));
+    }
+    #[test]
+    fn rejected_selected_payload_never_reaches_profile_write() {
+        let (resources, compiled) = approved_fixture();
+        let resource_root = resources.path().canonicalize().unwrap();
+        let path = resource_root.join("ja_JP.json");
+        let mut bytes = fs::read(&path).unwrap();
+        bytes[0] = if bytes[0] == b' ' { b'!' } else { b' ' };
+        fs::write(path, bytes).unwrap();
+        let selected = load_language_at(&resource_root, &compiled, "ja_JP").ok();
+
+        let profile = tempfile::tempdir().unwrap();
+        let root = profile.path().canonicalize().unwrap();
+        let home = root.join("home");
+        let state = root.join("state");
+        fs::create_dir_all(home.join("Library/Preferences/Cavalry")).unwrap();
+        fs::create_dir_all(&state).unwrap();
+        let preferences = home.join("Library/Preferences/Cavalry/preferences.json");
+        let before = br#"{"locale":{"varType":"string","value":"en-GB"}}"#;
+        fs::write(&preferences, before).unwrap();
+        let paths =
+            super::super::user_language_files::UserLanguagePaths::for_user_dirs(&home, &state)
+                .unwrap();
+
+        let action = super::super::native_user::apply_profile(
+            &paths,
+            "ja_JP",
+            selected.as_deref(),
+            &mut || Ok(()),
+            &super::super::contract::NoopReporter,
+        );
+        assert_eq!(
+            action.error_code.as_deref(),
+            Some("nativeResourceUnavailable")
+        );
+        assert_eq!(fs::read(preferences).unwrap(), before);
+        assert!(!paths.strings().exists());
+        assert!(!paths.receipt().exists());
+    }
+    #[test]
     fn one_pending_caption_keeps_an_honest_partial_pack_available() {
         let (temp, compiled) = approved_fixture();
         let root = temp.path().canonicalize().unwrap();
         let mut manifest: serde_json::Value = serde_json::from_slice(&compiled).unwrap();
-        manifest["approvedUIKeys"] = serde_json::json!(10650);
+        manifest["approvedUIKeys"] = serde_json::json!(10652);
         for language in LANGUAGES {
             let vendor = if language == "ja_JP" { 390 } else { 0 };
-            let values = (0..10845)
+            let values = (0..10847)
                 .map(|i| {
                     (
                         format!("fixture.{i}"),
@@ -445,7 +610,7 @@ mod tests {
             let info = &mut manifest["packs"][language];
             info["sha256"] = serde_json::json!(hash(&bytes));
             info["bytes"] = serde_json::json!(bytes.len());
-            info["reviewed"] = serde_json::json!(10650 - vendor);
+            info["reviewed"] = serde_json::json!(10652 - vendor);
             info["preserved"] = serde_json::json!(195);
             info["missing"] = serde_json::json!(1);
         }
@@ -465,8 +630,8 @@ mod tests {
         let root = temp.path().canonicalize().unwrap();
         let mut manifest: serde_json::Value = serde_json::from_slice(&compiled).unwrap();
         // -- 补充仍缺译的合成包：只改变来源分账，不伪造已显示或已审批 -----
-        manifest["supplementalKeys"] = serde_json::json!(373);
-        manifest["nativeKeys"] = serde_json::json!(10846);
+        manifest["supplementalKeys"] = serde_json::json!(375);
+        manifest["nativeKeys"] = serde_json::json!(10848);
         let bytes = serde_json::to_vec(&manifest).unwrap();
         fs::write(root.join("manifest.json"), &bytes).unwrap();
         assert!(
@@ -476,7 +641,10 @@ mod tests {
         for (field, value) in [
             ("supplementalKeys", 0),
             ("supplementalKeys", 9),
+            ("supplementalKeys", 373),
+            ("supplementalKeys", 374),
             ("nativeKeys", 10473),
+            ("nativeKeys", 10847),
         ] {
             let mut drift = manifest.clone();
             drift[field] = serde_json::json!(value);
@@ -504,8 +672,7 @@ mod tests {
             assert!(load_at(&root, &changed).is_err());
         }
     }
-    #[test]
-    fn native_host_checks_runtime_identity_in_addition_to_main_and_plist() {
+    fn host_identity_fixture() -> (tempfile::TempDir, PathBuf, Target) {
         let temp = tempfile::tempdir().unwrap();
         let root = temp.path().canonicalize().unwrap();
         let mut lock = target().unwrap();
@@ -517,54 +684,26 @@ mod tests {
         fs::write(root.join("Contents/Info.plist"), info).unwrap();
         fs::write(root.join(&lock.executable), b"main").unwrap();
         lock.executable_sha256 = hash(b"main");
-        lock.catalogs.clear();
-        lock.source_files.clear();
-        for runtime in &mut lock.runtime_files {
-            let path = root.join(&runtime.path);
-            fs::create_dir_all(path.parent().unwrap()).unwrap();
-            fs::write(&path, b"runtime").unwrap();
-            runtime.sha256 = hash(b"runtime");
-        }
-        fs::write(root.join(&lock.runtime_files[0].path), b"foreign runtime").unwrap();
-        assert!(verify_host_with_target(&root, &lock)
-            .unwrap_err()
-            .contains("runtime digest"));
+        (temp, root, lock)
     }
+
     #[test]
-    fn native_host_accepts_a_complete_matching_fixture() {
-        let temp = tempfile::tempdir().unwrap();
-        let root = temp.path().canonicalize().unwrap();
-        let mut lock = target().unwrap();
-        fs::create_dir_all(root.join("Contents/MacOS")).unwrap();
-        let info = format!(
-            r#"<?xml version="1.0"?><plist version="1.0"><dict><key>CFBundleIdentifier</key><string>{}</string><key>CFBundleShortVersionString</key><string>2.8.0</string><key>CFBundleExecutable</key><string>Cavalry</string></dict></plist>"#,
-            lock.bundle_id
-        );
-        fs::write(root.join("Contents/Info.plist"), info).unwrap();
-        fs::write(root.join(&lock.executable), b"main").unwrap();
-        lock.executable_sha256 = hash(b"main");
-        lock.catalogs.clear();
-        for runtime in &mut lock.runtime_files {
-            let path = root.join(&runtime.path);
-            fs::create_dir_all(path.parent().unwrap()).unwrap();
-            fs::write(&path, b"runtime").unwrap();
-            runtime.sha256 = hash(b"runtime");
-        }
-        for source in &mut lock.source_files {
-            let path = root.join("Contents/assets").join(&source.path);
-            fs::create_dir_all(path.parent().unwrap()).unwrap();
-            fs::write(&path, b"schema").unwrap();
-            source.sha256 = hash(b"schema");
-        }
-        // -- 同一positive宿主先通过，再变异schema；缺口来源不是装饰性元数据 --
-        let path = root
-            .join("Contents/assets")
-            .join(&lock.source_files[0].path);
+    fn native_host_identity_does_not_read_build_catalogs_or_runtime_libraries() {
+        let (_temp, root, lock) = host_identity_fixture();
+        // 未创建库或catalog。构建锁不要求在每次动作重读这些文件。
         verify_host_with_target(&root, &lock).unwrap();
-        fs::write(&path, b"foreign schema").unwrap();
+        assert!(!root.join("Contents/Frameworks").exists());
+        assert!(!root.join("Contents/assets").exists());
+    }
+
+    #[test]
+    fn native_host_identity_still_rejects_a_changed_main_executable() {
+        let (_temp, root, lock) = host_identity_fixture();
+        verify_host_with_target(&root, &lock).unwrap();
+        fs::write(root.join(&lock.executable), b"foreign main").unwrap();
         assert!(verify_host_with_target(&root, &lock)
             .unwrap_err()
-            .contains("supplement source digest"));
+            .contains("executable digest"));
     }
     #[test]
     fn explicit_compile_approval_loads_the_generated_development_packs() {

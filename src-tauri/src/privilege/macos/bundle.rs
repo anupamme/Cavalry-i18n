@@ -1,7 +1,8 @@
 /**
  * [INPUT]: 依赖 CommandRunner、macOS bundle 路径、直接 codesign 命令与不跟随 symlink 的 native xattr 清理。
- * [OUTPUT]: 提供仅限显式修改代码对象与 app seal 的有界签名、固定厂商 requirement 的只读限时验签、vendor/ad-hoc requirement 证据解析、脚本入口外置签名组件清单与旧版已知残留识别、nested/app 独立只读签名复核、Gatekeeper quarantine 清理。
- * [POS]: macOS apply/status 的 bundle 签名边界；Official只由OS对精确厂商requirement验签成功投影，不消费stdout自报身份；外置签名组件是旧 Switcher 脚本入口可能留下的已知副作用，只按自身路径识别并交由事务清理，不把整个 `_CodeSignature` 目录当作翻译准入证据；quarantine 不跟随 bundle 内 symlink。
+ * [OUTPUT]: 提供legacy逐对象签名并即验、NRT延迟验签的签名写端口、固定厂商 requirement 的只读限时验签、vendor/ad-hoc requirement 证据解析、脚本入口外置签名组件清单与旧版已知残留识别、nested/app独立只读复核、quarantine清理。
+ * [POS]: macOS apply/status 的 bundle 签名边界；NRT写完三处seal后由transaction验证最终postimage；legacy helpers仍逐对象验签；Official只由OS对精确厂商requirement验签成功投影，不消费stdout自报身份；quarantine不跟随bundle内symlink。
+ * 外置组件只按自有路径识别并交事务清理；目录其他成员不作准入证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -204,12 +205,46 @@ pub(crate) fn sign_modified_nested_code<R: CommandRunner>(
     modified_nested_code: &[PathBuf],
     runner: &mut R,
 ) -> Result<(), String> {
+    for_each_nested_code_path(
+        app_path,
+        modified_nested_code,
+        runner,
+        |code_path, runner| {
+            sign_code_object(code_path, runner)?;
+            verify_code_object(code_path, runner)
+        },
+    )
+}
+
+/// NRT完成所有签名写后，再统一验证两个nested对象。
+pub(crate) fn sign_native_runtime_nested_code<R: CommandRunner>(
+    app_path: &Path,
+    modified_nested_code: &[PathBuf],
+    runner: &mut R,
+) -> Result<(), String> {
+    for_each_nested_code_path(
+        app_path,
+        modified_nested_code,
+        runner,
+        |code_path, runner| sign_code_object(code_path, runner),
+    )
+}
+
+fn for_each_nested_code_path<R, F>(
+    app_path: &Path,
+    modified_nested_code: &[PathBuf],
+    runner: &mut R,
+    mut operation: F,
+) -> Result<(), String>
+where
+    R: CommandRunner,
+    F: FnMut(&Path, &mut R) -> Result<(), String>,
+{
     if cfg!(not(target_os = "macos")) {
         return Ok(());
     }
     for code_path in dedupe_code_paths(app_path, modified_nested_code)? {
-        sign_code_object(&code_path, runner)?;
-        verify_code_object(&code_path, runner)?;
+        operation(&code_path, runner)?;
     }
     Ok(())
 }
@@ -232,11 +267,23 @@ pub(crate) fn seal_patched_bundle<R: CommandRunner>(
     app_path: &Path,
     runner: &mut R,
 ) -> Result<(), String> {
+    sign_bundle(app_path, runner)?;
+    verify_signed_bundle(app_path, runner)
+}
+
+/// NRT使用已记录的最终签名后像验证App seal。
+pub(crate) fn sign_native_runtime_bundle<R: CommandRunner>(
+    app_path: &Path,
+    runner: &mut R,
+) -> Result<(), String> {
+    sign_bundle(app_path, runner)
+}
+
+fn sign_bundle<R: CommandRunner>(app_path: &Path, runner: &mut R) -> Result<(), String> {
     if cfg!(not(target_os = "macos")) {
         return Ok(());
     }
-    sign_code_object(app_path, runner)?;
-    verify_signed_bundle(app_path, runner)
+    sign_code_object(app_path, runner)
 }
 
 pub(crate) fn ensure_bundle_signature<R: CommandRunner>(

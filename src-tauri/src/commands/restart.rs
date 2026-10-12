@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 detect/state/status 同步、snapshot English 真相投影、platform_runtime.restart、共享 operation_lock 测试门与 CommandRunner。
- * [OUTPUT]: 提供 restart_cavalry_inner 与commands内部的restart_cavalry_legacy_inner；显式native预览先只读检查用户profile回执/namespace，无pending或drift才复核2.8宿主并使用不终止已有进程的正常launch，不同步2.7 bundle状态；legacy路径重启前同步 revision 并按已证明现实覆盖 stale marker 状态，Windows测试仍以显式 inspector seam 覆盖 QPA ACTIVE。
- * [POS]: commands 的重启编排层；Windows QPA/plugin/诊断 marker 与 macOS launcher 下沉 platform_runtime，状态投影不写安装根，也不拥有 Switch/Restore 的 journal 收敛。
+ * [INPUT]: 依赖 detect/state/status 同步、snapshot English 真相投影、platform_runtime.restart、native_user独立Restart准入、共享operation_lock与CommandRunner。
+ * [OUTPUT]: 提供restart_cavalry_inner与内部legacy owner；独立native preview Restart先只读检查profile，再复核stock/managed宿主与NRT终态后启动，不同步2.7状态；native apply自动启动不调用本模块，legacy apply与Restart仍同步revision并按已证明现实投影stale marker。
+ * [POS]: commands的重启编排层；独立Restart保留完整native准入，apply提交后由native_user专用leaf复用同一operation guard与writer admission；Windows QPA/plugin/诊断marker和平台启动落在各自owner。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::path::Path;

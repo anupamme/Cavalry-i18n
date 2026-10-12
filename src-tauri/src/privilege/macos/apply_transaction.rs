@@ -1,7 +1,13 @@
 /**
- * [INPUT]: 依赖 staged CopyPair、调用方精确/observe-only preimage、transaction 内 exact-process guard、显式 signing verifier、macOS bundle/state 路径、quarantine xattr、serde/sha2、目录 fd 与 renameatx_np 原子交换。
- * [OUTPUT]: 提供 crash-recoverable MacApplyTransaction、首装 journal-aware launcher gate、无需 Keychain 的结构化 journal 校验、fd-relative nofollow 备份/发布/恢复与 quarantine 遍历、hardlink 边界拒绝、保留 errno 权限类别的 compare-and-swap 写入、显式 payload→signing-proof→deferred-marker-gate→state-durability phase、drift 拒绝，以及 committed journal 原子退役后清理。
- * [POS]: macOS apply 的 durable transaction owner；首个 mutation 前在 pinned root 核对调用方 sha256+mode preimage，首装最早发布 wrapper/Info gate 后第三次复核 exact Cavalry PID，journal 覆盖 CopyPair/observe-only 资产/延迟 marker/移除/有界签名副作用/quarantine/state；bundle create/rename 的 typed permission denial 在安全回滚补充上下文后仍可由 command 判定，Signing phase 本身是 codesign mutation authorization，state 目录耐久性确认后才进入 durable commit。
+ * [INPUT]: 依赖CopyPair、八槽前像、staged source SHA、owner前像、进程门、验签、fd与renameatx_np。
+ * [OUTPUT]: 提供schema 6 StateBound和schema 7 NativeRuntimeOnly journal。
+ * [POS]: macOS bundle事务owner。schema 6保持不变；schema 7绑定来源与旧owner槽像。
+ * NRT live proof绑定operation、bundle与已记录签名后像；deferred App写入清空后签发。
+ * 终态复核固定槽后发布owner。
+ * 崩溃恢复从同份journal意图验源。有效NRT回滚phase仅四个。
+ * 当前像复核后，恢复器才调用profile回调。
+ * NRT终态、非法state phase不调用该回调。
+ * 通用StateBound和Dropped事务不调用该回调。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use serde::{Deserialize, Serialize};
@@ -33,6 +39,24 @@ const JOURNAL_DIRECTORY: &str = "macos-apply-transaction";
 const CLEANUP_TOMBSTONE_PREFIX: &str = ".macos-apply-transaction.cleanup-";
 const MANIFEST_NAME: &str = "manifest.json";
 const MANIFEST_SCHEMA: u32 = 6;
+const NATIVE_RUNTIME_MANIFEST_SCHEMA: u32 = 7;
+
+// 命令层只经受限NRT入口恢复；通用恢复仍留在既有StateBound路径。
+#[allow(dead_code)]
+#[path = "native_runtime_terminal.rs"]
+mod native_runtime_terminal;
+#[allow(unused_imports)]
+pub(crate) use native_runtime_terminal::{
+    finalize_native_runtime_recovered, recover_native_runtime_guarded_with_before_restore,
+    NativeRuntimeIntent, NativeRuntimeRecoveryOutcome,
+};
+#[path = "native_runtime_owner.rs"]
+mod native_runtime_owner;
+pub(crate) use native_runtime_owner::{
+    capture_owner_slot_preimages, ensure_native_runtime_owner_absent,
+    has_native_runtime_owner_for_selection, load_owned_native_runtime,
+    load_owned_native_runtime_details, LoadedNativeRuntimeOwner, NativeRuntimeOwnerPreimage,
+};
 const QUARANTINE_XATTR: &str = "com.apple.quarantine";
 const MAX_QUARANTINE_VALUE_BYTES: usize = 1024 * 1024;
 static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
@@ -60,9 +84,13 @@ thread_local! {
     /// Fails the explicit state-directory durability confirmation while leaving the journal in
     /// StateCommitting so rollback/reopen behavior can be exercised deterministically.
     static FAIL_NEXT_STATE_DURABILITY_SYNC: Cell<bool> = const { Cell::new(false) };
+    /// Fails owner-directory sync only after the target owner rename has become visible.
+    static FAIL_NEXT_OWNER_DIRECTORY_SYNC: Cell<bool> = const { Cell::new(false) };
     /// Runs after the first entry of an atomically retired journal has been removed. A child can
     /// exit here to prove partial recursive cleanup can never recreate a canonical pending root.
     static AFTER_RETIRED_CLEANUP_ENTRY: RefCell<Option<Box<dyn FnOnce()>>> = const { RefCell::new(None) };
+    /// 在 RuntimeCommitted 持久化后、备份退役前注入测试漂移。
+    static BEFORE_NATIVE_RUNTIME_RETIRE: RefCell<Option<Box<dyn FnOnce()>>> = const { RefCell::new(None) };
 }
 
 /// A directory descriptor pins the object that was validated. Every transaction descendant is
@@ -745,6 +773,7 @@ enum JournalPhase {
     BundleVerified,
     StateCommitting,
     StateCommitted,
+    RuntimeCommitted,
     Committed,
     Restored,
 }
@@ -886,11 +915,35 @@ enum EntryScope {
     State,
 }
 
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+enum JournalKind {
+    StateBound,
+    NativeRuntimeOnly,
+}
+
+impl Default for JournalKind {
+    fn default() -> Self {
+        Self::StateBound
+    }
+}
+
+impl JournalKind {
+    fn is_state_bound(&self) -> bool {
+        *self == Self::StateBound
+    }
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 struct JournalManifest {
     schema_version: u32,
+    // schema 6 没有 transaction kind。省略默认值，保持 2.7 journal 原形。
+    #[serde(default, skip_serializing_if = "JournalKind::is_state_bound")]
+    kind: JournalKind,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    native_runtime_intent: Option<NativeRuntimeIntent>,
     operation_id: String,
     phase: JournalPhase,
     install_root: String,
@@ -956,6 +1009,12 @@ pub(crate) struct MacApplyTransaction {
     deferred_pair_destinations: HashSet<PathBuf>,
     deferred_removal_destinations: HashSet<PathBuf>,
     active: bool,
+}
+
+/// 只在本次NRT验签并记录最终后像后签发；不写入journal。
+pub(crate) struct NativeRuntimePostimageProof {
+    operation_id: String,
+    install_root: PathBuf,
 }
 
 type ExactMutationGuard<'a> = Box<dyn FnMut(&Path) -> Result<(), ExactProcessGuardError> + 'a>;
@@ -1025,6 +1084,8 @@ impl MacApplyTransaction {
         side_effect_paths: &[PathBuf],
     ) -> Result<Self, CopyFailure> {
         Self::begin_internal(
+            JournalKind::StateBound,
+            None,
             state_dir,
             app_path,
             &[],
@@ -1051,6 +1112,8 @@ impl MacApplyTransaction {
         side_effect_paths: &[PathBuf],
     ) -> Result<Self, CopyFailure> {
         Self::begin_internal(
+            JournalKind::StateBound,
+            None,
             state_dir,
             app_path,
             intermediate_pairs,
@@ -1150,6 +1213,75 @@ impl MacApplyTransaction {
         G: FnMut(&Path) -> Result<(), ExactProcessGuardError> + 'a,
     {
         Self::begin_internal(
+            JournalKind::StateBound,
+            None,
+            state_dir,
+            app_path,
+            intermediate_pairs,
+            launch_gate_pairs,
+            payload_pairs,
+            deferred_pairs,
+            removals,
+            deferred_removals,
+            side_effect_paths,
+            Some(preimages),
+            Some(Box::new(process_guard)),
+        )
+    }
+
+    /// 创建 bundle-only runtime transaction。它复用 pinned root、进程门和签名门。
+    /// 它不拥有 `state.json`，也不提交 user-profile receipt。
+    #[allow(clippy::too_many_arguments, dead_code)]
+    pub(crate) fn begin_native_runtime_only_with_deferred_pairs_and_removals_guarded(
+        intent: NativeRuntimeIntent,
+        state_dir: &Path,
+        app_path: &Path,
+        intermediate_pairs: &[CopyPair],
+        launch_gate_pairs: &[CopyPair],
+        payload_pairs: &[CopyPair],
+        deferred_pairs: &[CopyPair],
+        removals: &[PathBuf],
+        deferred_removals: &[PathBuf],
+        side_effect_paths: &[PathBuf],
+        preimages: &[MacBundlePreimageConstraint],
+    ) -> Result<Self, MacApplyBeginError> {
+        Self::begin_native_runtime_only_with_deferred_pairs_and_removals_guarded_by(
+            intent,
+            state_dir,
+            app_path,
+            intermediate_pairs,
+            launch_gate_pairs,
+            payload_pairs,
+            deferred_pairs,
+            removals,
+            deferred_removals,
+            side_effect_paths,
+            preimages,
+            guard_exact_cavalry_not_running,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn begin_native_runtime_only_with_deferred_pairs_and_removals_guarded_by<'a, G>(
+        intent: NativeRuntimeIntent,
+        state_dir: &Path,
+        app_path: &Path,
+        intermediate_pairs: &[CopyPair],
+        launch_gate_pairs: &[CopyPair],
+        payload_pairs: &[CopyPair],
+        deferred_pairs: &[CopyPair],
+        removals: &[PathBuf],
+        deferred_removals: &[PathBuf],
+        side_effect_paths: &[PathBuf],
+        preimages: &[MacBundlePreimageConstraint],
+        process_guard: G,
+    ) -> Result<Self, MacApplyBeginError>
+    where
+        G: FnMut(&Path) -> Result<(), ExactProcessGuardError> + 'a,
+    {
+        Self::begin_internal(
+            JournalKind::NativeRuntimeOnly,
+            Some(intent),
             state_dir,
             app_path,
             intermediate_pairs,
@@ -1166,6 +1298,8 @@ impl MacApplyTransaction {
 
     #[allow(clippy::too_many_arguments)]
     fn begin_internal<'a>(
+        kind: JournalKind,
+        native_runtime_intent: Option<NativeRuntimeIntent>,
         state_dir: &Path,
         app_path: &Path,
         intermediate_pairs: &[CopyPair],
@@ -1178,6 +1312,8 @@ impl MacApplyTransaction {
         required_preimages: Option<&[MacBundlePreimageConstraint]>,
         mut process_guard: Option<ExactMutationGuard<'a>>,
     ) -> Result<Self, MacApplyBeginError> {
+        validate_native_runtime_intent(kind, native_runtime_intent.as_ref())
+            .map_err(CopyFailure::other)?;
         let bundle_root = SecureDirectory::open_resolved(app_path, "selected Cavalry bundle")
             .map_err(CopyFailure::other)?;
         let canonical_app = bundle_root.path.clone();
@@ -1193,6 +1329,19 @@ impl MacApplyTransaction {
         let mut destination_plans =
             build_destination_plans(&all_pairs, &all_removals, side_effect_paths, &canonical_app)?;
         attach_intermediate_copy_plans(&mut destination_plans, intermediate_pairs, deferred_pairs)?;
+        if kind == JournalKind::NativeRuntimeOnly {
+            let required_signature_path =
+                canonical_app.join("Contents/_CodeSignature/CodeResources");
+            if !destination_plans
+                .iter()
+                .any(|plan| plan.destination == required_signature_path && plan.signing_side_effect)
+            {
+                return Err(CopyFailure::other(
+                    "Native runtime transaction requires CodeResources as a bounded signing side effect.",
+                )
+                .into());
+            }
+        }
         let created_parent_directories =
             missing_bundle_parent_directories(&all_pairs, &canonical_app)?;
 
@@ -1224,6 +1373,12 @@ impl MacApplyTransaction {
         let journal_root = journal_root(state_dir);
         ensure_state_directory(state_dir)?;
         let state_root = SecureDirectory::open(state_dir).map_err(CopyFailure::other)?;
+        native_runtime_owner::verify_owner_for_intent(
+            &state_root,
+            &canonical_app,
+            native_runtime_intent.as_ref(),
+        )
+        .map_err(CopyFailure::other)?;
         cleanup_retired_journals_best_effort(state_dir);
         if fs::symlink_metadata(&journal_root).is_ok() {
             return Err(CopyFailure::other(format!(
@@ -1232,7 +1387,11 @@ impl MacApplyTransaction {
             )).into());
         }
         let state_path = state_dir.join("state.json");
-        let state_paths = state::state_transaction_paths(state_dir);
+        let state_paths = if kind == JournalKind::StateBound {
+            state::state_transaction_paths(state_dir).to_vec()
+        } else {
+            Vec::new()
+        };
         let operation_id = state::new_operation_id();
         let preparation_root =
             state_dir.join(format!(".{JOURNAL_DIRECTORY}.preparing-{operation_id}"));
@@ -1352,7 +1511,12 @@ impl MacApplyTransaction {
         backups_dir.sync().map_err(CopyFailure::other)?;
 
         let mut manifest = JournalManifest {
-            schema_version: MANIFEST_SCHEMA,
+            schema_version: match kind {
+                JournalKind::StateBound => MANIFEST_SCHEMA,
+                JournalKind::NativeRuntimeOnly => NATIVE_RUNTIME_MANIFEST_SCHEMA,
+            },
+            kind,
+            native_runtime_intent,
             operation_id: operation_id.clone(),
             phase: JournalPhase::Prepared,
             install_root: path_string(&canonical_app).map_err(CopyFailure::other)?,
@@ -1383,16 +1547,21 @@ impl MacApplyTransaction {
                 .map(|(index, pair)| path_string(&temporary_path_for_pair(pair, index)))
                 .collect::<Result<Vec<_>, _>>()
                 .map_err(CopyFailure::other)?,
-            state_temporary_paths: state::state_transaction_temporary_paths(
-                state_dir,
-                &operation_id,
-            )
-            .iter()
-            .map(|path| path_string(path).map_err(CopyFailure::other))
-            .collect::<Result<Vec<_>, _>>()?,
+            state_temporary_paths: if kind == JournalKind::StateBound {
+                state::state_transaction_temporary_paths(state_dir, &operation_id)
+                    .iter()
+                    .map(|path| path_string(path).map_err(CopyFailure::other))
+                    .collect::<Result<Vec<_>, _>>()?
+            } else {
+                Vec::new()
+            },
             quarantine_preimages,
             _legacy_authentication_tag: String::new(),
         };
+        native_runtime_owner::validate_journaled_update_preimages(&manifest)
+            .map_err(CopyFailure::other)?;
+        validate_native_runtime_source_plan(&manifest, &canonical_app)
+            .map_err(CopyFailure::other)?;
         write_manifest(&preparation_dir, &manifest).map_err(CopyFailure::other)?;
         preparation_dir.sync().map_err(CopyFailure::other)?;
         // The first scan keeps a running Cavalry from creating any state-side effects. Repeat the
@@ -1510,7 +1679,21 @@ impl MacApplyTransaction {
                 return Err(guard_error.into());
             }
         }
-        for pair in payload_pairs {
+        let vendor_info = if matches!(
+            transaction.manifest.native_runtime_intent,
+            Some(NativeRuntimeIntent::VendorBaselineRestore { .. })
+        ) {
+            payload_pairs
+                .iter()
+                .find(|pair| pair.dst == transaction.bundle_root.path.join("Contents/Info.plist"))
+        } else {
+            None
+        };
+        // 原厂Info最后恢复。此前已存在的中性wrapper持续阻断journal启动。
+        for pair in payload_pairs
+            .iter()
+            .filter(|pair| vendor_info.is_none_or(|info| pair.dst != info.dst))
+        {
             if let Err(error) = transaction.apply_journaled_pair(pair, false) {
                 let cause = format!("Copy transaction failed at {}: {error}", pair.dst.display());
                 let rolled_back = transaction.rollback_with_cause(cause);
@@ -1545,6 +1728,14 @@ impl MacApplyTransaction {
                 );
                 let rolled_back = transaction.rollback_with_cause(cause);
                 return Err(CopyFailure::other(rolled_back).into());
+            }
+        }
+        if let Some(pair) = vendor_info {
+            if let Err(error) = transaction.apply_journaled_pair(pair, false) {
+                let cause = transaction.rollback_with_cause(format!(
+                    "Could not restore final vendor Info.plist: {error}"
+                ));
+                return Err(error.with_message(cause).into());
             }
         }
         Ok(transaction)
@@ -1720,6 +1911,34 @@ impl MacApplyTransaction {
         write_manifest(&self.journal_dir, &self.manifest)
     }
 
+    /// 验证并记录最终NRT签名后像，再签发本事务独有的内存proof。
+    pub(crate) fn verify_and_record_native_runtime_postimages<F>(
+        &mut self,
+        verifier: F,
+    ) -> Result<NativeRuntimePostimageProof, String>
+    where
+        F: FnOnce(&Path) -> Result<(), String>,
+    {
+        if self.manifest.kind != JournalKind::NativeRuntimeOnly {
+            return Err(
+                "Native runtime postimage proof requires a NativeRuntimeOnly journal.".into(),
+            );
+        }
+        if !self.deferred_pair_destinations.is_empty()
+            || !self.deferred_removal_destinations.is_empty()
+        {
+            return Err(
+                "Native runtime postimage proof requires all deferred App writes to be published."
+                    .into(),
+            );
+        }
+        self.verify_and_record_signing_postimages(verifier)?;
+        Ok(NativeRuntimePostimageProof {
+            operation_id: self.manifest.operation_id.clone(),
+            install_root: self.bundle_root.path.clone(),
+        })
+    }
+
     /// Authorizes the committed-looking final marker only after every non-deferred payload and
     /// every explicitly verified signing postimage still matches on pinned descriptors.
     pub(crate) fn authorize_deferred_commit(&mut self) -> Result<(), String> {
@@ -1822,11 +2041,22 @@ impl MacApplyTransaction {
             }
             snapshot_verified_postimage(entry, roots)?;
         }
+        if self.manifest.kind == JournalKind::NativeRuntimeOnly
+            && !has_verified_native_signature_postimage(&self.manifest)
+        {
+            return Err(
+                "Native runtime has no verified non-empty CodeResources signing postimage."
+                    .to_string(),
+            );
+        }
         self.manifest.phase = JournalPhase::BundleVerified;
         write_manifest(&self.journal_dir, &self.manifest)
     }
 
     pub(crate) fn begin_state_commit(&mut self) -> Result<(), String> {
+        if self.manifest.kind != JournalKind::StateBound {
+            return Err("Native runtime transaction cannot begin a state commit.".to_string());
+        }
         if self.manifest.phase != JournalPhase::BundleVerified {
             return Err("macOS bundle postconditions have not been checkpointed.".to_string());
         }
@@ -1836,6 +2066,9 @@ impl MacApplyTransaction {
     }
 
     pub(crate) fn checkpoint_state_commit(&mut self) -> Result<(), String> {
+        if self.manifest.kind != JournalKind::StateBound {
+            return Err("Native runtime transaction cannot commit state.json.".to_string());
+        }
         if self.manifest.phase != JournalPhase::StateCommitting {
             return Err("macOS transaction is not committing state.".to_string());
         }
@@ -1871,6 +2104,35 @@ impl MacApplyTransaction {
             snapshot_verified_postimage(entry, roots)?;
         }
         self.manifest.phase = JournalPhase::StateCommitted;
+        write_manifest(&self.journal_dir, &self.manifest)
+    }
+
+    /// 只接受已验签的 bundle postimage，不读取或写入 StateDocument。
+    #[allow(dead_code)]
+    pub(crate) fn checkpoint_native_runtime_commit(&mut self) -> Result<(), String> {
+        if self.manifest.kind != JournalKind::NativeRuntimeOnly {
+            return Err(
+                "State-bound transaction cannot use the native runtime commit.".to_string(),
+            );
+        }
+        if self.manifest.phase != JournalPhase::BundleVerified {
+            return Err("Native runtime bundle postconditions are not verified.".to_string());
+        }
+        if self
+            .manifest
+            .entries
+            .iter()
+            .any(|entry| entry.scope == EntryScope::State)
+        {
+            return Err("Native runtime transaction contains a state entry.".to_string());
+        }
+        // BundleVerified 后仍可能出现外部写入。终态前重读 payload 与签名 postimage。
+        self.verify_native_runtime_terminal_postimages()?;
+        // 先同步 journal 父目录，再由 write_manifest 同步文件和 journal 目录。
+        self.state_root
+            .sync()
+            .map_err(|error| format!("Native runtime journal durability is uncertain: {error}"))?;
+        self.manifest.phase = JournalPhase::RuntimeCommitted;
         write_manifest(&self.journal_dir, &self.manifest)
     }
 
@@ -2040,24 +2302,123 @@ impl MacApplyTransaction {
         Ok(())
     }
 
+    fn verify_native_runtime_terminal_postimages(&self) -> Result<(), String> {
+        let roots = TransactionRoots {
+            bundle: &self.bundle_root,
+            state: &self.state_root,
+        };
+        verify_native_runtime_bundle_postimages(&self.manifest, roots)?;
+        self.verify_observed_bundle_preimages()
+    }
+
     pub(crate) fn commit(mut self) -> Result<CopyCompletion, String> {
-        if self.manifest.phase != JournalPhase::StateCommitted {
-            return Err(self.rollback_with_cause(
-                "Refusing to commit a macOS transaction before durable state postconditions.",
+        if matches!(
+            self.manifest.native_runtime_intent,
+            Some(
+                NativeRuntimeIntent::VendorBaselineRestore { .. }
+                    | NativeRuntimeIntent::BoundManagedRuntime { .. }
+            )
+        ) {
+            self.active = false;
+            return Err("Native vendor restore requires its source-specific commit; journal and backups were retained.".into());
+        }
+        self.commit_with_native_verifier(|_, _| Ok(()))
+    }
+
+    fn commit_with_native_verifier<F>(mut self, mut verifier: F) -> Result<CopyCompletion, String>
+    where
+        F: FnMut(&JournalManifest, &Path) -> Result<(), String>,
+    {
+        let required_phase = match self.manifest.kind {
+            JournalKind::StateBound => JournalPhase::StateCommitted,
+            JournalKind::NativeRuntimeOnly => JournalPhase::RuntimeCommitted,
+        };
+        if self.manifest.phase != required_phase {
+            let cause = match self.manifest.kind {
+                JournalKind::StateBound => {
+                    "Refusing to commit a macOS transaction before durable state postconditions."
+                }
+                JournalKind::NativeRuntimeOnly => {
+                    "Refusing to commit a native runtime before durable bundle postconditions."
+                }
+            };
+            return Err(self.rollback_with_cause(cause));
+        }
+        if self.manifest.kind == JournalKind::NativeRuntimeOnly {
+            if let Err(error) = self
+                .verify_native_runtime_terminal_postimages()
+                .and_then(|_| verifier(&self.manifest, &self.state_root.path))
+                .and_then(|_| self.verify_native_runtime_terminal_postimages())
+            {
+                self.active = false;
+                return Err(format!(
+                    "Native runtime is committed, but terminal verification blocks journal cleanup; backups were retained: {error}"
+                ));
+            }
+        }
+        self.commit_after_terminal_gate()
+    }
+
+    pub(super) fn commit_native_runtime_with_postimage_proof(
+        mut self,
+        proof: NativeRuntimePostimageProof,
+    ) -> Result<CopyCompletion, String> {
+        if self.manifest.kind != JournalKind::NativeRuntimeOnly
+            || self.manifest.phase != JournalPhase::RuntimeCommitted
+            || proof.operation_id != self.manifest.operation_id
+            || proof.install_root != self.bundle_root.path
+            || Path::new(&self.manifest.install_root) != self.bundle_root.path.as_path()
+        {
+            self.active = false;
+            return Err(format!(
+                "Native runtime postimage proof does not match this committed operation; journal and backups were retained at {}.",
+                self.journal_root.display()
             ));
         }
+        if let Err(error) = self.verify_native_runtime_terminal_postimages() {
+            self.active = false;
+            return Err(format!(
+                "Native runtime is committed, but fixed postimages block journal cleanup; backups were retained: {error}"
+            ));
+        }
+        self.commit_after_terminal_gate()
+    }
+
+    fn commit_after_terminal_gate(mut self) -> Result<CopyCompletion, String> {
         self.manifest.phase = JournalPhase::Committed;
         if let Err(error) = write_manifest(&self.journal_dir, &self.manifest) {
             self.active = false;
-            return Ok(CopyCompletion::new("direct").with_warning(PostCommitWarning::new(
-                PostCommitWarningCode::TransactionBackupCleanup,
-                [self.journal_root.clone()],
-                Some(format!(
-                    "State and bundle committed, but the cleanup phase could not be persisted: {error}"
+            return Ok(
+                CopyCompletion::new("direct").with_warning(PostCommitWarning::new(
+                    PostCommitWarningCode::TransactionBackupCleanup,
+                    [self.journal_root.clone()],
+                    Some(format!(
+                        "{} committed, but the cleanup phase could not be persisted: {error}",
+                        match self.manifest.kind {
+                            JournalKind::StateBound => "State and bundle",
+                            JournalKind::NativeRuntimeOnly => "Native runtime bundle",
+                        }
+                    )),
                 )),
-            )));
+            );
         }
         self.active = false;
+        if self.manifest.kind == JournalKind::NativeRuntimeOnly {
+            #[cfg(test)]
+            run_before_native_runtime_retire_hook();
+            if let Err(error) = self.verify_native_runtime_terminal_postimages() {
+                return Err(format!(
+                    "Native runtime journal is committed, but terminal verification blocks backup retirement: {error}"
+                ));
+            }
+        }
+        if self.manifest.kind == JournalKind::NativeRuntimeOnly {
+            native_runtime_owner::publish_terminal_owner(
+                &self.manifest,
+                &self.state_root,
+                &self.bundle_root,
+            )?;
+        }
         match retire_and_cleanup_journal(
             &self.state_root,
             &self.manifest.operation_id,
@@ -2078,6 +2439,11 @@ impl MacApplyTransaction {
         &self.manifest.operation_id
     }
 
+    #[cfg(test)]
+    pub(crate) fn set_before_native_runtime_retire_hook_for_test(hook: impl FnOnce() + 'static) {
+        BEFORE_NATIVE_RUNTIME_RETIRE.with(|slot| *slot.borrow_mut() = Some(Box::new(hook)));
+    }
+
     pub(crate) fn rollback_with_cause(mut self, cause: impl Into<String>) -> String {
         let cause = cause.into();
         let rollback = restore_manifest_with_roots(
@@ -2090,7 +2456,14 @@ impl MacApplyTransaction {
         );
         self.active = false;
         match rollback {
-            Ok(()) => format!("{cause} Exact bundle and state preimages were restored."),
+            Ok(()) => match self.manifest.kind {
+                JournalKind::StateBound => {
+                    format!("{cause} Exact bundle and state preimages were restored.")
+                }
+                JournalKind::NativeRuntimeOnly => {
+                    format!("{cause} Exact bundle preimages were restored.")
+                }
+            },
             Err(error) => format!(
                 "{cause} Rollback also failed; recovery journal was retained at {}: {error}",
                 self.journal_root.display()
@@ -2122,18 +2495,29 @@ impl Drop for MacApplyTransaction {
 pub(crate) fn recover_pending_guarded(state_dir: &Path, app_path: &Path) -> Result<bool, String> {
     let mut guard =
         |exact: &Path| guard_exact_cavalry_not_running(exact).map_err(|error| error.to_string());
-    recover_pending_internal(state_dir, app_path, Some(&mut guard))
+    recover_pending_internal(state_dir, app_path, Some(&mut guard), None)
+}
+
+fn recover_native_runtime_pending_guarded(
+    state_dir: &Path,
+    app_path: &Path,
+    before_restore: &mut dyn FnMut() -> Result<(), String>,
+) -> Result<bool, String> {
+    let mut guard =
+        |exact: &Path| guard_exact_cavalry_not_running(exact).map_err(|error| error.to_string());
+    recover_pending_internal(state_dir, app_path, Some(&mut guard), Some(before_restore))
 }
 
 #[cfg(test)]
 fn recover_pending(state_dir: &Path, app_path: &Path) -> Result<bool, String> {
-    recover_pending_internal(state_dir, app_path, None)
+    recover_pending_internal(state_dir, app_path, None, None)
 }
 
 fn recover_pending_internal(
     state_dir: &Path,
     app_path: &Path,
     process_guard: Option<&mut dyn FnMut(&Path) -> Result<(), String>>,
+    mut before_restore: Option<&mut dyn FnMut() -> Result<(), String>>,
 ) -> Result<bool, String> {
     cleanup_retired_journals_best_effort(state_dir);
     let root = journal_root(state_dir);
@@ -2151,6 +2535,9 @@ fn recover_pending_internal(
     let journal_dir = SecureDirectory::open(&root)?;
     let manifest = read_manifest(&journal_dir)?;
     let bundle_root = validate_manifest(&journal_dir, &manifest, state_dir, app_path)?;
+    if before_restore.is_some() {
+        native_runtime_terminal::require_native_terminal_manifest(&manifest)?;
+    }
     let state_root = SecureDirectory::open(state_dir)?;
     let roots = TransactionRoots {
         bundle: &bundle_root,
@@ -2158,7 +2545,7 @@ fn recover_pending_internal(
     };
     if matches!(
         manifest.phase,
-        JournalPhase::StateCommitted | JournalPhase::Committed
+        JournalPhase::StateCommitted | JournalPhase::RuntimeCommitted | JournalPhase::Committed
     ) {
         verify_committed_postimages(&manifest, roots)?;
         // Keep validated backups until the caller independently verifies the bundle's code
@@ -2172,29 +2559,42 @@ fn recover_pending_internal(
     verify_recovery_current_state(&manifest, roots)?;
     let mut process_guard = process_guard;
     let has_process_guard = process_guard.is_some();
+    let has_before_restore = before_restore.is_some();
     let mut before_mutation = || {
-        let executable = bundle_root
-            .open_regular_relative(Path::new("Contents/MacOS/Cavalry"))?
-            .ok_or_else(|| {
-                "Pending Cavalry recovery has no regular Contents/MacOS/Cavalry executable."
-                    .to_string()
-            })?;
-        let exact_executable = resolved_fd_path(executable.file.as_raw_fd(), &bundle_root.path)?;
-        process_guard
-            .as_mut()
-            .expect("guarded recovery installs a process guard")(&exact_executable)
+        if let Some(before_restore) = before_restore.as_mut() {
+            (**before_restore)()?;
+        }
+        if let Some(process_guard) = process_guard.as_mut() {
+            let executable = bundle_root
+                .open_regular_relative(Path::new("Contents/MacOS/Cavalry"))?
+                .ok_or_else(|| {
+                    "Pending Cavalry recovery has no regular Contents/MacOS/Cavalry executable."
+                        .to_string()
+                })?;
+            let exact_executable =
+                resolved_fd_path(executable.file.as_raw_fd(), &bundle_root.path)?;
+            process_guard(&exact_executable)?;
+        }
+        Ok(())
     };
-    let before_mutation =
-        has_process_guard.then_some(&mut before_mutation as &mut dyn FnMut() -> Result<(), String>);
+    let before_mutation = (has_process_guard || has_before_restore)
+        .then_some(&mut before_mutation as &mut dyn FnMut() -> Result<(), String>);
     restore_manifest_with_roots_guarded(&journal_dir, roots, &manifest, before_mutation)?;
     Ok(true)
 }
 
+/// StateBound 调用方先独立验签；generic finalizer 拒绝 NRT 并保留 journal/备份。
 pub(crate) fn finalize_recovered(state_dir: &Path, app_path: &Path) -> Result<(), String> {
     let root = journal_root(state_dir);
     let journal_dir = SecureDirectory::open(&root)?;
     let manifest = read_manifest(&journal_dir)?;
     let bundle_root = validate_manifest(&journal_dir, &manifest, state_dir, app_path)?;
+    if manifest.kind == JournalKind::NativeRuntimeOnly {
+        return Err(
+            "NativeRuntimeOnly recovery requires source-specific terminal verification; canonical journal and backups were retained."
+                .to_string(),
+        );
+    }
     let state_root = SecureDirectory::open(state_dir)?;
     let roots = TransactionRoots {
         bundle: &bundle_root,
@@ -2202,7 +2602,7 @@ pub(crate) fn finalize_recovered(state_dir: &Path, app_path: &Path) -> Result<()
     };
     match manifest.phase {
         JournalPhase::Restored => verify_all_preimages(&manifest, roots)?,
-        JournalPhase::StateCommitted | JournalPhase::Committed => {
+        JournalPhase::StateCommitted | JournalPhase::RuntimeCommitted | JournalPhase::Committed => {
             verify_committed_postimages(&manifest, roots)?
         }
         _ => return Err("macOS recovery journal is not awaiting final verification.".to_string()),
@@ -2307,7 +2707,10 @@ pub(crate) fn pending_requires_bundle_restore(
     validate_manifest(&journal_dir, &manifest, state_dir, app_path)?;
     Ok(!matches!(
         manifest.phase,
-        JournalPhase::StateCommitted | JournalPhase::Committed | JournalPhase::Restored
+        JournalPhase::StateCommitted
+            | JournalPhase::RuntimeCommitted
+            | JournalPhase::Committed
+            | JournalPhase::Restored
     ))
 }
 
@@ -3156,10 +3559,10 @@ fn verify_recovery_current_state(
 ) -> Result<(), String> {
     if matches!(
         manifest.phase,
-        JournalPhase::StateCommitted | JournalPhase::Committed
+        JournalPhase::StateCommitted | JournalPhase::RuntimeCommitted | JournalPhase::Committed
     ) {
         return Err(
-            "Refusing to roll back a state-committed macOS transaction; only cleanup is allowed."
+            "Refusing to roll back a committed macOS transaction; only cleanup is allowed."
                 .to_string(),
         );
     }
@@ -3209,7 +3612,10 @@ fn verify_recovery_current_state(
                     || state_document_has_operation(roots.state, path, &manifest.operation_id)
             }
             (
-                JournalPhase::StateCommitted | JournalPhase::Committed | JournalPhase::Restored,
+                JournalPhase::StateCommitted
+                | JournalPhase::RuntimeCommitted
+                | JournalPhase::Committed
+                | JournalPhase::Restored,
                 _,
             ) => false,
         };
@@ -3262,15 +3668,68 @@ fn verify_committed_postimages(
             ));
         }
     }
-    let state_dir = resolved_fd_path(roots.state.fd.as_raw_fd(), &roots.state.path)?;
-    let document = state::read_state_document(&state_dir).map_err(|error| error.to_string())?;
-    if document.operation_id != manifest.operation_id {
+    match manifest.kind {
+        JournalKind::StateBound => {
+            let state_dir = resolved_fd_path(roots.state.fd.as_raw_fd(), &roots.state.path)?;
+            let document =
+                state::read_state_document(&state_dir).map_err(|error| error.to_string())?;
+            if document.operation_id != manifest.operation_id {
+                return Err(
+                    "Committed macOS transaction state operation ID does not match its journal."
+                        .to_string(),
+                );
+            }
+        }
+        JournalKind::NativeRuntimeOnly => {
+            if manifest
+                .entries
+                .iter()
+                .any(|entry| entry.scope == EntryScope::State)
+            {
+                return Err("Committed native runtime contains a state entry.".to_string());
+            }
+        }
+    }
+    Ok(())
+}
+
+fn has_native_code_resources_signing_entry(manifest: &JournalManifest) -> bool {
+    let required = Path::new(&manifest.install_root).join("Contents/_CodeSignature/CodeResources");
+    manifest.entries.iter().any(|entry| {
+        entry.scope == EntryScope::Bundle
+            && entry.signing_side_effect
+            && Path::new(&entry.destination) == required
+    })
+}
+
+fn has_verified_native_signature_postimage(manifest: &JournalManifest) -> bool {
+    let required = Path::new(&manifest.install_root).join("Contents/_CodeSignature/CodeResources");
+    manifest.entries.iter().any(|entry| {
+        entry.scope == EntryScope::Bundle
+            && entry.signing_side_effect
+            && Path::new(&entry.destination) == required
+            && entry
+                .signing_postimage
+                .as_ref()
+                .is_some_and(|postimage| postimage.fingerprint.is_some())
+            && entry.verified_post.is_some()
+            && !entry.verified_post_absent
+    })
+}
+
+fn verify_native_runtime_bundle_postimages(
+    manifest: &JournalManifest,
+    roots: TransactionRoots<'_>,
+) -> Result<(), String> {
+    if manifest.kind != JournalKind::NativeRuntimeOnly
+        || !has_verified_native_signature_postimage(manifest)
+    {
         return Err(
-            "Committed macOS transaction state operation ID does not match its journal."
+            "Native runtime lacks a verified non-empty CodeResources signing postimage."
                 .to_string(),
         );
     }
-    Ok(())
+    verify_committed_postimages(manifest, roots)
 }
 
 fn verify_all_preimages(
@@ -3297,16 +3756,71 @@ fn verify_all_preimages(
     Ok(())
 }
 
+fn validate_native_runtime_intent(
+    kind: JournalKind,
+    intent: Option<&NativeRuntimeIntent>,
+) -> Result<(), String> {
+    match (kind, intent) {
+        (JournalKind::StateBound, None) => Ok(()),
+        (JournalKind::NativeRuntimeOnly, Some(intent)) => intent.validate(),
+        (JournalKind::StateBound, Some(_)) => {
+            Err("State-bound journal contains native runtime intent.".into())
+        }
+        (JournalKind::NativeRuntimeOnly, None) => {
+            Err("Native runtime journal has no durable source intent.".into())
+        }
+    }
+}
+
+fn validate_native_runtime_source_plan(
+    manifest: &JournalManifest,
+    app: &Path,
+) -> Result<(), String> {
+    let Some(NativeRuntimeIntent::BoundManagedRuntime {
+        runtime_source_sha256: Some(expected_sha256),
+        ..
+    }) = manifest.native_runtime_intent.as_ref()
+    else {
+        return Ok(());
+    };
+    let injector = app.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib");
+    let entry = manifest
+        .entries
+        .iter()
+        .find(|entry| {
+            entry.scope == EntryScope::Bundle && Path::new(&entry.destination) == injector
+        })
+        .ok_or_else(|| "Native runtime source intent has no injector destination.".to_string())?;
+    let actual_sha256 = entry
+        .expected_copy
+        .as_ref()
+        .map(|copy| copy.sha256.as_str())
+        .ok_or_else(|| "Native runtime source intent has no staged injector image.".to_string())?;
+    if actual_sha256 != expected_sha256 {
+        return Err("Native runtime source SHA differs from the staged injector bytes.".into());
+    }
+    Ok(())
+}
+
 fn validate_manifest(
     journal_dir: &SecureDirectory,
     manifest: &JournalManifest,
     state_dir: &Path,
     app_path: &Path,
 ) -> Result<SecureDirectory, String> {
-    if manifest.schema_version != MANIFEST_SCHEMA {
+    let supported_schema = matches!(
+        (manifest.schema_version, manifest.kind),
+        (MANIFEST_SCHEMA, JournalKind::StateBound)
+            | (
+                NATIVE_RUNTIME_MANIFEST_SCHEMA,
+                JournalKind::NativeRuntimeOnly
+            )
+    );
+    if !supported_schema {
         return Err(format!(
-            "Unsupported macOS apply journal schema {} at {}.",
+            "Unsupported macOS transaction journal schema/kind ({}, {:?}) at {}.",
             manifest.schema_version,
+            manifest.kind,
             journal_dir.path.display()
         ));
     }
@@ -3319,6 +3833,7 @@ fn validate_manifest(
     {
         return Err("Pending macOS journal has an invalid operation ID.".to_string());
     }
+    validate_native_runtime_intent(manifest.kind, manifest.native_runtime_intent.as_ref())?;
     let bundle_root = SecureDirectory::open_resolved(app_path, "pending Cavalry bundle")?;
     let canonical_app = &bundle_root.path;
     if Path::new(&manifest.install_root) != canonical_app {
@@ -3332,6 +3847,48 @@ fn validate_manifest(
     if Path::new(&manifest.state_path) != state_path {
         return Err(
             "Pending macOS journal state path does not match this application state directory."
+                .to_string(),
+        );
+    }
+    match manifest.kind {
+        JournalKind::StateBound if manifest.phase == JournalPhase::RuntimeCommitted => {
+            return Err("State-bound journal has a native runtime terminal phase.".to_string());
+        }
+        JournalKind::NativeRuntimeOnly
+            if manifest
+                .entries
+                .iter()
+                .any(|entry| entry.scope == EntryScope::State) =>
+        {
+            return Err("Native runtime journal must not contain state entries.".to_string());
+        }
+        JournalKind::NativeRuntimeOnly if !has_native_code_resources_signing_entry(manifest) => {
+            return Err(
+                "Native runtime journal must contain CodeResources as a signing entry.".to_string(),
+            );
+        }
+        JournalKind::NativeRuntimeOnly
+            if !manifest.state_temporary_paths.is_empty()
+                || matches!(
+                    manifest.phase,
+                    JournalPhase::StateCommitting | JournalPhase::StateCommitted
+                ) =>
+        {
+            return Err(
+                "Native runtime journal must not contain state commit metadata.".to_string(),
+            );
+        }
+        _ => {}
+    }
+    if manifest.kind == JournalKind::NativeRuntimeOnly
+        && matches!(
+            manifest.phase,
+            JournalPhase::BundleVerified | JournalPhase::RuntimeCommitted | JournalPhase::Committed
+        )
+        && !has_verified_native_signature_postimage(manifest)
+    {
+        return Err(
+            "Native runtime journal lacks a verified non-empty CodeResources signing postimage."
                 .to_string(),
         );
     }
@@ -3441,7 +3998,7 @@ fn validate_manifest(
                 );
             }
         }
-        JournalPhase::StateCommitted | JournalPhase::Committed => {
+        JournalPhase::StateCommitted | JournalPhase::RuntimeCommitted | JournalPhase::Committed => {
             if manifest
                 .entries
                 .iter()
@@ -3480,6 +4037,7 @@ fn validate_manifest(
         JournalPhase::BundleVerified
         | JournalPhase::StateCommitting
         | JournalPhase::StateCommitted
+        | JournalPhase::RuntimeCommitted
         | JournalPhase::Committed => {
             if signing_entries
                 .iter()
@@ -3606,6 +4164,7 @@ fn validate_manifest(
         JournalPhase::BundleVerified
             | JournalPhase::StateCommitting
             | JournalPhase::StateCommitted
+            | JournalPhase::RuntimeCommitted
             | JournalPhase::Committed
     ) && (!manifest.deferred_publish_authorized || !manifest.deferred_published)
     {
@@ -3613,16 +4172,18 @@ fn validate_manifest(
             "Verified macOS journal did not durably publish its deferred marker.".to_string(),
         );
     }
-    let expected_state_temporaries =
-        state::state_transaction_temporary_paths(state_dir, &manifest.operation_id);
-    if manifest.state_temporary_paths.len() != expected_state_temporaries.len()
-        || manifest
-            .state_temporary_paths
-            .iter()
-            .zip(expected_state_temporaries.iter())
-            .any(|(actual, expected)| Path::new(actual) != expected)
-    {
-        return Err("Pending macOS journal has invalid state temporary paths.".to_string());
+    if manifest.kind == JournalKind::StateBound {
+        let expected_state_temporaries =
+            state::state_transaction_temporary_paths(state_dir, &manifest.operation_id);
+        if manifest.state_temporary_paths.len() != expected_state_temporaries.len()
+            || manifest
+                .state_temporary_paths
+                .iter()
+                .zip(expected_state_temporaries.iter())
+                .any(|(actual, expected)| Path::new(actual) != expected)
+        {
+            return Err("Pending macOS journal has invalid state temporary paths.".to_string());
+        }
     }
     for directory in &manifest.created_parent_directories {
         let directory = Path::new(directory);
@@ -4337,16 +4898,24 @@ fn write_manifest(root: &SecureDirectory, manifest: &JournalManifest) -> Result<
     if take_test_failpoint(&FAIL_NEXT_MANIFEST_WRITE) {
         return Err("simulated durable manifest write failure".to_string());
     }
-    let payload = serde_json::to_vec_pretty(manifest).map_err(|error| error.to_string())?;
-    let path = root.path.join(MANIFEST_NAME);
+    write_durable_json(root, MANIFEST_NAME, manifest)
+}
+
+fn write_durable_json<T: Serialize>(
+    root: &SecureDirectory,
+    name: &str,
+    value: &T,
+) -> Result<(), String> {
+    let payload = serde_json::to_vec_pretty(value).map_err(|error| error.to_string())?;
+    let path = root.path.join(name);
     let temporary_name = format!(
-        ".{MANIFEST_NAME}.{}-{}",
+        ".{name}.{}-{}",
         std::process::id(),
         TEMP_SEQUENCE.fetch_add(1, Ordering::Relaxed)
     );
     let temporary = root.path.join(&temporary_name);
     let temporary_leaf = c_component(std::ffi::OsStr::new(&temporary_name))?;
-    let manifest_leaf = CString::new(MANIFEST_NAME).expect("static manifest name");
+    let manifest_leaf = c_component(std::ffi::OsStr::new(name))?;
     let result = (|| {
         let existing = root.inspect_regular_or_absent(&manifest_leaf, &path)?;
         let mut file = root
@@ -4384,6 +4953,12 @@ fn write_manifest(root: &SecureDirectory, manifest: &JournalManifest) -> Result<
                 std::io::Error::last_os_error()
             ));
         }
+        #[cfg(test)]
+        if name == "native-runtime-owner.json"
+            && take_test_failpoint(&FAIL_NEXT_OWNER_DIRECTORY_SYNC)
+        {
+            return Err("simulated native owner directory sync failure".into());
+        }
         root.sync()
     })();
     if result.is_err() {
@@ -4397,7 +4972,16 @@ fn take_test_failpoint(key: &'static std::thread::LocalKey<Cell<bool>>) -> bool 
     key.with(|flag| flag.replace(false))
 }
 
+#[cfg(test)]
+pub(crate) fn fail_next_native_runtime_owner_directory_sync_for_test() {
+    FAIL_NEXT_OWNER_DIRECTORY_SYNC.with(|flag| flag.set(true));
+}
+
 fn read_manifest(root: &SecureDirectory) -> Result<JournalManifest, String> {
+    read_manifest_snapshot(root).map(|(_, manifest)| manifest)
+}
+
+fn read_manifest_snapshot(root: &SecureDirectory) -> Result<(Vec<u8>, JournalManifest), String> {
     root.open_dir_relative(Path::new("backups"), false)
         .map_err(|error| {
             format!(
@@ -4417,12 +5001,13 @@ fn read_manifest(root: &SecureDirectory) -> Result<JournalManifest, String> {
             path.display()
         )
     })?;
-    serde_json::from_slice(&bytes).map_err(|error| {
+    let manifest = serde_json::from_slice(&bytes).map_err(|error| {
         format!(
             "Pending macOS journal is invalid at {}: {error}",
             path.display()
         )
-    })
+    })?;
+    Ok((bytes, manifest))
 }
 
 fn fingerprint_open_file(file: &mut File, mode: u32) -> Result<FileFingerprint, String> {
@@ -4536,11 +5121,28 @@ fn run_after_retired_cleanup_entry_hook() {
     });
 }
 
+#[cfg(test)]
+fn run_before_native_runtime_retire_hook() {
+    BEFORE_NATIVE_RUNTIME_RETIRE.with(|slot| {
+        if let Some(hook) = slot.borrow_mut().take() {
+            hook();
+        }
+    });
+}
+
 fn path_string(path: &Path) -> Result<String, String> {
     path.to_str()
         .map(str::to_string)
         .ok_or_else(|| format!("Transaction path is not valid UTF-8: {}", path.display()))
 }
+
+#[cfg(test)]
+#[path = "native_runtime_transaction_tests.rs"]
+mod native_runtime_transaction_tests;
+
+#[cfg(test)]
+#[path = "native_runtime_finalizer_sentinel_tests.rs"]
+mod native_runtime_finalizer_sentinel_tests;
 
 #[cfg(test)]
 mod tests {
@@ -4839,7 +5441,7 @@ mod tests {
             Err("selected Cavalry relaunched before recovery".to_string())
         };
 
-        let error = recover_pending_internal(&state, &app, Some(&mut guard)).unwrap_err();
+        let error = recover_pending_internal(&state, &app, Some(&mut guard), None).unwrap_err();
         assert!(error.contains("relaunched before recovery"), "{error}");
         assert_eq!(guard_calls, 1);
         assert_eq!(fs::read(&destination).unwrap(), b"translated");
@@ -5224,6 +5826,10 @@ mod tests {
         let root = fs::canonicalize(temp.path()).unwrap();
         let app = root.join("Cavalry.app");
         let state = root.join("state");
+        write(
+            &state.join("native-runtime-owner.json"),
+            b"unrelated invalid owner",
+        );
         let source = root.join("translated.json");
         let destination = app.join("Contents/assets/appStrings.json");
         write(&destination, b"official");
@@ -5238,18 +5844,46 @@ mod tests {
         )
         .unwrap();
         let manifest_path = transaction.journal_root.join(MANIFEST_NAME);
-        let mut value: serde_json::Value =
+        let value: serde_json::Value =
             serde_json::from_slice(&fs::read(&manifest_path).unwrap()).unwrap();
-        assert!(
-            value.get("authenticationTag").is_none(),
-            "new journals must not depend on Keychain authentication"
-        );
-        value["authenticationTag"] = serde_json::Value::String("legacy-tag".to_string());
-        fs::write(&manifest_path, serde_json::to_vec_pretty(&value).unwrap()).unwrap();
+        let legacy_fixture = serde_json::json!({
+            "schemaVersion": 6,
+            "operationId": value["operationId"].clone(),
+            "phase": value["phase"].clone(),
+            "installRoot": value["installRoot"].clone(),
+            "statePath": value["statePath"].clone(),
+            "entries": value["entries"].clone(),
+            "observedBundlePreimages": value["observedBundlePreimages"].clone(),
+            "createdParentDirectories": value["createdParentDirectories"].clone(),
+            "pairDestinations": value["pairDestinations"].clone(),
+            "deferredDestinations": value["deferredDestinations"].clone(),
+            "deferredRemovals": value["deferredRemovals"].clone(),
+            "deferredPublishAuthorized": value["deferredPublishAuthorized"].clone(),
+            "deferredPublished": value["deferredPublished"].clone(),
+            "temporaryPaths": value["temporaryPaths"].clone(),
+            "stateTemporaryPaths": value["stateTemporaryPaths"].clone(),
+            "quarantinePreimages": value["quarantinePreimages"].clone(),
+            "authenticationTag": "legacy-tag"
+        });
+        assert_eq!(legacy_fixture["schemaVersion"], serde_json::json!(6));
+        assert!(legacy_fixture.get("kind").is_none());
+        assert_eq!(legacy_fixture["authenticationTag"], "legacy-tag");
+        fs::write(
+            &manifest_path,
+            serde_json::to_vec_pretty(&legacy_fixture).unwrap(),
+        )
+        .unwrap();
+        let parsed = read_manifest(&transaction.journal_dir).unwrap();
+        assert_eq!(parsed.kind, JournalKind::StateBound);
+        assert_eq!(parsed._legacy_authentication_tag, "legacy-tag");
         std::mem::forget(transaction);
 
         assert!(recover_pending(&state, &app).unwrap());
         assert_eq!(fs::read(destination).unwrap(), b"official");
+        assert_eq!(
+            fs::read(state.join("native-runtime-owner.json")).unwrap(),
+            b"unrelated invalid owner"
+        );
     }
 
     #[test]

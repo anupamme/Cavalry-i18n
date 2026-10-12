@@ -1,3 +1,8 @@
+# [INPUT]: 依赖 Cargo.lock 的依赖版本与 build.rs 的平台资源入口。
+# [OUTPUT]: 定义后端 crate；dev/test 只保留调试行表。
+# [POS]: Tauri 后端唯一 Cargo manifest；release profile 保持默认。
+# [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+
 [package]
 name = "cavalry-i18n-tauri"
 version = "1.0.6"
@@ -40,3 +45,6 @@ windows = { version = "=0.61.3", features = [
 base64 = "=0.22.1"
 minisign-verify = "=0.2.5"
 tempfile = "3"
+
+[profile.dev]
+debug = "line-tables-only"

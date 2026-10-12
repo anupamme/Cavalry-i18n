@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 commands/contract/update、macos_permission_handoff Rust owner 与 native AppKit owner 的生产源码。
- * [OUTPUT]: 验证 App Management handoff 保持九命令内固定权限边界、CSS viewport 的 forward/return 坐标合同、per-session Channel、drop 后同进程 oracle、业务成功/错误 cleanup、native预览耐久未证及nativeRestoreOnly时不进入restart、仅显式 Back 重新捕获持久 Activity 动作并 reverse、透明底整条实时 App row 快照且只在 System Settings 整窗内接受的 file-URL Copy drag、参考同形 532×112 helper 的单行指令 / Back + App row 几何、single motion surface 的内容与 shadow/stroke 共用边界、底部锚定且带 overscan 的箭头 spring、Reduce Motion 与无 TCC/AX 自动化副作用；权限链不主动重启 Switcher，系统“退出并重新打开”只产生待实机确认的新会话语义，程序 self-restart 只允许 updater 安装完成后持有。
+ * [INPUT]: 依赖 commands/contract/update、native_runtime协调器与AppKit handoff生产源码。
+ * [OUTPUT]: 验证 App Management handoff 保持九命令内固定权限边界、CSS viewport 的 forward/return 坐标合同、per-session Channel、drop 后同进程 oracle、业务成功/错误 cleanup、native协调器映射、待协调或nativeRestoreOnly时不进入restart、仅显式 Back 重新捕获持久 Activity 动作并 reverse、透明底整条实时 App row 快照且只在 System Settings 整窗内接受的 file-URL Copy drag、参考同形 532×112 helper 的单行指令 / Back + App row 几何、single motion surface 的内容与 shadow/stroke 共用边界、底部锚定且带 overscan 的箭头 spring、Reduce Motion 与无 TCC/AX 自动化副作用；权限链不主动重启 Switcher，系统“退出并重新打开”只产生待实机确认的新会话语义，程序 self-restart 只允许 updater 安装完成后持有。
  * [POS]: src-tauri/tests 的只读 macOS 权限交接守门；证明源码边界与可编译合同，不冒充首次授权、多屏或真实 System Settings drop 证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -85,7 +85,11 @@ fn protected_commit_cleans_handoff_before_restart_and_finalizer_cleans_every_fai
         .expect("restart phase missing");
 
     assert!(commands.contains("apply::apply_language_inner_with_reporter("));
-    assert!(commands.contains("native_user::apply_inner("));
+    assert!(commands.contains("native_runtime::apply("));
+    assert!(commands.contains("&_guard,"));
+    let native_runtime = read("src/commands/native_runtime.rs");
+    assert!(native_runtime.contains("let language = native_action_language(language);"));
+    assert!(native_runtime.contains("super::context::RESTORE_OFFICIAL_ACTION"));
     let restart_policy_start = commands
         .find("fn should_restart_after_apply(")
         .expect("restart policy missing");

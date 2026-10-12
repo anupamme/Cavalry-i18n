@@ -1,8 +1,14 @@
 /**
- * [INPUT]: 依赖native_resources的编译审批/宿主证明、fixed user paths的耐久事务与privilege的同用户路径/all-Cavalry准入；用户写入序列化由command facade持共享operation lock，manual smoke调用方显式复用该锁。
- * [OUTPUT]: 提供2.8开发预览的typed用户语言状态、强Current-owned English恢复能力及四阶段事务；Official显示还须内置English/日语且无Switcher receipt/专属strings覆盖，不把原厂App来源冒作当前翻译官方；异常仍Unknown，hostless仅自有Current restore-only。
- * [POS]: commands的native-first编排owner；厂商来源与profile语言分别取证后合成Official显示门，资源新旧/可用性与恢复许可不随徽章变化；manual ignored smoke直调apply_inner而非公开命令自动重启，进程guard仅快照，不承诺OS启动锁或任意外部writer隔离。
- * apply_profile仅向commands父域暴露，复用本模块的profile事务；它不进入renderer IPC。
+ * [INPUT]: 依赖native编译manifest/digest、fixed profile事务和privilege准入。
+ * [OUTPUT]: 提供typed用户语言状态、English恢复、stock/managed启动与apply提交后的直接launch。
+ * [POS]: status用编译digest比对receipt，不读payload，也不授权apply。
+ * apply只读目标pack。file transaction负责pending恢复与写前像比较。
+ * leaf不发布空恢复阶段；caller只报告自身实际准入。
+ * hostless English继续要求Current-owned证明；独立Restart保留profile/NRT/owner准入。
+ * apply提交后只复核原guard归属与writer guard，再复用不终止进程的启动器。
+ * Official由原厂来源与profile语言共同投影。
+ * apply_profile只向commands父域暴露，不进入renderer IPC。
+ * manual ignored smoke只调内部profile入口，不调用自动restart。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::{
@@ -10,13 +16,12 @@ use super::{
         ActionPayload, NativeLocaleState, OperationPhase, OperationPhaseGuard, OperationReporter,
         StatusPayload, STATE_DURABILITY_PENDING_WARNING_CODE,
     },
-    native_resources::{self, NativeResources},
+    native_resources::{self, NativeResourceDigests},
     user_language_files::{
         self, CommitOutcome, LocaleObservation, ReceiptObservation, RestoreOutcome,
         UserLanguagePaths,
     },
 };
-use sha2::{Digest, Sha256};
 use std::{fs, path::Path};
 const WRITER_REFUSAL: &str = "nativeWriterStillRunning";
 const WRITER_INSPECTION: &str = "nativeWriterInspectionFailed";
@@ -41,7 +46,7 @@ fn unknown_profile() -> ProfileStatus {
 }
 fn profile_projection(
     paths: &UserLanguagePaths,
-    resources: Option<&NativeResources>,
+    resources: Option<&NativeResourceDigests>,
 ) -> ProfileStatus {
     let Ok(observed) = user_language_files::read_profile_projection(paths) else {
         return unknown_profile();
@@ -76,12 +81,10 @@ fn profile_projection(
             language,
             active_strings_sha256,
         } => {
-            let digest = resources
-                .and_then(|r| r.packs.get(&language))
-                .map(|bytes| format!("{:x}", Sha256::digest(bytes)));
+            let digest = resources.and_then(|r| r.packs.get(&language));
             (
                 match digest {
-                    Some(digest) if digest == active_strings_sha256 => "current",
+                    Some(digest) if digest == &active_strings_sha256 => "current",
                     Some(_) => "updateAvailable",
                     None => "unknown",
                 },
@@ -109,12 +112,25 @@ pub(crate) fn project_status(
     repo: &Path,
     resources_dir: &Path,
 ) -> StatusPayload {
-    let resources = native_resources::load_resources(repo, resources_dir).ok();
+    let resources = native_resources::load_status_resources(repo, resources_dir).ok();
     let profile = crate::privilege::current_user_home()
         .and_then(|home| UserLanguagePaths::for_user_dirs_read_only(&home, state_dir))
         .map(|paths| profile_projection(&paths, resources.as_ref()))
         .unwrap_or_else(|_| unknown_profile());
-    project_profile_status(status, &profile, resources.is_some())
+    let projected = project_profile_status(status, &profile, resources.is_some());
+    let runtime_owned = crate::privilege::has_native_runtime_owner_for_selection(
+        state_dir,
+        Path::new(&projected.app_path),
+    );
+    project_runtime_recovery_hint(projected, runtime_owned)
+}
+
+fn project_runtime_recovery_hint(mut status: StatusPayload, runtime_owned: bool) -> StatusPayload {
+    // profile先恢复而bundle未完成时保留Restore重试，不授予hostless写App许可。
+    if status.current_lang == "en" && runtime_owned {
+        status.reconciliation_required = true;
+    }
+    status
 }
 
 fn project_profile_status(
@@ -139,7 +155,7 @@ fn project_profile_status(
             .into();
     status
 }
-fn transaction_error(error: &str) -> ActionPayload {
+pub(super) fn transaction_error(error: &str) -> ActionPayload {
     let code = if error == WRITER_REFUSAL {
         "cavalryStillRunning"
     } else if error == WRITER_INSPECTION {
@@ -198,12 +214,7 @@ fn apply_profile_with_restore_policy<R: OperationReporter>(
     if let Err(error) = writer_guard() {
         return transaction_error(&error);
     }
-    let mut recovery_phase = OperationPhaseGuard::start(reporter, OperationPhase::EnsureBaseline);
-    // 只检查有效回执/typed当前值；首次前像由实际文件事务在首个profile写入前耐久记录。
-    if let Err(error) = user_language_files::read_profile_projection(paths) {
-        return transaction_error(&error);
-    }
-    recovery_phase.completed();
+    // canonical文件事务负责回执验证、pending恢复与写前像比较。
     let mut apply_phase = OperationPhaseGuard::start(reporter, OperationPhase::ApplyTransaction);
     let outcome = if language == "en" {
         let restore = if require_current_owned {
@@ -249,7 +260,7 @@ fn apply_profile_with_restore_policy<R: OperationReporter>(
     }
 }
 
-fn apply_english_with_host_probe<R: OperationReporter>(
+pub(super) fn apply_english_with_host_probe<R: OperationReporter>(
     paths: &UserLanguagePaths,
     host_probe: impl FnOnce() -> Result<(), String>,
     writer_guard: &mut dyn FnMut() -> Result<(), String>,
@@ -286,14 +297,43 @@ fn apply_english_with_host_probe<R: OperationReporter>(
 }
 
 #[cfg(target_os = "macos")]
-fn writer_guard() -> Result<(), String> {
+pub(super) fn writer_guard() -> Result<(), String> {
     crate::privilege::guard_all_cavalry_not_running().map_err(|error| match error {
         crate::privilege::CavalryProcessGuardError::StillRunning { .. } => WRITER_REFUSAL.into(),
         crate::privilege::CavalryProcessGuardError::Inspection(_) => WRITER_INSPECTION.into(),
     })
 }
 #[cfg(target_os = "macos")]
-fn restart_profile_admission(paths: &UserLanguagePaths) -> Result<(), String> {
+pub(super) fn launch_after_committed_apply<R: crate::privilege::CommandRunner>(
+    operation: &crate::operation_lock::BundleOperationGuard,
+    state_dir: &Path,
+    app: &Path,
+    runner: &mut R,
+) -> Result<(), String> {
+    launch_after_committed_apply_with_guards(
+        state_dir,
+        app,
+        runner,
+        |selected_state_dir| operation.require_state_dir(selected_state_dir),
+        writer_guard,
+    )
+}
+
+#[cfg(target_os = "macos")]
+fn launch_after_committed_apply_with_guards<R: crate::privilege::CommandRunner>(
+    state_dir: &Path,
+    app: &Path,
+    runner: &mut R,
+    require_guard: impl FnOnce(&Path) -> Result<(), String>,
+    writer_guard: impl FnOnce() -> Result<(), String>,
+) -> Result<(), String> {
+    require_guard(state_dir)?;
+    writer_guard()?;
+    crate::privilege::launch_cavalry_without_termination(app, runner)
+}
+
+#[cfg(target_os = "macos")]
+pub(super) fn restart_profile_admission(paths: &UserLanguagePaths) -> Result<(), String> {
     let projection = user_language_files::read_profile_projection(paths).map_err(|error| {
         format!("native user-language profile needs reconciliation before restart: {error}")
     })?;
@@ -322,8 +362,8 @@ fn with_restart_profile_admission(
     restart_profile_admission(paths)?;
     after_admission()
 }
-#[cfg(target_os = "macos")]
-pub(crate) fn apply_inner<R: OperationReporter>(
+#[cfg(test)]
+fn apply_profile_only_inner<R: OperationReporter>(
     repo: &Path,
     state_dir: &Path,
     resources_dir: &Path,
@@ -366,8 +406,8 @@ pub(crate) fn apply_inner<R: OperationReporter>(
         Ok(paths) => paths,
         Err(error) => return transaction_error(&error),
     };
-    let resources = match native_resources::load_resources(repo, resources_dir) {
-        Ok(resources) => Some(resources),
+    let pack = match native_resources::load_language_resource(repo, resources_dir, language) {
+        Ok(pack) => pack,
         Err(_) => {
             return ActionPayload::error_with_code(
                 "Native resource bundle is unavailable.",
@@ -376,16 +416,7 @@ pub(crate) fn apply_inner<R: OperationReporter>(
         }
     };
     verify_phase.completed();
-    apply_profile(
-        &paths,
-        language,
-        resources
-            .as_ref()
-            .and_then(|r| r.packs.get(language))
-            .map(Vec::as_slice),
-        &mut writer_guard,
-        &reporter,
-    )
+    apply_profile(&paths, language, Some(&pack), &mut writer_guard, &reporter)
 }
 #[cfg(target_os = "macos")]
 pub(crate) fn restart<R: crate::privilege::CommandRunner>(
@@ -396,9 +427,12 @@ pub(crate) fn restart<R: crate::privilege::CommandRunner>(
     let paths = crate::privilege::current_user_home()
         .and_then(|home| UserLanguagePaths::for_user_dirs_read_only(&home, state_dir))?;
     with_restart_profile_admission(&paths, || {
-        native_resources::verify_host(app)?;
         writer_guard()?;
-        // 原厂正常启动，无--test/自定义locale/environment；不经过2.7 wrapper/DYLD/state同步。
+        crate::privilege::recover_native_runtime_transaction(state_dir, app, runner)?;
+        if crate::privilege::load_owned_native_runtime(state_dir, app, runner)?.is_none() {
+            native_resources::verify_host(app)?;
+        }
+        // 正常bundle入口；managed由中性wrapper加载字体。无test/locale覆盖或2.7状态同步。
         crate::privilege::launch_cavalry_without_termination(app, runner)
     })
 }
@@ -416,354 +450,5 @@ mod official_independence_tests;
 mod manual_profile_apply_smoke;
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use serde_json::json;
-    use std::fs;
-    fn profile(locale: Option<&str>) -> (tempfile::TempDir, UserLanguagePaths) {
-        let mut preferences = json!({"unrelated":{"varType":"int","value":37}});
-        if let Some(locale) = locale {
-            preferences["locale"] = json!({"varType":"string","value":locale});
-        }
-        profile_with_preferences(preferences)
-    }
-    fn profile_with_preferences(
-        preferences: serde_json::Value,
-    ) -> (tempfile::TempDir, UserLanguagePaths) {
-        let temp = tempfile::tempdir().unwrap();
-        let root = temp.path().canonicalize().unwrap();
-        let home = root.join("home");
-        let state = root.join("state");
-        fs::create_dir_all(home.join("Library/Preferences/Cavalry")).unwrap();
-        fs::create_dir(&state).unwrap();
-        fs::write(
-            home.join("Library/Preferences/Cavalry/preferences.json"),
-            serde_json::to_vec(&preferences).unwrap(),
-        )
-        .unwrap();
-        (
-            temp,
-            UserLanguagePaths::for_user_dirs(&home, &state).unwrap(),
-        )
-    }
-    fn pack() -> Vec<u8> {
-        serde_json::to_vec(&json!([{"type":"strings","language":"zh-Hans","value":{"fixture":{"UI-text":"中文"}}}])).unwrap()
-    }
-    #[test]
-    fn native_status_uses_vendor_default_only_for_absent_locale() {
-        let (_temp, paths) = profile(Some("private-unknown-locale"));
-        let status = profile_projection(&paths, None);
-        assert_eq!(status.current_lang, "unknown");
-        assert_eq!(status.native_locale_state, NativeLocaleState::Unrecognized);
-        assert!(!status.native_english_restore_available);
-
-        let (_temp, paths) = profile(None);
-        let status = profile_projection(&paths, None);
-        assert_eq!(status.current_lang, "en");
-        assert_eq!(status.native_locale_state, NativeLocaleState::Unset);
-        assert_eq!(status.patch_status, "notApplicable");
-        assert!(!status.reconciliation_required);
-        assert!(!status.native_english_restore_available);
-        assert!(!paths.receipt().exists());
-
-        for preferences in [
-            json!({"locale": null}),
-            json!({"locale": {"varType": "int", "value": 7}}),
-            json!({"locale": {"varType": "string", "value": "fr-FR"}}),
-        ] {
-            let (_temp, paths) = profile_with_preferences(preferences);
-            let status = profile_projection(&paths, None);
-            assert_eq!(status.current_lang, "unknown");
-            assert_eq!(status.native_locale_state, NativeLocaleState::Unrecognized);
-            assert!(!status.native_english_restore_available);
-        }
-
-        let (_temp, paths) = profile(Some("en-GB"));
-        let status = profile_projection(&paths, None);
-        assert_eq!(status.current_lang, "en");
-        assert_eq!(status.native_locale_state, NativeLocaleState::Explicit);
-        assert!(
-            !status.native_english_restore_available,
-            "an explicit original locale is not a Switcher-owned restore receipt"
-        );
-
-        let (_temp, paths) = profile(None);
-        fs::write(paths.preferences(), b"{invalid-json").unwrap();
-        let status = profile_projection(&paths, None);
-        assert_eq!(status.current_lang, "unknown");
-        assert_eq!(status.native_locale_state, NativeLocaleState::Unrecognized);
-        assert_eq!(status.patch_status, "unknown");
-        assert!(status.reconciliation_required);
-        assert!(!status.native_english_restore_available);
-
-        let (_temp, paths) = profile(None);
-        fs::remove_file(paths.preferences()).unwrap();
-        let status = profile_projection(&paths, None);
-        assert_eq!(status.current_lang, "unknown");
-        assert_eq!(status.native_locale_state, NativeLocaleState::Unrecognized);
-        assert_eq!(status.patch_status, "unknown");
-        assert!(status.reconciliation_required);
-        assert!(!status.native_english_restore_available);
-    }
-
-    #[test]
-    fn native_apply_publishes_resource_and_typed_locale_without_bundle_state() {
-        let (_temp, paths) = profile(Some("en-GB"));
-        let payload = apply_profile(
-            &paths,
-            "zh-Hans",
-            Some(&pack()),
-            &mut || Ok(()),
-            &super::super::contract::NoopReporter,
-        );
-        assert!(payload.ok);
-        assert_eq!(payload.current_lang.as_deref(), Some("zh-Hans"));
-        let preferences: serde_json::Value =
-            serde_json::from_slice(&fs::read(paths.preferences()).unwrap()).unwrap();
-        assert_eq!(preferences["locale"]["value"], "zh-Hans");
-        assert_eq!(preferences["unrelated"]["value"], 37);
-        assert!(paths.receipt().exists());
-    }
-    #[test]
-    fn english_restore_does_not_require_native_payload() {
-        let (_temp, paths) = profile(Some("ja"));
-        let payload = apply_profile(
-            &paths,
-            "en",
-            None,
-            &mut || Ok(()),
-            &super::super::contract::NoopReporter,
-        );
-        assert!(payload.ok);
-        assert_eq!(profile_projection(&paths, None).current_lang, "en");
-        assert!(!paths.strings().exists());
-    }
-    #[test]
-    fn running_writer_and_missing_pack_are_distinct_admission_failures() {
-        let (_temp, paths) = profile(Some("en-GB"));
-        let payload = apply_profile(
-            &paths,
-            "zh-Hans",
-            None,
-            &mut || Ok(()),
-            &super::super::contract::NoopReporter,
-        );
-        assert_eq!(
-            payload.error_code.as_deref(),
-            Some("nativeResourceUnavailable")
-        );
-        let payload = apply_profile(
-            &paths,
-            "zh-Hans",
-            Some(&pack()),
-            &mut || Err(WRITER_REFUSAL.into()),
-            &super::super::contract::NoopReporter,
-        );
-        assert_eq!(payload.error_code.as_deref(), Some("cavalryStillRunning"));
-        assert!(!paths.receipt().exists());
-        assert!(!paths.strings().exists());
-    }
-    #[test]
-    fn active_pack_version_and_drift_are_separate_status_facts() {
-        let (_temp, paths) = profile(Some("en-GB"));
-        assert!(
-            apply_profile(
-                &paths,
-                "zh-Hans",
-                Some(&pack()),
-                &mut || Ok(()),
-                &super::super::contract::NoopReporter
-            )
-            .ok
-        );
-        let resources = NativeResources {
-            packs: [("zh-Hans".into(), pack())].into_iter().collect(),
-        };
-        assert_eq!(
-            profile_projection(&paths, Some(&resources)).patch_status,
-            "current"
-        );
-        let changed = NativeResources {
-            packs: [("zh-Hans".into(), b"changed".to_vec())]
-                .into_iter()
-                .collect(),
-        };
-        assert_eq!(
-            profile_projection(&paths, Some(&changed)).patch_status,
-            "updateAvailable"
-        );
-        fs::write(paths.strings(), b"user modified").unwrap();
-        let status = profile_projection(&paths, Some(&resources));
-        assert_eq!(status.patch_status, "unknown");
-        assert!(status.reconciliation_required);
-        let result = apply_profile(
-            &paths,
-            "en",
-            None,
-            &mut || Ok(()),
-            &super::super::contract::NoopReporter,
-        );
-        assert_eq!(
-            result.error_code.as_deref(),
-            Some("nativeUserLanguageConflict")
-        );
-        assert_eq!(fs::read(paths.strings()).unwrap(), b"user modified");
-    }
-
-    #[test]
-    fn empty_receipt_cannot_report_restore_english_success() {
-        let (_temp, paths) = profile(Some("en-GB"));
-        assert!(
-            apply_profile(
-                &paths,
-                "zh-Hans",
-                Some(&pack()),
-                &mut || Ok(()),
-                &super::super::contract::NoopReporter,
-            )
-            .ok
-        );
-
-        let mut receipt: serde_json::Value =
-            serde_json::from_slice(&fs::read(paths.receipt()).unwrap()).unwrap();
-        receipt["active"] = serde_json::Value::Null;
-        receipt["pending"] = serde_json::Value::Null;
-        fs::write(paths.receipt(), serde_json::to_vec(&receipt).unwrap()).unwrap();
-        let before_preferences = fs::read(paths.preferences()).unwrap();
-        let before_strings = fs::read(paths.strings()).unwrap();
-        let status = profile_projection(&paths, None);
-        let payload = apply_profile(
-            &paths,
-            "en",
-            None,
-            &mut || Ok(()),
-            &super::super::contract::NoopReporter,
-        );
-
-        assert_eq!(status.current_lang, "unknown");
-        assert!(status.reconciliation_required);
-        assert!(
-            !payload.ok,
-            "invalid empty ownership receipt is not English success"
-        );
-        assert_eq!(
-            payload.error_code.as_deref(),
-            Some("nativeUserLanguageConflict")
-        );
-        assert_eq!(fs::read(paths.preferences()).unwrap(), before_preferences);
-        assert_eq!(fs::read(paths.strings()).unwrap(), before_strings);
-    }
-
-    #[test]
-    fn restart_does_not_launch_while_profile_receipt_is_pending() {
-        use crate::privilege::{CommandRunner, RecordingRunner};
-
-        let (_temp, paths) = profile(Some("en-GB"));
-        let pending = user_language_files::apply_with_interrupt(
-            &paths,
-            "zh-Hans",
-            &pack(),
-            Some(user_language_files::InterruptAfter::DirectoryIntent),
-        );
-        assert!(pending.is_err());
-
-        let mut runner = RecordingRunner::default();
-        let result = with_restart_profile_admission(&paths, || {
-            runner.spawn_detached("open", &["-n".into(), "/Applications/Cavalry.app".into()])
-        });
-
-        assert!(
-            result.is_err(),
-            "pending receipt must block standalone restart"
-        );
-        assert!(
-            runner.commands.is_empty(),
-            "refusal must happen before launch"
-        );
-        assert!(
-            paths.receipt().exists(),
-            "restart must preserve pending evidence"
-        );
-        assert!(!paths.strings().exists(), "restart admission is read-only");
-    }
-
-    #[test]
-    fn restart_refuses_drift_corruption_and_unowned_strings_residue() {
-        use crate::privilege::{CommandRunner, RecordingRunner};
-
-        let (_temp, paths) = profile(Some("en-GB"));
-        assert!(
-            apply_profile(
-                &paths,
-                "zh-Hans",
-                Some(&pack()),
-                &mut || Ok(()),
-                &super::super::contract::NoopReporter,
-            )
-            .ok
-        );
-        let mut preferences: serde_json::Value =
-            serde_json::from_slice(&fs::read(paths.preferences()).unwrap()).unwrap();
-        preferences["locale"]["value"] = serde_json::Value::String("ja".into());
-        fs::write(
-            paths.preferences(),
-            serde_json::to_vec(&preferences).unwrap(),
-        )
-        .unwrap();
-        let mut runner = RecordingRunner::default();
-        let result = with_restart_profile_admission(&paths, || {
-            runner.spawn_detached("open", &["-n".into()])
-        });
-        assert!(result.is_err());
-        assert!(runner.commands.is_empty());
-
-        let (_temp, paths) = profile(Some("en-GB"));
-        fs::create_dir_all(paths.receipt().parent().unwrap()).unwrap();
-        fs::write(paths.receipt(), b"{").unwrap();
-        let mut runner = RecordingRunner::default();
-        let result = with_restart_profile_admission(&paths, || {
-            runner.spawn_detached("open", &["-n".into()])
-        });
-        assert!(result.is_err());
-        assert!(runner.commands.is_empty());
-
-        let (_temp, paths) = profile(Some("en-GB"));
-        fs::create_dir_all(paths.strings().parent().unwrap()).unwrap();
-        fs::write(paths.strings(), b"unowned namespace residue").unwrap();
-        let mut runner = RecordingRunner::default();
-        let result = with_restart_profile_admission(&paths, || {
-            runner.spawn_detached("open", &["-n".into()])
-        });
-        assert!(result.is_err());
-        assert!(runner.commands.is_empty());
-    }
-
-    #[test]
-    fn restart_allows_current_receipt_or_clean_unowned_profile() {
-        use crate::privilege::{CommandRunner, RecordingRunner};
-
-        let (_temp, paths) = profile(Some("en-GB"));
-        assert!(
-            apply_profile(
-                &paths,
-                "zh-Hans",
-                Some(&pack()),
-                &mut || Ok(()),
-                &super::super::contract::NoopReporter,
-            )
-            .ok
-        );
-        let mut runner = RecordingRunner::default();
-        with_restart_profile_admission(&paths, || runner.spawn_detached("open", &["-n".into()]))
-            .unwrap();
-        assert_eq!(runner.commands.len(), 1);
-
-        let (_temp, paths) = profile(Some("en-GB"));
-        let mut runner = RecordingRunner::default();
-        with_restart_profile_admission(&paths, || runner.spawn_detached("open", &["-n".into()]))
-            .unwrap();
-        assert_eq!(runner.commands.len(), 1);
-        assert!(!paths.receipt().exists());
-        assert!(!paths.strings().exists());
-    }
-}
+#[path = "tests/native_user_contracts.rs"]
+mod tests;

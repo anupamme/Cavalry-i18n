@@ -1,11 +1,12 @@
 /**
- * [INPUT]: 依赖 native_user 的私有 profile/status纯投影、status shell、临时用户路径与隔离测试资源。
- * [OUTPUT]: 验证Official须同时有厂商来源与无自有覆盖的内置语言；自有三语/未决profile不宣称Official，语言、资源与恢复能力仍独立投影。
+ * [INPUT]: 依赖 native_user 的profile投影、approved digest map、status shell与临时用户路径。
+ * [OUTPUT]: 验证Official来源与profile分离；digest新旧不改变恢复许可。
  * [POS]: commands/tests 的临时profile语义合同；签名由native_official独立测试，本文件不运行codesign、不读真实home，也不从徽章授予事务权限。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::*;
 use serde_json::json;
+use sha2::{Digest, Sha256};
 use std::fs;
 
 fn profile(locale: Option<&str>) -> (tempfile::TempDir, UserLanguagePaths) {
@@ -54,8 +55,13 @@ fn installation_source_does_not_overwrite_profile_locale_or_resource_projection(
         )
         .ok
     );
-    let resources = NativeResources {
-        packs: [("zh-Hans".into(), resource_bytes)].into_iter().collect(),
+    let resources = NativeResourceDigests {
+        packs: [(
+            "zh-Hans".into(),
+            format!("{:x}", Sha256::digest(resource_bytes)),
+        )]
+        .into_iter()
+        .collect(),
     };
     let explicit = profile_projection(&explicit_paths, Some(&resources));
 
@@ -180,10 +186,11 @@ fn all_owned_languages_remain_nonofficial_when_resources_are_missing_or_updated(
         assert_eq!(missing.current_lang, language);
         assert!(missing.native_english_restore_available);
         assert!(!missing.reconciliation_required);
-        let updated = NativeResources {
+        let updated_bytes = bytes.iter().copied().chain([b' ']).collect::<Vec<_>>();
+        let updated = NativeResourceDigests {
             packs: [(
                 language.into(),
-                bytes.iter().copied().chain([b' ']).collect(),
+                format!("{:x}", Sha256::digest(updated_bytes)),
             )]
             .into_iter()
             .collect(),
@@ -251,4 +258,20 @@ fn pending_and_corrupt_receipts_never_claim_official_even_with_default_english()
     assert!(!pending.native_english_restore_available);
     fs::write(paths.receipt(), b"invalid-receipt").unwrap();
     assert_eq!(projected(&paths, "official").installation_mode, "unknown");
+}
+
+#[test]
+fn english_with_retained_runtime_owner_keeps_retry_without_hostless_authority() {
+    let (_temp, paths) = profile(Some("en-GB"));
+    let ordinary = project_runtime_recovery_hint(projected(&paths, "unknown"), false);
+    assert!(!ordinary.reconciliation_required);
+    let partial = project_runtime_recovery_hint(projected(&paths, "unknown"), true);
+    assert!(partial.reconciliation_required);
+    assert_eq!(partial.current_lang, "en");
+    assert_eq!(partial.installation_mode, "unknown");
+    assert!(!partial.native_english_restore_available);
+    let (_temp, paths) = profile(Some("ja"));
+    let japanese = project_runtime_recovery_hint(projected(&paths, "unknown"), true);
+    assert_eq!(japanese.current_lang, "ja_JP");
+    assert!(!japanese.reconciliation_required);
 }

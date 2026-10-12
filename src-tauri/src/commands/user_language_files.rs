@@ -1,7 +1,8 @@
 /**
  * [INPUT]: 依赖固定 Cavalry user-home/state 路径、Preferences 与 Switcher 专属 strings、typed locale 投影及调用方提供的 closed-writer guard。
  * [OUTPUT]: 事务化应用合法 native UI-text pack、固定 en-GB restore、严格Current-owned hostless restore-only入口、pending 恢复与只读 profile projection；测试 fixture 仅用于隔离验证。
- * [POS]: commands/user_language 的受限 profile 文件 owner；hostless English 在同一receipt解析所得bytes+mode前像上做最终pending发布比较；path binding 不证明 writer closed，预发布比较仍非 OS 原子 CAS，production facade 必须持锁并在每个发布边界提供 guard。
+ * [POS]: commands/user_language 的受限 profile 文件 owner；apply复用首次验证且无pending的receipt，只有pending恢复路径再读回磁盘。
+ * 事务比较active前像并保留hostless English的bytes+mode发布期望；path binding不证明writer closed，生产facade持锁并在每个写边界提供guard。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use serde::{Deserialize, Serialize};
@@ -31,6 +32,29 @@ use self::storage::{
 };
 
 const RECEIPT_SCHEMA_VERSION: u32 = 1;
+
+#[cfg(test)]
+std::thread_local! {
+    static APPLY_EXPLICIT_RECEIPT_VALIDATION_COUNT: std::cell::Cell<usize> =
+        std::cell::Cell::new(0);
+}
+
+#[cfg(test)]
+pub(crate) fn reset_apply_explicit_receipt_validation_count() {
+    APPLY_EXPLICIT_RECEIPT_VALIDATION_COUNT.with(|count| count.set(0));
+}
+
+#[cfg(test)]
+pub(crate) fn apply_explicit_receipt_validation_count() -> usize {
+    APPLY_EXPLICIT_RECEIPT_VALIDATION_COUNT.with(std::cell::Cell::get)
+}
+
+fn validate_apply_receipt(paths: &UserLanguagePaths, receipt: &Receipt) -> Result<(), String> {
+    #[cfg(test)]
+    APPLY_EXPLICIT_RECEIPT_VALIDATION_COUNT.with(|count| count.set(count.get() + 1));
+    validate_receipt(paths, receipt)
+}
+
 pub(crate) fn read_profile_projection(
     paths: &UserLanguagePaths,
 ) -> Result<UserProfileProjection, String> {
@@ -52,7 +76,6 @@ pub(crate) enum RestoreOutcome {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[cfg(test)]
 pub(crate) enum RecoveryOutcome {
     NothingPending,
     Completed,
@@ -190,8 +213,8 @@ fn apply_inner(
     validate_native_pack(product_language, strings_json)?;
 
     let existing = match read_receipt(paths)? {
+        Some(receipt) if receipt.pending.is_none() => Some(receipt),
         Some(mut receipt) => {
-            validate_receipt(paths, &receipt)?;
             let recovery_injection = (interrupt_after == Some(InterruptAfter::RecoveryWarning))
                 .then_some(InterruptAfter::RecoveryWarning);
             resume_pending_before_next_action(
@@ -235,7 +258,6 @@ fn apply_inner(
 
     let mut receipt = match existing {
         Some(receipt) => {
-            validate_receipt(paths, &receipt)?;
             let active = receipt.active.as_ref().ok_or_else(|| {
                 "user-language receipt has no committed active generation".to_string()
             })?;
@@ -272,7 +294,7 @@ fn apply_inner(
         after,
         language: Some(product_language.to_string()),
     });
-    validate_receipt(paths, &receipt)?;
+    validate_apply_receipt(paths, &receipt)?;
     writer_guard()?;
     require_durable(
         "user-language preimage receipt",
@@ -468,7 +490,6 @@ pub(crate) fn recover_interrupted(paths: &UserLanguagePaths) -> Result<RecoveryO
     recover_with_writer_guard(paths, &mut allow_closed_writer)
 }
 
-#[cfg(test)]
 pub(crate) fn recover_with_writer_guard(
     paths: &UserLanguagePaths,
     writer_guard: &mut dyn FnMut() -> Result<(), String>,

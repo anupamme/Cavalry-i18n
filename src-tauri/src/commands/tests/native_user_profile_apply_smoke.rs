@@ -1,10 +1,11 @@
 /**
- * [INPUT]: 依赖显式锁定的2.8原厂App、target绑定且允许诚实partial的native-preview资源、OS用户profile与state；通过native_user生产owner和operation_lock执行。
- * [OUTPUT]: 提供默认ignored的单语言profile smoke及旧owned pack升级准入fixture；用target/source分账与三语missing推导完整度，再验证receipt/pack SHA、English恢复和vendor/非locale零漂移。
- * [POS]: commands/tests 的真实用户文件动作合同；直接调用apply_inner，不经过会自动restart的公开command，不启动Cavalry、不声称真实UI切换已验证。
+ * [INPUT]: 依赖显式锁定的2.8原厂App、target绑定且允许诚实partial的native-preview资源、OS用户profile与state；source分母另计固定插件caption1。
+ * [OUTPUT]: 提供默认ignored的单语言profile smoke及旧owned pack升级fixture；全量读取仅作既有烟测前置，状态投影消费approved digest map。
+ * smoke验证receipt/pack SHA、English恢复和vendor/非locale零漂移。
+ * [POS]: commands/tests 的真实用户文件动作合同；直接调用test-only profile入口，不经过会自动restart的公开command，不启动Cavalry、不声称真实UI切换已验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
-use super::{apply_inner, profile_projection};
+use super::{apply_profile_only_inner, profile_projection};
 use crate::commands::{
     contract::NoopReporter,
     native_resources,
@@ -226,9 +227,15 @@ fn native_profile_apply_smoke_performs_one_action_without_restart() {
         .expect("target supplemental key count must be an unsigned integer");
     let source_keys = official_keys
         .checked_add(supplemental_keys)
+        .and_then(|count| {
+            count.checked_add(native_resources::PLUGIN_CAPTION_SUPPLEMENT_KEYS as u64)
+        })
         .expect("locked source key count must not overflow");
     assert_eq!(manifest["nativeKeys"], source_keys);
-    assert_eq!(manifest["supplementalKeys"], supplemental_keys);
+    assert_eq!(
+        manifest["supplementalKeys"],
+        supplemental_keys + native_resources::PLUGIN_CAPTION_SUPPLEMENT_KEYS as u64
+    );
     assert_eq!(
         manifest["nativeKeys"]
             .as_u64()
@@ -258,6 +265,8 @@ fn native_profile_apply_smoke_performs_one_action_without_restart() {
     let resources = native_resources::load_resources(&repo, &repo)
         .expect("all three packs must match the compiled resource approval");
     assert_eq!(resources.packs.len(), 3);
+    let status_resources = native_resources::load_status_resources(&repo, &repo)
+        .expect("status projection requires the three approved file sizes");
     native_resources::verify_host(&app).expect("selected host must match the 2.8 target lock");
 
     let vendor_paths = VENDOR_FILES.map(|relative| app.join(relative));
@@ -295,7 +304,7 @@ fn native_profile_apply_smoke_performs_one_action_without_restart() {
     let diagnostics_before = file_image(&diagnostics_path);
 
     // -- 唯一写入入口；不调用公开apply_language，也不restart/rollback ----
-    let outcome = apply_inner(&repo, &state_dir, &repo, &app, &language, NoopReporter);
+    let outcome = apply_profile_only_inner(&repo, &state_dir, &repo, &app, &language, NoopReporter);
     let vendor_after = vendor_paths
         .iter()
         .map(|path| required_file_image(path))
@@ -341,7 +350,7 @@ fn native_profile_apply_smoke_performs_one_action_without_restart() {
         panic!("manual native apply did not complete cleanly; inspect the profile before any next action");
     }
 
-    let status = profile_projection(&paths, Some(&resources));
+    let status = profile_projection(&paths, Some(&status_resources));
     if language == "en" {
         assert!(matches!(
             after.locale,

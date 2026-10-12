@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖各平台权限复制、bundle/restart 适配器与 CommandRunner；接收 staged CopyPair、只读进程身份探针和受控启动请求。
- * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，提供 selected/all-Cavalry 只读 admission、legacy restart 的 graceful close、macOS native preview launch-only facade、固定厂商requirement的限时只读验签与既有有界macOS签名/只读seal验证、Windows apply/recovery提升worker早期分流，并让Program Files journal仅在用户动作锁内按当前选择经same-EXE RunAs边界收敛。
+ * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，提供NRT恢复profile前回调端口、selected/all-Cavalry只读admission、legacy restart graceful close、macOS native preview launch-only facade、固定厂商requirement限时只读验签、legacy签名验签与NRT延迟验签写端口、Windows apply/recovery提升worker早期分流，并让Program Files journal仅在用户动作锁内按当前选择经same-EXE RunAs边界收敛。
  * [POS]: src-tauri/src 的跨平台系统命令 facade；Official认证仅经此处转入macOS codesign owner并只消费受限deadline退出状态，不使用一般签名身份stdout；共享用户文件准入由macOS process owner按所有 Cavalry bundle identity 判定，平台安全、提升事务、journal 机制与辅助进程可见性下沉到职责模块，命令层不直接触碰 UAC/AppleScript，受保护安装根禁止回退为未提权写入。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -40,15 +40,23 @@ pub use runner::{
 pub(crate) use copy_transaction::copy_with_privilege_detailed;
 pub(crate) use copy_transaction::{PostCommitWarning, PostCommitWarningCode};
 pub(crate) use keychain::stage_keychain_query_attributes_patch;
+#[cfg(all(test, target_os = "macos"))]
+pub(crate) use macos::apply_transaction::fail_next_native_runtime_owner_directory_sync_for_test;
 #[cfg(target_os = "macos")]
+#[allow(unused_imports)]
 pub(crate) use macos::apply_transaction::{
-    MacApplyBeginError, MacApplyTransaction, MacBundlePreimageConstraint,
+    capture_owner_slot_preimages, ensure_native_runtime_owner_absent,
+    has_native_runtime_owner_for_selection, load_owned_native_runtime,
+    load_owned_native_runtime_details, LoadedNativeRuntimeOwner, MacApplyBeginError,
+    MacApplyTransaction, MacBundlePreimageConstraint, NativeRuntimeIntent,
+    NativeRuntimeOwnerPreimage,
 };
 #[cfg(target_os = "macos")]
 pub(crate) use macos::bundle::{
     external_signature_component_paths, has_known_external_signature_residue,
     inspect_bundle_signature, seal_patched_bundle, sign_modified_nested_code,
-    verify_modified_nested_code, verify_official_vendor_signature, BundleSignatureEvidence,
+    sign_native_runtime_bundle, sign_native_runtime_nested_code, verify_modified_nested_code,
+    verify_official_vendor_signature, BundleSignatureEvidence,
 };
 #[cfg(target_os = "macos")]
 #[allow(unused_imports)]
@@ -150,6 +158,41 @@ pub fn clear_gatekeeper_quarantine<R: CommandRunner>(
         let _ = (app_path, runner);
         Ok(())
     }
+}
+
+#[cfg(target_os = "macos")]
+/// 原生写动作使用独立终态门，不进入schema 6的StateDocument恢复。
+pub(crate) fn recover_native_runtime_transaction<R: CommandRunner>(
+    state_dir: &Path,
+    app: &Path,
+    runner: &mut R,
+) -> Result<(), String> {
+    recover_native_runtime_transaction_with_before_restore(state_dir, app, runner, || Ok(()))
+}
+
+#[cfg(target_os = "macos")]
+/// Native恢复只在App前像回滚前读取调用方profile projection。
+#[cfg(target_os = "macos")]
+pub(crate) fn recover_native_runtime_transaction_with_before_restore<R, F>(
+    state_dir: &Path,
+    app: &Path,
+    runner: &mut R,
+    before_restore: F,
+) -> Result<(), String>
+where
+    R: CommandRunner,
+    F: FnMut() -> Result<(), String>,
+{
+    if !macos::apply_transaction::has_pending(state_dir) {
+        return Ok(());
+    }
+    macos::apply_transaction::recover_native_runtime_guarded_with_before_restore(
+        state_dir,
+        app,
+        runner,
+        before_restore,
+    )?;
+    Ok(())
 }
 
 #[cfg(target_os = "macos")]

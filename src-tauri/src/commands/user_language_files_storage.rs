@@ -1,6 +1,7 @@
 /**
  * [INPUT]: 依赖固定 UserLanguagePaths、完整 bytes+mode 前像、调用方 writer guard 与平台原子替换原语。
- * [OUTPUT]: 提供 symlink/non-file 拒绝、暂存发布和真实 PermissionDenied 标签、receipt bytes+mode 精确读取/发布、Unix 文件/目录同步及 receipt-owned 空目录清理；Windows 目录耐久未知时 fail closed。
+ * [OUTPUT]: 提供 symlink/non-file 拒绝、暂存发布和真实 PermissionDenied 标签、receipt bytes+mode 精确读取/发布、Unix 文件/目录同步及 receipt-owned 空目录清理；cfg(test) 计 receipt image 读取并按指定目录注入一次同步失败；Windows 目录耐久未知时 fail closed。
+ * 普通与guarded pending回执均使用紧凑JSON；reader仍接受旧prettyJSON。
  * [POS]: user_language_files 的固定布局文件适配器；hostless pending receipt复用初次解析的原始FileImage作预发布期望，guard在stage与publish边界复查，但比对到rename仍有TOCTOU，不能宣称OS CAS/跨进程安全，也不是通用事务API。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -10,6 +11,9 @@ use std::{
     path::{Component, Path},
     sync::atomic::{AtomicU64, Ordering},
 };
+
+#[cfg(test)]
+use std::path::PathBuf;
 
 #[cfg(unix)]
 use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt, PermissionsExt};
@@ -27,6 +31,44 @@ use super::paths::{
 use super::{validate_receipt, FileCommit, FileImage, Receipt, UserLanguagePaths};
 
 static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
+
+#[cfg(test)]
+std::thread_local! {
+    static RECEIPT_IMAGE_READ_COUNT: std::cell::Cell<usize> =
+        std::cell::Cell::new(0);
+    static DIRECTORY_SYNC_FAILURE_PATH: std::cell::RefCell<Option<PathBuf>> =
+        std::cell::RefCell::new(None);
+}
+
+#[cfg(test)]
+pub(crate) fn reset_receipt_image_read_count() {
+    RECEIPT_IMAGE_READ_COUNT.with(|count| count.set(0));
+}
+
+#[cfg(test)]
+pub(crate) fn receipt_image_read_count() -> usize {
+    RECEIPT_IMAGE_READ_COUNT.with(std::cell::Cell::get)
+}
+
+#[cfg(test)]
+pub(crate) fn fail_next_directory_sync_for(path: &Path) {
+    DIRECTORY_SYNC_FAILURE_PATH.with(|failure_path| {
+        *failure_path.borrow_mut() = Some(path.to_path_buf());
+    });
+}
+
+#[cfg(test)]
+fn take_directory_sync_failure(path: &Path) -> bool {
+    DIRECTORY_SYNC_FAILURE_PATH.with(|failure_path| {
+        let mut failure_path = failure_path.borrow_mut();
+        if failure_path.as_deref() == Some(path) {
+            failure_path.take();
+            true
+        } else {
+            false
+        }
+    })
+}
 
 pub(crate) const NATIVE_PERMISSION_DENIED_PREFIX: &str = "nativeUserLanguagePermissionDenied: ";
 
@@ -365,7 +407,7 @@ pub(super) fn write_receipt(
     paths: &UserLanguagePaths,
     receipt: &Receipt,
 ) -> Result<FileCommit, String> {
-    let bytes = serde_json::to_vec_pretty(receipt)
+    let bytes = serde_json::to_vec(receipt)
         .map_err(|error| format!("could not encode user-language receipt: {error}"))?;
     write_file_atomically(paths, &paths.receipt, &bytes, private_file_mode())
 }
@@ -376,7 +418,7 @@ pub(super) fn write_receipt_exact(
     receipt: &Receipt,
     writer_guard: &mut dyn FnMut() -> Result<(), String>,
 ) -> Result<FileCommit, String> {
-    let bytes = serde_json::to_vec_pretty(receipt)
+    let bytes = serde_json::to_vec(receipt)
         .map_err(|error| format!("could not encode user-language receipt: {error}"))?;
     let image = FileImage {
         bytes,
@@ -394,6 +436,8 @@ pub(super) fn write_receipt_exact(
 pub(super) fn read_receipt_with_image(
     paths: &UserLanguagePaths,
 ) -> Result<Option<(Receipt, FileImage)>, String> {
+    #[cfg(test)]
+    RECEIPT_IMAGE_READ_COUNT.with(|count| count.set(count.get() + 1));
     let Some(image) = read_optional_image(paths, &paths.receipt)? else {
         return Ok(None);
     };
@@ -697,6 +741,13 @@ fn private_file_mode() -> Option<u32> {
     default_private_file_mode()
 }
 fn sync_directory(path: &Path) -> std::io::Result<()> {
+    #[cfg(test)]
+    if take_directory_sync_failure(path) {
+        return Err(std::io::Error::other(
+            "injected directory sync failure for native profile contract",
+        ));
+    }
+
     #[cfg(unix)]
     {
         File::open(path)?.sync_all()

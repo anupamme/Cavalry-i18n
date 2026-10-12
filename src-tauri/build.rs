@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 tauri_build、cc、sha2、macOS AppKit handoff 源、四语言 JSON 源与 Windows generic/QPA 发布 DLL；显式macOS native preview构建另读固定target工件manifest、官方域摘要及Forge/缺源schema补充源生成器。
- * [OUTPUT]: 生成 Tauri runtime context与资源信任锚；仅显式macOS开发预览把native manifest固定到OUT_DIR，默认/发布流水线不依赖厂商App或派生预览文件。
+ * [INPUT]: 依赖 tauri_build、cc、sha2、macOS AppKit handoff 源、四语言 JSON 源与 Windows generic/QPA 发布 DLL；显式macOS native preview构建另读固定target工件manifest、官方域摘要、Forge/缺源/插件caption生成器及可选arm64 dylib。
+ * [OUTPUT]: 生成 Tauri runtime context与资源信任锚；仅显式macOS debug预览把manifest和审批injector固定到OUT_DIR，默认/发布流水线不读injector路径。
  * [POS]: src-tauri 的构建钩子；在用户可写安装资源之外固定 Windows source provenance，不参与运行时路径发现。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -13,6 +13,9 @@ use std::{
 
 use sha2::{Digest, Sha256};
 
+#[path = "native/native_preview_injector_contract.rs"]
+mod native_preview_injector_contract;
+
 const LANGUAGES: [&str; 4] = ["en", "zh-Hans", "zh-Hant", "ja_JP"];
 const GENERIC_RELATIVE_PATH: &str = "injector/windows/generic/cavalryi18n.dll";
 const QPA_RELATIVE_PATH: &str = "injector/windows/qpa/qwindows.dll";
@@ -21,6 +24,7 @@ fn main() {
     build_macos_permission_handoff();
     generate_source_provenance_catalog();
     embed_native_preview_manifest();
+    embed_native_preview_injector();
     tauri_build::build();
 }
 
@@ -29,8 +33,7 @@ fn embed_native_preview_manifest() {
     println!("cargo:rerun-if-env-changed=CAVALRY_I18N_ENABLE_NATIVE_PREVIEW");
     let input = Path::new("target/native-language-packs/manifest.json");
     println!("cargo:rerun-if-changed={}", input.display());
-    let enabled = env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("macos")
-        && env::var("CAVALRY_I18N_ENABLE_NATIVE_PREVIEW").as_deref() == Ok("1");
+    let enabled = native_preview_build_enabled();
     let bytes = if enabled {
         assert_ne!(
             env::var("PROFILE").as_deref(),
@@ -43,6 +46,7 @@ fn embed_native_preview_manifest() {
             "../tools/native_language_pack.js",
             "../tools/native_schema_supplement.js",
             "../tools/native_schema_gap_sources.js",
+            "../tools/native_plugin_caption_supplement.js",
             "../tools/native_official_target.js",
             "../tools/native_translation_format.js",
             "../package-lock.json",
@@ -71,6 +75,90 @@ fn embed_native_preview_manifest() {
     let output = PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR is required"));
     fs::write(output.join("native_preview_manifest.json"), bytes)
         .expect("native preview compile-time manifest could not be written");
+}
+
+// -- 可选预览 injector：默认与非debug产物始终嵌入空字节 ----------------
+fn embed_native_preview_injector() {
+    println!("cargo:rerun-if-env-changed=CAVALRY_I18N_NATIVE_INJECTOR_FILE");
+    let bytes = if native_preview_build_enabled() && env::var("PROFILE").as_deref() == Ok("debug") {
+        load_native_preview_injector()
+    } else {
+        Vec::new()
+    };
+    let output = PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR is required"));
+    fs::write(output.join("native_preview_injector.dylib"), bytes)
+        .expect("native preview injector compile-time artifact could not be written");
+}
+
+fn native_preview_build_enabled() -> bool {
+    env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("macos")
+        && env::var("CAVALRY_I18N_ENABLE_NATIVE_PREVIEW").as_deref() == Ok("1")
+}
+
+fn load_native_preview_injector() -> Vec<u8> {
+    let Some(value) = env::var_os("CAVALRY_I18N_NATIVE_INJECTOR_FILE") else {
+        return Vec::new();
+    };
+    let configured_path = PathBuf::from(value);
+    assert!(
+        !configured_path.as_os_str().is_empty(),
+        "CAVALRY_I18N_NATIVE_INJECTOR_FILE must not be empty"
+    );
+    assert_eq!(
+        env::var("CARGO_CFG_TARGET_ARCH").as_deref(),
+        Ok("aarch64"),
+        "native preview injector requires an arm64 macOS target"
+    );
+
+    let manifest_dir =
+        PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is required"));
+    let configured_path = if configured_path.is_absolute() {
+        configured_path
+    } else {
+        manifest_dir.join(configured_path)
+    };
+    println!("cargo:rerun-if-changed={}", configured_path.display());
+    let source = no_symlink_regular_file(&configured_path)
+        .unwrap_or_else(|error| panic!("native preview injector input rejected: {error}"));
+    let bytes = fs::read(&source)
+        .unwrap_or_else(|error| panic!("native preview injector input could not be read: {error}"));
+    native_preview_injector_contract::validate_arm64_dylib(&bytes)
+        .unwrap_or_else(|error| panic!("native preview injector input rejected: {error}"));
+    bytes
+}
+
+fn no_symlink_regular_file(path: &Path) -> Result<PathBuf, String> {
+    use std::path::Component;
+
+    let path = if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        env::current_dir()
+            .map_err(|error| format!("current directory unavailable: {error}"))?
+            .join(path)
+    };
+    let components = path.components().collect::<Vec<_>>();
+    let mut current = PathBuf::new();
+    for (index, component) in components.iter().enumerate() {
+        current.push(component.as_os_str());
+        if matches!(component, Component::RootDir | Component::Prefix(_)) {
+            continue;
+        }
+        let metadata = fs::symlink_metadata(&current)
+            .map_err(|error| format!("path component unavailable: {error}"))?;
+        if metadata.file_type().is_symlink() {
+            return Err("path contains a symbolic link".into());
+        }
+        if index + 1 < components.len() && !metadata.is_dir() {
+            return Err("path parent is not a directory".into());
+        }
+    }
+    let metadata = fs::symlink_metadata(&path)
+        .map_err(|error| format!("file metadata unavailable: {error}"))?;
+    if !metadata.is_file() || metadata.file_type().is_symlink() {
+        return Err("input is not a regular file".into());
+    }
+    Ok(path)
 }
 
 fn build_macos_permission_handoff() {

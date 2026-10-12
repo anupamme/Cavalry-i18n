@@ -1,14 +1,14 @@
 /**
  * [INPUT]: 依赖 user_language_files 的临时 profile fixture、typed locale 投影与耐久回执。
- * [OUTPUT]: 验证事务顺序、目录意图/恢复、原像保留、fixed English、坏回执/drift/symlink 拒绝、empty-only cleanup 与 warning 收敛；production path/projection/guard 合同见 user_language_files_production.rs。
+ * [OUTPUT]: 验证回执事务/恢复与drift拒绝；计数合同锁定apply仅显式验证新pending回执一次。
  * [POS]: commands/tests 的 transaction recovery 合同；real tempfile staging 只做预发布乐观比较，不证明 OS 原子 CAS；不访问真实 Cavalry、IPC、安装 bundle 或 profile。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use crate::commands::user_language_files::{
-    self, CommitOutcome, InterruptAfter, RecoveryOutcome, RestoreOutcome,
+    self, CommitOutcome, InterruptAfter, ReceiptObservation, RecoveryOutcome, RestoreOutcome,
 };
 use serde_json::{json, Value};
-use std::fs;
+use std::{cell::Cell, fs};
 use tempfile::TempDir;
 
 struct Fixture {
@@ -61,6 +61,103 @@ fn synthetic_pack(product_language: &str, text: &str) -> Vec<u8> {
         "value": {"fixture.key": {"UI-text": text}}
     }]))
     .unwrap()
+}
+
+#[test]
+#[cfg(unix)]
+fn apply_revalidates_only_the_new_pending_receipt_explicitly() {
+    let fixture = Fixture::new(json!({"locale": typed_locale("en-GB")}), None);
+    let mut writer_guard = || Ok(());
+    user_language_files::apply_with_writer_guard(
+        &fixture.paths,
+        "zh-Hans",
+        &synthetic_pack("zh-Hans", "first generation"),
+        &mut writer_guard,
+    )
+    .unwrap();
+
+    user_language_files::reset_apply_explicit_receipt_validation_count();
+    user_language_files::apply_with_writer_guard(
+        &fixture.paths,
+        "zh-Hans",
+        &synthetic_pack("zh-Hans", "second generation"),
+        &mut writer_guard,
+    )
+    .unwrap();
+
+    assert_eq!(
+        user_language_files::apply_explicit_receipt_validation_count(),
+        1,
+        "only the newly constructed pending receipt needs an explicit validation"
+    );
+}
+
+#[test]
+#[cfg(unix)]
+fn compact_receipts_roundtrip_legacy_pretty_read_and_guarded_english_restore() {
+    let fixture = Fixture::new(json!({"locale": typed_locale("en-GB")}), None);
+    let pack = synthetic_pack("zh-Hans", "compact receipt");
+    user_language_files::apply(&fixture.paths, "zh-Hans", &pack).unwrap();
+
+    let compact_bytes = fs::read(fixture.paths.receipt()).unwrap();
+    assert!(!compact_bytes.contains(&b'\n'));
+    let receipt: Value = serde_json::from_slice(&compact_bytes).unwrap();
+    assert_eq!(receipt["schemaVersion"], json!(1));
+    assert_eq!(receipt["active"]["image"]["strings"]["bytes"], json!(pack));
+    let roundtrip = serde_json::to_vec(&receipt).unwrap();
+    assert_eq!(
+        serde_json::from_slice::<Value>(&roundtrip).unwrap(),
+        receipt
+    );
+
+    let legacy_pretty_bytes = serde_json::to_vec_pretty(&receipt).unwrap();
+    assert!(legacy_pretty_bytes.contains(&b'\n'));
+    assert!(legacy_pretty_bytes.len() > compact_bytes.len());
+    fs::write(fixture.paths.receipt(), &legacy_pretty_bytes).unwrap();
+
+    let projection = user_language_files::read_profile_projection(&fixture.paths).unwrap();
+    assert!(matches!(
+        projection.ownership,
+        ReceiptObservation::Current { language, .. } if language == "zh-Hans"
+    ));
+    assert_eq!(
+        fs::read(fixture.paths.receipt()).unwrap(),
+        legacy_pretty_bytes
+    );
+    assert_eq!(
+        serde_json::from_slice::<Value>(&fs::read(fixture.paths.receipt()).unwrap()).unwrap(),
+        receipt
+    );
+
+    let receipt_path = fixture.paths.receipt().to_path_buf();
+    let pending_observations = Cell::new(0);
+    let mut writer_guard = || {
+        if let Ok(bytes) = fs::read(&receipt_path) {
+            let published: Value = serde_json::from_slice(&bytes).unwrap();
+            if !published["pending"].is_null() {
+                assert!(!bytes.contains(&b'\n'));
+                assert_eq!(published["pending"]["action"], json!("restoreEnglish"));
+                pending_observations.set(pending_observations.get() + 1);
+            }
+        }
+        Ok(())
+    };
+
+    assert_eq!(
+        user_language_files::restore_owned_english_with_writer_guard(
+            &fixture.paths,
+            &mut writer_guard,
+        )
+        .unwrap(),
+        RestoreOutcome::Restored
+    );
+    assert!(
+        pending_observations.get() > 0,
+        "writer guard must observe the published compact pending receipt"
+    );
+    assert_eq!(fixture.preferences()["locale"], typed_locale("en-GB"));
+    assert_eq!(fixture.strings(), None);
+    assert!(!fixture.paths.receipt().exists());
 }
 
 #[test]
@@ -783,3 +880,6 @@ fn unsupported_languages_and_malformed_typed_locales_fail_before_any_write() {
 
 #[path = "user_language_files_production.rs"]
 mod production_api;
+
+#[path = "user_language_files_receipt_reuse.rs"]
+mod receipt_reuse;

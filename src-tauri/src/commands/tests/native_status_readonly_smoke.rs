@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖status的真实native只读owner、编译审批资源、target绑定manifest与OS home路径；App/repo须人工选择，三语missing均先解析后推导coverage。
- * [OUTPUT]: 提供默认忽略的跨来源/资源/profile组合烟测，以当前target的SHA/源数量/批准范围验证诚实partial并检查原厂默认英语状态；保留实际用户文件与bundle的字节/模式，不创建测试state。
+ * [OUTPUT]: 组合烟测以target原字节SHA、target源数及独立插件caption数验证诚实partial；保留实际用户文件与bundle，不创建测试state。
  * [POS]: status的测试子模块；使用真实codesign与生产profile读取，但临时缺失state只模拟首次运行，不代验Tauri AppHandle、WK、Apply或真实翻译UI；另有不读profile的manifest preflight合同。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -34,6 +34,9 @@ fn native_manifest_coverage(
         .ok_or_else(|| "target supplemental key count is not an unsigned integer".to_string())?;
     let source_keys = official_keys
         .checked_add(supplemental_keys)
+        .and_then(|count| {
+            count.checked_add(native_resources::PLUGIN_CAPTION_SUPPLEMENT_KEYS as u64)
+        })
         .ok_or_else(|| "locked source key count overflowed".to_string())?;
     let expected_target_sha = format!("{:x}", Sha256::digest(target_bytes));
     if manifest["targetSha256"].as_str() != Some(expected_target_sha.as_str()) {
@@ -46,7 +49,8 @@ fn native_manifest_coverage(
         .as_u64()
         .ok_or_else(|| "manifest supplemental key count is not an unsigned integer".to_string())?;
     if manifest_source_keys != source_keys
-        || manifest_supplemental_keys != supplemental_keys
+        || manifest_supplemental_keys
+            != supplemental_keys + native_resources::PLUGIN_CAPTION_SUPPLEMENT_KEYS as u64
         || manifest_source_keys.checked_sub(manifest_supplemental_keys) != Some(official_keys)
     {
         return Err("manifest official/supplemental source counts differ from the target".into());
@@ -105,11 +109,16 @@ fn native_manifest_preflight_accepts_partial_and_parses_all_missing_counts() {
     let target: Value = serde_json::from_slice(TARGET_BYTES).unwrap();
     let official_keys = target["nativeKeys"].as_u64().unwrap();
     let supplemental_keys = target["supplementalKeys"].as_u64().unwrap();
-    let source_keys = official_keys.checked_add(supplemental_keys).unwrap();
+    let source_keys = official_keys
+        .checked_add(supplemental_keys)
+        .and_then(|count| {
+            count.checked_add(native_resources::PLUGIN_CAPTION_SUPPLEMENT_KEYS as u64)
+        })
+        .unwrap();
     let mut manifest = serde_json::json!({
         "targetSha256": format!("{:x}", Sha256::digest(TARGET_BYTES)),
         "nativeKeys": source_keys,
-        "supplementalKeys": supplemental_keys,
+        "supplementalKeys": supplemental_keys + native_resources::PLUGIN_CAPTION_SUPPLEMENT_KEYS as u64,
         "approvedUIKeys": source_keys - 1,
         "complete": false,
         "packs": {
