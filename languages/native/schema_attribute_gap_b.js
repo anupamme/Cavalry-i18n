@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖固定2.8 schema/Core源身份、初始完整分区/20槽修订复验与particleShape单键caption独审；源行由producer独立核验。
- * [OUTPUT]: 提供182个精确nodeAttr三语已审caption；World Scale只准入标签，单位/效果说明与实机消费未证。
- * [POS]: native审批装配的schema缺源B分区；非官方catalog，不改模型/字体/用户值，不证明实机消费。
+ * [INPUT]: 依赖固定2.8 schema/Core源身份、历史分区摘要与两个独立caption决定；源行由producer核验。
+ * [OUTPUT]: 提供183个nodeAttr三语caption；World Scale和隐藏Background Rendering都不含行为说明。
+ * [POS]: native审批装配的schema缺源B分区；保留旧摘要，不把隐藏字段写成可见UI或实机消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -19,7 +19,7 @@ module.exports = {
     "candidateKeys": 182,
     "initialApprovedKeys": 181,
     "initialPendingSourceKeys": ["nodeAttr:particleShape.worldScale"],
-    "approvedKeys": 182,
+    "approvedKeys": 183,
     "pendingSourceKeys": [],
     "captionAddendum": {
       "key": "nodeAttr:particleShape.worldScale",
@@ -28,6 +28,13 @@ module.exports = {
       "sourceIdentitySha256": "4524c65e6e1ff06526d3171ec00a3668ee91dada6f65c0ccf7c35d84ba24ae4c",
       "decisionSha256": "c905f9cc248ed9e47a855edcf1c4e900c7fc62580ac4337ebdf7fcacc55ec27b",
       "independentCaptionReviewSha256": "d45b93b7228e1e201ca70b379cf1c62aac347b0c10d0462e37db6f6dba678046"
+    },
+    "backgroundRenderingAddendum": {
+      "key": "nodeAttr:dynamicIndexManager.backgroundRendering",
+      "scope": "caption-only; hidden attribute; no Inspector UI or behavior claim; historical approval digests stay unchanged",
+      "approvedBy": "primary-agent",
+      "sourceIdentitySha256": "6d9d4787526ff363fe95dd918ff7d812167783b11b47e1999fb97b025574f060",
+      "decisionSha256": "ba6ffd2963be7dd4263c6d584fea7efd304ca4f1314882777169d2f633edd6ca"
     },
     "liveConsumerVerified": false
   },
@@ -214,5 +221,6 @@ module.exports = {
     {"key":"nodeAttr:vortexModifier.forceVelocity","catalogId":"schemaSupplement/nodeAttributes","owner":"vortexModifier","fieldPath":["attributes","forceVelocity","name"],"source":"Force Velocity","dontTranslate":false,"vendorJapanese":null,"notes":["Cavalry 2.8 nodeDefinitions declares this Inspector attribute; English label is the verified Core fallback."],"translations":{"zh-Hans":{"decision":"translate","text":"力赋予的速度"},"zh-Hant":{"decision":"translate","text":"力賦予的速度"},"ja_JP":{"decision":"translate","text":"力が与える速度"}}},
     {"key":"nodeAttr:vortexModifier.physicsMode","catalogId":"schemaSupplement/nodeAttributes","owner":"vortexModifier","fieldPath":["attributes","physicsMode","name"],"source":"Physics Mode","dontTranslate":false,"vendorJapanese":null,"notes":["Cavalry 2.8 nodeDefinitions declares this Inspector attribute; English label is the verified Core fallback."],"translations":{"zh-Hans":{"decision":"translate","text":"物理模式"},"zh-Hant":{"decision":"translate","text":"物理模式"},"ja_JP":{"decision":"translate","text":"物理モード"}}},
     {"key":"nodeAttr:wave.adaptiveWaveCounts","catalogId":"schemaSupplement/nodeAttributes","owner":"wave","fieldPath":["attributes","adaptiveWaveCounts","name"],"source":"Adaptive Wave Counts","dontTranslate":false,"vendorJapanese":null,"notes":["Cavalry 2.8 nodeDefinitions declares this Inspector attribute; English label is the verified Core fallback."],"translations":{"zh-Hans":{"decision":"translate","text":"自适应波数量"},"zh-Hant":{"decision":"translate","text":"自適應波數量"},"ja_JP":{"decision":"translate","text":"波の数を自動調整"}}},
+    {"key":"nodeAttr:dynamicIndexManager.backgroundRendering","catalogId":"schemaSupplement/nodeAttributes","owner":"dynamicIndexManager","fieldPath":["attributes","backgroundRendering","name"],"source":"Background Rendering","dontTranslate":false,"vendorJapanese":null,"notes":["Cavalry 2.8 nodeDefinitions declares this hidden boolean attribute with default false; the verified Core fallback is Background Rendering."],"translations":{"zh-Hans":{"decision":"translate","text":"后台渲染"},"zh-Hant":{"decision":"translate","text":"背景算繪"},"ja_JP":{"decision":"translate","text":"バックグラウンドレンダリング"}}},
   ],
 };

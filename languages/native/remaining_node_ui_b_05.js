@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 绑定 Cavalry 2.8 官方显示源与完整 source/notes/身份，Luna Max作者、非作者全域/差分审校与root返修批准。
- * [OUTPUT]: 提供 442 个完整分区源绑定三语决定；审批谱系只保留构建期，不进入运行时包。
- * [POS]: languages/native 的节点 B 第 05 完整 owner 分区显式批准输入；不修改模型/API，不证明部署、live 或发行。
+ * [OUTPUT]: 提供442键三语决定；记录B-6不透明单Fill实测范围。
+ * [POS]: languages/native节点B05源绑定输入。B-6不证其他Alpha、多层合成或运行时消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -36,20 +36,21 @@ const provenance = {
       "supports": "2024-03-21 Candidate Recommendation Draft定义标准Porter-Duff操作数；仅识别原note矛盾，不证明Cavalry2.8枚举/渲染。"
     }
   ],
-  "unresolvedSourceBehaviorIssues": 1,
+  "unresolvedSourceBehaviorIssues": 0,
   "sourceBehaviorIssues": [
     {
       "key": "nodeAttrEnum:shader.blendMode.4",
-      "status": "unresolved-source-behavior-issue",
+      "status": "measured-note-direction-conflict",
       "source": "Destination Over",
       "notes": [
         "\"Destination\" refers to the layer beneath this one; \"Over\" means this layer is drawn on top of it."
       ],
       "sourceOrNotesModified": false,
       "captionOnlyApproval": true,
-      "liveBehaviorVerified": false,
-      "problem": "原note将Destination定义为下方图层、将Over解释为当前图层盖于其上，与标准Destination Over在该操作数定义下的方向相反。未经2.8枚举和像素实测，不确定caption或说明谁符合产品。",
-      "nextEvidence": "隔离macOS测试账号中锁定2.8版本、两不同颜色/Alpha、SourceOver/DestinationOver枚举与像素对照；不能由W3C标准反推产品实现。"
+      "liveBehaviorVerified": true,
+      "liveBehaviorScope": "B-6: opaque single-Fill only; Normal rendered red; Destination Over rendered blue; only blendMode changed.",
+      "problem": "原厂note将Destination定义为下方图层、将Over解释为当前图层盖于其上；B-6不透明单Fill实测的颜色方向与该解释相反。",
+      "nextEvidence": "透明Alpha、多层/多Fill与运行时消费者未验证；不得据此推广为通用合成行为。"
     }
   ],
   "independentFullReviewer": "complete_node_ui_a / GPT-6 Luna Max (not B draft author)",

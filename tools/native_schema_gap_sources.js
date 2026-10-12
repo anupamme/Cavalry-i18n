@@ -1,7 +1,7 @@
 /**
  * [INPUT]: sourceEntries接收SHA锁定的2.8 nodeDefinitions原始字节与调用方完整官方键集；行验证还须显式给出Forge补充集。
- * [OUTPUT]: 提供sourceEntries、validateGapDefinitions、validateGapEntries、固定365行投影及GAP_CATALOG_ID。
- * [POS]: 将已固定的Core fallback映射为resource-bundle源行；集合完整性由调用方证明，本模块不读文件/vendor、不审批或自行装配producer/registry/运行时。
+ * [OUTPUT]: 保留固定365行历史投影，并单独提供Background Rendering隐藏字段源行；当前投影共366行。
+ * [POS]: 将已固定的Core fallback映射为resource-bundle源行；新增行要求hide为true且owner没有UI自有字段。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -11,6 +11,8 @@ const { isDeepStrictEqual } = require('node:util');
 const SOURCE_DEFINITIONS_SHA256 = '96c7ffbda8d8244a111b3ad3e60fe530eb919fe9f93cbdf3577e2e29ca11d48f';
 const CORE_FALLBACK_SHA256 = '8df2a434b5a6b73da691f7c8d0bba6fbb4c244dc0b388ea466ba8220c5ebeafb';
 const FIXED_GAP_COUNT = 365;
+const BACKGROUND_RENDERING_GAP_COUNT = 1;
+const CURRENT_GAP_COUNT = FIXED_GAP_COUNT + BACKGROUND_RENDERING_GAP_COUNT;
 const FIXED_INHERITED_GAP_COUNT = 13;
 const IDENTIFIER = /^[A-Za-z][A-Za-z0-9_]*$/;
 const VENDOR_NODE_TYPE = /^[A-Za-z0-9][A-Za-z0-9_]*$/;
@@ -412,6 +414,20 @@ const FIXED_GAP_SOURCE_ROWS = deepFreeze(FIXED_GAP_LABELS.map(([owner, attribute
   dontTranslate: false,
   notes: [GAP_SOURCE_NOTES],
 })));
+const BACKGROUND_RENDERING_GAP_SOURCE_ROW = deepFreeze({
+  key: 'nodeAttr:dynamicIndexManager.backgroundRendering',
+  catalogId: GAP_CATALOG_ID,
+  owner: 'dynamicIndexManager',
+  fieldPath: ['attributes', 'backgroundRendering', 'name'],
+  source: 'Background Rendering',
+  vendorJapanese: null,
+  dontTranslate: false,
+  notes: ['Cavalry 2.8 nodeDefinitions declares this hidden boolean attribute with default false; the verified Core fallback is Background Rendering.'],
+});
+const CURRENT_GAP_SOURCE_ROWS = deepFreeze([
+  ...FIXED_GAP_SOURCE_ROWS,
+  BACKGROUND_RENDERING_GAP_SOURCE_ROW,
+]);
 
 function cloneGapRows(rows) {
   return rows.map(row => ({ ...row, fieldPath: [...row.fieldPath], notes: [...row.notes] }));
@@ -583,14 +599,42 @@ function validateGapDefinitions(definitions, officialEntries) {
   return FIXED_GAP_LABELS;
 }
 
+function validateBackgroundRenderingDefinition(definitions, officialEntries) {
+  const byType = indexDefinitions(definitions);
+  const owner = byType.get('dynamicIndexManager');
+  if (!owner) fail('missing Background Rendering owner: dynamicIndexManager');
+  const chain = ownerChain('dynamicIndexManager', byType);
+  const schemaOwner = attributeSchemaOwner(chain, 'backgroundRendering');
+  if (schemaOwner !== 'dynamicIndexManager') fail('Background Rendering schema owner differs');
+  const schema = owner.attributes.backgroundRendering;
+  if (schema.type !== 'bool' || schema.default !== false || schema.connectable !== false
+      || schema.keyable !== false || schema.lockable !== false) {
+    fail('Background Rendering schema differs');
+  }
+  if (owner.superType !== 'element' || owner.hide !== true || Object.hasOwn(owner, 'UI')) {
+    fail('Background Rendering hidden-owner contract differs');
+  }
+
+  const official = officialKeys(officialEntries);
+  if (official.has(BACKGROUND_RENDERING_GAP_SOURCE_ROW.key)) {
+    fail('official Background Rendering key collision');
+  }
+  for (const [parent] of chain.slice(1)) {
+    if (official.has(`nodeAttr:${parent}.backgroundRendering`)) {
+      fail('official Background Rendering parent key collision');
+    }
+  }
+  return BACKGROUND_RENDERING_GAP_SOURCE_ROW;
+}
+
 function validateGapEntries(entries, officialEntries, options) {
   if (!isRecord(options) || !Array.isArray(options.existingSupplementEntries)) {
     fail('existing supplement entries must be provided explicitly');
   }
   const official = officialKeys(officialEntries);
   const supplements = existingSupplementKeys(options.existingSupplementEntries);
-  if (!Array.isArray(entries) || entries.length !== FIXED_GAP_COUNT) {
-    fail('requires exactly 365 source rows');
+  if (!Array.isArray(entries) || entries.length !== CURRENT_GAP_COUNT) {
+    fail('requires exactly 366 current source rows');
   }
 
   const keys = new Set();
@@ -604,13 +648,13 @@ function validateGapEntries(entries, officialEntries, options) {
     if (supplements.has(entry.key)) fail('existing supplement collision: ' + entry.key);
   }
 
-  for (let index = 0; index < FIXED_GAP_SOURCE_ROWS.length; index += 1) {
-    const expected = FIXED_GAP_SOURCE_ROWS[index];
+  for (let index = 0; index < CURRENT_GAP_SOURCE_ROWS.length; index += 1) {
+    const expected = CURRENT_GAP_SOURCE_ROWS[index];
     if (!isDeepStrictEqual(entries[index], expected)) {
       fail('source row identity differs: ' + expected.key);
     }
   }
-  return cloneGapRows(FIXED_GAP_SOURCE_ROWS);
+  return cloneGapRows(CURRENT_GAP_SOURCE_ROWS);
 }
 
 function sourceEntries(rawNodeDefinitionsBytes, fullOfficialEntries) {
@@ -626,16 +670,23 @@ function sourceEntries(rawNodeDefinitionsBytes, fullOfficialEntries) {
   catch { fail('nodeDefinitions JSON is invalid'); }
 
   validateGapDefinitions(definitions, fullOfficialEntries);
-  return cloneGapRows(FIXED_GAP_SOURCE_ROWS);
+  validateBackgroundRenderingDefinition(definitions, fullOfficialEntries);
+  return cloneGapRows(CURRENT_GAP_SOURCE_ROWS);
 }
 
 module.exports = {
   FIXED_GAP_LABELS,
+  FIXED_GAP_COUNT,
+  BACKGROUND_RENDERING_GAP_COUNT,
+  CURRENT_GAP_COUNT,
   GAP_CATALOG_ID,
   FIXED_GAP_SOURCE_ROWS,
+  BACKGROUND_RENDERING_GAP_SOURCE_ROW,
+  CURRENT_GAP_SOURCE_ROWS,
   SOURCE_DEFINITIONS_SHA256,
   CORE_FALLBACK_SHA256,
   sourceEntries,
   validateGapEntries,
   validateGapDefinitions,
+  validateBackgroundRenderingDefinition,
 };

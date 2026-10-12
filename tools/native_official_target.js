@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖规范化target原始bytes、冻结官方target字段清单与Forge八条与固定365条缺源补充target合同。
+ * [INPUT]: 依赖规范化target原始bytes、冻结官方字段及Forge8与固定365缺源补充target合同。
  * [OUTPUT]: 提供保留旧b6c6官方域摘要的精确投影，不把两项补充元数据混入旧批准身份。
  * [POS]: native source/provenance合同共用边界；只排除已命名补充字段，其他target漂移一律改变摘要或失败。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

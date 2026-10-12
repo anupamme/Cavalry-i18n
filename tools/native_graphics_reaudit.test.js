@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖正式native显示数据、独立厂商纠错登记、源身份摘要与真实格式/显示投影
- * [OUTPUT]: 锁定本轮有限图形语境修订及逐槽真实旧译反例，源身份不变；不是通用NLP判定
- * [POS]: tools的本轮语义回归合同，只消费公开正式数据，不读取私账、App或构建输出
+ * [INPUT]: 依赖正式native显示数据、厂商纠错登记、图形/单键译名修订与格式/显示投影
+ * [OUTPUT]: 锁定有限图形修订、Twist单键改名和逐槽旧译反例；不作通用NLP判定
+ * [POS]: tools的语义回归合同，只消费正式数据，不读取私账、App或构建输出
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -11,6 +11,7 @@ const { approvedEntries } = require('../languages/native/approved_modules');
 const { APPROVED_VENDOR_CORRECTIONS } = require('../languages/native/approved_vendor_corrections');
 const { nativeSourceIdentitySha256, resolveTranslations, renderNativePack } = require('./native_language_pack');
 const { assertNativeTranslationFormat } = require('./native_translation_format');
+const twistSource = require('../languages/native/plugins_twist');
 // -- 有限源绑定：module/key/locale/source身份/真实旧值/已裁定新值 ------
 const REPAIRS = Object.freeze([
   ["ai_studio_supplement","aiStudio.log.layerStackDirFailed","zh-Hant","26c7b23ee59ac6537052e63db826676f1301f7f6b0a5fbfe7ca6c9b825b2ee54","無法為圖層堆疊建立資料夾：{0}","AI 工作室：無法為圖層堆疊建立資料夾：{0}"],
@@ -168,4 +169,102 @@ test('finite vendor registry closes exactly against actual corrected keys and pr
   assert.deepEqual(corrected.map(row => row.key).sort(), APPROVED_VENDOR_CORRECTIONS.map(row => row.key).sort());
   for (const row of original) assert.equal(row.text, row.vendorJapanese);
   assert.throws(() => resolveTranslations(rows, 'ja_JP', reviews), /vendor correction/i);
+});
+
+// -- 单键修订合同：锁定新译值、历史摘要、来源身份与其余12键 ----------
+const TWIST_REVISION_BINDINGS = Object.freeze({
+  key: 'nodeName:sceneGroup::twistFilter',
+  sourceIdentitySha256: 'af1165e23d2ff3d2bcaacc53daed89df7f8a9054319d79fa5ea32574dee82d30',
+  preservedNormalizedEntriesSha256: '0a12b941569e21162e7a804dc9f615690653e97de3cfe23dfd38a5b77f61915a',
+  rootApprovalDecisionSha256: '8764921c320f0ab2e0ae519f29b162d70cafd222f2538875a96b14596b9140bd',
+  independentReviewReportSha256: '0348b31468b8dbb66a19ce2e40a395539dac7e39fda0762fe7896180d83719dc',
+  locales: {
+    'zh-Hans': { previous: '扭曲', previousSha256: 'b1837195155340d21109c98e2cb35a434ed75241965152c6fe121f5b8d9a3b6b', approved: '扭转', approvedSha256: '3d90591f6e6c851be30ca6f6216f6e007b016e4fed32f727a37ac8de46d96d0f' },
+    'zh-Hant': { previous: '扭曲', previousSha256: 'b1837195155340d21109c98e2cb35a434ed75241965152c6fe121f5b8d9a3b6b', approved: '扭轉', approvedSha256: '3d593ef619febd64b3e8714e9882c8eca1c7c7256dbc29569593c0a0e9da8277' },
+    ja_JP: { previous: 'ひねり', previousSha256: '2a41a8b6b618701268b4fcc0d55b71696d48f1a6bf313c02bdd122fcd1d32e02', approved: 'ひねり', approvedSha256: '2a41a8b6b618701268b4fcc0d55b71696d48f1a6bf313c02bdd122fcd1d32e02' },
+  },
+  historicalDecisionDigests: {
+    'zh-Hans': '0c2362769ee98475318945851bf06e1339dfcdf32be466740fa23e42a2aac69d',
+    'zh-Hant': '63fd51b5bcd193dbe7345d98d1598491c232f4f3e8b5a4fab1d94411bebdb456',
+    ja_JP: 'fc74a1329f07e4ffd362653d5584364c759c3716402b4da17c36e8006575774d',
+  },
+  historicalApprovedAt: '2026-10-03T21:49:39.823Z',
+  historicalRootAdjudicationSha256: 'af3329fccece6f28bbff3ce09a729759e7c1b4a5661f7f67b33ce32faf1c3ed8',
+});
+const sha256Text = text => require('node:crypto').createHash('sha256').update(text).digest('hex');
+function assertTwistNameRevision(entries, revision) {
+  assert.equal(entries.length, 13, 'the original Twist catalog remains 13 keys');
+  assert.equal(revision.revisionId, 'c3-twist-name-20261009-r1');
+  assert.equal(revision.key, TWIST_REVISION_BINDINGS.key);
+  assert.equal(revision.sourceIdentitySha256, TWIST_REVISION_BINDINGS.sourceIdentitySha256);
+  assert.equal(revision.preservedNormalizedEntriesSha256, TWIST_REVISION_BINDINGS.preservedNormalizedEntriesSha256);
+  assert.equal(revision.rootApprovalDecisionSha256, TWIST_REVISION_BINDINGS.rootApprovalDecisionSha256, 'root approval decision binding');
+  assert.equal(revision.independentReviewReportSha256, TWIST_REVISION_BINDINGS.independentReviewReportSha256, 'independent review binding');
+  assert.equal(revision.approvedBy, 'primary-agent');
+  assert.equal(revision.approvalState, 'approved-single-key-name-revision');
+  assert.equal(revision.scope, 'zh-Hans/zh-Hant node display only; source, notes, owner, vendorJapanese, ja_JP, and other entries remain unchanged');
+  assert.deepEqual(revision.locales, TWIST_REVISION_BINDINGS.locales, 'the revision contains only the three explicit locale values');
+  const row = entries.find(entry => entry.key === revision.key);
+  assert.ok(row, 'the approved Twist name key exists');
+  assert.equal(nativeSourceIdentitySha256(row), revision.sourceIdentitySha256, 'Twist name source identity');
+  for (const [locale, expected] of Object.entries(TWIST_REVISION_BINDINGS.locales)) {
+    assert.equal(row.translations[locale].text, expected.approved, `${locale} approved value`);
+    assert.equal(sha256Text(row.translations[locale].text), expected.approvedSha256, `${locale} approved value digest`);
+    assertNativeTranslationFormat(row.source, row.translations[locale].text);
+  }
+  const normalized = structuredClone(entries);
+  const normalizedName = normalized.find(entry => entry.key === revision.key);
+  normalizedName.translations['zh-Hans'].text = TWIST_REVISION_BINDINGS.locales['zh-Hans'].previous;
+  normalizedName.translations['zh-Hant'].text = TWIST_REVISION_BINDINGS.locales['zh-Hant'].previous;
+  assert.equal(sha256Text(JSON.stringify(normalized)), revision.preservedNormalizedEntriesSha256,
+    'all original entries match after reverting only the two approved locale slots');
+  assert.equal(twistSource.provenance.approvedAt, TWIST_REVISION_BINDINGS.historicalApprovedAt);
+  assert.equal(twistSource.provenance.rootAdjudicationSha256, TWIST_REVISION_BINDINGS.historicalRootAdjudicationSha256);
+  assert.deepEqual(twistSource.provenance.translationDecisionsSha256, TWIST_REVISION_BINDINGS.historicalDecisionDigests);
+}
+
+test('Twist name revision preserves the historical 13-key approval and changes only two locale slots', () => {
+  assertTwistNameRevision(twistSource.entries, twistSource.provenance.nameRevision);
+});
+test('Twist name revision rejects stale values, source drift, unbound approval, and another entry change', () => {
+  const revision = twistSource.provenance.nameRevision;
+  const stale = structuredClone(twistSource.entries);
+  stale.find(entry => entry.key === revision.key).translations['zh-Hans'].text = '扭曲';
+  assert.throws(() => assertTwistNameRevision(stale, revision), /approved value/);
+
+  const sourceDrift = structuredClone(twistSource.entries);
+  sourceDrift.find(entry => entry.key === revision.key).source = 'Twisted';
+  assert.throws(() => assertTwistNameRevision(sourceDrift, revision), /Twist name source identity/);
+
+  const approvalDrift = structuredClone(revision);
+  approvalDrift.rootApprovalDecisionSha256 = '0'.repeat(64);
+  assert.throws(() => assertTwistNameRevision(twistSource.entries, approvalDrift), /root approval decision binding/);
+
+  const otherEntryDrift = structuredClone(twistSource.entries);
+  otherEntryDrift.find(entry => entry.key === 'nodeAttr:sceneGroup::twistFilter.angle').translations['zh-Hans'].text = '角度值';
+  assert.throws(() => assertTwistNameRevision(otherEntryDrift, revision), /original entries match/);
+});
+test('real native packs project the Twist revision and preserve the distinct Distortion name', () => {
+  assertTwistNameRevision(twistSource.entries, twistSource.provenance.nameRevision);
+  const rows = approvedEntries();
+  const names = {
+    'zh-Hans': '扭转',
+    'zh-Hant': '扭轉',
+    ja_JP: 'ひねり',
+  };
+  const distortion = rows.find(row => row.key === 'nodeName:distortionFilter');
+  assert.ok(distortion, 'the separate Distortion owner remains present');
+  assert.deepEqual({
+    'zh-Hans': distortion.translations['zh-Hans'].text,
+    'zh-Hant': distortion.translations['zh-Hant'].text,
+    ja_JP: distortion.translations.ja_JP.text,
+  }, { 'zh-Hans': '扭曲', 'zh-Hant': '扭曲', ja_JP: 'ディストーション' });
+  for (const locale of ['zh-Hans', 'zh-Hant', 'ja_JP']) {
+    const reviews = rows.map(row => ({ key: row.key, source: row.source, ...row.translations[locale] }));
+    const resolved = resolveTranslations(rows, locale, reviews, APPROVED_VENDOR_CORRECTIONS);
+    const pack = JSON.parse(renderNativePack(resolved))[0];
+    assert.deepEqual(pack.value[TWIST_REVISION_BINDINGS.key], { 'UI-text': names[locale] });
+    assert.deepEqual(pack.value['nodeName:distortionFilter'], { 'UI-text': distortion.translations[locale].text });
+    assert.doesNotMatch(JSON.stringify(pack), /nameRevision|rootApprovalDecisionSha256|independentReviewReportSha256/);
+  }
 });

@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖已审定剩余UI分区、共享source/格式守门与独立schema补充域；官方catalog与补充身份分账。
- * [OUTPUT]: 锁定五个完整分区、有限修订与全registry闭合，保护文本/表格/几何/物理角色和catalog身份。
+ * [INPUT]: 依赖已审定剩余UI分区、共享source/格式守门及Forge/缺源/隐藏caption/插件caption补充。
+ * [OUTPUT]: 锁定五分区与全registry；保护B-6实测范围及原译值。
  * [POS]: tools剩余UI测试后半合同；不读取私账、不调用App、不批准或代表live。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -11,6 +11,7 @@ const { test } = require('node:test');
 const { LOCALES, hash, assertAdditionalPartition, assertFiniteRepairs } = require('./native_remaining_ui_contract');
 const { APPROVED_MODULES, approvedEntries } = require('../languages/native/approved_modules');
 const TARGET = require('./cavalry_native_target.json');
+const { BACKGROUND_RENDERING_GAP_COUNT } = require('./native_schema_gap_sources');
 const { NODE_A_FIFTH_REPAIRS, NODE_B_FIFTH_REPAIRS, NODE_B_SIXTH_REPAIRS, NODE_A_SIXTH_REPAIRS, NODE_B_FOURTH_REPAIRS } = require('./native_remaining_ui_final_repair_cases');
 
 const NODE_A_FIFTH = Object.freeze({
@@ -356,8 +357,14 @@ test('Node B05 pins all 52 source-bound repairs and rejects every original-text 
   }
 });
 
-test('Node B05 keeps full GIF choices and separates numeric decay from physical-body wording', () => {
+test('Node B05 keeps GIF/decay semantics and records bounded Destination Over evidence', () => {
   const { entries, provenance } = nodeB05();
+  assert.equal(provenance.sourcePartitionSha256,
+    'b79b2b3fa2ded5f71bb1b385166538db9e71fbfe63c9e02b316e24368843b3b7');
+  assert.equal(provenance.candidateSha256,
+    '1de637383d947b33bc9dbabbb46a5156ef2535e8904cb30b619f12fd8f262b3f');
+  assert.equal(provenance.approvalReceiptSha256,
+    '014fe8be78f5442a3acfab2368e2b406418fc8bf989795a82923b45513c91f15');
   const byKey = new Map(entries.map(row => [row.key, row]));
   const row = key => byKey.get(key);
   const text = (key, locale) => row(key).translations[locale].text;
@@ -369,7 +376,7 @@ test('Node B05 keeps full GIF choices and separates numeric decay from physical-
   assert.equal(provenance.rootRevision.additionalClassificationSha256,
     'fa3972a3e29c034fc0b9a16bf0bb6bb42bdefc42c28d20cb54587c9158f5029a');
   assert.equal(provenance.unresolvedFindingKeys, 0);
-  assert.equal(provenance.unresolvedSourceBehaviorIssues, 1);
+  assert.equal(provenance.unresolvedSourceBehaviorIssues, 0);
 
   const gif = row('attrInfo:renderGIF.paletteSource');
   assert.equal(gif.source.split('\n').length, 3);
@@ -405,24 +412,40 @@ test('Node B05 keeps full GIF choices and separates numeric decay from physical-
   assert.deepEqual(LOCALES.map(locale => text('nodeAttrEnum:shader.colorFilter.2', locale)),
     ['sRGB 到线性', 'sRGB 到線性', 'sRGB からリニア']);
 
-  // Destination Over 的源行为解释仍待产品界面核实；这里不以标签测试冒充合成算法证据。
-  assert.equal(row('nodeAttrEnum:shader.blendMode.4').source, 'Destination Over');
+  // -- B-6只闭合不透明单Fill方向；此合同不推广合成算法或运行时消费 ------------
+  const destinationOver = row('nodeAttrEnum:shader.blendMode.4');
+  assert.equal(destinationOver.source, 'Destination Over');
+  assert.deepEqual(destinationOver.notes, [
+    '"Destination" refers to the layer beneath this one; "Over" means this layer is drawn on top of it.',
+  ]);
+  assert.equal(destinationOver.vendorJapanese, 'Destination Over');
+  assert.deepEqual(destinationOver.translations, {
+    'zh-Hans': { decision: 'translate', text: '目标之上' },
+    'zh-Hant': { decision: 'translate', text: '目標之上' },
+    ja_JP: { decision: 'translate', text: 'デスト上' },
+  });
   const [destinationOverIssue] = provenance.sourceBehaviorIssues;
   assert.equal(destinationOverIssue.key, 'nodeAttrEnum:shader.blendMode.4');
-  assert.equal(destinationOverIssue.status, 'unresolved-source-behavior-issue');
+  assert.equal(destinationOverIssue.status, 'measured-note-direction-conflict');
+  assert.equal(destinationOverIssue.source, 'Destination Over');
+  assert.deepEqual(destinationOverIssue.notes, destinationOver.notes);
   assert.equal(destinationOverIssue.captionOnlyApproval, true);
-  assert.equal(destinationOverIssue.liveBehaviorVerified, false);
+  assert.equal(destinationOverIssue.liveBehaviorVerified, true);
+  assert.equal(destinationOverIssue.liveBehaviorScope,
+    'B-6: opaque single-Fill only; Normal rendered red; Destination Over rendered blue; only blendMode changed.');
   assert.equal(destinationOverIssue.sourceOrNotesModified, false);
+  assert.match(destinationOverIssue.problem, /原厂note.*B-6不透明单Fill.*颜色方向.*相反/);
+  assert.match(destinationOverIssue.nextEvidence, /透明Alpha、多层\/多Fill.*运行时消费者未验证/);
 });
 
 test('approved native UI registry keeps 17 official catalogs distinct from Forge and schema-gap source domains', () => {
   const rows = approvedEntries();
   const uniqueKeys = new Set(rows.map(row => row.key));
   // -- 总域扩大只来自显式schema补充；官方批准域/DNT不变，源分母固定且World Scale单键caption另审 ------
-  assert.equal(uniqueKeys.size, 10651);
-  assert.equal(rows.length, 10651);
-  assert.equal(APPROVED_MODULES.length, 80);
-  assert.equal(new Set(APPROVED_MODULES).size, 80);
+  assert.equal(uniqueKeys.size, 10653);
+  assert.equal(rows.length, 10653);
+  assert.equal(APPROVED_MODULES.length, 81);
+  assert.equal(new Set(APPROVED_MODULES).size, 81);
 
   assert.equal(TARGET.nativeKeys, 10473);
   assert.equal(TARGET.supplementalKeys, 373);
@@ -431,9 +454,14 @@ test('approved native UI registry keeps 17 official catalogs distinct from Forge
   assert.equal(targetCatalogIds.size, 17);
   const forge = rows.filter(row => row.catalogId === 'Definitions/nodeDefinitions.json#prettifyAttrPath');
   const gaps = rows.filter(row => row.catalogId === 'schemaSupplement/nodeAttributes');
+  const pluginCaptions = rows.filter(row => row.catalogId
+    === 'pluginCaptionSupplement/Plugins/Directional Blur Filter/definitions.json');
   assert.equal(forge.length, 8);
-  assert.equal(gaps.length, 365);
-  const supplements = [...forge, ...gaps];
+  assert.equal(gaps.length, 366);
+  assert.equal(gaps.filter(row => row.key === 'nodeAttr:dynamicIndexManager.backgroundRendering').length, 1);
+  assert.equal(BACKGROUND_RENDERING_GAP_COUNT, 1);
+  assert.equal(pluginCaptions.length, 1);
+  const supplements = [...forge, ...gaps, ...pluginCaptions];
   assert.equal(rows.length - supplements.length, 10278);
   const explicitCatalogRows = rows.filter(row => Object.hasOwn(row, 'catalogId') && !supplements.includes(row));
   const compactRows = rows.filter(row => !Object.hasOwn(row, 'catalogId'))
@@ -444,8 +472,9 @@ test('approved native UI registry keeps 17 official catalogs distinct from Forge
   const registeredCatalogIds = new Set(explicitCatalogRows.map(row => row.catalogId));
   for (const catalogId of registeredCatalogIds) assert.ok(targetCatalogIds.has(catalogId), catalogId);
   assert.deepEqual([...registeredCatalogIds].sort(), [...targetCatalogIds].sort());
-  assert.equal(TARGET.nativeKeys + TARGET.supplementalKeys - uniqueKeys.size, 195,
-    '195 automatic-DNT keys stay fixed after the caption-only source gap closes');
+  assert.equal(TARGET.nativeKeys + TARGET.supplementalKeys + pluginCaptions.length
+    + BACKGROUND_RENDERING_GAP_COUNT - uniqueKeys.size, 195,
+  '195 automatic-DNT keys stay fixed after the independent captions join the resource manifest');
 
   const expectedLocales = [...LOCALES].sort();
   for (const row of rows) {

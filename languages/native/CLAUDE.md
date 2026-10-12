@@ -3,9 +3,9 @@
 
 成员清单
 schema_attribute_gap_a.js: 构建期缺源A183 caption/549槽，固定Core标签与schema身份；全域独审及14槽有限修订经root批准，只补显示字典、不证明原厂实际消费。
-schema_attribute_gap_b.js: 构建期缺源B182 caption/546槽；初始181与6槽修订保留历史摘要，World Scale经同owner证据/独审/root单键caption追加，只译标签不补单位或效果，不代live。
+schema_attribute_gap_b.js: 构建期当前B183 caption/549槽；保留原182键与World Scale摘要，另加隐藏Background Rendering caption；不增加UI或行为声明。
 forge_attribute_supplement.js: 构建期八个Forge schema回退标签的24槽源绑定审批；五项同owner旧译/三项独立语境核对，源在producer与nodeDefinitions/Core锁闭合，非官方catalog、不改模型、不代验实际消费。
-remaining_node_ui_b_05.js: 构建期最后442节点键，52文字槽29键经1326槽全域非作者与87差分/6上下文准入，24错误28建议；数值衰减/替换文本/二维值/sRGB分流，DestOver只批caption、源行为1未决，不代live。
+remaining_node_ui_b_05.js: 构建期最后442节点键，52文字槽29键经1326槽全域非作者与87差分/6上下文准入，24错误28建议；数值衰减/替换文本/二维值/sRGB分流；B-6确认不透明单Fill的DestOver方向与原厂note相反，不外推其他Alpha、多层或运行时消费。
 remaining_node_ui_b_04.js: 构建期完整449节点键，58文字槽34键经1347槽全域非作者与102槽独审准入，41错误17建议；台湾筆畫/中文投影合法保留、日文突出線端、反馈/名义数据/关节角色分流，不代live。
 remaining_node_ui_a_06.js: 构建期完整402节点键，全1206槽非作者首审、root82文字47键36错误46建议和141独审准入；台湾表格欄/列、每N步幅、句内Shift+Return及补零/数值维度分流，3明度keep独立分记，不代live。
 remaining_node_ui_b_06.js: 构建期完整328键，一份全984槽非作者首审和40文字26键/78槽独审后准入，28错误12建议；root31保留Stroke筆畫合法分类与旧SHA，字形/文本行/几何线段/维度/XOR/Body泛称分流，不证明live。
@@ -37,7 +37,7 @@ plugins_light_sweep.js: 构建期完整catalog源绑定审批，26个canonical�
 plugins_polar_coordinates.js: 构建期完整catalog源绑定审批，18个canonical显示键；厂商日语默认优先、纠错只依独立登记、DNT不改，Luna Max双全域审读与主代理修订审批后经显式producer装配，不证明模型改写、部署或live。
 plugins_ripple.js: 构建期完整catalog源绑定审批，32个canonical显示键；厂商日语默认优先、纠错只依独立登记、DNT不改，Luna Max双全域审读与主代理修订审批后经显式producer装配，不证明模型改写、部署或live。
 plugins_spherise.js: 构建期完整catalog源绑定审批，45个canonical显示键；厂商日语默认优先、纠错只依独立登记、DNT不改，Luna Max双全域审读与主代理修订审批后经显式producer装配，不证明模型改写、部署或live。
-plugins_twist.js: 构建期完整catalog源绑定审批，13个canonical显示键；厂商日语默认优先、纠错只依独立登记、DNT不改，Luna Max双全域审读与主代理修订审批后经显式producer装配，不证明模型改写、部署或live。
+plugins_twist.js: 构建期完整catalog源绑定审批，13个canonical显示键；单键名称修订仅将Twist简体扭曲改为扭转、繁体改为扭轉，保留JA及历史摘要/时间，独立绑定root批准和审查；不证明部署或live。
 plugins_zoom_blur.js: 构建期完整catalog源绑定审批，8个canonical显示键；厂商日语默认优先、纠错只依独立登记、DNT不改，Luna Max双全域审读与主代理修订审批后经显式producer装配，不证明模型改写、部署或live。
 nodes_mesh_distribution.js: 构建期源绑定审批，meshDistribution完整26键；Fill All为全部使用且忽略Count，层级/逐点缩放与空子网格保持源义，Luna Max出稿、双全域审校及root修订后只投影显示。
 nodes_mesh_shape.js: 构建期源绑定审批，meshShape完整26键；细分数不混整体尺寸，Offset/Bind沿官方显示源而非内部key猜义，保留顶点与模型身份。
@@ -61,7 +61,8 @@ nodes_count_sub_meshes.js: 构建期源绑定审批，Count Sub Meshes完整10�
 nodes_material_behaviour_hsv.js: 构建期源绑定审批，HSV Material Behaviour完整5叶；保持HSV分量与行为用途，仅提供三语显示输入。 Grok基稿额度中止后由Luna Max修订/独立全域复核、主代理审定；AGY追加审稿不充当已通过门。
 nodes_stroke_material.js: 构建期源绑定审批，Stroke Material完整54叶；通用宽度渐变可变窄/变宽，双端渐细单独限定，Travel为沿路径移动，Alpha保留。 Grok基稿额度中止后由Luna Max修订/独立全域复核、主代理审定；AGY追加审稿不充当已通过门。
 nodes_sub_mesh.js: 构建期源绑定审批，Sub Mesh完整68叶；Stagger引用同已审节点，仅未设置填充/描边时替换保持材质限定，不改变子网格操作。 Grok基稿额度中止后由Luna Max修订/独立全域复核、主代理审定；AGY追加审稿不充当已通过门。
-approved_modules.js: 显式UI审批装配表；生成层只读取已审80个UI模块共10651键（官方10278/Forge8/缺源365），不自动扫描目录或混入独立帮助/临时草稿。
+approved_modules.js: 显式UI审批装配表；生成层读取81个已审模块共10653键（官方10278/Forge8/缺源365+隐藏caption1/插件caption1），不自动扫描目录或混入帮助草稿。
+plugin_caption_supplement.js: 构建期独立插件caption审批；锁directionalBlurFilter.amount的Amount source，复用已批准Blur Amount三语词，不提供单位/帮助/行为结论，不代验实机消费。
 nodes_align_distortion_glow.js: 构建期源绑定数据，Align6/Distortion47/Glow47完整100叶由AGY完整稿、Grok全300值与Luna独立语境核对后主代理修订；保持正负对齐方向、HSV明度/边距、Alpha命名与日语Porter-Duff操作、半径/强度和预览透明度区别，不写模型或算法。
 nodes_array_distribution.js: 构建期源绑定数据，Array完整4叶经AGY/宝玉Skill、Grok全12值与Luna独立审校后主代理审定；手工(X, Y)坐标列表长度决定副本数量，index保持序列含义、Array保持数据列表而非网格，不写模型身份。
 nodes_slit_scan.js: 构建期源绑定数据，Slit Scan完整48叶经AGY/宝玉Skill、Grok全144值与Luna全域核对后主代理审定；基础/辉光共享17种模式保留独立枚举键及base-only Replace，镜像扫描不猜循环算法，Glow大小不改为冲突文档中的强度，不写模型或运行行为。
@@ -81,7 +82,7 @@ menus_view_window.js: 构建期源绑定数据，View 33 与 Window 38 条完整
 menus_comp_animation.js: 构建期源绑定数据，Animation 49 与 Composition 53 条完整菜单经 AGY 3.8 Flash 执行模式/宝玉 Skill 修订、Grok 与 Luna 核对、主代理审定；不把旧候选或离线合同作实机完成证明。
 menus_file_edit_create_help.js: 构建期源绑定数据，File/Edit/Create/Help 四个完整菜单域共 84 条经 AGY/宝玉 Skill 修订、Grok 核对和主代理审定；保留 ICU、助记键与导出用途，非实机布局证明。
 metadata_reuse_manifest.js: 构建期显式审批，478 条旧说明以稳定键、当前源摘要和三语译值摘要绑定；477 同键同源加 1 条 replaceAsset 跨文件迁移，不复制旧参数或冗余译文。
-metadata_supplement.js: 构建期源绑定数据，四份脚本 MetaData 的 34 条新说明只改 description；帮助复用器与 Cavalry 2.8 候选生成器读取它，不注册运行时 UI。
+metadata_supplement.js: 构建期源绑定数据，四份脚本 MetaData 的 34 条新说明仅改 description；调色板枚举顿号后保留ASCII空格以供QLabel自然断词，代码模板、参数和签名不变。
 ai_studio_reuse_and_credits.js: 构建期源绑定数据，审校复用 AI 工作室剩余 26 条并补齐 AI 用量 19 条；AGY 修复超过阈值、重置时长/日期，Grok 审稿后由主代理裁定。
 canva_and_assets.js: 构建期源绑定数据，完整覆盖预检 44 条、上传 7 条与素材 20 条，保留原生 ICU 分支、导出能力和修复方向，审稿不等于实机通过。
 ai_studio_supplement.js: 构建期源绑定数据，103 条 AI 工作室完整缺口域由宝玉 Skill 驱动 AGY 出稿修订、Grok 审稿、主代理润色；只提供显示译值，不作运行时或布局证明。
@@ -89,7 +90,7 @@ reviewed_translations.js: CommonJS构建期数据；保留九条AI Studio source
 
 依赖边界:
 本轮质量状态: 原4319键/63模块、12957槽全域非作者复审与62键88槽修订冻结；13厂商日语核证纠错/377原样。完整剩余分区已准入18/18（含冻结前4分区），冻结后新增5959键/14分区；当前77模块/10278正式键（100.0%），余0；全部六全局2596键正式。主/尾58、native/Skill380、源14实际全过/0fail/0skip；内存三语各10473投影（10278+195自动DNT），missing0、complete:true。全部18剩余分区准入，另显式全量15合同实际全过；DestinationOver有1个厂商源行为冲突仍待隔离实机验证，不等于译值缺口。历史回执不重写，该键冻结验收不含部署/live；维护者随后授权本机真实UI测试，需另记现场证据。
-当前接线状态（2026-10-06续接）：官方77模块/10278键、Forge8与缺源A183+B182共365 caption显式准入，合计80模块/10651审批；官方10473+补充373=10846 source，三语derived各10846输出/missing0/complete:true。World Scale仅三语caption经同owner静态因子证据和非作者窄审批准，旧364键/三语摘要及全部旧包字节投影不变；单位/视觉效果未证，用户实际profile仍前轮partial包，未自动升级。source/producer完整不抵扣live，模型身份不写，512帮助consumer另账。
+当前接线状态（2026-10-10）：target保持官方10473与schema补充373。资源producer在target外计隐藏Background Rendering caption1和Directional Blur caption1，合计10848键/375补充。审批共81模块/10653键：官方10278、Forge8、缺源固定365+隐藏caption1、插件caption1。target与baseline原字节不变。Background Rendering仅有caption审批，属性隐藏，无UI或行为消费声明。其余插件显示与实机边界见当前验收记录。
 此目录与父级四语 2.7.2 overlay 资产分开：数据供生成层消费，不直接复制到用户 Plugins，不将审稿元数据写入 registry。UI 译文经 `tools/native_language_pack.js` 的源绑定和厂商日语优先选择后投影单语言 `strings.json`；脚本说明经 `tools/native_metadata_help.js` 只修改当前源 description，不能写进 UI registry 或套 ICU 门。UI 数据经显式 `tools/native_resource_bundle.js` 接入未发布的 macOS debug 开发预览；独立脚本帮助尚未部署。dontTranslate 是强身份边界；仅可译键由厂商实译日语优先选择，旧候选或新补译不得覆盖该厂商译值，唯有维护者授权后逐键核证、独审、root批准并精确命中独立纠错登记的显示决定可以例外。通常由 AGY 沿项目级宝玉 Skill 出稿、Grok 独立检查、主代理裁定；维护者授权的 CLI 额度回退仍须完整源绑定、独立全域审校与主代理审批，provenance 分别记录真实出稿/修订/审校来源和未完成终态，待收追加审稿不能充当通过门。构建和测试不需要这些 CLI、Skill 或私有过程文件。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

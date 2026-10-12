@@ -2,30 +2,32 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+native_plugin_caption_supplement.test.js: 合成验证Directional Blur身份与schema、raw SHA拒绝门、单键三语producer投影和missing；不嵌入厂商definition字节，真实raw正例由assets-root验收，不代验实机消费。
+native_plugin_caption_supplement.js: 构建期SHA锁Directional Blur definitions原始字节；只输出amount一条source row并校验owner/schema/Inspector顺序及官方键碰撞，不读取target sourceFiles、不进入运行时。
 native-display-tests/: 项目显示技能的四份标准库离线维护测试；依赖技能脚本与场景，不运行App，不自动加入test:contracts。
-native_schema_gap_translations.test.js: 离线源绑定准入合同；守365键/1095槽与旧364冻结摘要；World Scale单键source/decision/独审绑定，真实producer完整与仅撤销该批准时missing1分开守门；不读App或私账。
+native_schema_gap_translations.test.js: 离线源绑定合同；保留365固定行和旧364摘要，验证隐藏Background Rendering独立caption；合成producer完整与单键撤批missing分开守门；不读App或私账。
 native_remaining_ui_contract.js: 纯测试共享分区摘要、格式与三语producer守门；单键回退供历史摘要重放。不读私账/App，不进入产品运行时。
 native_remaining_ui_final_repair_cases.js: 构建期剩余UI后半分区纯静态回退数据，Global06的112文字槽/6物理键决定、Node A04/A05/A06与B04/B05/B06分别绑定77/98/82/58/52/40个冻结源身份及旧值；不依赖私账，不以数据生成代验批准。
 native_remaining_ui_repair_cases.js: 构建期纯静态有限真实修订回退样本，A02/A03/B01/B02/B03/Global04/Global05精确source身份与old/new逐槽共址；测试逻辑不依赖私账，拆分防止多批合同单文件膨胀。
-native_graphics_reaudit.test.js: Node本轮88槽/62键有限图形/动效修订及13纠错/377厂商原样闭合合同，逐槽保留真实旧译反例及冻结源身份，真实显示投影无metadata；不读私账，不冒称通用NLP或live。
+native_graphics_reaudit.test.js: Node本轮88槽/62键有限图形修订、13纠错/377厂商原样及Twist单键译名revision合同；负例锁来源/批准/其他12键，三语真实投影无metadata；不读私账或冒称live。
 native_remaining_ui_translations.test.js: Node剩余UI入库主合同；锁十三分区、三语producer及有限旧值回退，继续验证空场景/JS Snippet单键历史摘要；类别提示合同独立文件，不读私账或代表live。
 native_messagebar_no_further_revision.test.js: Node单键尾字节合同；核三语真实producer、严格UTF-8反例与原摘要回退。不运行App，不证明live。
 native_empty_region_prompt_punctuation.test.js: Node离线空区域提示类别合同；有限锁38个appStrings键/源/三语文字，复算真实native pack producer与六模块旧/新决定摘要；旧值回退只复现历史，不做运行时裁剪或live证明。
-native_remaining_ui_tail_translations.test.js: Node剩余UI后半合同，A05/A06/B04/B05/B06完整414/402/449/442/328键分区摘要和98/82/58/52/40个源身份绑定旧值回退；保护ProRes/Fade/Fill/身份、Stroke/Glyph/文本行与几何Lines/二维三维/XOR/Voronoi Levels/Body、台湾表格轴/Shift+Return/补零/Oklab、端帽/Tangent/Pin/Feedback/Nominal及GIF/物理衰减语义，并闭合77官方模块/10278官方UI键+Forge1模块/8键+缺源2模块/365键=80模块/10651总审定键、17个official target catalog与1421键稳定compact UI切片；与主合同拆分守住单文件规模，正式模块缺失时保持RED，不读取stage或私账、不批准、不代表live。
-native_guide_plugin_translations.test.js: Node的15完整Guide/Plugin catalog、396键/1188决定合同；用共享official-target投影维持历史批准b6摘要，现行三语摘要分开锁定；390厂商来源JA中13纠错/377原样、6DNT与真实producer闭合，不代验live。
+native_remaining_ui_tail_translations.test.js: Node剩余UI后半合同；保留A05/A06/B04/B05/B06完整摘要及历史源回退；闭合77官方模块/10278键、Forge8、缺源365固定行+隐藏caption1、插件caption1，共81模块/10653键；target补充373不变，资源补充375，DNT仍195；不读取stage或私账、不代表live。
+native_guide_plugin_translations.test.js: Node的15完整Guide/Plugin catalog、396键/1188决定合同；历史批准摘要保持原值，现行三语摘要含Twist单键修订；锁390厂商来源JA中13纠错/377原样、6DNT与真实producer，不代验live。
 native_mesh_family_translations.test.js: 官方catalogId+owner双身份选择，不把同owner schema补键反写旧批准分母；Node的六完整mesh-family owner/152键默认源绑定批准合同；锁456决定与真实源身份，完整基线后15旧译回退及21单槽有限语义反例，显示投影不写模型，不依赖stage或live。 合成source fixture保留官方DNT，避免新源绑定门将漏metadata误报为批准漂移。
 native_mesh_family_semantic_contract.js: 构建期有限语义合同；源notes绑定Fill All/Count、网格细分与顶点标签、Capture/Flow、剔除与松弛、SkSL边界和当前caption，区分Catmull DNT与Mitchell技术保留，不实现通用NLP。
 native_six_owner_translations.test.js: 官方catalogId+owner双身份选择，不把同owner schema补键反写旧批准分母；Node的六完整owner/200键默认审批合同；共享official-target投影仍锁冻结b6官方身份，锁600决定/源/notes/角色/DNT/审批登记，正向基线后36摘要破坏与63单槽反例；合成源同步DNT身份，不代验live。
 native_six_owner_semantic_contract.js: 纯测试有限语义合同；引用现行Kerning/Character Spacing/Camera及本域label，约束Falloff概率/视口与计算、父路径垂线/帧模式/圆弧阈值、统计Nominal/柱高、四角入出与Bayer/2.5D保留；不是通用NLP，不参与产品运行时。
 native_ten_owner_translations.test.js: 官方catalogId+owner双身份选择，不把同owner schema补键反写旧批准分母；Node的十完整owner/201键合同；共享official-target投影保留冻结b6源身份，603现行源绑定决定与历史批准摘要分开锁定；全201基线后30摘要变异及58有限反例/39旧译回退，只投影display、不依赖私账或通用NLP。
 native_ten_owner_semantic_contract.js: 纯测试合同；以既有Auto Animate显示词约束Stagger引用，按source-notes绑定通用宽度渐变、沿路径移动与仅未设置材质时替换的已审caption，双端渐细独立守边界；共享正向guard与单槽真实旧译反例，改译须重新审定，不进入产品运行时。
-native_resource_bundle.js: 审批/producer/lock及独立纠错登记输入摘要与陈旧拒绝；locale精确schema禁止覆盖key/source，批准DNT缺省规范为false并必须等于源；从官方assets根及17对摘要锁装配三语预览，并按源域验证Forge8+缺源365共373固定补充源，完整官方集合先于schema adapter；manifest保留总nativeKeys并分报supplementalKeys，CLI另显示官方catalog数，缺译如实保留。
+native_resource_bundle.js: 构建期source绑定装配器；验证target中的Forge8+固定缺源365及独立隐藏gap1、插件caption1；target补充373和baseline原字节不变，当前资源manifest为10848键/375补充；运行时不扫描插件。
 native_resource_bundle.test.js: 合成catalog工件合同；锁定身份/notes/格式/厂商默认优先及独立登记、自报metadata拒绝、locale身份覆盖、vendor计数与typed manifest；另验证固定8补充源的计数、碰撞/漂移拒绝和未批缺键，不能代替语义批准或live。
 native_schema_supplement.js: 2.8 nodeDefinitions原始SHA、Forge owner父链、八字段完整schema及Inspector顺序的source-only投影；固定catalogId/source notes与dontTranslate=false、补充target字段及官方键碰撞门，不生成locale译文、不扩展任意ID。
 native_schema_supplement.test.js: 合成nodeDefinitions边界合同；验证8个owner/ID/fallback source及显式DNT=false、父链/schema/UI顺序/重复身份/官方碰撞和原始字节摘要拒绝，不依赖安装、App或profile。
-native_schema_gap_sources.js: SHA锁定的2.8 nodeDefinitions原始字节adapter；固定365条`schemaSupplement/nodeAttributes` resource-bundle源行并校验唯一vendor nodeType（允许数字开头）、父链/schema/递归Inspector声明、官方与Forge键碰撞和全部row身份；官方/Forge集合完整性由调用方证明，由producer显式调用、不自行装配审批或运行时。
-native_schema_gap_sources.test.js: 固定365 tuple及resource-bundle元数据投影合同；合成根/继承/list/compound定义和伪造entry覆盖SHA先行、数字开头owner、缺失证据、完整行/重复、官方/Forge碰撞及metadata漂移，不证明live/审批。
-native_official_target.js: 对target官方字段做精确canonical JSON投影，唯一排除新增supplementalKeys/sourceFiles；旧b6c6摘要保持不变，非官方字段值由独立补充门验证。
+native_schema_gap_sources.js: SHA锁定的2.8 nodeDefinitions adapter；历史365源行摘要不变，额外输出隐藏Background Rendering行，当前投影366；固定行继续校验父链/schema/Inspector顺序，隐藏字段另校验hide=true、无UI自有字段、bool/default及碰撞；不装配审批或运行时。
+native_schema_gap_sources.test.js: 固定365 tuple摘要与当前366源行投影合同；合成根/继承/list/compound及隐藏bool定义，覆盖schema漂移、hide/UI漂移、官方/Forge碰撞与metadata拒绝；不证明live/审批。
+native_official_target.js: 精确投影target官方字段；target仍锁Forge8+固定缺源365=373，隐藏Background Rendering与插件caption均在target外独立计数，不改变baseline摘要。
 native_official_target.test.js: source/provenance共用target合同；冻结官方摘要正例，验证runtime/catalog/native count/安装身份变异失败，并证明补充count/path/hash单独失败且未知字段不被忽略。
 native_user_scope_copy.test.js: 四语 userProfile copy与badge状态投影合同；锁定开发预览/共享profile文案、unset+en的English (default)及当前语言ARIA、显式/Unknown/legacy分流和默认语言不授予hostless Restore；读取user-profile-text→ui-text组合，不代替浏览器布局或现场可见性验收。
 cavalry_native_target.json: 2.8 main/Api/Core/QtCore/17对official catalog身份锁，hash非profile路径证明；macOS2.8开发预览源锁绑定Qt6.9.2、官方主程序、10473官方叶/390厂商日语，另独立锁373个schema补充源（Forge8+缺源365、后者365已审caption，单键World Scale只审标签不冒实屏）及nodeDefinitions路径/SHA；现行2.7.2发布目标不变。

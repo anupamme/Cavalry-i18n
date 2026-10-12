@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖固定365组(owner, attributeId, fallback)源行、target锁摘要常量、显式官方/Forge键集及合成定义树。
- * [OUTPUT]: 锁定source row投影身份，验证SHA先行、定义树、全量365 entry和metadata/碰撞拒绝。
- * [POS]: source-only候选边界合同；不批准候选、不读私有stage/vendor/App/profile，也不接入资源producer。
+ * [INPUT]: 依赖固定365组与独立隐藏字段源行、target锁摘要及合成定义树。
+ * [OUTPUT]: 保留365元组摘要，并验证当前366行投影和隐藏bool schema拒绝条件。
+ * [POS]: source-only adapter合同；锁定hide=true且无UI自有字段，不批准候选或现场消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -17,9 +17,15 @@ const {
   CORE_FALLBACK_SHA256,
   GAP_CATALOG_ID,
   FIXED_GAP_SOURCE_ROWS,
+  FIXED_GAP_COUNT,
+  BACKGROUND_RENDERING_GAP_COUNT,
+  CURRENT_GAP_COUNT,
+  BACKGROUND_RENDERING_GAP_SOURCE_ROW,
+  CURRENT_GAP_SOURCE_ROWS,
   sourceEntries,
   validateGapEntries,
   validateGapDefinitions,
+  validateBackgroundRenderingDefinition,
 } = require('./native_schema_gap_sources');
 
 const SOURCE_ROWS_SHA256 = 'd2f66a17f1a1fb9eddb26c0d8547088faa8fd99aebc7bd474d97246250f85f8f';
@@ -93,6 +99,23 @@ function expectedGapRows() {
     dontTranslate: false,
     notes: ['Cavalry 2.8 nodeDefinitions declares this Inspector attribute; English label is the verified Core fallback.'],
   }));
+}
+
+function expectedCurrentGapRows() {
+  return [...expectedGapRows(), BACKGROUND_RENDERING_GAP_SOURCE_ROW];
+}
+
+function backgroundRenderingDefinitions() {
+  return [
+    { nodeType: 'element', attributes: {} },
+    {
+      nodeType: 'dynamicIndexManager', superType: 'element',
+      attributes: { backgroundRendering: {
+        type: 'bool', default: false, connectable: false, keyable: false, lockable: false,
+      } },
+      hide: true,
+    },
+  ];
 }
 
 function cloneGapRows(rows) {
@@ -267,29 +290,76 @@ test('fixed 365 source rows use the exact resource-bundle projection contract', 
   assert.ok(FIXED_GAP_SOURCE_ROWS.every(row => row.vendorJapanese === null && row.dontTranslate === false));
 });
 
+test('Background Rendering is one independent hidden source row, not part of the frozen 365', () => {
+  assert.equal(FIXED_GAP_COUNT, 365);
+  assert.equal(BACKGROUND_RENDERING_GAP_COUNT, 1);
+  assert.equal(CURRENT_GAP_COUNT, 366);
+  assert.equal(FIXED_GAP_SOURCE_ROWS.length, 365);
+  assert.equal(CURRENT_GAP_SOURCE_ROWS.length, 366);
+  assert.equal(validateBackgroundRenderingDefinition(backgroundRenderingDefinitions(), []),
+    BACKGROUND_RENDERING_GAP_SOURCE_ROW);
+  assert.deepEqual(BACKGROUND_RENDERING_GAP_SOURCE_ROW, {
+    key: 'nodeAttr:dynamicIndexManager.backgroundRendering',
+    catalogId: 'schemaSupplement/nodeAttributes',
+    owner: 'dynamicIndexManager',
+    fieldPath: ['attributes', 'backgroundRendering', 'name'],
+    source: 'Background Rendering',
+    vendorJapanese: null,
+    dontTranslate: false,
+    notes: ['Cavalry 2.8 nodeDefinitions declares this hidden boolean attribute with default false; the verified Core fallback is Background Rendering.'],
+  });
+});
+
+test('Background Rendering rejects schema, hide/UI-field drift, and official collision', () => {
+  const mutations = [
+    definitions => { definitions[1].attributes.backgroundRendering.type = 'double'; },
+    definitions => { definitions[1].attributes.backgroundRendering.default = true; },
+    definitions => { definitions[1].attributes.backgroundRendering.connectable = true; },
+    definitions => { definitions[1].attributes.backgroundRendering.keyable = true; },
+    definitions => { definitions[1].attributes.backgroundRendering.lockable = true; },
+    definitions => { definitions[1].hide = false; },
+    definitions => { definitions[1].UI = null; },
+    definitions => { definitions[1].UI = { attributeOrder: ['backgroundRendering'] }; },
+    definitions => { definitions[1].superType = 'missingParent'; },
+  ];
+  for (const mutate of mutations) {
+    const definitions = backgroundRenderingDefinitions();
+    mutate(definitions);
+    assert.throws(() => validateBackgroundRenderingDefinition(definitions, []));
+  }
+  assert.throws(() => validateBackgroundRenderingDefinition(backgroundRenderingDefinitions(), [
+    { key: 'nodeAttr:dynamicIndexManager.backgroundRendering' },
+  ]), /official.*collision/i);
+  assert.throws(() => validateBackgroundRenderingDefinition(backgroundRenderingDefinitions(), [
+    { key: 'nodeAttr:element.backgroundRendering' },
+  ]), /official.*parent.*collision/i);
+});
+
 test('raw source adapter checks exact bytes digest before JSON parsing', () => {
   assert.throws(() => sourceEntries('[]', []), /raw bytes/i);
   assert.throws(() => sourceEntries(Buffer.from('{ malformed json'), []), /SHA-256 differs/i);
   assert.throws(() => sourceEntries(new Uint8Array([0x7b, 0x7d]), []), /SHA-256 differs/i);
 });
 
-test('gap-entry gate accepts all fixed rows after synthetic source/schema validation', () => {
+test('gap-entry gate accepts current rows while preserving the fixed 365-row source table', () => {
   const definitions = syntheticDefinitions();
   assert.strictEqual(validateGapDefinitions(definitions, []), FIXED_GAP_LABELS);
-  const rows = expectedGapRows();
+  assert.equal(validateBackgroundRenderingDefinition(backgroundRenderingDefinitions(), []),
+    BACKGROUND_RENDERING_GAP_SOURCE_ROW);
+  const rows = expectedCurrentGapRows();
   const { FIXED_SOURCE_ROWS } = require('./native_schema_supplement');
   const validated = validateGapEntries(rows, [], { existingSupplementEntries: FIXED_SOURCE_ROWS });
   assert.deepEqual(validated, rows);
   assert.notStrictEqual(validated, rows);
   assert.notStrictEqual(validated[0].fieldPath, rows[0].fieldPath);
-  assert.equal(validated.length, 365);
+  assert.equal(validated.length, 366);
 });
 
-test('gap-entry gate requires all 365 rows and rejects duplicate keys', () => {
-  const rows = expectedGapRows();
+test('gap-entry gate requires all 366 current rows and rejects duplicate keys', () => {
+  const rows = expectedCurrentGapRows();
   const { FIXED_SOURCE_ROWS } = require('./native_schema_supplement');
   const options = { existingSupplementEntries: FIXED_SOURCE_ROWS };
-  assert.throws(() => validateGapEntries(rows.slice(0, -1), [], options), /exactly 365/i);
+  assert.throws(() => validateGapEntries(rows.slice(0, -1), [], options), /exactly 366/i);
 
   const duplicate = cloneGapRows(rows);
   duplicate[1] = structuredClone(duplicate[0]);
@@ -297,7 +367,7 @@ test('gap-entry gate requires all 365 rows and rejects duplicate keys', () => {
 });
 
 test('gap-entry gate rejects official and existing Forge collisions', () => {
-  const rows = expectedGapRows();
+  const rows = expectedCurrentGapRows();
   const { FIXED_SOURCE_ROWS } = require('./native_schema_supplement');
   assert.throws(() => validateGapEntries(rows, [{ key: rows[0].key }], {
     existingSupplementEntries: FIXED_SOURCE_ROWS,
@@ -310,7 +380,7 @@ test('gap-entry gate rejects official and existing Forge collisions', () => {
 });
 
 test('gap-entry gate rejects forged rows and metadata drift', () => {
-  const rows = expectedGapRows();
+  const rows = expectedCurrentGapRows();
   const { FIXED_SOURCE_ROWS } = require('./native_schema_supplement');
   const options = { existingSupplementEntries: FIXED_SOURCE_ROWS };
   const mutations = [
@@ -334,7 +404,7 @@ test('gap-entry gate rejects forged rows and metadata drift', () => {
 });
 
 test('gap-entry gate requires explicit complete evidence arguments', () => {
-  const rows = expectedGapRows();
+  const rows = expectedCurrentGapRows();
   const { FIXED_SOURCE_ROWS } = require('./native_schema_supplement');
   assert.throws(() => validateGapEntries(rows, undefined, {
     existingSupplementEntries: FIXED_SOURCE_ROWS,

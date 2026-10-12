@@ -1,9 +1,10 @@
 /**
- * [INPUT]: 绑定Cavalry 2.8 Plugins/Twist Filter完整官方显示源、独立键映射、双全域审查与主代理修订批准。
- * [OUTPUT]: 构建期提供13个源绑定显示键与三语决定；厂商日语默认优先，有限纠错须独立登记，不投影审稿元数据。
- * [POS]: languages/native的完整catalog审批输入，沿approved_modules显式装配；不改模型身份，不证明部署/live/发行。
+ * [INPUT]: 绑定Cavalry 2.8 Plugins/Twist Filter官方显示源、键映射、历史全域审查与单键修订批准。
+ * [OUTPUT]: 构建期提供13个源绑定显示键与三语决定；Twist名称修订仅覆盖zh-Hans/zh-Hant。
+ * [POS]: languages/native的完整catalog审批输入，显式装配；保留历史摘要/时间与JA，修订另绑源身份和批准证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  * 本轮图形语境有限修订经非作者验回/root审定；冻结源与历史批准仍保全。
+ * 单键名称修订不改变source/notes/owner/vendorJapanese或其他键；不证明部署/live/发行。
  */
 'use strict';
 
@@ -112,7 +113,7 @@ const entries = [
   {"catalogId":"Plugins/Twist Filter/Translation/strings","fieldPath":["enums","falloff","1"],"source":"Smooth","notes":["As in \"a smooth, eased curve\" that transitions gradually — not physically smooth to the touch, nor \"smooth\" describing a suave person."],"owner":"sceneGroup::twistFilter","key":"nodeAttrEnum:sceneGroup::twistFilter.falloff.1","vendorJapanese":"流ちょう","sourceRole":"ui-display","displayRole":"plugin-enum-label","dontTranslate":false,"vendorJapaneseChanged":true,"translations":{"zh-Hans":{"decision":"translate","text":"平滑"},"zh-Hant":{"decision":"translate","text":"平滑"},"ja_JP":{"decision":"translate","text":"スムーズ","vendorCorrection":{"approvedBy":"primary-agent","approvalState":"approved-source-bound-vendor-correction","sourceIdentitySha256":"3c29e70b503e91ac2778a637803f4139fc7ff7ba4537b4468754a2716e25a529","translationSha256":"c9c6156329a593ef64b31f001c916cc1efd76eaebf7d7d89934c7985e1102b21","vendorJapanese":"流ちょう","approvalReceiptSha256":"5c85772dbbe527736eb35487cd63f6c5f4a1d97fbe2a0de0fa23d06694e7abc6"}}}},
   {"catalogId":"Plugins/Twist Filter/Translation/strings","fieldPath":["enums","falloff","2"],"source":"Quadratic","notes":["\"Quadratic\" is a mathematical term meaning based on the square (second power) of a value, as in a quadratic equation or curve."],"owner":"sceneGroup::twistFilter","key":"nodeAttrEnum:sceneGroup::twistFilter.falloff.2","vendorJapanese":"二次","sourceRole":"ui-display","displayRole":"plugin-enum-label","dontTranslate":false,"vendorJapaneseChanged":true,"translations":{"zh-Hans":{"decision":"translate","text":"二次曲线"},"zh-Hant":{"decision":"translate","text":"二次曲線"},"ja_JP":{"decision":"translate","text":"二次"}}},
   {"catalogId":"Plugins/Twist Filter/Translation/strings","fieldPath":["layerInfo"],"source":"Rotate a Shape’s materials around a centre point.","notes":["\"Shape\" refers to the layer this filter is applied to."],"owner":"sceneGroup::twistFilter","key":"nodeInfo:sceneGroup::twistFilter","vendorJapanese":"シェイプの素材を、中心点を中心に回転させます。","sourceRole":"ui-display","displayRole":"plugin-info","dontTranslate":false,"vendorJapaneseChanged":true,"translations":{"zh-Hans":{"decision":"translate","text":"围绕中心点旋转形状图层的材质。"},"zh-Hant":{"decision":"translate","text":"圍繞中心點旋轉形狀圖層的材質。"},"ja_JP":{"decision":"translate","text":"シェイプの素材を、中心点を中心に回転させます。"}}},
-  {"catalogId":"Plugins/Twist Filter/Translation/strings","fieldPath":["niceName"],"source":"Twist","notes":["As in \"a twist distortion effect\" that spirals an image around a point — not a dance move, a plot twist, or the idiom \"twist someone’s arm.\""],"owner":"sceneGroup::twistFilter","key":"nodeName:sceneGroup::twistFilter","vendorJapanese":"ひねり","sourceRole":"ui-display","displayRole":"plugin-name","dontTranslate":false,"vendorJapaneseChanged":true,"translations":{"zh-Hans":{"decision":"translate","text":"扭曲"},"zh-Hant":{"decision":"translate","text":"扭曲"},"ja_JP":{"decision":"translate","text":"ひねり"}}},
+  {"catalogId":"Plugins/Twist Filter/Translation/strings","fieldPath":["niceName"],"source":"Twist","notes":["As in \"a twist distortion effect\" that spirals an image around a point — not a dance move, a plot twist, or the idiom \"twist someone’s arm.\""],"owner":"sceneGroup::twistFilter","key":"nodeName:sceneGroup::twistFilter","vendorJapanese":"ひねり","sourceRole":"ui-display","displayRole":"plugin-name","dontTranslate":false,"vendorJapaneseChanged":true,"translations":{"zh-Hans":{"decision":"translate","text":"扭转"},"zh-Hant":{"decision":"translate","text":"扭轉"},"ja_JP":{"decision":"translate","text":"ひねり"}}},
 ];
 module.exports = { provenance, entries };
 
@@ -135,4 +136,37 @@ module.exports.provenance.graphicsReaudit = {
   "sourceIdentityChanged": false,
   "officialVendorChanged": false,
   "liveApproval": false
+};
+
+// -- 单键译名修订：不重写原13键审批摘要或历史时间 --------------------
+module.exports.provenance.nameRevision = {
+  "revisionId": "c3-twist-name-20261009-r1",
+  "key": "nodeName:sceneGroup::twistFilter",
+  "sourceIdentitySha256": "af1165e23d2ff3d2bcaacc53daed89df7f8a9054319d79fa5ea32574dee82d30",
+  "locales": {
+    "zh-Hans": {
+      "previous": "扭曲",
+      "previousSha256": "b1837195155340d21109c98e2cb35a434ed75241965152c6fe121f5b8d9a3b6b",
+      "approved": "扭转",
+      "approvedSha256": "3d90591f6e6c851be30ca6f6216f6e007b016e4fed32f727a37ac8de46d96d0f"
+    },
+    "zh-Hant": {
+      "previous": "扭曲",
+      "previousSha256": "b1837195155340d21109c98e2cb35a434ed75241965152c6fe121f5b8d9a3b6b",
+      "approved": "扭轉",
+      "approvedSha256": "3d593ef619febd64b3e8714e9882c8eca1c7c7256dbc29569593c0a0e9da8277"
+    },
+    "ja_JP": {
+      "previous": "ひねり",
+      "previousSha256": "2a41a8b6b618701268b4fcc0d55b71696d48f1a6bf313c02bdd122fcd1d32e02",
+      "approved": "ひねり",
+      "approvedSha256": "2a41a8b6b618701268b4fcc0d55b71696d48f1a6bf313c02bdd122fcd1d32e02"
+    }
+  },
+  "preservedNormalizedEntriesSha256": "0a12b941569e21162e7a804dc9f615690653e97de3cfe23dfd38a5b77f61915a",
+  "rootApprovalDecisionSha256": "8764921c320f0ab2e0ae519f29b162d70cafd222f2538875a96b14596b9140bd",
+  "independentReviewReportSha256": "0348b31468b8dbb66a19ce2e40a395539dac7e39fda0762fe7896180d83719dc",
+  "approvedBy": "primary-agent",
+  "approvalState": "approved-single-key-name-revision",
+  "scope": "zh-Hans/zh-Hant node display only; source, notes, owner, vendorJapanese, ja_JP, and other entries remain unchanged"
 };

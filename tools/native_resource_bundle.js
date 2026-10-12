@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖官方assets、精确官方target域helper、Forge八键及365缺源固定source、审批模块、纠错登记及native/ICU纯投影。
- * [OUTPUT]: 提供三语预览/确定性manifest与区分官方/补充总量的CLI摘要；批准必须匹配source DNT，缺译保留fallback。
+ * [INPUT]: 依赖官方assets、冻结target、Forge8、缺源365、隐藏caption1与插件caption1。
+ * [OUTPUT]: 提供10848键三语预览/确定性manifest；target补充373不变，资源补充总计375。
  * [POS]: macOS用户语言事务的构建输入owner；源身份/格式不符拒绝发布，不复制原厂catalog、不读私库或用户profile。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -12,7 +12,11 @@ const { createHash, randomUUID } = require('node:crypto');
 const { collectNativeCatalog, resolveTranslations, renderNativePack } = require('./native_language_pack');
 const { assertNativeTranslationFormat } = require('./native_translation_format');
 const { sourceEntries: forgeSourceEntries, validateSupplementEntries, SUPPLEMENT_CATALOG_ID } = require('./native_schema_supplement');
-const { sourceEntries: gapSourceEntries, validateGapEntries, GAP_CATALOG_ID } = require('./native_schema_gap_sources');
+const { sourceEntries: gapSourceEntries, validateGapEntries, GAP_CATALOG_ID,
+  BACKGROUND_RENDERING_GAP_COUNT } = require('./native_schema_gap_sources');
+const { sourceEntries: pluginCaptionSourceEntries, validatePluginCaptionEntries,
+  PLUGIN_CAPTION_CATALOG_ID, PLUGIN_CAPTION_KEY_COUNT,
+  SOURCE_PATH: PLUGIN_CAPTION_SOURCE_PATH } = require('./native_plugin_caption_supplement');
 const { assertOfficialTarget } = require('./native_official_target');
 const { APPROVED_VENDOR_CORRECTIONS } = require('../languages/native/approved_vendor_corrections');
 const LANGUAGES = Object.freeze(['zh-Hans', 'zh-Hant', 'ja_JP']);
@@ -35,10 +39,15 @@ function buildNativeResourceBundle(pairs, approved, trustedVendorCorrections = A
   if (!Array.isArray(supplementalEntries)) throw new Error('native schema supplement entries must be an array');
   const forge = supplementalEntries.filter(row => row?.catalogId === SUPPLEMENT_CATALOG_ID);
   const gaps = supplementalEntries.filter(row => row?.catalogId === GAP_CATALOG_ID);
-  if (forge.length + gaps.length !== supplementalEntries.length) throw new Error('unknown native schema supplement domain');
+  const pluginCaptions = supplementalEntries.filter(row => row?.catalogId === PLUGIN_CAPTION_CATALOG_ID);
+  if (forge.length + gaps.length + pluginCaptions.length !== supplementalEntries.length) {
+    throw new Error('unknown native schema supplement domain');
+  }
   const verifiedForge = forge.length ? validateSupplementEntries(forge, entries) : [];
   const verifiedGaps = gaps.length ? validateGapEntries(gaps, entries, { existingSupplementEntries: verifiedForge }) : [];
-  const supplements = [...verifiedForge, ...verifiedGaps];
+  const verifiedPluginCaptions = pluginCaptions.length
+    ? validatePluginCaptionEntries(pluginCaptions, entries) : [];
+  const supplements = [...verifiedForge, ...verifiedGaps, ...verifiedPluginCaptions];
   entries.push(...supplements);
   const indexed = new Map();
   for (const row of entries) {
@@ -133,11 +142,14 @@ function buildFromAssetRoot(assetRoot) {
   if (sha256(nodeDefinitions) !== sourceLock.sha256) throw new Error('native schema supplement source digest differs');
   const officialEntries = collectOfficialEntries(pairs);
   const supplements = [...forgeSourceEntries(nodeDefinitions, officialEntries),
-    ...gapSourceEntries(nodeDefinitions, officialEntries)];
+    ...gapSourceEntries(nodeDefinitions, officialEntries),
+    ...pluginCaptionSourceEntries(safeRegularFile(root, PLUGIN_CAPTION_SOURCE_PATH), officialEntries)];
   const { approvedEntries } = require('../languages/native/approved_modules');
   const result = buildNativeResourceBundle(pairs, approvedEntries(), undefined, supplements);
   if (result.manifest.nativeKeys !== target.nativeKeys + target.supplementalKeys
+      + PLUGIN_CAPTION_KEY_COUNT + BACKGROUND_RENDERING_GAP_COUNT
       || result.manifest.supplementalKeys !== target.supplementalKeys
+        + PLUGIN_CAPTION_KEY_COUNT + BACKGROUND_RENDERING_GAP_COUNT
       || result.manifest.packs.ja_JP.vendor !== target.vendorJapaneseKeys) {
     throw new Error('native target key/vendor cardinality differs');
   }
@@ -155,7 +167,7 @@ function inputDigest() {
     ...APPROVED_MODULES.map(name => `languages/native/${name}.js`),
     'tools/native_resource_bundle.js', 'tools/native_language_pack.js',
     'tools/native_translation_format.js', 'tools/native_schema_supplement.js',
-    'tools/native_schema_gap_sources.js',
+    'tools/native_schema_gap_sources.js', 'tools/native_plugin_caption_supplement.js',
     'tools/native_official_target.js', 'package-lock.json',
   ].sort();
   const repo = path.resolve(__dirname, '..');
