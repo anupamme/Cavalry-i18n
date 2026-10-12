@@ -15,7 +15,7 @@
 namespace native_getpath_font {
 enum class Owner : std::uint8_t { Unknown, ToolHelp, ViewportStatus, ViewportFps };
 struct TextEntry { Owner owner; const char *text; };
-inline constexpr std::size_t kEntriesPerLocale = 27;
+inline constexpr std::size_t kEntriesPerLocale = 31;
 inline constexpr std::size_t kMaxTextBytes = 512;
 
 inline Owner pathOwner(std::uintptr_t coreReturn, std::uintptr_t cacheReturn,

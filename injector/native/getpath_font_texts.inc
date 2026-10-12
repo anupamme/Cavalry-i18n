@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖81项固定source key、owner、UTF-8文本与原joiner。
- * [OUTPUT]: 提供三条互斥27项固定文本lane，不包含locale状态或字体descriptor。
+ * [INPUT]: 依赖93项固定source key、owner、UTF-8文本与原joiner。
+ * [OUTPUT]: 提供三条互斥31项固定文本lane，不包含locale状态或字体descriptor。
  * [POS]: GetPath exactText的静态数据；运行时只按共享gLocale选一条lane。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -60,6 +60,14 @@ static constexpr TextEntry kZhHansEntries[] = {
     {native_getpath_font::Owner::ToolHelp, "S + 双击"},
     // 26 ToolHelp: tool.editShape.shortcut.xClick
     {native_getpath_font::Owner::ToolHelp, "X + 单击"},
+    // 27 ToolHelp: tool.mesh.help.addEditBind
+    {native_getpath_font::Owner::ToolHelp, "添加或编辑绑定位置"},
+    // 28 ToolHelp: tool.mesh.help.createEdge
+    {native_getpath_font::Owner::ToolHelp, "单击两个顶点之间拖动一条线以创建边缘。"},
+    // 29 ToolHelp: tool.mesh.help.disableSoftSelection
+    {native_getpath_font::Owner::ToolHelp, "禁用软选择"},
+    // 30 ToolHelp: tool.mesh.help.softSelectionSize
+    {native_getpath_font::Owner::ToolHelp, "单击拖曳以编辑软选择大小"},
 };
 static constexpr TextEntry kZhHantEntries[] = {
     // 00 ToolHelp: tool.transform.help.enableSnapping
@@ -116,6 +124,14 @@ static constexpr TextEntry kZhHantEntries[] = {
     {native_getpath_font::Owner::ToolHelp, "S + 連按兩下"},
     // 26 ToolHelp: tool.editShape.shortcut.xClick
     {native_getpath_font::Owner::ToolHelp, "X + 按一下"},
+    // 27 ToolHelp: tool.mesh.help.addEditBind
+    {native_getpath_font::Owner::ToolHelp, "新增或編輯綁定位置"},
+    // 28 ToolHelp: tool.mesh.help.createEdge
+    {native_getpath_font::Owner::ToolHelp, "單擊兩個頂點之間拖動一條線以建立邊緣。"},
+    // 29 ToolHelp: tool.mesh.help.disableSoftSelection
+    {native_getpath_font::Owner::ToolHelp, "停用軟選擇"},
+    // 30 ToolHelp: tool.mesh.help.softSelectionSize
+    {native_getpath_font::Owner::ToolHelp, "單擊拖曳以編輯軟選擇大小"},
 };
 static constexpr TextEntry kJaJpEntries[] = {
     // 00 ToolHelp: tool.transform.help.enableSnapping
@@ -172,5 +188,13 @@ static constexpr TextEntry kJaJpEntries[] = {
     {native_getpath_font::Owner::ToolHelp, "S + ダブルクリック"},
     // 26 ToolHelp: tool.editShape.shortcut.xClick
     {native_getpath_font::Owner::ToolHelp, "X + クリック"},
+    // 27 ToolHelp: tool.mesh.help.addEditBind
+    {native_getpath_font::Owner::ToolHelp, "バインド位置を追加または編集"},
+    // 28 ToolHelp: tool.mesh.help.createEdge
+    {native_getpath_font::Owner::ToolHelp, "2つの頂点間の線をドラッグしてエッジを作成します。"},
+    // 29 ToolHelp: tool.mesh.help.disableSoftSelection
+    {native_getpath_font::Owner::ToolHelp, "ソフト選択を無効にする"},
+    // 30 ToolHelp: tool.mesh.help.softSelectionSize
+    {native_getpath_font::Owner::ToolHelp, "ドラッグをクリックしてソフト選択サイズを編集"},
 };
 } // namespace native_getpath_font

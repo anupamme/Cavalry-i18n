@@ -47,3 +47,5 @@ injector/cavalry_i18n_macos_tool_help_text_path.{h,cpp} - macOS TransformTool �
 法则: 极简·稳定·导航·版本精确
 
 2026-10-12 MessageBar单键修订：三语资源改用ASCII尾字节。宿主裁尾后保留完整UTF-8且无句点。单键历史摘要独立保全；字体制品不变，live验收分账。
+
+2026-10-13 Mesh字体：GetPath每语固定表27→31项，保留旧81项并追加四键三语12项。源合同逐字节守住旧表和批准译文；实屏与首帧分账。

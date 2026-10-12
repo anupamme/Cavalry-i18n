@@ -454,7 +454,7 @@ bool fixedTextLaneUsesExactOwnerAndBytes(
     const native_getpath_font::TextEntry (&entries)[N], const char *prefix)
 {
     using namespace native_getpath_font;
-    static_assert(N == kEntriesPerLocale && N == 27);
+    static_assert(N == kEntriesPerLocale && N == 31);
 
     for (std::size_t i = 0; i < N; ++i) {
         const TextEntry &entry = entries[i];
