@@ -1,10 +1,10 @@
 <!--
 [INPUT]: 依赖 injector/native 候选源、Qt 6.9.2公开头与同bundle Cavalry 2.8 arm64 Frameworks。
-[OUTPUT]: 说明字体、FPS、标题、帮助、Guide正文、布局和Fast候选的边界。
+[OUTPUT]: 说明字体、FPS、标题、帮助、Guide正文、布局、Fast与Easing候选的边界。
 [POS]: 原生候选模块入口；加载、搜索消费与生命周期由消费端另验。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
-# Native font, Guide body, and help-popup candidate
+# Cavalry 2.8 native candidate
 
 ## Scope
 
@@ -136,6 +136,27 @@ Unknown callers do not read text or locale. Unknown source, locale, or ABI
 forwards the original setter once, with its exceptions unchanged.
 Pure contracts and ABI admission do not prove live Guide consumption.
 
+## Magic Easing preset display boundary
+
+The adapter admits only the reviewed `QWidget::addAction(QAction*)` call from
+`cavalry::addEasingMenu` in the selected Extension image. Its constructor checks
+the Extension, QtWidgets, and QtGui UUIDs, Qt 6.9.2, the caller bytes, and the
+three exact exported symbol addresses.
+Unknown callers, missing images, or a failed ABI check forward the original
+`addAction` without reading the action text or locale.
+
+At the one admitted caller, the adapter reads the exact source label and maps
+it through the frozen 20-row display table. It changes only `QAction::text`
+before calling the original `addAction` once. It does not change action data,
+connections, or the captured easing enum. The vendor callback captures that enum
+separately from the display label.
+Each normal branch forwards once. Projection exceptions propagate before the
+original call; original-call exceptions propagate without retry.
+The adapter reuses the existing `gLocale`; English, unknown locales, and labels
+outside the table pass through unchanged.
+The pure contract checks matching and forwarding semantics. Static ABI checks
+do not prove a loaded hook or live menu consumption.
+
 ## Help popup layout boundary
 
 The same metadata producer emits a second compile-time table with all 401 root
@@ -193,7 +214,9 @@ The static contract requires one two-level import from each selected 6.9.2
 QtCore, QtGui, and QtWidgets framework. It rejects an absolute build path and a
 flat namespace. No second Qt runtime is bundled.
 The C1 policy test checks only the option gate, single original call, and
-exception propagation. It is not evidence of a loaded hook or live search.
+exception propagation. The Easing policy test uses a synthetic table and does
+not verify the generated display table or live menu consumption. Neither test
+is evidence of a loaded hook or live UI result.
 
 ## Migration regression rule
 
@@ -228,7 +251,8 @@ The build creates a fresh temporary dylib.
 It checks vendor arm64 identities, required exports, two-level Api/Skia/fmt/UI/QtCore fixups, and the exact three-instruction GetPath veneer.
 It generates separate 384-main and 17-def help tables plus a 401-root layout
 table from official MetaData.
-It compiles and runs the pure getter/GOT/FPS-owner, Guide body, Fast C1 policy,
+It generates the 20-label Easing display table outside the repository.
+It compiles and runs the pure getter/GOT/FPS-owner, Guide body, Easing, Fast C1 policy,
 help shadow, and hidden Qt layout tests.
 It links the real help veneer to a vendor-free register probe.
 That probe checks unknown-caller argument, return and indirect-result transparency,
@@ -254,7 +278,7 @@ Japanese OCR recognizes the ASCII colon as a fullwidth colon; exact punctuation 
 These scoped stable-display results do not prove first paint or the combined font matrix.
 Earlier results remain bound to their recorded source and artifact.
 They do not transfer to this merged candidate.
-Each combined title/help/Guide/layout/Fast artifact requires its own build and
+Each combined title/help/Guide/Easing/layout/Fast artifact requires its own build and
 three-language acceptance. Bind results to the exact artifact.
 Current scoped live results and unverified surfaces are recorded in the
 project migration ledger; they do not transfer to another artifact.

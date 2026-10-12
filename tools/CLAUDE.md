@@ -2,6 +2,9 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+native_easing_display_data.js: 构建期内置缓动显示源；15项root批准译文仅作显示，五项复用既有native键，不进官方catalog或包统计。
+build_native_easing_display_table.js: 校验20项内置身份与现有源键，并在仓外生成自包含C++ constexpr表；不接runtime。
+native_easing_display.test.js: Node纯合同；锁20项身份/源唯一、五项native复用、三语闭合、C++转义与仓外输出，不授live信用。
 native_plugin_caption_supplement.test.js: 合成验证Directional Blur身份与schema、raw SHA拒绝门、单键三语producer投影和missing；不嵌入厂商definition字节，真实raw正例由assets-root验收，不代验实机消费。
 native_plugin_caption_supplement.js: 构建期SHA锁Directional Blur definitions原始字节；只输出amount一条source row并校验owner/schema/Inspector顺序及官方键碰撞，不读取target sourceFiles、不进入运行时。
 native-display-tests/: 项目显示技能的四份标准库离线维护测试；依赖技能脚本与场景，不运行App，不自动加入test:contracts。

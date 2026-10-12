@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖2.8 arm64 getter/Skia、fmt10标题、帮助与Guide正文ABI。
- * [OUTPUT]: 提供唯一gLocale、共享字体核心、标题、FPS、帮助与Guide正文投影。
+ * [INPUT]: 依赖2.8 arm64 getter/Skia、fmt10、帮助、Guide与Easing ABI。
+ * [OUTPUT]: 提供唯一gLocale、共享字体核心、标题、FPS及窄文字投影。
  * [POS]: 未接入发布链的arm64候选；未知ABI/caller/owner/locale原样透传。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -164,6 +164,7 @@ SetSize gSetSize = nullptr;
 bool verifyTitleFormatContract() noexcept;
 bool verifyHelpDescriptionContract() noexcept;
 bool verifyGuideBodyContract() noexcept;
+bool verifyEasingMenuContract() noexcept;
 thread_local bool gInsideRuntime = false;
 class RuntimeScope {
 public:
@@ -601,6 +602,7 @@ __attribute__((constructor)) void initializeSystemFallback() noexcept
     gTitleFormatContractReady.store(verifyTitleFormatContract(), std::memory_order_release);
     (void)verifyHelpDescriptionContract();
     (void)verifyGuideBodyContract();
+    (void)verifyEasingMenuContract();
 }
 
 __attribute__((used)) static struct {
@@ -711,3 +713,4 @@ extern "C" viewport_blob::BlobResultAbi viewport_blob::viewportBlobDispatch(
 #include "title_format_adapter.inc"
 #include "help_description_runtime.inc"
 #include "guide_body_runtime.inc"
+#include "easing_menu_runtime.inc"

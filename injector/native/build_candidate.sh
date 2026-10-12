@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# [INPUT]: 依赖只读2.8 Frameworks、显式Qt 6.9.2公开头与帮助审批源。
-# [OUTPUT]: 编译单一arm64字体/标题/帮助/Guide/Fast候选并核窄合同。
+# [INPUT]: 依赖只读2.8 Frameworks、Qt 6.9.2公开头与已批显示源。
+# [OUTPUT]: 编译完整arm64字体/标题/帮助/Guide/Fast/Easing候选并核合同。
 # [POS]: 显式候选入口；不连接默认npm build，不签名、安装或启动App。
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 set -euo pipefail
@@ -27,7 +27,8 @@ if [[ "$FRAMEWORKS_DIR" != */Contents/Frameworks ]]; then
   exit 1
 fi
 for header in QtCore/qglobal.h QtCore/qconfig.h QtCore/qregularexpression.h QtCore/qstring.h \
-              QtGui/qfontmetrics.h QtWidgets/qlabel.h QtWidgets/qlayout.h \
+              QtGui/qfontmetrics.h QtGui/qaction.h QtWidgets/qwidget.h \
+              QtWidgets/qlabel.h QtWidgets/qlayout.h \
               QtWidgets/qtextedit.h; do
   if [[ ! -f "$QT_HEADERS/$header" ]]; then
     echo "缺少显式Qt 6.9.2公开头: $QT_HEADERS/$header" >&2
@@ -83,6 +84,8 @@ HELP_ABI_TEST_BIN="$OUT_DIR/help_description_veneer_contract_test"
 HELP_LAYOUT_TABLE="$OUT_DIR/help-description-table.inc.layout.inc"
 HELP_LAYOUT_TEST_BIN="$OUT_DIR/help_popup_layout_contract_test"
 GUIDE_BODY_TEST_BIN="$OUT_DIR/guide_body_contract_test"
+EASING_TABLE="$OUT_DIR/easing-display-table.inc"
+EASING_TEST_BIN="$OUT_DIR/easing_menu_contract_test"
 
 echo "OUT_DIR: $OUT_DIR"
 echo "INPUT_FRAMEWORKS: $FRAMEWORKS_DIR"
@@ -90,6 +93,8 @@ echo "QT_PUBLIC_HEADERS: $QT_HEADERS"
 node "$REPO_ROOT/tools/build_native_help_description_table.js" \
   --metadata-dir "$(cd "$FRAMEWORKS_DIR/../assets/MetaData" && pwd -P)" \
   --out "$HELP_TABLE" >"$OUT_DIR/help-description-table-command.log"
+node "$REPO_ROOT/tools/build_native_easing_display_table.js" \
+  --out "$EASING_TABLE" >"$OUT_DIR/easing-display-table-command.log"
 
 {
   xcrun --sdk macosx clang++ \
@@ -105,6 +110,7 @@ node "$REPO_ROOT/tools/build_native_help_description_table.js" \
     -I "$QT_HEADERS/QtGui" -I "$QT_HEADERS/QtWidgets" \
     "-DNATIVE_HELP_DESCRIPTION_TABLE=\"$HELP_TABLE\"" \
     "-DNATIVE_HELP_LAYOUT_ROWS=\"$HELP_LAYOUT_TABLE\"" \
+    "-DNATIVE_EASING_DISPLAY_TABLE=\"$EASING_TABLE\"" \
     "$NATIVE_DIR/native_font_candidate.mm" \
     "$NATIVE_DIR/help_popup_layout_adapter.mm" \
     "$NATIVE_DIR/fast_search_unicode_adapter.mm" \
@@ -142,6 +148,11 @@ xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -Wall -Wextra -Werror \
   -o "$GUIDE_BODY_TEST_BIN"
 "$GUIDE_BODY_TEST_BIN"
 echo "PASS: Guide body caller/source/locale and single-forwarding contract test"
+xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -Wall -Wextra -Werror \
+  -I "$NATIVE_DIR" "$NATIVE_DIR/easing_menu_contract_test.cpp" \
+  -o "$EASING_TEST_BIN"
+"$EASING_TEST_BIN"
+echo "PASS: Easing exact caller/source/locale and single-forwarding contract test"
 xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -Wall -Wextra -Werror \
   -I "$NATIVE_DIR" \
   "$NATIVE_DIR/fast_search_unicode_contract_test.cpp" -o "$FAST_TEST_BIN"
