@@ -1,10 +1,10 @@
 <!--
 [INPUT]: 依赖 injector/native 候选源、Qt 6.9.2公开头与同bundle Cavalry 2.8 arm64 Frameworks。
-[OUTPUT]: 说明字体、FPS、标题、帮助、布局和Fast候选的边界与回归要求。
+[OUTPUT]: 说明字体、FPS、标题、帮助、Guide正文、布局和Fast候选的边界。
 [POS]: 原生候选模块入口；加载、搜索消费与生命周期由消费端另验。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
-# Native font and help-popup candidate
+# Native font, Guide body, and help-popup candidate
 
 ## Scope
 
@@ -25,8 +25,8 @@ Original calls use two-level target imports and retain the existing forward desi
 Static fixups prove binding scope, not every prior interposer-chain outcome.
 The candidate build does not measure runtime chain behavior.
 
-The combined candidate also contains one Fast Quick Add regular-expression adapter
-and one source-bound help-popup layout adapter.
+The combined candidate also contains one exact Guide body projection, one Fast
+Quick Add regular-expression adapter, and one source-bound help-popup layout adapter.
 It uses typed Qt 6.9.2 public headers and the selected bundle's QtCore runtime.
 The layout adapter also links the selected bundle's QtGui and QtWidgets runtimes.
 The 2.7 translator and default release build do not consume this candidate.
@@ -124,6 +124,18 @@ stack/frame pointers, original LR, and the vendor return path.
 The combined candidate must still pass a new live help readback for each artifact.
 The generated table and hidden fixture do not prove popup consumption.
 
+## Guide body boundary
+
+The adapter admits only the `wireStepConnections::$_24` caller at Extension
+return offset `0x4b9e48`. `overrideBodyLabel` tail-branches to QtWidgets
+`QTextEdit::setText`. The constructor checks the Extension and QtWidgets UUIDs,
+both caller instructions, and the exact exported setter address.
+The adapter reuses `gLocale` and changes only the exact source `Keep going...`.
+It projects `继续…`, `繼續…`, or `続けてください…` for the three supported locales.
+Unknown callers do not read text or locale. Unknown source, locale, or ABI
+forwards the original setter once, with its exceptions unchanged.
+Pure contracts and ABI admission do not prove live Guide consumption.
+
 ## Help popup layout boundary
 
 The same metadata producer emits a second compile-time table with all 401 root
@@ -216,8 +228,8 @@ The build creates a fresh temporary dylib.
 It checks vendor arm64 identities, required exports, two-level Api/Skia/fmt/UI/QtCore fixups, and the exact three-instruction GetPath veneer.
 It generates separate 384-main and 17-def help tables plus a 401-root layout
 table from official MetaData.
-It compiles and runs the pure getter/GOT/FPS-owner, Fast C1 policy, help
-shadow, and hidden Qt layout tests.
+It compiles and runs the pure getter/GOT/FPS-owner, Guide body, Fast C1 policy,
+help shadow, and hidden Qt layout tests.
 It links the real help veneer to a vendor-free register probe.
 That probe checks unknown-caller argument, return and indirect-result transparency,
 plus exact main/def LR dispatch.
@@ -242,7 +254,7 @@ Japanese OCR recognizes the ASCII colon as a fullwidth colon; exact punctuation 
 These scoped stable-display results do not prove first paint or the combined font matrix.
 Earlier results remain bound to their recorded source and artifact.
 They do not transfer to this merged candidate.
-Each combined title/help/layout/Fast artifact requires its own build and
+Each combined title/help/Guide/layout/Fast artifact requires its own build and
 three-language acceptance. Bind results to the exact artifact.
 Current scoped live results and unverified surfaces are recorded in the
 project migration ledger; they do not transfer to another artifact.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # [INPUT]: 依赖只读2.8 Frameworks、显式Qt 6.9.2公开头与帮助审批源。
-# [OUTPUT]: 编译单一arm64字体/标题/帮助/Fast/帮助布局候选并核窄合同。
+# [OUTPUT]: 编译单一arm64字体/标题/帮助/Guide/Fast候选并核窄合同。
 # [POS]: 显式候选入口；不连接默认npm build，不签名、安装或启动App。
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 set -euo pipefail
@@ -27,7 +27,8 @@ if [[ "$FRAMEWORKS_DIR" != */Contents/Frameworks ]]; then
   exit 1
 fi
 for header in QtCore/qglobal.h QtCore/qconfig.h QtCore/qregularexpression.h QtCore/qstring.h \
-              QtGui/qfontmetrics.h QtWidgets/qlabel.h QtWidgets/qlayout.h; do
+              QtGui/qfontmetrics.h QtWidgets/qlabel.h QtWidgets/qlayout.h \
+              QtWidgets/qtextedit.h; do
   if [[ ! -f "$QT_HEADERS/$header" ]]; then
     echo "缺少显式Qt 6.9.2公开头: $QT_HEADERS/$header" >&2
     exit 1
@@ -81,6 +82,7 @@ HELP_TEST_BIN="$OUT_DIR/help_description_contract_test"
 HELP_ABI_TEST_BIN="$OUT_DIR/help_description_veneer_contract_test"
 HELP_LAYOUT_TABLE="$OUT_DIR/help-description-table.inc.layout.inc"
 HELP_LAYOUT_TEST_BIN="$OUT_DIR/help_popup_layout_contract_test"
+GUIDE_BODY_TEST_BIN="$OUT_DIR/guide_body_contract_test"
 
 echo "OUT_DIR: $OUT_DIR"
 echo "INPUT_FRAMEWORKS: $FRAMEWORKS_DIR"
@@ -135,6 +137,11 @@ xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -Wall -Wextra -Werror \
   "$NATIVE_DIR/candidate_contract_test.cpp" -o "$TEST_BIN"
 "$TEST_BIN"
 echo "PASS: compiled and ran native getter/unknown-owner contract test"
+xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -Wall -Wextra -Werror \
+  -I "$NATIVE_DIR" "$NATIVE_DIR/guide_body_contract_test.cpp" \
+  -o "$GUIDE_BODY_TEST_BIN"
+"$GUIDE_BODY_TEST_BIN"
+echo "PASS: Guide body caller/source/locale and single-forwarding contract test"
 xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -Wall -Wextra -Werror \
   -I "$NATIVE_DIR" \
   "$NATIVE_DIR/fast_search_unicode_contract_test.cpp" -o "$FAST_TEST_BIN"

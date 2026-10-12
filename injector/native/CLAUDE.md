@@ -1,21 +1,26 @@
 # injector/native/
 > L2 | 父级: ../CLAUDE.md
 
-本目录保存 Cavalry 2.8 macOS arm64 字体、FPS、标题、帮助与Fast候选组件。
+本目录保存 Cavalry 2.8 macOS arm64 字体、FPS、标题、帮助、Guide与Fast候选组件。
 本目录候选均不进入2.7发布链。
-帮助说明、帮助布局与Fast C1适配已加入单一候选源。
+帮助说明、帮助布局、Guide正文与Fast C1适配已加入单一候选源。
 main与def两条已证caller各读独立source-bound表。
 未知caller由arm64 veneer透明尾跳原导入。
 字体适配只消费同bundle四个已验映像。
 标题另依赖fmt10，帮助依赖CavalryUI，布局依赖同bundle Qt 6.9.2。
+Guide正文只接精确Keep going caller/source；ABI门在构造时核对QtWidgets与Extension。
 
 成员清单
-native_font_candidate.mm: 从主可执行定位Frameworks；接通getter、FPS、字体、标题与帮助hook。
+native_font_candidate.mm: 从主可执行定位Frameworks；接通getter、FPS、字体、标题、帮助与Guide正文hook。
 candidate_contract_test.cpp: 验证FPS双返回点、prefix、旧owner、字体覆盖顺序与标题回退。
+guide_body_abi_contract.h: 锁定唯一Guide正文caller、尾跳callee、双映像UUID与Qt setter符号。
+guide_body_policy.h: 仅把精确Keep going source映射到三语固定短文案；英文与未知输入透传。
+guide_body_runtime.inc: 复用同TU gLocale；ABI失败只关投影，未知caller单次调用Qt原setter。
+guide_body_contract_test.cpp: 验证Guide caller/source/locale门、单次调用与异常传播。
 candidate_static_contract_test.py: 用合成反汇编锁定目标符号边界，并拒绝混合FAT UUID。
 check_candidate_contract.py: 核FPS调用字节与GetPath策略，再核ABI、QtCore 6.9.2及two-level fixup。
-build_candidate.sh: 生成384/17说明表与401布局表；编译显式候选并直链同bundle QtCore/Gui/Widgets。
-README.md: 说明字体/FPS/标题/帮助/Fast边界；每制品独立回归，实机分项见项目总账。
+build_candidate.sh: 生成384/17说明表与401布局表；编译显式候选并直链同bundle QtCore/Gui/Widgets，运行Guide纯合同。
+README.md: 说明字体/FPS/标题/帮助/Guide/Fast边界；每制品独立回归，实机分项见项目总账。
 fast_search_unicode_adapter.mm: 以可执行路径定位同bundle；仅固定Fast C1调用改Unicode选项。
 fast_search_unicode_abi_contract.h: 锁定Qt 6.9.2符号、Extension UUID、调用字节、正则与选项。
 fast_search_unicode_policy.h: 短路校验caller、原选项与pattern；保留单次原C1透传。

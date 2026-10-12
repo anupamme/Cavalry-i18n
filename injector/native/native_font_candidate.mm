@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖2.8 arm64 getter/Skia、fmt10标题与UI帮助注册ABI。
- * [OUTPUT]: 提供唯一gLocale、共享字体核心、标题、FPS与帮助投影。
+ * [INPUT]: 依赖2.8 arm64 getter/Skia、fmt10标题、帮助与Guide正文ABI。
+ * [OUTPUT]: 提供唯一gLocale、共享字体核心、标题、FPS、帮助与Guide正文投影。
  * [POS]: 未接入发布链的arm64候选；未知ABI/caller/owner/locale原样透传。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -163,6 +163,7 @@ SetSize gSetSize = nullptr;
 #include "native_locale_adapter.inc"
 bool verifyTitleFormatContract() noexcept;
 bool verifyHelpDescriptionContract() noexcept;
+bool verifyGuideBodyContract() noexcept;
 thread_local bool gInsideRuntime = false;
 class RuntimeScope {
 public:
@@ -599,6 +600,7 @@ __attribute__((constructor)) void initializeSystemFallback() noexcept
     gNativeLocaleContractReady.store(verifyContract(), std::memory_order_release);
     gTitleFormatContractReady.store(verifyTitleFormatContract(), std::memory_order_release);
     (void)verifyHelpDescriptionContract();
+    (void)verifyGuideBodyContract();
 }
 
 __attribute__((used)) static struct {
@@ -708,3 +710,4 @@ extern "C" viewport_blob::BlobResultAbi viewport_blob::viewportBlobDispatch(
 
 #include "title_format_adapter.inc"
 #include "help_description_runtime.inc"
+#include "guide_body_runtime.inc"
