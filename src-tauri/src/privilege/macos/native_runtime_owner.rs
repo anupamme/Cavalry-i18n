@@ -1,8 +1,9 @@
 /**
  * [INPUT]: 依赖NRT精确postimage、固定baseline、旧owner bytes/mode和fd-relative存储。
- * [OUTPUT]: 读取v1旧owner与v2 source SHA owner；发布、撤销或验证八槽归属。
- * [POS]: apply_transaction的耐久owner投影。v1缺source SHA时由Switcher更新自有槽。
- * 八槽与签名负责当前runtime准入。不扫描原厂资源。
+ * [OUTPUT]: 读取v1/v2 owner、发布或撤销八槽归属，并提供只读source hint。
+ * [POS]: apply_transaction的耐久owner投影；status hint校验owner schema、固定字段形状与bundle root。
+ * Hint不读journal、App槽或签名。完整runtime准入仍校验八槽与签名。
+ * v1缺source SHA时由Switcher更新自有槽。不扫描原厂资源。
  * 先原子发布owner，再退役journal。比较旧像不是OS CAS；第三态保留journal。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -70,6 +71,12 @@ pub(crate) struct LoadedNativeRuntimeOwner {
     pub(crate) baseline: VerifiedNativeVendorBaseline,
     pub(crate) source_sha256: Option<String>,
     pub(crate) preimage: NativeRuntimeOwnerPreimage,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct NativeRuntimeOwnerHint {
+    pub(crate) owned: bool,
+    pub(crate) source_sha256: Option<String>,
 }
 
 fn controlled_paths(app: &Path) -> Vec<PathBuf> {
@@ -231,19 +238,31 @@ fn verify_slots(owner: &RuntimeOwner, app: &SecureDirectory) -> Result<(), Strin
     Ok(())
 }
 
-/// 只读按钮提示，不授予bundle写入许可。不读取journal或整树摘要。
+/// status专用的只读owner摘要；不读取journal、App槽或签名。
+pub(crate) fn native_runtime_owner_hint_for_selection(
+    state_dir: &Path,
+    app: &Path,
+) -> Result<NativeRuntimeOwnerHint, String> {
+    let state = SecureDirectory::open(state_dir)?;
+    let Some(preimage) = read_owner_preimage(&state)? else {
+        return Ok(NativeRuntimeOwnerHint {
+            owned: false,
+            source_sha256: None,
+        });
+    };
+    let bundle = SecureDirectory::open(app)?;
+    let owner = owner_from_preimage(&preimage, &bundle.path)?;
+    Ok(NativeRuntimeOwnerHint {
+        owned: true,
+        source_sha256: owner.runtime_source_sha256,
+    })
+}
+
+/// 只读恢复提示，不授予bundle写入许可。不读取journal或整树摘要。
 pub(crate) fn has_native_runtime_owner_for_selection(state: &Path, app: &Path) -> bool {
-    let observed = (|| {
-        let state = SecureDirectory::open(state)?;
-        let Some(preimage) = read_owner_preimage(&state)? else {
-            return Ok(false);
-        };
-        let bundle = SecureDirectory::open(app)?;
-        let owner = owner_from_preimage(&preimage, &bundle.path)?;
-        validate_owner(&owner, &bundle.path)?;
-        Ok::<_, String>(true)
-    })();
-    observed.unwrap_or(false)
+    native_runtime_owner_hint_for_selection(state, app)
+        .map(|hint| hint.owned)
+        .unwrap_or(false)
 }
 
 /// 调用方持共享operation guard。此函数不写文件，不自动修复中断事务。
@@ -570,4 +589,101 @@ pub(super) fn verify_managed_update_rollback<R: crate::privilege::CommandRunner>
         return Err("Managed rollback belongs to another baseline.".into());
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod hint_tests {
+    use super::*;
+    use std::{fs, os::unix::fs::PermissionsExt};
+
+    fn fixture() -> (tempfile::TempDir, PathBuf, PathBuf) {
+        let temp = tempfile::tempdir().unwrap();
+        let app = temp.path().join("Cavalry.app");
+        let state = temp.path().join("state");
+        fs::create_dir(&app).unwrap();
+        fs::create_dir(&state).unwrap();
+        let app = app.canonicalize().unwrap();
+        let state = state.canonicalize().unwrap();
+        (temp, app, state)
+    }
+
+    fn valid_owner(app: &Path, schema_version: u32) -> RuntimeOwner {
+        let source_sha256 = (schema_version == 2).then(|| "b".repeat(64));
+        let slots = controlled_paths(app)
+            .into_iter()
+            .map(|path| {
+                let relative = path_string(path.strip_prefix(app).unwrap()).unwrap();
+                (
+                    relative,
+                    ExpectedFileState {
+                        fingerprint: Some(FileFingerprint {
+                            sha256: "c".repeat(64),
+                            mode: libc::S_IFREG as u32 | 0o755,
+                        }),
+                    },
+                )
+            })
+            .collect();
+        RuntimeOwner {
+            schema_version,
+            install_root: app.to_string_lossy().into_owned(),
+            baseline_id: "a".repeat(64),
+            operation_id: "fixture-owner".into(),
+            runtime_source_sha256: source_sha256,
+            slots,
+        }
+    }
+
+    fn write_owner(state: &Path, owner: &RuntimeOwner) {
+        let path = state.join(OWNER_NAME);
+        fs::write(&path, serde_json::to_vec(owner).unwrap()).unwrap();
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o600)).unwrap();
+    }
+
+    #[test]
+    fn owner_hint_accepts_v1_and_v2_without_reading_runtime_slots() {
+        for (schema_version, source_sha256) in [(1, None), (2, Some("b".repeat(64)))] {
+            let (_temp, app, state) = fixture();
+            write_owner(&state, &valid_owner(&app, schema_version));
+
+            let hint = native_runtime_owner_hint_for_selection(&state, &app).unwrap();
+
+            assert!(hint.owned);
+            assert_eq!(hint.source_sha256.as_deref(), source_sha256.as_deref());
+        }
+    }
+
+    #[test]
+    fn owner_hint_distinguishes_absence_from_invalid_or_wrong_root_owner() {
+        let (_temp, app, state) = fixture();
+        assert_eq!(
+            native_runtime_owner_hint_for_selection(&state, &app).unwrap(),
+            NativeRuntimeOwnerHint {
+                owned: false,
+                source_sha256: None,
+            }
+        );
+
+        fs::write(state.join(OWNER_NAME), b"not-json").unwrap();
+        fs::set_permissions(state.join(OWNER_NAME), fs::Permissions::from_mode(0o600)).unwrap();
+        assert!(native_runtime_owner_hint_for_selection(&state, &app).is_err());
+
+        let mut bad_schema = valid_owner(&app, 2);
+        bad_schema.schema_version = 1;
+        write_owner(&state, &bad_schema);
+        assert!(native_runtime_owner_hint_for_selection(&state, &app).is_err());
+
+        let wrong_root = tempdir_app_for_wrong_root(&app);
+        write_owner(&state, &wrong_root);
+        assert!(native_runtime_owner_hint_for_selection(&state, &app).is_err());
+    }
+
+    fn tempdir_app_for_wrong_root(app: &Path) -> RuntimeOwner {
+        let mut owner = valid_owner(app, 2);
+        owner.install_root = app
+            .with_extension("other.app")
+            .to_string_lossy()
+            .into_owned();
+        owner
+    }
 }

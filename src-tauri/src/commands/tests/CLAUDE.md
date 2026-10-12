@@ -12,7 +12,7 @@ user_language_files_production.rs: 固定 production-layout 构造与只读 stat
 user_language_files_process_recovery.rs: macOS ignored子进程合同；production apply在资源与pending发布后由父进程SIGKILL，新进程重试并验证profile收敛；不伪造pending，不触碰真实profile、TCC或Cavalry。
 native_user_contracts.rs: native_user隔离合同；锁定默认语言、approved digest map投影、English恢复和独立Restart准入；补English资源删除后writer拒绝与生产重试；tempfile profile验证可见locale后的定向目录fsync warning、pending reconciliation与生产apply重试；错根与writer拒绝均不spawn。
 native_user_restore_only.rs: hostless English restore 的fixture合同；只允许完整Current receipt/postimage授予能力，missing/unsupported host才产生nativeRestoreOnly，拒绝无回执/pending/corrupt及locale/strings/mode drift；另在strict restore最终guard#3删除receipt或替成pending时以解析时同一bytes+mode期望拒绝发布，profile零写且外部receipt状态留存；不接真实profile或启动Cavalry。
-native_user_official_independence.rs: tempfile双门合同；厂商来源与无Switcher覆盖共同准入Official；approved digest map投影与强owned恢复能力独立；不读真实home、不运行codesign或Cavalry。
+native_user_official_independence.rs: tempfile双门合同；厂商来源与无Switcher覆盖共同准入Official；Current-owned非英语profile仅在pack Current时比对runtime source；覆盖source-only更新、一致源、缺失/v1 owner、候选缺失、坏owner/错root、drift保留和English恢复能力；不读真实home、不运行codesign或Cavalry。
 
 法则: 默认测试通过父级最小fixture和fake runner观察行为，不访问真实安装/GUI/UAC；只有明确ignored人工烟测可在显式路径授权下访问真实App/profile；status烟测只读，native单动作烟测会写用户profile但不写App、不启动/重启，不把未运行算pass。
 

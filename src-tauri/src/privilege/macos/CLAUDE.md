@@ -3,10 +3,10 @@
 
 成员清单
 mod.rs: macOS privilege 子模块边界；向上提供 bundle 系统操作、selected/all-Cavalry 进程准入与当前 OS 用户 home 解析。
-apply_transaction.rs: macOS bundle transaction owner；2.7 StateBound仍用schema 6；NRT schema 7持久化source SHA和旧owner bytes/mode；live签名proof只绑定当前operation、bundle和journal postimage，签发前要求deferred App写入清空；commit复核固定槽，Committed后再核槽并发布owner；NRT恢复用同份manifest验intent，四个有效App回滚phase在当前像复核后执行profile callback；通用StateBound与Drop不调用callback；普通commit拒绝原厂恢复意图；owner发布比较旧像后rename，不声称OS CAS；不扫描vendor资源。
+apply_transaction.rs: macOS bundle transaction owner；2.7 StateBound仍用schema 6；NRT schema 7持久化source SHA和旧owner bytes/mode；另导出status专用只读owner hint；live签名proof只绑定当前operation、bundle和journal postimage，签发前要求deferred App写入清空；commit复核固定槽，Committed后再核槽并发布owner；NRT恢复用同份manifest验intent，四个有效App回滚phase在当前像复核后执行profile callback；通用StateBound与Drop不调用callback；普通commit拒绝原厂恢复意图；owner发布比较旧像后rename，不声称OS CAS；不扫描vendor资源。
 native_runtime_transaction_tests.rs: apply_transaction隔离合同；验证CodeResources准入、schema 6/7互斥、验签失败、验源一次、deferred App写未完成时拒发proof、proof跨事务拒绝、Committed后固定槽漂移保留journal、payload drift、owner/source intent校验与crash recovery。
 native_runtime_terminal.rs: NRT来源终结器；live commit消费同事务最终postimage proof与固定槽检查；恢复入口不预读manifest，内核校验同份manifest的kind/schema/intent；只在四个有效App回滚phase消费profile callback；旧owner→新owner更新只接受精确旧像或同事务新像；Restored验证旧owner，第三态保留journal；原厂restore回滚复核旧归属。
-native_runtime_owner.rs: v1 owner可读；v2 owner记录source SHA；固定八槽、baseline与签名先验；语言切换和启动不读整树摘要；终态原子写owner后退役journal，同新owner重放幂等；旧像比较不是OS CAS；原厂恢复撤销匹配归属。
+native_runtime_owner.rs: v1 owner可读；v2 owner记录source SHA；status hint校验owner schema、固定字段形状与bundle root，只读owned/source摘要，不读journal、App槽或签名；完整runtime准入仍核八槽、baseline与签名；语言切换和启动不读整树摘要；终态原子写owner后退役journal，同新owner重放幂等；旧像比较不是OS CAS；原厂恢复撤销匹配归属。
 native_runtime_terminal_tests.rs: NRT终结器的owner/source/原厂恢复fixture合同；以父模块私有fixture供preflight子模块复用，不访问真实App/profile。
 native_runtime_preflight_tests.rs: 复用父测试fixture的恢复回调时序合同；四有效phase只调一次，终态/坏journal不调，读错不写App；隔离schema 6兼容，不证明厂商。
 native_runtime_finalizer_sentinel_tests.rs: generic finalizer 的独立隔离合同；验证 NRT Restored、RuntimeCommitted、Committed 均被拒绝，canonical journal 与备份保持；只使用临时 bundle。

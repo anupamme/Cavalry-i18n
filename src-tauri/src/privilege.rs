@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖各平台权限复制、bundle/restart 适配器与 CommandRunner；接收 staged CopyPair、只读进程身份探针和受控启动请求。
- * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，提供NRT恢复profile前回调端口、selected/all-Cavalry只读admission、legacy restart graceful close、macOS native preview launch-only facade、固定厂商requirement限时只读验签、legacy签名验签与NRT延迟验签写端口、Windows apply/recovery提升worker早期分流，并让Program Files journal仅在用户动作锁内按当前选择经same-EXE RunAs边界收敛。
+ * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，提供NRT恢复profile前回调端口、selected/all-Cavalry只读admission、macOS native runtime owner source hint、legacy restart graceful close、macOS native preview launch-only facade、固定厂商requirement限时只读验签、legacy签名验签与NRT延迟验签写端口、Windows apply/recovery提升worker早期分流，并让Program Files journal仅在用户动作锁内按当前选择经same-EXE RunAs边界收敛。
  * [POS]: src-tauri/src 的跨平台系统命令 facade；Official认证仅经此处转入macOS codesign owner并只消费受限deadline退出状态，不使用一般签名身份stdout；共享用户文件准入由macOS process owner按所有 Cavalry bundle identity 判定，平台安全、提升事务、journal 机制与辅助进程可见性下沉到职责模块，命令层不直接触碰 UAC/AppleScript，受保护安装根禁止回退为未提权写入。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -47,9 +47,9 @@ pub(crate) use macos::apply_transaction::fail_next_native_runtime_owner_director
 pub(crate) use macos::apply_transaction::{
     capture_owner_slot_preimages, ensure_native_runtime_owner_absent,
     has_native_runtime_owner_for_selection, load_owned_native_runtime,
-    load_owned_native_runtime_details, LoadedNativeRuntimeOwner, MacApplyBeginError,
-    MacApplyTransaction, MacBundlePreimageConstraint, NativeRuntimeIntent,
-    NativeRuntimeOwnerPreimage,
+    load_owned_native_runtime_details, native_runtime_owner_hint_for_selection,
+    LoadedNativeRuntimeOwner, MacApplyBeginError, MacApplyTransaction, MacBundlePreimageConstraint,
+    NativeRuntimeIntent, NativeRuntimeOwnerHint, NativeRuntimeOwnerPreimage,
 };
 #[cfg(target_os = "macos")]
 pub(crate) use macos::bundle::{

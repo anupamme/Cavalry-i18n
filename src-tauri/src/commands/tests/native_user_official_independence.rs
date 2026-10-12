@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 native_user 的profile投影、approved digest map、status shell与临时用户路径。
- * [OUTPUT]: 验证Official来源与profile分离；digest新旧不改变恢复许可。
+ * [INPUT]: 依赖 native_user 的profile投影、pack/runtime digest、owner hint、status shell与临时用户路径。
+ * [OUTPUT]: 验证Official来源分离、runtime-only更新提示及digest变化不降级恢复许可。
  * [POS]: commands/tests 的临时profile语义合同；签名由native_official独立测试，本文件不运行codesign、不读真实home，也不从徽章授予事务权限。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -29,6 +29,141 @@ fn profile(locale: Option<&str>) -> (tempfile::TempDir, UserLanguagePaths) {
         temp,
         UserLanguagePaths::for_user_dirs(&home, &state).unwrap(),
     )
+}
+
+#[test]
+fn runtime_source_difference_marks_same_pack_as_update_available() {
+    let owner = crate::privilege::NativeRuntimeOwnerHint {
+        owned: true,
+        source_sha256: Some("a".repeat(64)),
+    };
+    let candidate = "b".repeat(64);
+
+    assert_eq!(
+        runtime_aware_patch_status("current", Some(&owner), Some(&candidate)),
+        "updateAvailable"
+    );
+}
+
+#[test]
+fn matching_runtime_source_keeps_current_and_legacy_or_missing_owner_requests_update() {
+    let candidate = "b".repeat(64);
+    let matching_owner = crate::privilege::NativeRuntimeOwnerHint {
+        owned: true,
+        source_sha256: Some(candidate.clone()),
+    };
+    let legacy_owner = crate::privilege::NativeRuntimeOwnerHint {
+        owned: true,
+        source_sha256: None,
+    };
+    let absent_owner = crate::privilege::NativeRuntimeOwnerHint {
+        owned: false,
+        source_sha256: None,
+    };
+
+    assert_eq!(
+        runtime_aware_patch_status("current", Some(&matching_owner), Some(&candidate)),
+        "current"
+    );
+    assert_eq!(
+        runtime_aware_patch_status("current", Some(&legacy_owner), Some(&candidate)),
+        "updateAvailable"
+    );
+    assert_eq!(
+        runtime_aware_patch_status("current", Some(&absent_owner), Some(&candidate)),
+        "updateAvailable"
+    );
+}
+
+#[test]
+fn runtime_hint_failure_is_unknown_but_never_erases_pack_update_or_drift() {
+    let owner = crate::privilege::NativeRuntimeOwnerHint {
+        owned: true,
+        source_sha256: Some("a".repeat(64)),
+    };
+
+    assert_eq!(
+        runtime_aware_patch_status("current", None, Some("b")),
+        "unknown"
+    );
+    assert_eq!(
+        runtime_aware_patch_status("current", Some(&owner), None),
+        "unknown"
+    );
+    assert_eq!(
+        runtime_aware_patch_status("updateAvailable", None, None),
+        "updateAvailable"
+    );
+    assert_eq!(runtime_aware_patch_status("unknown", None, None), "unknown");
+    assert_eq!(
+        runtime_aware_patch_status("notApplicable", None, None),
+        "notApplicable"
+    );
+}
+
+#[test]
+fn runtime_freshness_is_limited_to_current_owned_non_english_profiles() {
+    let profile = |patch_status: &str, current_lang: &str, english_restore: bool| ProfileStatus {
+        official_language: false,
+        current_lang: current_lang.into(),
+        native_locale_state: NativeLocaleState::Explicit,
+        patch_status: patch_status.into(),
+        reconciliation_required: false,
+        native_english_restore_available: english_restore,
+    };
+
+    assert!(should_compare_runtime_source(&profile(
+        "current", "zh-Hans", true
+    )));
+    assert!(!should_compare_runtime_source(&profile(
+        "current", "en", false
+    )));
+    assert!(!should_compare_runtime_source(&profile(
+        "current", "zh-Hans", false
+    )));
+    assert!(!should_compare_runtime_source(&profile(
+        "updateAvailable",
+        "zh-Hans",
+        true
+    )));
+    assert!(!should_compare_runtime_source(&profile(
+        "unknown", "zh-Hans", false
+    )));
+}
+
+#[test]
+fn runtime_only_update_preserves_current_owned_english_restore_capability() {
+    let (_temp, paths) = profile(Some("zh-Hans"));
+    assert!(
+        apply_profile(
+            &paths,
+            "zh-Hans",
+            Some(&pack()),
+            &mut || Ok(()),
+            &super::super::contract::NoopReporter,
+        )
+        .ok
+    );
+    let resources = NativeResourceDigests {
+        packs: [("zh-Hans".into(), format!("{:x}", Sha256::digest(pack())))]
+            .into_iter()
+            .collect(),
+    };
+    let mut profile = profile_projection(&paths, Some(&resources));
+    assert_eq!(profile.patch_status, "current");
+    assert!(profile.native_english_restore_available);
+    let owner = crate::privilege::NativeRuntimeOwnerHint {
+        owned: true,
+        source_sha256: Some("a".repeat(64)),
+    };
+    let candidate = "b".repeat(64);
+    profile.patch_status =
+        runtime_aware_patch_status("current", Some(&owner), Some(&candidate)).into();
+    let mut status = super::super::status::status_shell(_temp.path(), _temp.path(), Vec::new());
+    status = project_profile_status(status, &profile, true);
+
+    assert_eq!(status.patch_status, "updateAvailable");
+    assert!(status.native_english_restore_available);
 }
 
 fn pack() -> Vec<u8> {

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖CopyPair、八槽前像、staged source SHA、owner前像、进程门、验签、fd与renameatx_np。
- * [OUTPUT]: 提供schema 6 StateBound和schema 7 NativeRuntimeOnly journal。
+ * [OUTPUT]: 提供schema 6 StateBound、schema 7 NativeRuntimeOnly及只读owner hint facade。
  * [POS]: macOS bundle事务owner。schema 6保持不变；schema 7绑定来源与旧owner槽像。
  * NRT live proof绑定operation、bundle与已记录签名后像；deferred App写入清空后签发。
  * 终态复核固定槽后发布owner。
@@ -55,7 +55,8 @@ mod native_runtime_owner;
 pub(crate) use native_runtime_owner::{
     capture_owner_slot_preimages, ensure_native_runtime_owner_absent,
     has_native_runtime_owner_for_selection, load_owned_native_runtime,
-    load_owned_native_runtime_details, LoadedNativeRuntimeOwner, NativeRuntimeOwnerPreimage,
+    load_owned_native_runtime_details, native_runtime_owner_hint_for_selection,
+    LoadedNativeRuntimeOwner, NativeRuntimeOwnerHint, NativeRuntimeOwnerPreimage,
 };
 const QUARANTINE_XATTR: &str = "com.apple.quarantine";
 const MAX_QUARANTINE_VALUE_BYTES: usize = 1024 * 1024;

@@ -1,7 +1,9 @@
 /**
- * [INPUT]: 依赖native编译manifest/digest、fixed profile事务和privilege准入。
- * [OUTPUT]: 提供typed用户语言状态、English恢复、stock/managed启动与apply提交后的直接launch。
- * [POS]: status用编译digest比对receipt，不读payload，也不授权apply。
+ * [INPUT]: 依赖native编译manifest/digest、受限owner source hint、fixed profile事务和privilege准入。
+ * [OUTPUT]: 提供typed用户语言状态、pack/runtime更新提示、English恢复、stock/managed启动与apply提交后的直接launch。
+ * [POS]: status先比pack摘要；仅Current-owned非英语profile再比approved runtime source。
+ * Owner hint只验证schema/root；不读journal、App槽或签名，也不授权apply。
+ * English恢复能力仍只由Current-owned profile决定。
  * apply只读目标pack。file transaction负责pending恢复与写前像比较。
  * leaf不发布空恢复阶段；caller只报告自身实际准入。
  * hostless English继续要求Current-owned证明；独立Restart保留profile/NRT/owner准入。
@@ -22,6 +24,8 @@ use super::{
         UserLanguagePaths,
     },
 };
+use crate::privilege::NativeRuntimeOwnerHint;
+use sha2::{Digest, Sha256};
 use std::{fs, path::Path};
 const WRITER_REFUSAL: &str = "nativeWriterStillRunning";
 const WRITER_INSPECTION: &str = "nativeWriterInspectionFailed";
@@ -34,6 +38,31 @@ struct ProfileStatus {
     reconciliation_required: bool,
     native_english_restore_available: bool,
 }
+
+fn should_compare_runtime_source(profile: &ProfileStatus) -> bool {
+    profile.patch_status == "current"
+        && profile.current_lang != "en"
+        && profile.native_english_restore_available
+}
+
+fn runtime_aware_patch_status(
+    pack_status: &'static str,
+    owner_hint: Option<&NativeRuntimeOwnerHint>,
+    candidate_sha256: Option<&str>,
+) -> &'static str {
+    if pack_status != "current" {
+        return pack_status;
+    }
+    let (Some(owner), Some(candidate)) = (owner_hint, candidate_sha256) else {
+        return "unknown";
+    };
+    if !owner.owned || owner.source_sha256.as_deref() != Some(candidate) {
+        "updateAvailable"
+    } else {
+        "current"
+    }
+}
+
 fn unknown_profile() -> ProfileStatus {
     ProfileStatus {
         official_language: false,
@@ -113,15 +142,30 @@ pub(crate) fn project_status(
     resources_dir: &Path,
 ) -> StatusPayload {
     let resources = native_resources::load_status_resources(repo, resources_dir).ok();
-    let profile = crate::privilege::current_user_home()
+    let mut profile = crate::privilege::current_user_home()
         .and_then(|home| UserLanguagePaths::for_user_dirs_read_only(&home, state_dir))
         .map(|paths| profile_projection(&paths, resources.as_ref()))
         .unwrap_or_else(|_| unknown_profile());
-    let projected = project_profile_status(status, &profile, resources.is_some());
-    let runtime_owned = crate::privilege::has_native_runtime_owner_for_selection(
+    let runtime_owner_hint = crate::privilege::native_runtime_owner_hint_for_selection(
         state_dir,
-        Path::new(&projected.app_path),
+        Path::new(&status.app_path),
     );
+    let runtime_owned = runtime_owner_hint
+        .as_ref()
+        .map(|hint| hint.owned)
+        .unwrap_or(false);
+    if should_compare_runtime_source(&profile) {
+        let candidate_sha256 = super::native_runtime_source::approved_runtime_bytes()
+            .ok()
+            .map(|bytes| format!("{:x}", Sha256::digest(bytes)));
+        profile.patch_status = runtime_aware_patch_status(
+            "current",
+            runtime_owner_hint.as_ref().ok(),
+            candidate_sha256.as_deref(),
+        )
+        .into();
+    }
+    let projected = project_profile_status(status, &profile, resources.is_some());
     project_runtime_recovery_hint(projected, runtime_owned)
 }
 
