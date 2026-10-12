@@ -23,7 +23,7 @@ approved_vendor_corrections.js: 构建期厂商日语有限纠错登记，13项�
 remaining_node_ui_a_01.js: 构建期完整26-owner第一节点A分区406键；Luna Max作者由独立root重新全读1218槽、13键18槽修订和39槽差分验回后批准；区分几何端部、台湾表格欄/列、数值相乘与图像正片叠底、颜色过渡和泛指物体，不证明部署/live。
 remaining_global_ui_01.js: 构建期完整第一剩余UI分区418键；保留原审批摘要；输入/输出连接槽3键/6槽类别修订已批准，source/vendorJapanese不变，liveApproval仍false。
 remaining_global_ui_02.js: 构建期完整第二剩余全局UI分区446键；保留原审批摘要；书签/输入连接空区2键/6槽类别修订已批准，source/vendorJapanese不变，liveApproval仍false。
-remaining_global_ui_03.js: 构建期完整第三剩余全局UI分区449键；保留JS Snippet单键历史摘要；Mesh Explorer空区1键/3槽类别修订已批准，source/vendorJapanese不变，liveApproval仍false。
+remaining_global_ui_03.js: 构建期第三全局UI分区449键；保留Snippet与空区历史摘要。MessageBar单键三语改ASCII尾字节，兼容宿主裁尾；source/vendorJapanese不变，liveApproval为false。
 guides.js: 构建期完整catalog源绑定审批，98个canonical显示键；厂商日语默认优先、纠错只依独立登记、DNT不改，Luna Max双全域审读与主代理修订审批后经显式producer装配，不证明模型改写、部署或live。
 plugins_bilateral_blur.js: 构建期完整catalog源绑定审批，8个canonical显示键；厂商日语默认优先、纠错只依独立登记、DNT不改，Luna Max双全域审读与主代理修订审批后经显式producer装配，不证明模型改写、部署或live。
 plugins_box_blur.js: 构建期完整catalog源绑定审批，4个canonical显示键；厂商日语默认优先、纠错只依独立登记、DNT不改，Luna Max双全域审读与主代理修订审批后经显式producer装配，不证明模型改写、部署或live。

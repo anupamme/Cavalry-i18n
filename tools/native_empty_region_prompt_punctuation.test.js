@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 native approved_modules、native_language_pack、有限空区域键合同及原生格式校验。
- * [OUTPUT]: 锁定38条空区域提示；验证三语producer、类别修订摘要与旧值回退。
+ * [OUTPUT]: 锁定38条空区域提示；先回退后续MessageBar单键，再验证类别历史摘要。
  * [POS]: tools 的离线标点类别合同；不裁剪运行时文案，不读App，不代表live。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -11,7 +11,7 @@ const { test } = require('node:test');
 const { APPROVED_MODULES, approvedEntries } = require('../languages/native/approved_modules');
 const { nativeSourceIdentitySha256, resolveTranslations, renderNativePack } = require('./native_language_pack');
 const { assertNativeTranslationFormat } = require('./native_translation_format');
-const { hash, decisionRows, LOCALES } = require('./native_remaining_ui_contract');
+const { hash, decisionRows, LOCALES, restoreMessageBarNoFurtherRevision } = require('./native_remaining_ui_contract');
 const { APPROVED_VENDOR_CORRECTIONS } = require('../languages/native/approved_vendor_corrections');
 
 // -- 只含空区域短提示；不含 tooltip、帮助正文、错误或多句说明 --------
@@ -480,7 +480,11 @@ test('empty-region category revision preserves approval receipts and restores pr
     assert.equal(revision.liveApproval, false);
     assert.equal(revision.previousDecisionSha256, expected.previous);
     assert.equal(revision.currentDecisionSha256, expected.current);
-    assert.equal(hash(decisionRows(entries)), expected.current);
+    const revisionBaseline = structuredClone(entries);
+    if (moduleName === 'remaining_global_ui_03') {
+      restoreMessageBarNoFurtherRevision(revisionBaseline, provenance.messageBarNoFurtherAsciiTailRevision);
+    }
+    assert.equal(hash(decisionRows(revisionBaseline)), expected.current);
     assert.equal(revision.changedKeys, revision.changes.length);
     assert.equal(revision.changedLocaleSlots,
       revision.changes.reduce((total, change) => total + change.changedLocales.length, 0));
@@ -490,7 +494,7 @@ test('empty-region category revision preserves approval receipts and restores pr
     const changed = revision.changes;
     const expectedChanged = CANDIDATES.filter(row => changedKeys.has(row.key) && row.module === moduleName).map(row => row.key).sort();
     assert.deepEqual(changed.map(row => row.key).sort(), expectedChanged, moduleName);
-    const historical = structuredClone(entries);
+    const historical = structuredClone(revisionBaseline);
     for (const change of changed) {
       const live = entries.find(row => row.key === change.key);
       const old = historical.find(row => row.key === change.key);

@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖显式native审批registry、源身份/格式校验与单语言真实投影producer。
- * [OUTPUT]: 提供完整分区摘要守门及有限真实修订assertion，供两段剩余UI测试共用。
- * [POS]: tools 的纯测试共享合同，不注册测试、不读私账或App、不进入产品运行时；避免后半入库回归重复断言。
+ * [OUTPUT]: 提供完整分区摘要、有限修订assertion与单键历史回退，供剩余UI测试共用。
+ * [POS]: tools 的纯测试共享合同，不注册测试、不读私账或App、不进入产品运行时；只回退MessageBar单键revision。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -62,4 +62,19 @@ function assertFiniteRepairs(rows, repairs) {
   }
 }
 
-module.exports = { LOCALES, hash, sorted, identity, decisionRows, assertAdditionalPartition, assertFiniteRepairs };
+function restoreMessageBarNoFurtherRevision(entries, revision) {
+  assert.equal(revision?.key, 'messageBar.noFurther');
+  const row = entries.find(entry => entry.key === 'messageBar.noFurther');
+  assert.ok(row, 'messageBar.noFurther history row');
+  for (const locale of LOCALES) {
+    assert.equal(typeof revision.translations?.[locale]?.previous, 'string', locale);
+    row.translations[locale].text = revision.translations[locale].previous;
+  }
+  return entries;
+}
+
+module.exports = {
+  LOCALES, hash, sorted, identity, decisionRows,
+  assertAdditionalPartition, assertFiniteRepairs,
+  restoreMessageBarNoFurtherRevision,
+};

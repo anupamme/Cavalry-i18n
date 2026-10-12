@@ -4,11 +4,12 @@
 成员清单
 native-display-tests/: 项目显示技能的四份标准库离线维护测试；依赖技能脚本与场景，不运行App，不自动加入test:contracts。
 native_schema_gap_translations.test.js: 离线源绑定准入合同；守365键/1095槽与旧364冻结摘要；World Scale单键source/decision/独审绑定，真实producer完整与仅撤销该批准时missing1分开守门；不读App或私账。
-native_remaining_ui_contract.js: 纯测试共享完整分区摘要/源/格式/三语producer和有限实际修订守门，原42合同逻辑等价提取，不自动注册测试或读取私账/App。
+native_remaining_ui_contract.js: 纯测试共享分区摘要、格式与三语producer守门；单键回退供历史摘要重放。不读私账/App，不进入产品运行时。
 native_remaining_ui_final_repair_cases.js: 构建期剩余UI后半分区纯静态回退数据，Global06的112文字槽/6物理键决定、Node A04/A05/A06与B04/B05/B06分别绑定77/98/82/58/52/40个冻结源身份及旧值；不依赖私账，不以数据生成代验批准。
 native_remaining_ui_repair_cases.js: 构建期纯静态有限真实修订回退样本，A02/A03/B01/B02/B03/Global04/Global05精确source身份与old/new逐槽共址；测试逻辑不依赖私账，拆分防止多批合同单文件膨胀。
 native_graphics_reaudit.test.js: Node本轮88槽/62键有限图形/动效修订及13纠错/377厂商原样闭合合同，逐槽保留真实旧译反例及冻结源身份，真实显示投影无metadata；不读私账，不冒称通用NLP或live。
 native_remaining_ui_translations.test.js: Node剩余UI入库主合同；锁十三分区、三语producer及有限旧值回退，继续验证空场景/JS Snippet单键历史摘要；类别提示合同独立文件，不读私账或代表live。
+native_messagebar_no_further_revision.test.js: Node单键尾字节合同；核三语真实producer、严格UTF-8反例与原摘要回退。不运行App，不证明live。
 native_empty_region_prompt_punctuation.test.js: Node离线空区域提示类别合同；有限锁38个appStrings键/源/三语文字，复算真实native pack producer与六模块旧/新决定摘要；旧值回退只复现历史，不做运行时裁剪或live证明。
 native_remaining_ui_tail_translations.test.js: Node剩余UI后半合同，A05/A06/B04/B05/B06完整414/402/449/442/328键分区摘要和98/82/58/52/40个源身份绑定旧值回退；保护ProRes/Fade/Fill/身份、Stroke/Glyph/文本行与几何Lines/二维三维/XOR/Voronoi Levels/Body、台湾表格轴/Shift+Return/补零/Oklab、端帽/Tangent/Pin/Feedback/Nominal及GIF/物理衰减语义，并闭合77官方模块/10278官方UI键+Forge1模块/8键+缺源2模块/365键=80模块/10651总审定键、17个official target catalog与1421键稳定compact UI切片；与主合同拆分守住单文件规模，正式模块缺失时保持RED，不读取stage或私账、不批准、不代表live。
 native_guide_plugin_translations.test.js: Node的15完整Guide/Plugin catalog、396键/1188决定合同；用共享official-target投影维持历史批准b6摘要，现行三语摘要分开锁定；390厂商来源JA中13纠错/377原样、6DNT与真实producer闭合，不代验live。

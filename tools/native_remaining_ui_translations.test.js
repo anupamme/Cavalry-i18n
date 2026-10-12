@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖显式审批的剩余全局/节点UI模块、有限真实回退样本、原生格式/显示投影与完整源身份摘要。
- * [OUTPUT]: 锁定十三分区5643键及有限旧值回退；保留空提示单键修订的历史摘要，缺模块保持RED。
+ * [OUTPUT]: 锁定十三分区5643键及有限旧值回退；按序还原第三分区单键revision以复算历史摘要。
  * [POS]: tools 的剩余 UI 入库合同，不读取私有审稿台账或真实 App，不构建安装包、不证明 live。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -15,7 +15,7 @@ const { resolveTranslations, renderNativePack, nativeSourceIdentitySha256 } = re
 const { assertNativeTranslationFormat } = require('./native_translation_format');
 const { NODE_B_THIRD_REPAIRS, GLOBAL_FIFTH_REPAIRS, NODE_B_SECOND_REPAIRS, NODE_A_SECOND_REPAIRS, NODE_A_THIRD_REPAIRS, NODE_B_FIRST_REPAIRS, GLOBAL_FOURTH_REPAIRS } = require('./native_remaining_ui_repair_cases');
 const { GLOBAL_SIXTH_REPAIRS, GLOBAL_SIXTH_DECISION_REPAIRS, NODE_A_FOURTH_REPAIRS } = require('./native_remaining_ui_final_repair_cases');
-const { LOCALES, hash, sorted, identity, decisionRows, assertAdditionalPartition, assertFiniteRepairs } = require('./native_remaining_ui_contract');
+const { LOCALES, hash, sorted, identity, decisionRows, assertAdditionalPartition, assertFiniteRepairs, restoreMessageBarNoFurtherRevision } = require('./native_remaining_ui_contract');
 const MODULE = 'remaining_global_ui_01';
 const EXPECTED = Object.freeze({
   keys: 418,
@@ -37,7 +37,7 @@ const THIRD = Object.freeze({
   keyset: '2514f48ddc037f584bc7c8c8cecbe8e7b96d774d1e31e608f5fe75cbc6cfaf53',
   pairs: '5fc6c8ac0328518af8a503da997a6e91cde4bd21b6a55861ff3e87f42e00f4b1',
   identity: '9f00f5ed8da037da09d1541145c3ecdcabb14602d55b035a107aeb1faa4ab171',
-  decisions: 'c29731dbea989fd14d415b66abae8a4db7c3e486918b47f5ecfc9bd091586e92',
+  decisions: '83c07582aad0989ae67d21a5a6e36fdc2a8401808022feae4ea1ab52e8229ce3',
 });
 const THIRD_PRE_SNIPPET_PLACEHOLDER_REVISION = '4a3acb743bac44afae3a9133ac14237a4c89331d4182904bce719055937bcb0b';
 const THIRD_PRE_EMPTY_REGION_CATEGORY = '9bbb25315a1668d929038af82d731ee8b753f650d46326dff0f8ff9ecb8883be';
@@ -641,6 +641,7 @@ test('global UI03 JS Snippet placeholder keeps CJK punctuation out through the p
   }
 
   const historical = structuredClone(entries);
+  restoreMessageBarNoFurtherRevision(historical, provenance.messageBarNoFurtherAsciiTailRevision);
   const categoryRevision = provenance.emptyRegionPromptPunctuationRevision.changes
     .find(change => change.key === 'meshExplorer.empty');
   const meshExplorer = historical.find(entry => entry.key === categoryRevision.key);

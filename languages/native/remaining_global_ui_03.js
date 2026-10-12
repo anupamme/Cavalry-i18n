@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 绑定 Cavalry 2.8 官方显示源与完整 source/notes/身份，Luna Max 作者和独立 root 全域审校及返修批准。
- * [OUTPUT]: 提供449键原审批与已批准空区短提示类别revision；英文source保留。
- * [POS]: 第03剩余全局UI输入；保留JS单键历史摘要，liveApproval为false。
+ * [OUTPUT]: 提供449键原审批、空区类别revision与MessageBar单键尾字节revision；英文source保留。
+ * [POS]: 第03剩余全局UI输入；每次revision独立保留旧摘要，liveApproval为false。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  * 本轮图形语境有限修订经非作者验回/root审定；冻结源与历史批准仍保全。
  */
@@ -413,7 +413,7 @@ const entries = [
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["messageBar.mcp.title"],"source":"MCP Connections","notes":["Panel title. \"MCP\" (Model Context Protocol) is a technical protocol name; \"Connections\" = the applications currently connected."],"key":"messageBar.mcp.title","vendorJapanese":"MCP Connections","translations":{"zh-Hans":{"decision":"translate","text":"MCP 连接"},"zh-Hant":{"decision":"translate","text":"MCP 連線"},"ja_JP":{"decision":"translate","text":"MCP接続"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["messageBar.mcp.toolCalls"],"source":"Tool calls: {0}","notes":["\"Tool calls\" = the number of commands the connected application has run.","placeholder0 - a count.","Example - \"Tool calls: 12\""],"key":"messageBar.mcp.toolCalls","vendorJapanese":"Tool calls: {0}","translations":{"zh-Hans":{"decision":"translate","text":"工具调用次数：{0}"},"zh-Hant":{"decision":"translate","text":"工具呼叫次數：{0}"},"ja_JP":{"decision":"translate","text":"ツール呼び出し回数: {0}"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["messageBar.mcp.unknownClient"],"source":"Unknown","notes":["\"Unknown\" is an adjective: the connected application’s name is not known."],"key":"messageBar.mcp.unknownClient","vendorJapanese":"Unknown","translations":{"zh-Hans":{"decision":"translate","text":"未知的应用"},"zh-Hant":{"decision":"translate","text":"未知的應用程式"},"ja_JP":{"decision":"translate","text":"不明なアプリ"}}},
-  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["messageBar.noFurther"],"source":"No further messages.","notes":["There are no more messages to advance through."],"key":"messageBar.noFurther","vendorJapanese":"No further messages.","translations":{"zh-Hans":{"decision":"translate","text":"没有更多消息。"},"zh-Hant":{"decision":"translate","text":"沒有更多訊息。"},"ja_JP":{"decision":"translate","text":"これ以上メッセージはありません。"}}},
+  {"catalogId":"Definitions/Translation/appStrings","fieldPath":["messageBar.noFurther"],"source":"No further messages.","notes":["There are no more messages to advance through."],"key":"messageBar.noFurther","vendorJapanese":"No further messages.","translations":{"zh-Hans":{"decision":"translate","text":"没有更多消息."},"zh-Hant":{"decision":"translate","text":"沒有更多訊息."},"ja_JP":{"decision":"translate","text":"これ以上メッセージはありません."}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["messageBar.title"],"source":"Messages","notes":["Title of the panel that surfaces in-app notifications such as update alerts and tips."],"key":"messageBar.title","vendorJapanese":"Messages","translations":{"zh-Hans":{"decision":"translate","text":"消息"},"zh-Hant":{"decision":"translate","text":"訊息"},"ja_JP":{"decision":"translate","text":"メッセージ"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["messageBar.updateAvailable"],"source":"Update Available 🥳","notes":["Notification title. \"Update\" refers to a new app version."],"key":"messageBar.updateAvailable","vendorJapanese":"Update Available 🥳","translations":{"zh-Hans":{"decision":"translate","text":"有可用更新 🥳"},"zh-Hant":{"decision":"translate","text":"有可用更新 🥳"},"ja_JP":{"decision":"translate","text":"アップデートがあります 🥳"}}},
   {"catalogId":"Definitions/Translation/appStrings","fieldPath":["modernList.log.failedFindRow"],"source":"Failed to find row index {0}","notes":["placeholder0 - a numeric row index.","Example - \"Failed to find row index 4\""],"key":"modernList.log.failedFindRow","vendorJapanese":"Failed to find row index {0}","translations":{"zh-Hans":{"decision":"translate","text":"找不到行索引 {0}"},"zh-Hant":{"decision":"translate","text":"找不到列索引 {0}"},"ja_JP":{"decision":"translate","text":"行インデックス {0} が見つかりませんでした"}}},
@@ -620,4 +620,54 @@ module.exports.provenance.emptyRegionPromptPunctuationRevision = {
   "sourceIdentityChanged": false,
   "vendorJapaneseChanged": false,
   "liveApproval": false
+};
+
+module.exports.provenance.messageBarNoFurtherAsciiTailRevision = {
+  revisionId: 'messagebar-no-further-ascii-tail-20261012-r1',
+  requestedBy: 'primary-agent',
+  approvedBy: 'primary-agent',
+  approvalState: 'approved-source-bound-single-key-revision',
+  key: 'messageBar.noFurther',
+  locales: ['zh-Hans', 'zh-Hant', 'ja_JP'],
+  changedKeys: 1,
+  changedLocaleSlots: 3,
+  sourceIdentitySha256: '466227241944760da430cb7053216088d43a638d71adeade3d77c9bbd4f46430',
+  previousDecisionSha256: 'c29731dbea989fd14d415b66abae8a4db7c3e486918b47f5ecfc9bd091586e92',
+  currentDecisionSha256: '83c07582aad0989ae67d21a5a6e36fdc2a8401808022feae4ea1ab52e8229ce3',
+  historicalApprovalReceiptSha256: '4c744a0e2b48fe04581430ed2125540b02aee0f6874dced9665b3e91172fc6e4',
+  reason: 'MessageBar::getElidedMessage drops one final byte before its newline scan; replacing the CJK full stop with an ASCII terminal sentinel leaves the intended no-punctuation status after that byte is removed.',
+  reasonAbiVersion: {
+    cavalryVersion: '2.8.0',
+    qtVersion: '6.9.2',
+    bundleIdentifier: 'com.scenegroup.cavalry',
+    architecture: 'arm64',
+    extensionLayerUuid: '448DD50E-75F4-3F2D-A46B-2C9F00DF9408',
+    extensionLayerSha256: '55c165bfa3f780f73e35a0b4e7cbd30929fe54de46c41424c74a239e2f9f4d15',
+    symbol: 'MessageBar::getElidedMessage(std::string const&)',
+    address: '0xa7f8e0',
+    byteRule: 'size > 1 copies size - 1 bytes before searching for LF'
+  },
+  translations: {
+    'zh-Hans': {
+      previous: '没有更多消息。',
+      previousSha256: 'dedce9fc1156f71dbaedca3410c38b8fdca4cb05161a6696e0cd121d97d40192',
+      current: '没有更多消息.',
+      currentSha256: 'df266afeccc6ea08edad1285e6dadfccaedc9ec790c3eeef4e658f337f15fa0f'
+    },
+    'zh-Hant': {
+      previous: '沒有更多訊息。',
+      previousSha256: '378a47fed4c78072bb81b54cb5ac581b4b918e41ab5af0f164c287dd298f463d',
+      current: '沒有更多訊息.',
+      currentSha256: '29da4600cea2b8a884810ee059fe85a38061dd6a77d928fc3cdd73ca616c9330'
+    },
+    ja_JP: {
+      previous: 'これ以上メッセージはありません。',
+      previousSha256: '0cfc80abe2cac86ad011162f7ccb850edbd92c578365d9432a07771c8acc60ed',
+      current: 'これ以上メッセージはありません.',
+      currentSha256: 'f1a4e6ddc3225adcb9d2a87ae14974e1cb48383e38459b5f37ca5729e2bfc440'
+    }
+  },
+  sourceIdentityChanged: false,
+  vendorJapaneseChanged: false,
+  liveApproval: false
 };
