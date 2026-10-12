@@ -101,3 +101,14 @@ FPS只在启用显示开关且正在播放时出现。
 每个受影响工具都检查三语固定帮助。核对文本、owner 与键位 token。
 `Space`、`S`、`X` 等键位保持原样。未知 caller 必须显示原厂文本。
 当前 key 与译文以 [`getpath_font_texts.inc`](../../../../injector/native/getpath_font_texts.inc) 为准。
+
+## 其他工具的固定帮助
+
+先核当前工具的QAction勾选，再比较同工具、同键的原图。
+质量文字或Transform通过，不证明Mesh等工具已覆盖。
+走同一绘制owner的不同文本仍须核对精确表。
+不把未覆盖的新上下文说成已验位置回归。
+用空白工作区采固定帮助，避免指南图形遮住文字。
+经标准Tool菜单切工具，采图后恢复原工具。
+合成快捷提示按宿主实际完整串匹配，不单列后缀。
+私人驱动查找键：`run-mesh-help-current.root.py`、`tool-action-host`。
