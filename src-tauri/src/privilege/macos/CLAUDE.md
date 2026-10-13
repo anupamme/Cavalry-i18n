@@ -10,7 +10,7 @@ native_runtime_owner.rs: v1/v2八槽owner仍可读取与原厂恢复；v3记录s
 native_runtime_terminal_tests.rs: NRT终结器的owner/source/原厂恢复fixture合同；以父模块私有fixture供preflight子模块复用，不访问真实App/profile。
 native_runtime_preflight_tests.rs: 复用父测试fixture的恢复回调时序合同；四有效phase只调一次，终态/坏journal不调，读错不写App；隔离schema 6兼容，不证明厂商。
 native_runtime_finalizer_sentinel_tests.rs: generic finalizer 的独立隔离合同；验证 NRT Restored、RuntimeCommitted、Committed 均被拒绝，canonical journal 与备份保持；只使用临时 bundle。
-bundle.rs: Cavalry.app签名与quarantine操作；legacy helper保留逐对象写后验；NRT专用端口只写两nested与app seal，transaction再验最终postimage；直接命令拒绝管理员shell fallback；status-only 5秒runner只向Apple验证精确Developer-ID requirement；外置签名组件只按自有regular-file路径识别兼容残留。
+bundle.rs: Cavalry.app签名与quarantine操作；legacy helper保留逐对象写后验；NRT专用端口只签明确nested名单与app seal，transaction再验最终postimage；直接命令拒绝管理员shell fallback；status-only 5秒runner只向Apple验证精确Developer-ID requirement；外置签名组件只按自有regular-file路径识别兼容残留。
 process.rs: 通过 libproc 读取原始 executable 路径；exact guard 仍按选中 canonical executable 限定，新增共享 profile guard 检查所有 `Cavalry`/旧 `CavalryLauncher` 候选的 canonical `*.app/Contents/MacOS` 与 `com.scenegroup.cavalry`，覆盖重命名/多版本副本、忽略可证实的不同 bundle ID、候选无法检查时 fail closed；只忽略 typed vanished PID，普通写入 admission 不发送 terminate。它是进程快照而非 OS launch lock。
 user_profile.rs: 以 `getpwuid_r` 解析当前 real/effective uid 的 OS home，不信任 `HOME`、拒绝 uid 不一致与非空 `CFFIXED_USER_HOME`；只提供路径推导的受限基础，不声称证明 Qt TestMode 或 Cavalry 自身 profile 与其一致，也不直接读写用户文件。
 
