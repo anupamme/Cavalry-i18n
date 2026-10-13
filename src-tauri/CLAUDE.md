@@ -29,4 +29,6 @@ Tauri 是唯一桌面壳；renderer 文件仍是 UI 真相源。Rust command 返
 
 法则: 版本精确·桥先注入·命令等价·副作用可测
 
+非English同源profile在canonical回执校验后报告真实恢复阶段，再进入首次receipt写入；不加IO或动画延时。
+
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

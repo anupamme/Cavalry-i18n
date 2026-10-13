@@ -52,4 +52,6 @@ commands.rs 面向renderer；commands/承担状态、native Official来源、pro
 
 法则: command 薄·模块职责单一·副作用集中
 
+非English同源profile在canonical回执校验后报告真实恢复阶段，再进入首次receipt写入；不加IO或动画延时。
+
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

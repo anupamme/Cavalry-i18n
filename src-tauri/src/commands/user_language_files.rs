@@ -2,6 +2,7 @@
  * [INPUT]: 依赖固定 Cavalry user-home/state 路径、Preferences 与 Switcher 专属 strings、typed locale 投影及调用方提供的 closed-writer guard。
  * [OUTPUT]: 事务化应用合法 native UI-text pack、固定 en-GB restore、严格Current-owned hostless restore-only入口、pending 恢复与只读 profile projection；测试 fixture 仅用于隔离验证。
  * [POS]: commands/user_language 的受限 profile 文件 owner；apply复用首次验证且无pending的receipt，只有pending恢复路径再读回磁盘。
+ * 新动作回调只在receipt与前像校验、writer guard通过后且首次receipt写入前运行；回调不访问文件。
  * 事务比较active前像并保留hostless English的bytes+mode发布期望；path binding不证明writer closed，生产facade持锁并在每个写边界提供guard。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -169,6 +170,7 @@ pub(crate) fn apply(
         strings_json,
         &mut allow_closed_writer,
         None,
+        || {},
     )
 }
 
@@ -186,6 +188,7 @@ pub(crate) fn apply_with_interrupt(
         strings_json,
         &mut allow_closed_writer,
         interrupt_after,
+        || {},
     )
 }
 
@@ -196,7 +199,25 @@ pub(crate) fn apply_with_writer_guard(
     strings_json: &[u8],
     writer_guard: &mut dyn FnMut() -> Result<(), String>,
 ) -> Result<CommitOutcome, String> {
-    apply_inner(paths, product_language, strings_json, writer_guard, None)
+    apply_with_writer_guard_and_ready(paths, product_language, strings_json, writer_guard, || {})
+}
+
+/// 在profile获准且首次新receipt写入前通知调用方。
+pub(crate) fn apply_with_writer_guard_and_ready(
+    paths: &UserLanguagePaths,
+    product_language: &str,
+    strings_json: &[u8],
+    writer_guard: &mut dyn FnMut() -> Result<(), String>,
+    on_apply_ready: impl FnOnce(),
+) -> Result<CommitOutcome, String> {
+    apply_inner(
+        paths,
+        product_language,
+        strings_json,
+        writer_guard,
+        None,
+        on_apply_ready,
+    )
 }
 
 fn apply_inner(
@@ -205,6 +226,7 @@ fn apply_inner(
     strings_json: &[u8],
     writer_guard: &mut dyn FnMut() -> Result<(), String>,
     interrupt_after: Option<InterruptAfter>,
+    on_apply_ready: impl FnOnce(),
 ) -> Result<CommitOutcome, String> {
     validate_mutation_paths(paths)?;
     if product_language == "en" {
@@ -296,6 +318,7 @@ fn apply_inner(
     });
     validate_apply_receipt(paths, &receipt)?;
     writer_guard()?;
+    on_apply_ready();
     require_durable(
         "user-language preimage receipt",
         write_receipt(paths, &receipt)?,

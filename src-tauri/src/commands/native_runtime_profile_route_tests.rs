@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖native_runtime实际编排、owner hint、2.8 bundle观察、profile事务与临时fixture。
- * [OUTPUT]: 证明同源hint只准profile快路，并锁住English、漂移、坏receipt、坏目标与NRT边界。
- * [POS]: native_runtime的路由合同；缺baseline和Extension的fixture只证明profile成功，不证明App完整性。
+ * [OUTPUT]: 证明同源hint只准profile快路；成功按Verify/Ensure/Apply排序，早期拒绝止于Ensure。
+ * [POS]: native_runtime路由合同；缺baseline和Extension的fixture只证明profile成功，不证明App完整性。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::*;
@@ -167,6 +167,18 @@ fn digest(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 
+fn assert_profile_recovery_failure(reporter: &RecordingReporter) {
+    assert_eq!(
+        reporter.0.lock().unwrap().clone(),
+        [
+            ("verifyInstallation".into(), "running".into()),
+            ("verifyInstallation".into(), "completed".into()),
+            ("ensureBaseline".into(), "running".into()),
+            ("ensureBaseline".into(), "error".into()),
+        ]
+    );
+}
+
 #[test]
 fn matching_bounded_owner_hint_applies_profile_without_baseline_or_extension() {
     let _serial = TEST_SERIAL
@@ -210,9 +222,17 @@ fn matching_bounded_owner_hint_applies_profile_without_baseline_or_extension() {
         ReceiptObservation::Current { .. }
     ));
     let events = reporter.0.lock().unwrap().clone();
-    assert!(events.contains(&("applyTransaction".into(), "running".into())));
-    assert!(events.contains(&("applyTransaction".into(), "completed".into())));
-    assert!(!events.iter().any(|(phase, _)| phase == "ensureBaseline"));
+    assert_eq!(
+        events,
+        [
+            ("verifyInstallation".into(), "running".into()),
+            ("verifyInstallation".into(), "completed".into()),
+            ("ensureBaseline".into(), "running".into()),
+            ("ensureBaseline".into(), "completed".into()),
+            ("applyTransaction".into(), "running".into()),
+            ("applyTransaction".into(), "completed".into()),
+        ]
+    );
 }
 
 #[test]
@@ -224,7 +244,7 @@ fn same_source_route_still_rejects_a_corrupt_user_receipt() {
     fixture.write_owner(&digest(SOURCE_BYTES));
     fs::write(fixture.paths.receipt(), b"not a receipt").unwrap();
 
-    let (payload, source_reads, pack_reads, _, runner) =
+    let (payload, source_reads, pack_reads, reporter, runner) =
         fixture.apply_with("zh-Hans", Ok(SOURCE_BYTES));
 
     assert!(!payload.ok);
@@ -236,6 +256,7 @@ fn same_source_route_still_rejects_a_corrupt_user_receipt() {
     assert_eq!(pack_reads, 1);
     assert!(runner.commands.is_empty());
     assert_eq!(fs::read(fixture.paths.receipt()).unwrap(), b"not a receipt");
+    assert_profile_recovery_failure(&reporter);
 
     let drifted = Fixture::new(native_resources::NATIVE_VERSION);
     drifted.write_owner(&digest(SOURCE_BYTES));
@@ -249,7 +270,7 @@ fn same_source_route_still_rejects_a_corrupt_user_receipt() {
     )
     .unwrap();
     let changed_preferences = fs::read(drifted.paths.preferences()).unwrap();
-    let (payload, _, _, _, _) = drifted.apply_with("zh-Hans", Ok(SOURCE_BYTES));
+    let (payload, _, _, reporter, _) = drifted.apply_with("zh-Hans", Ok(SOURCE_BYTES));
     assert!(!payload.ok);
     assert_eq!(
         payload.error_code.as_deref(),
@@ -259,6 +280,7 @@ fn same_source_route_still_rejects_a_corrupt_user_receipt() {
         fs::read(drifted.paths.preferences()).unwrap(),
         changed_preferences
     );
+    assert_profile_recovery_failure(&reporter);
 }
 
 #[test]

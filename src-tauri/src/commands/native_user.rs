@@ -5,7 +5,8 @@
  * Owner hint只验证schema/root；不读journal、App槽或签名，不授权App写或恢复。
  * English恢复能力仍只由Current-owned profile决定。
  * apply只读目标pack。file transaction负责pending恢复与写前像比较。
- * leaf不发布空恢复阶段；caller只报告自身实际准入。
+ * 非English先报告profile恢复检查；canonical事务在新receipt写前结束检查并启动Apply。
+ * bundle事务传入NoopReporter，不重复发布外层阶段。
  * hostless English继续要求Current-owned证明；独立Restart保留profile/NRT/owner准入。
  * apply提交后只复核原guard归属与writer guard，再复用不终止进程的启动器。
  * Official由原厂来源与profile语言共同投影。
@@ -255,52 +256,81 @@ fn apply_profile_with_restore_policy<R: OperationReporter>(
             "nativeResourceUnavailable",
         );
     }
-    if let Err(error) = writer_guard() {
-        return transaction_error(&error);
-    }
-    // canonical文件事务负责回执验证、pending恢复与写前像比较。
-    let mut apply_phase = OperationPhaseGuard::start(reporter, OperationPhase::ApplyTransaction);
-    let outcome = if language == "en" {
+    if language == "en" {
+        if let Err(error) = writer_guard() {
+            return transaction_error(&error);
+        }
+        let apply_phase = OperationPhaseGuard::start(reporter, OperationPhase::ApplyTransaction);
         let restore = if require_current_owned {
             user_language_files::restore_owned_english_with_writer_guard(paths, writer_guard)
         } else {
             user_language_files::restore_english_with_writer_guard(paths, writer_guard)
         };
-        restore.map(|outcome| match outcome {
+        let outcome = restore.map(|outcome| match outcome {
             RestoreOutcome::Restored | RestoreOutcome::NothingToRestore => CommitOutcome::Committed,
             RestoreOutcome::RestoredWithWarning(detail) => {
                 CommitOutcome::CommittedWithWarning(detail)
             }
-        })
-    } else {
-        user_language_files::apply_with_writer_guard(
-            paths,
-            language,
-            bytes.expect("admitted pack"),
-            writer_guard,
-        )
+        });
+        return finish_profile_outcome(outcome, language, require_current_owned, apply_phase);
+    }
+
+    let mut ensure_phase = OperationPhaseGuard::start(reporter, OperationPhase::EnsureBaseline);
+    if let Err(error) = writer_guard() {
+        ensure_phase.error();
+        return transaction_error(&error);
+    }
+    let mut apply_phase = None;
+    let outcome = user_language_files::apply_with_writer_guard_and_ready(
+        paths,
+        language,
+        bytes.expect("admitted pack"),
+        writer_guard,
+        || {
+            ensure_phase.completed();
+            apply_phase = Some(OperationPhaseGuard::start(
+                reporter,
+                OperationPhase::ApplyTransaction,
+            ));
+        },
+    );
+    let phase = match apply_phase {
+        Some(phase) => phase,
+        None => ensure_phase,
     };
+    finish_profile_outcome(outcome, language, require_current_owned, phase)
+}
+
+fn finish_profile_outcome<R: OperationReporter>(
+    outcome: Result<CommitOutcome, String>,
+    language: &str,
+    require_current_owned: bool,
+    mut phase: OperationPhaseGuard<R>,
+) -> ActionPayload {
     match outcome {
         Ok(CommitOutcome::Committed) => {
-            apply_phase.completed();
+            phase.completed();
             let mut payload = ActionPayload::ok_lang(language, None);
             payload.native_restore_only = require_current_owned;
             payload
         }
         Ok(CommitOutcome::CommittedWithWarning(_)) => {
-            apply_phase.warning();
+            phase.warning();
             let mut payload = ActionPayload::ok_lang(language, None)
                 .with_warning_code(STATE_DURABILITY_PENDING_WARNING_CODE);
             payload.reconciliation_required = true;
             payload
         }
         Ok(CommitOutcome::PendingWithWarning(_)) => {
-            apply_phase.warning();
+            phase.warning();
             let mut payload = transaction_error("native transaction remains pending");
             payload.warning_code = Some(STATE_DURABILITY_PENDING_WARNING_CODE.into());
             payload
         }
-        Err(error) => transaction_error(&error),
+        Err(error) => {
+            phase.error();
+            transaction_error(&error)
+        }
     }
 }
 

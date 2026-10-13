@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 user_language_files 的临时 profile fixture、typed locale 投影与耐久回执。
- * [OUTPUT]: 验证回执事务/恢复与drift拒绝；计数合同锁定apply仅显式验证新pending回执一次。
+ * [OUTPUT]: 验证回执事务/恢复与drift拒绝；计数合同锁定新pending验证一次及ready回调写前只调用一次。
  * [POS]: commands/tests 的 transaction recovery 合同；real tempfile staging 只做预发布乐观比较，不证明 OS 原子 CAS；不访问真实 Cavalry、IPC、安装 bundle 或 profile。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */

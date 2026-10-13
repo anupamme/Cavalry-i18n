@@ -2,7 +2,7 @@
  * [INPUT]: 依赖operation guard、bounded owner source hint、2.8 bundle观察、approved runtime/pack与profile事务。
  * [OUTPUT]: 协调同源profile快路、stock首装、managed制品更新与English双owner恢复。
  * [POS]: 显式native预览动作编排。匹配hint只准profile事务，不准App完整性结论或bundle写。
- * 同源profile快路仍由canonical UserReceipt事务恢复pending并核前像。
+ * 同源profile快路由native_user报告真实恢复检查；canonical回调只在新receipt写前启动Apply。
  * NRT仅在实际回写App前预读profile；判定使用恢复器同份manifest。
  * stock、runtime更新和English恢复保留App写前profile准入。
  * English、源不匹配、坏hint与非2.8候选保留原完整owner准入。
@@ -188,7 +188,7 @@ where
                             }
                         };
                         verify.completed();
-                        // profile事务自行核验恢复记录；不提前发布空baseline阶段。
+                        // 用户profile恢复阶段覆盖真实receipt检查；新事务只在首次receipt写前开始。
                         return native_user::apply_profile(
                             paths,
                             language,
