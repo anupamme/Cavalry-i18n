@@ -1,20 +1,30 @@
 /**
  * [INPUT]: 依赖approved/staged source SHA、旧owner bytes与mode、typed baseline、中性计划、operation guard和签名端口。
  * [OUTPUT]: 提供stock首装、managed槽更新与原厂English恢复。
- * [POS]: macOS runtime窄writer。复用同一八槽NRT；不写profile、locale或StateDocument。
- * writer绑定staging制品；stock写入前只比九槽，不重验原厂整包。
- * NRT保留三次签名写；先清quarantine，再验最终nested与bundle后像。
+ * [POS]: macOS runtime窄writer。v3 owner以九槽NRT提交ExtensionLayer补丁。
+ * 老八槽owner仍可恢复；新写入要求schema 2原厂Extension前像。
+ * NRT同次提交wrapper、Info、injector与Extension；不写profile或locale。
+ * Extension补丁只消费可信baseline字节与现有Keychain patcher。
+ * NRT清quarantine后验三个nested对象与bundle后像。
  * live commit消费同事务proof并复核固定槽；独立恢复重新验源。
  * 原厂恢复暂存后只加载一次owner；baseline错配在App写前拒绝。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use sha2::{Digest, Sha256};
-use std::{fs, io::Read, os::unix::fs::OpenOptionsExt, path::Path};
+use std::{
+    fs,
+    io::Read,
+    os::unix::fs::{OpenOptionsExt, PermissionsExt},
+    path::Path,
+};
 
 use crate::{
     native_mac_runtime::build_native_mac_runtime_plan,
-    native_mac_vendor_baseline::VerifiedNativeVendorBaseline,
+    native_mac_vendor_baseline::{
+        VerifiedNativeVendorBaseline, LEGACY_EXTENSION_REINSTALL_MESSAGE,
+    },
     operation_lock::BundleOperationGuard,
+    patch::CopyPair,
     privilege::{
         self, CommandRunner, MacApplyTransaction, NativeRuntimeIntent, PostCommitWarning,
         PostCommitWarningCode,
@@ -180,6 +190,14 @@ where
     R: CommandRunner,
     V: FnMut(&VerifiedNativeVendorBaseline, &Path, &mut R) -> Result<(), String>,
 {
+    if let Some(owner) = previous_owner_preimage {
+        if !owner.includes_extension_slot(app)? {
+            return Err(LEGACY_EXTENSION_REINSTALL_MESSAGE.to_string().into());
+        }
+    }
+    let (extension_preimage, extension_mode) = baseline
+        .read_extension_preimage()
+        .map_err(NativeRuntimeApplyError::from)?;
     let owner_slot_preimages = if let Some(previous_owner) = previous_owner_preimage {
         Some(privilege::capture_owner_slot_preimages(
             app,
@@ -206,11 +224,20 @@ where
         .expect("plan has a staging parent")
         .to_path_buf();
     let result = (|| {
+        let extension_pair = stage_keychain_extension_patch(
+            &owned_stage,
+            &plan.injector.dst,
+            extension_preimage,
+            extension_mode,
+        )?;
+        let extension_target = extension_pair.dst.clone();
+        let payload_pairs = [plan.injector.clone(), extension_pair.clone()];
         let launch_gate = [plan.wrapper, plan.info_plist];
         let mut signing_paths = vec![
             app.join("Contents/_CodeSignature/CodeResources"),
             app.join("Contents/MacOS/Cavalry"),
             plan.injector.dst.clone(),
+            extension_pair.dst.clone(),
         ];
         signing_paths.extend(privilege::external_signature_component_paths(app));
         let mut destinations = signing_paths.clone();
@@ -237,7 +264,7 @@ where
             app,
             &[],
             &launch_gate,
-            std::slice::from_ref(&plan.injector),
+            &payload_pairs,
             &[],
             &[],
             &[],
@@ -248,6 +275,7 @@ where
         let finish: Result<_, String> = (|| {
             transaction.begin_signing()?;
             let modified_code = [
+                extension_target,
                 app.join("Contents/MacOS/Cavalry"),
                 plan.injector.dst.clone(),
             ];
@@ -299,6 +327,38 @@ fn runtime_source_sha256(path: &Path) -> Result<String, String> {
         hasher.update(&buffer[..count]);
     }
     Ok(format!("{:x}", hasher.finalize()))
+}
+
+fn stage_keychain_extension_patch(
+    staging: &Path,
+    injector_destination: &Path,
+    vendor_preimage: Vec<u8>,
+    vendor_mode: u32,
+) -> Result<CopyPair, String> {
+    if vendor_mode & !0o7777 != 0 {
+        return Err("Verified ExtensionLayer permission mode is invalid.".into());
+    }
+    let (patched, report) =
+        crate::keychain_patch::patch_keychain_query_attributes_owned(vendor_preimage)?;
+    if report.patched_callsites == 0
+        || report.already_patched_callsites != 0
+        || report
+            .details
+            .iter()
+            .any(|detail| detail.patched_callsites == 0 || detail.already_patched_callsites != 0)
+    {
+        return Err(
+            "Verified ExtensionLayer preimage cannot derive one complete Keychain patch.".into(),
+        );
+    }
+    let source = staging.join("libExtensionLayer.dylib");
+    fs::write(&source, patched).map_err(|error| error.to_string())?;
+    fs::set_permissions(&source, fs::Permissions::from_mode(vendor_mode & 0o7777))
+        .map_err(|error| error.to_string())?;
+    Ok(CopyPair {
+        src: source,
+        dst: injector_destination.with_file_name("libExtensionLayer.dylib"),
+    })
 }
 
 fn cleanup_stage(

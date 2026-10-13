@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖operation guard、selected native pack、approved runtime SHA、已验八槽owner与profile事务。
+ * [INPUT]: 依赖operation guard、selected native pack、approved runtime SHA、已验版本化owner槽与profile事务。
  * [OUTPUT]: 协调stock首装、同源跳过、managed制品更新与English双owner恢复。
  * [POS]: 显式native预览动作编排。非English只读目标pack并验长度/SHA。
  * 同源受管非English跳过后续bundle写；canonical profile事务恢复pending并核前像。

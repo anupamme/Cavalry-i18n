@@ -1,6 +1,8 @@
 # Cavalry-i18n - Cavalry 的 macOS / Windows Tauri 桌面语言补丁器
 HTML + Javascript + Rust (Tauri) + Objective-C++ / C++ (Qt Injector / Windows generic translator + QPA delegate)
 
+macOS 2.8 NRT将Extension补丁纳入恢复事务。baseline schema 2保存原像，owner v3记录九槽后像。旧八槽owner保留读取与English恢复；新写入须先恢复原厂再捕获。
+
 <directory>
 .agents/ - 项目技能发现入口；翻译偏好与macOS原生显示验收分别路由，显示按语言/场景合批，脚本自测留tools；不参与产品构建或运行 (1 子目录: skills)
 .baoyu-skills/ - 项目本地 Agent 技能扩展配置，约束翻译偏好与术语来源 (Markdown)

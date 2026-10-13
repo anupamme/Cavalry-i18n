@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖CopyPair、八槽前像、staged source SHA、owner前像、进程门、验签、fd与renameatx_np。
+ * [INPUT]: 依赖CopyPair、版本化八/九槽前像、staged source SHA、owner前像、进程门、验签、fd与renameatx_np。
  * [OUTPUT]: 提供schema 6 StateBound、schema 7 NativeRuntimeOnly及只读owner hint facade。
  * [POS]: macOS bundle事务owner。schema 6保持不变；schema 7绑定来源与旧owner槽像。
  * NRT live proof绑定operation、bundle与已记录签名后像；deferred App写入清空后签发。

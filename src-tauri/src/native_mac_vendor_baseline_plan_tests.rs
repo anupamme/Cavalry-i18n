@@ -1,13 +1,13 @@
 /**
- * [INPUT]: 依赖typed baseline、受管CopyPair plan与隔离Unix store。
- * [OUTPUT]: 验证受管恢复边界、可选签名槽、mode及post-restore证明。
+ * [INPUT]: 依赖schema 1/2 typed baseline、受管CopyPair plan与隔离Unix store。
+ * [OUTPUT]: 验证Extension原像、旧/新恢复槽、签名槽与原始mode。
  * [POS]: baseline恢复计划合同；fixture source只测校验逻辑，不证明vendor真实性。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{cell::Cell, collections::BTreeSet, fs, os::unix::fs::PermissionsExt};
 
 use super::super::{capture_inner, NativeVendorRestorePlan};
-use super::{fixture, generation_path, source_for, successful_verifier};
+use super::{capture_schema_1_fixture, fixture, generation_path, source_for, successful_verifier};
 
 fn plan_for(with_signature_components: bool) -> (super::Fixture, NativeVendorRestorePlan) {
     let fixture = fixture(with_signature_components);
@@ -36,12 +36,13 @@ fn restore_plan_only_copies_managed_slots_and_removes_absent_owned_slots() {
             "Contents/Info.plist",
             "Contents/MacOS/Cavalry",
             "Contents/_CodeSignature/CodeResources",
+            "Contents/Frameworks/libExtensionLayer.dylib",
         ]
         .into_iter()
         .map(str::to_string)
         .collect()
     );
-    assert_eq!(plan.modes.len(), 3);
+    assert_eq!(plan.modes.len(), 4);
     let removals = plan
         .removals
         .iter()
@@ -63,10 +64,25 @@ fn restore_plan_only_copies_managed_slots_and_removes_absent_owned_slots() {
 }
 
 #[test]
+fn schema_1_restore_plan_never_claims_extension_layer() {
+    let fixture = fixture(false);
+    let baseline = capture_schema_1_fixture(&fixture.app, &fixture.state);
+    let plan = baseline.build_restore_plan(&fixture.app).unwrap();
+    let extension = fixture
+        .app
+        .join("Contents/Frameworks/libExtensionLayer.dylib");
+
+    assert_eq!(baseline.manifest.schema_version, 1);
+    assert!(plan.pairs.iter().all(|pair| pair.dst != extension));
+    assert!(plan.removals.iter().all(|path| path != &extension));
+    assert!(plan.modes.iter().all(|mode| mode.destination != extension));
+}
+
+#[test]
 fn present_optional_signature_components_are_copied_with_original_modes() {
     let (fixture, plan) = plan_for(true);
-    assert_eq!(plan.pairs.len(), 6);
-    assert_eq!(plan.modes.len(), 6);
+    assert_eq!(plan.pairs.len(), 7);
+    assert_eq!(plan.modes.len(), 7);
     assert_eq!(plan.removals.len(), 2);
     let main_mode = plan
         .modes
@@ -75,6 +91,18 @@ fn present_optional_signature_components_are_copied_with_original_modes() {
         .unwrap()
         .unix_mode;
     assert_eq!(main_mode, 0o755);
+    let extension_mode = plan
+        .modes
+        .iter()
+        .find(|mode| {
+            mode.destination
+                == fixture
+                    .app
+                    .join("Contents/Frameworks/libExtensionLayer.dylib")
+        })
+        .unwrap()
+        .unix_mode;
+    assert_eq!(extension_mode & 0o7777, 0o755);
 }
 
 #[test]

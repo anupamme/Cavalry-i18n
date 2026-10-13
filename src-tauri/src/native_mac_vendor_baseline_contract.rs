@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖schema 1 manifest、固定受管槽与当前编译source政策。
+ * [INPUT]: 依赖schema 1/2 manifest、版本化固定槽与当前编译source政策。
  * [OUTPUT]: 验证baseline字段、路径、slot/inventory对应关系和原厂Absent槽。
  * [POS]: native_mac_vendor_baseline的合同与slot观察层；安全复核受管文件，不判断source身份。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -20,7 +20,7 @@ use crate::{
 
 use super::{
     storage, BaselineManifest, BundleInventory, ManagedSlot, SlotRole, SlotState,
-    REQUIRED_COPY_PATHS, SCHEMA_VERSION,
+    SCHEMA_1_REQUIRED_COPY_PATHS, SCHEMA_2_REQUIRED_COPY_PATHS, SCHEMA_VERSION,
 };
 
 pub(super) fn validate_manifest(
@@ -28,7 +28,7 @@ pub(super) fn validate_manifest(
     root: &Path,
     expected_baseline_id: &str,
 ) -> Result<(), String> {
-    if manifest.schema_version != SCHEMA_VERSION {
+    if !matches!(manifest.schema_version, 1 | SCHEMA_VERSION) {
         return Err("Unsupported native baseline schema version.".to_string());
     }
     if manifest.baseline_id != expected_baseline_id {
@@ -56,7 +56,7 @@ pub(super) fn validate_manifest(
 }
 
 pub(super) fn validate_manifest_shape(manifest: &BaselineManifest) -> Result<(), String> {
-    let specs = expected_slots(Path::new(&manifest.install_root))?;
+    let specs = expected_slots(Path::new(&manifest.install_root), manifest.schema_version)?;
     if manifest.slots.len() != specs.len() {
         return Err("Native baseline controlled slot set is incomplete.".to_string());
     }
@@ -131,8 +131,16 @@ pub(super) fn validate_slot_inventory(manifest: &BaselineManifest) -> Result<(),
     Ok(())
 }
 
-fn expected_slots(root: &Path) -> Result<Vec<(String, SlotRole)>, String> {
-    let mut slots = REQUIRED_COPY_PATHS
+fn required_copy_paths(schema_version: u32) -> Result<&'static [&'static str], String> {
+    match schema_version {
+        1 => Ok(&SCHEMA_1_REQUIRED_COPY_PATHS),
+        2 => Ok(&SCHEMA_2_REQUIRED_COPY_PATHS),
+        _ => Err("Unsupported native baseline schema version.".into()),
+    }
+}
+
+fn expected_slots(root: &Path, schema_version: u32) -> Result<Vec<(String, SlotRole)>, String> {
+    let mut slots = required_copy_paths(schema_version)?
         .iter()
         .map(|path| ((*path).to_string(), SlotRole::RequiredCopy))
         .collect::<Vec<_>>();
@@ -160,11 +168,14 @@ fn expected_slots(root: &Path) -> Result<Vec<(String, SlotRole)>, String> {
     Ok(slots)
 }
 
-/// 原厂签名负责来源；备份只观察本工具将改写或要求缺席的固定槽。
-/// 保留schema 1 inventory格式，旧整树manifest无需迁移。
-pub(super) fn observe_stock_inventory(root: &Path) -> Result<BundleInventory, String> {
+/// 原厂签名负责来源；备份只观察固定受管槽与要求缺席的路径。
+/// schema 1保持旧槽集，schema 2额外固定ExtensionLayer原像。
+pub(super) fn observe_stock_inventory(
+    root: &Path,
+    schema_version: u32,
+) -> Result<BundleInventory, String> {
     let mut entries = BTreeMap::new();
-    for (relative, _) in expected_slots(root)? {
+    for (relative, _) in expected_slots(root, schema_version)? {
         let relative = Path::new(&relative);
         install::validate_no_symlink_components(root, relative)?;
         let path = root.join(relative);
@@ -195,8 +206,9 @@ pub(super) fn observe_stock_inventory(root: &Path) -> Result<BundleInventory, St
 pub(super) fn observe_stock_slots(
     root: &Path,
     inventory: &BundleInventory,
+    schema_version: u32,
 ) -> Result<Vec<ManagedSlot>, String> {
-    let specs = expected_slots(root)?;
+    let specs = expected_slots(root, schema_version)?;
     let mut slots = Vec::with_capacity(specs.len());
     for (index, (relative_path, role)) in specs.into_iter().enumerate() {
         let relative = Path::new(&relative_path);

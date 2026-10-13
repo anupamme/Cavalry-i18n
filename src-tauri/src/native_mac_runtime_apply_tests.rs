@@ -1,8 +1,9 @@
 /**
- * [INPUT]: 依赖approved/staged source SHA、v1/v2 owner、临时baseline/NRT与fixture签名端口。
- * [OUTPUT]: 验证固定八槽、source SHA/mode、三次签名写与最终两nested/一次deep验签。
- * [POS]: 锁定quarantine先清、同事务proof提交、owner单次验签、baseline写前拒绝及精确回滚/重放。
- * Fixture只验槽或模拟codesign命令，不证明厂商；ignored smoke不启动App。
+ * [INPUT]: 依赖approved/staged source SHA、runtime owner、baseline与fixture签名端口。
+ * [OUTPUT]: 验证runtime写入、签名顺序、回滚和owner重放合同。
+ * [POS]: NRT writer主测试集；Keychain兼容合同由keychain子模块隔离。
+ * Fixture只验槽或模拟codesign，不证明厂商；ignored smoke不启动App。
+ * coordinator烟测先核编译期候选，再复制原厂副本。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::*;
@@ -14,7 +15,7 @@ use std::{
     ffi::CString,
     fs,
     os::unix::{ffi::OsStrExt, fs::PermissionsExt},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 fn encode_test_hex(bytes: &[u8]) -> String {
@@ -147,6 +148,9 @@ fn fixture() -> (
     (fixture, baseline, source)
 }
 
+#[path = "native_mac_runtime_keychain_tests.rs"]
+mod keychain;
+
 fn verify_fixture<R: CommandRunner>(
     b: &VerifiedNativeVendorBaseline,
     app: &Path,
@@ -161,8 +165,20 @@ fn verify_managed_fixture<R: CommandRunner>(
     _: &Path,
     _: &mut R,
 ) -> Result<(), String> {
-    // 受管准入由生产八槽owner门验证；fixture签名端口不充当厂商证明。
+    // 受管准入由生产owner槽门验证；fixture签名端口不充当厂商证明。
     Ok(())
+}
+
+fn assert_extension_is_fully_patched(app: &Path) {
+    let extension = fs::read(app.join("Contents/Frameworks/libExtensionLayer.dylib")).unwrap();
+    let (_, report) = crate::keychain_patch::patch_keychain_query_attributes_owned(extension)
+        .expect("managed ExtensionLayer remains a valid Mach-O after signing");
+    assert_eq!(report.patched_callsites, 0);
+    assert!(report.already_patched_callsites > 0);
+    assert!(report
+        .details
+        .iter()
+        .all(|detail| { detail.patched_callsites == 0 && detail.already_patched_callsites > 0 }));
 }
 
 #[test]
@@ -188,10 +204,10 @@ fn stock_plan_installs_through_native_journal_without_profile_or_state_commit() 
     )
     .unwrap();
     assert!(warnings.is_empty());
-    assert_eq!(signer.signature_writes, 3);
-    assert_eq!(signer.nested_verifications, 2);
+    assert_eq!(signer.signature_writes, 4);
+    assert_eq!(signer.nested_verifications, 3);
     assert_eq!(signer.bundle_verifications, 1);
-    assert_eq!(signer.signature_verifications, 3);
+    assert_eq!(signer.signature_verifications, 4);
     let last_sign = signer
         .commands
         .iter()
@@ -208,7 +224,7 @@ fn stock_plan_installs_through_native_journal_without_profile_or_state_commit() 
         .unwrap();
     assert!(
         last_sign < first_verify,
-        "final verification must follow all three signature writes"
+        "final verification must follow all four signature writes"
     );
     assert!(!test_quarantine_present(&f.app));
     let owned = privilege::load_owned_native_runtime(&f.state, &f.app, &mut signer)
@@ -221,12 +237,12 @@ fn stock_plan_installs_through_native_journal_without_profile_or_state_commit() 
     let owner: serde_json::Value =
         serde_json::from_slice(&fs::read(f.state.join("native-runtime-owner.json")).unwrap())
             .unwrap();
-    assert_eq!(owner["schemaVersion"], 2);
+    assert_eq!(owner["schemaVersion"], 3);
     assert_eq!(
         owner["runtimeSourceSha256"],
         format!("{:x}", Sha256::digest(b"injector fixture"))
     );
-    assert_eq!(owner["slots"].as_object().unwrap().len(), 8);
+    assert_eq!(owner["slots"].as_object().unwrap().len(), 9);
     assert_eq!(owner["baselineId"], baseline.baseline_id());
     assert!(!stage.exists());
     assert!(!f.state.join("macos-apply-transaction").exists());
@@ -237,6 +253,15 @@ fn stock_plan_installs_through_native_journal_without_profile_or_state_commit() 
     assert_ne!(
         fs::read(f.app.join("Contents/MacOS/Cavalry")).unwrap(),
         main_before
+    );
+    assert_extension_is_fully_patched(&f.app);
+    assert_eq!(
+        fs::metadata(f.app.join("Contents/Frameworks/libExtensionLayer.dylib"))
+            .unwrap()
+            .permissions()
+            .mode()
+            & 0o7777,
+        0o755
     );
     let wrapper = f.app.join("Contents/MacOS/CavalryLauncher");
     assert_eq!(
@@ -523,8 +548,8 @@ fn stock_final_proof_preserves_unowned_vendor_changes() {
         .unwrap();
         assert!(warnings.is_empty());
         assert_eq!(signer.bundle_verifications, 1);
-        assert_eq!(signer.nested_verifications, 2);
-        assert_eq!(signer.signature_verifications, 3);
+        assert_eq!(signer.nested_verifications, 3);
+        assert_eq!(signer.signature_verifications, 4);
         assert!(!f.state.join("macos-apply-transaction").exists());
         assert!(f.state.join("native-runtime-owner.json").exists());
         assert!(f.app.join("Contents/MacOS/CavalryLauncher").exists());
@@ -607,7 +632,7 @@ fn managed_update_publishes_new_source_hash_and_keeps_the_same_baseline_owner() 
     let owner: serde_json::Value =
         serde_json::from_slice(&fs::read(f.state.join("native-runtime-owner.json")).unwrap())
             .unwrap();
-    assert_eq!(owner["schemaVersion"], 2);
+    assert_eq!(owner["schemaVersion"], 3);
     assert_eq!(
         owner["runtimeSourceSha256"],
         format!("{:x}", Sha256::digest(new_source))
@@ -644,42 +669,6 @@ fn managed_update_publishes_new_source_hash_and_keeps_the_same_baseline_owner() 
         Some(expected_sha256.as_str())
     );
     assert!(!f.state.join("macos-apply-transaction").exists());
-}
-
-#[test]
-fn old_owner_without_source_hash_is_readable_and_managed_reapply_migrates_it() {
-    let (f, baseline, mut signer) = installed_fixture();
-    let path = f.state.join("native-runtime-owner.json");
-    let mut old_owner: serde_json::Value =
-        serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
-    old_owner["schemaVersion"] = 1.into();
-    old_owner
-        .as_object_mut()
-        .unwrap()
-        .remove("runtimeSourceSha256");
-    let mut bytes = serde_json::to_vec_pretty(&old_owner).unwrap();
-    bytes.push(b'\n');
-    fs::write(&path, &bytes).unwrap();
-    fs::set_permissions(&path, fs::Permissions::from_mode(0o600)).unwrap();
-
-    let prior = privilege::load_owned_native_runtime_details(&f.state, &f.app, &mut signer)
-        .unwrap()
-        .unwrap();
-    assert_eq!(old_owner["schemaVersion"], 1);
-    assert!(old_owner.get("runtimeSourceSha256").is_none());
-    assert_eq!(old_owner["slots"].as_object().unwrap().len(), 8);
-    assert_eq!(prior.source_sha256, None);
-    assert_eq!(prior.baseline.baseline_id(), baseline.baseline_id());
-    assert_eq!(prior.preimage.bytes_hex, encode_test_hex(&bytes));
-    install_managed_fixture_update(&f, &baseline, &mut signer, b"injector fixture").unwrap();
-
-    let owner: serde_json::Value = serde_json::from_slice(&fs::read(path).unwrap()).unwrap();
-    assert_eq!(owner["schemaVersion"], 2);
-    assert_eq!(
-        owner["runtimeSourceSha256"],
-        format!("{:x}", Sha256::digest(b"injector fixture"))
-    );
-    assert_eq!(owner["baselineId"], baseline.baseline_id());
 }
 
 #[test]
@@ -1192,6 +1181,18 @@ fn stock_official_copy_installs_native_runtime_with_real_signing_smoke() {
         format!("{:x}", Sha256::digest(&injector_bytes)),
         expected_injector_sha
     );
+    let coordinator_smoke = env::var("CAVALRY_I18N_NATIVE_COORDINATOR_SMOKE").as_deref() == Ok("1");
+    if coordinator_smoke {
+        // -- 编译期候选先准入，避免错误构建模式下复制与验整包。
+        let compiled = include_bytes!(concat!(
+            std::env!("OUT_DIR"),
+            "/native_preview_injector.dylib"
+        ));
+        assert!(
+            compiled.as_slice() == injector_bytes.as_slice(),
+            "coordinator smoke requires native-preview compilation with the same approved injector"
+        );
+    }
     let source_before = inventory_bundle(&source).unwrap();
     let temp = tempfile::Builder::new()
         .prefix("cavalry-native-stock-install-")
@@ -1225,7 +1226,6 @@ fn stock_official_copy_installs_native_runtime_with_real_signing_smoke() {
     let baseline_id = baseline.baseline_id().to_string();
     let main_before = fs::read(app.join("Contents/MacOS/Cavalry")).unwrap();
     let stage = temp.path().join("runtime-stage");
-    let coordinator_smoke = env::var("CAVALRY_I18N_NATIVE_COORDINATOR_SMOKE").as_deref() == Ok("1");
     let disposable_home = fs::canonicalize(temp.path()).unwrap().join("home");
     let warnings = if coordinator_smoke {
         fs::create_dir_all(disposable_home.join("Library/Preferences/Cavalry")).unwrap();

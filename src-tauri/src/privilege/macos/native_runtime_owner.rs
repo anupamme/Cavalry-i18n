@@ -1,15 +1,16 @@
 /**
  * [INPUT]: 依赖NRT精确postimage、固定baseline、旧owner bytes/mode和fd-relative存储。
- * [OUTPUT]: 读取v1/v2 owner、发布或撤销八槽归属，并提供只读source hint。
+ * [OUTPUT]: 读取v1/v2/v3 owner、发布或撤销八槽/九槽归属，并提供只读source hint。
  * [POS]: apply_transaction的耐久owner投影；status hint校验owner schema、固定字段形状与bundle root。
- * Hint不读journal、App槽或签名。完整runtime准入仍校验八槽与签名。
- * v1缺source SHA时由Switcher更新自有槽。不扫描原厂资源。
+ * Hint不读journal、App槽或签名。完整runtime准入仍核owner版本对应槽与签名。
+ * v1/v2仍按八槽读取与恢复；v3把ExtensionLayer纳入九槽归属。
  * 先原子发布owner，再退役journal。比较旧像不是OS CAS；第三态保留journal。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::*;
 use std::collections::BTreeMap;
 
+use crate::native_mac_vendor_baseline::NRT_EXTENSION_PATH;
 use crate::native_mac_vendor_baseline::{load_baseline, VerifiedNativeVendorBaseline};
 
 const OWNER_NAME: &str = "native-runtime-owner.json";
@@ -64,6 +65,10 @@ impl NativeRuntimeOwnerPreimage {
         }
         Ok(bytes)
     }
+
+    pub(crate) fn includes_extension_slot(&self, app: &Path) -> Result<bool, String> {
+        Ok(owner_from_preimage(self, app)?.schema_version == 3)
+    }
 }
 
 #[derive(Debug)]
@@ -79,7 +84,7 @@ pub(crate) struct NativeRuntimeOwnerHint {
     pub(crate) source_sha256: Option<String>,
 }
 
-fn controlled_paths(app: &Path) -> Vec<PathBuf> {
+fn controlled_paths(app: &Path, schema_version: u32) -> Vec<PathBuf> {
     let mut paths = vec![
         app.join("Contents/Info.plist"),
         app.join("Contents/_CodeSignature/CodeResources"),
@@ -87,6 +92,9 @@ fn controlled_paths(app: &Path) -> Vec<PathBuf> {
         app.join("Contents/MacOS/CavalryLauncher"),
         app.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib"),
     ];
+    if schema_version == 3 {
+        paths.push(app.join(NRT_EXTENSION_PATH));
+    }
     paths.extend(super::super::bundle::external_signature_component_paths(
         app,
     ));
@@ -139,6 +147,7 @@ fn validate_owner(owner: &RuntimeOwner, app: &Path) -> Result<(), String> {
     match (owner.schema_version, owner.runtime_source_sha256.as_deref()) {
         (1, None) => {}
         (2, Some(hash)) if is_sha256_hex(hash) => {}
+        (3, Some(hash)) if is_sha256_hex(hash) => {}
         _ => return Err("Native runtime owner has an invalid source fingerprint schema.".into()),
     }
     if owner.operation_id.is_empty()
@@ -156,7 +165,7 @@ fn validate_owner(owner: &RuntimeOwner, app: &Path) -> Result<(), String> {
         previous_owner_preimage: None,
     }
     .validate()?;
-    let expected = controlled_paths(app)
+    let expected = controlled_paths(app, owner.schema_version)
         .into_iter()
         .map(|path| {
             path.strip_prefix(app)
@@ -165,7 +174,10 @@ fn validate_owner(owner: &RuntimeOwner, app: &Path) -> Result<(), String> {
         })
         .collect::<Result<Vec<_>, _>>()?;
     if owner.slots.keys().collect::<Vec<_>>() != expected.iter().collect::<Vec<_>>() {
-        return Err("Native runtime owner must contain exactly the fixed eight slots.".into());
+        return Err(format!(
+            "Native runtime owner must contain exactly the fixed {} slots.",
+            if owner.schema_version == 3 { 9 } else { 8 }
+        ));
     }
     for (path, state) in &owner.slots {
         if let Some(fingerprint) = &state.fingerprint {
@@ -197,6 +209,7 @@ pub(crate) fn validate_owner_preimage_shape(
     match (owner.schema_version, owner.runtime_source_sha256.as_deref()) {
         (1, None) => {}
         (2, Some(hash)) if is_sha256_hex(hash) => {}
+        (3, Some(hash)) if is_sha256_hex(hash) => {}
         _ => return Err("Native runtime owner preimage has an invalid source schema.".into()),
     }
     if owner.baseline_id.len() != 64 || !is_sha256_hex(&owner.baseline_id) {
@@ -343,7 +356,7 @@ pub(crate) fn capture_owner_slot_preimages(
 ) -> Result<Vec<MacBundlePreimageConstraint>, String> {
     let bundle = SecureDirectory::open(app)?;
     let owner = owner_from_preimage(preimage, &bundle.path)?;
-    let paths = controlled_paths(&bundle.path);
+    let paths = controlled_paths(&bundle.path, owner.schema_version);
     let constraints = MacApplyTransaction::capture_preimages(&bundle.path, &paths)?;
     let expected_paths = owner.slots.keys().cloned().collect::<Vec<_>>();
     let actual_paths = constraints
@@ -357,7 +370,10 @@ pub(crate) fn capture_owner_slot_preimages(
         })
         .collect::<Result<Vec<_>, _>>()?;
     if actual_paths != expected_paths {
-        return Err("Native runtime owner preimage does not cover the fixed eight slots.".into());
+        return Err(format!(
+            "Native runtime owner preimage does not cover the fixed {} slots.",
+            if owner.schema_version == 3 { 9 } else { 8 }
+        ));
     }
     for constraint in &constraints {
         let relative = path_string(
@@ -387,7 +403,7 @@ pub(super) fn validate_journaled_update_preimages(
     let app = Path::new(&manifest.install_root);
     validate_owner_preimage_binding(previous_owner, app, baseline_id)?;
     let owner = owner_from_preimage(previous_owner, app)?;
-    let expected_paths = controlled_paths(app)
+    let expected_paths = controlled_paths(app, owner.schema_version)
         .into_iter()
         .map(|path| {
             let relative = path.strip_prefix(app).map_err(|error| error.to_string())?;
@@ -413,9 +429,10 @@ pub(super) fn validate_journaled_update_preimages(
             .iter()
             .any(|path| !expected_paths.contains(path))
     {
-        return Err(
-            "Managed runtime replacement journal must cover exactly the fixed eight slots.".into(),
-        );
+        return Err(format!(
+            "Managed runtime replacement journal must cover exactly the fixed {} slots.",
+            if owner.schema_version == 3 { 9 } else { 8 }
+        ));
     }
     for relative in expected_paths {
         let entry = bundle_entries
@@ -463,12 +480,19 @@ pub(super) fn publish_terminal_owner(
                     },
                 );
             }
+            let contains_extension = slots.contains_key(NRT_EXTENSION_PATH);
+            let schema_version = match (runtime_source_sha256.is_some(), contains_extension) {
+                (true, true) => 3,
+                (true, false) => 2,
+                (false, false) => 1,
+                (false, true) => {
+                    return Err(
+                        "Native runtime ExtensionLayer owner requires a source fingerprint.".into(),
+                    )
+                }
+            };
             let owner = RuntimeOwner {
-                schema_version: if runtime_source_sha256.is_some() {
-                    2
-                } else {
-                    1
-                },
+                schema_version,
                 install_root: manifest.install_root.clone(),
                 baseline_id: baseline_id.clone(),
                 operation_id: manifest.operation_id.clone(),
@@ -608,8 +632,8 @@ mod hint_tests {
     }
 
     fn valid_owner(app: &Path, schema_version: u32) -> RuntimeOwner {
-        let source_sha256 = (schema_version == 2).then(|| "b".repeat(64));
-        let slots = controlled_paths(app)
+        let source_sha256 = (schema_version >= 2).then(|| "b".repeat(64));
+        let slots = controlled_paths(app, schema_version)
             .into_iter()
             .map(|path| {
                 let relative = path_string(path.strip_prefix(app).unwrap()).unwrap();
@@ -641,8 +665,12 @@ mod hint_tests {
     }
 
     #[test]
-    fn owner_hint_accepts_v1_and_v2_without_reading_runtime_slots() {
-        for (schema_version, source_sha256) in [(1, None), (2, Some("b".repeat(64)))] {
+    fn owner_hint_accepts_v1_v2_and_v3_without_reading_runtime_slots() {
+        for (schema_version, source_sha256) in [
+            (1, None),
+            (2, Some("b".repeat(64))),
+            (3, Some("b".repeat(64))),
+        ] {
             let (_temp, app, state) = fixture();
             write_owner(&state, &valid_owner(&app, schema_version));
 

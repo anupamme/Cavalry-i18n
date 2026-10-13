@@ -1,9 +1,10 @@
 /**
  * [INPUT]: 依赖native source许可、macOS bundle清单和调用方既有state目录。
- * [OUTPUT]: 建立schema 1固定槽备份，生成恢复计划并验证原厂恢复。
+ * [OUTPUT]: 建立schema 1/2固定槽备份，生成恢复计划并验证原厂恢复。
  * [POS]: macOS原厂preimage真相层；由NRT来源终结器消费；不签名、不改bundle、不提交profile状态。
  * 捕获在暂存或复用核回后验原厂签名一次。
  * 固定槽前后像绑定该证明。不读取整树文件。
+ * schema 2额外保存ExtensionLayer原像；schema 1仍按旧槽恢复。
  * 新manifest只存固定槽摘要；旧整树manifest仍可读取。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -34,12 +35,21 @@ mod storage;
 const STORE_DIRECTORY: &str = "native-vendor-baselines";
 const MANIFEST_NAME: &str = "baseline.json";
 const BLOBS_DIRECTORY: &str = "blobs";
-const SCHEMA_VERSION: u32 = 1;
+const SCHEMA_VERSION: u32 = 2;
 const MAX_INFO_BYTES: u64 = 16 * 1024 * 1024;
-const REQUIRED_COPY_PATHS: [&str; 3] = [
+const MAX_EXTENSION_BYTES: u64 = 256 * 1024 * 1024;
+pub(crate) const NRT_EXTENSION_PATH: &str = "Contents/Frameworks/libExtensionLayer.dylib";
+pub(crate) const LEGACY_EXTENSION_REINSTALL_MESSAGE: &str = "This native runtime predates the ExtensionLayer slot. Restore English, then recapture the official stock baseline before installing the native runtime.";
+const SCHEMA_1_REQUIRED_COPY_PATHS: [&str; 3] = [
     "Contents/Info.plist",
     "Contents/MacOS/Cavalry",
     "Contents/_CodeSignature/CodeResources",
+];
+const SCHEMA_2_REQUIRED_COPY_PATHS: [&str; 4] = [
+    "Contents/Info.plist",
+    "Contents/MacOS/Cavalry",
+    "Contents/_CodeSignature/CodeResources",
+    NRT_EXTENSION_PATH,
 ];
 static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
@@ -127,6 +137,10 @@ impl VerifiedNativeVendorBaseline {
         &self.state_root
     }
 
+    pub(crate) fn has_extension_preimage(&self) -> bool {
+        self.manifest.schema_version == 2
+    }
+
     /// 每次读取都重验原始Info blob的bytes、blob mode与manifest绑定mode。
     pub(crate) fn read_info_plist_preimage(&self) -> Result<(Vec<u8>, u32), String> {
         let current = load_at(&self.install_root, &self.state_root, self.baseline_id())?;
@@ -134,7 +148,7 @@ impl VerifiedNativeVendorBaseline {
             .manifest
             .slots
             .iter()
-            .find(|slot| slot.relative_path == REQUIRED_COPY_PATHS[0])
+            .find(|slot| slot.relative_path == SCHEMA_1_REQUIRED_COPY_PATHS[0])
             .ok_or_else(|| "Native baseline Info.plist slot is missing.".to_string())?;
         let SlotState::Present {
             blob_name,
@@ -155,6 +169,40 @@ impl VerifiedNativeVendorBaseline {
             || sha256_bytes(&bytes) != *sha256
         {
             return Err("Native baseline Info.plist blob failed exact verification.".to_string());
+        }
+        Ok((bytes, *mode))
+    }
+
+    /// 只允许schema 2提供ExtensionLayer原像及原权限mode。
+    pub(crate) fn read_extension_preimage(&self) -> Result<(Vec<u8>, u32), String> {
+        if !self.has_extension_preimage() {
+            return Err(LEGACY_EXTENSION_REINSTALL_MESSAGE.into());
+        }
+        let slot = self
+            .manifest
+            .slots
+            .iter()
+            .find(|slot| slot.relative_path == NRT_EXTENSION_PATH)
+            .ok_or_else(|| "Native baseline ExtensionLayer slot is missing.".to_string())?;
+        let SlotState::Present {
+            blob_name,
+            byte_len,
+            sha256,
+            mode,
+        } = &slot.preimage
+        else {
+            return Err("Native baseline ExtensionLayer preimage is absent.".to_string());
+        };
+        if *byte_len > MAX_EXTENSION_BYTES {
+            return Err("Native baseline ExtensionLayer exceeds its read limit.".into());
+        }
+        let (bytes, blob_mode) =
+            storage::read_bounded_regular(&self.blob_path(blob_name), MAX_EXTENSION_BYTES)?;
+        if blob_mode != storage::PRIVATE_FILE_MODE
+            || u64::try_from(bytes.len()).ok() != Some(*byte_len)
+            || sha256_bytes(&bytes) != *sha256
+        {
+            return Err("Native baseline ExtensionLayer blob failed exact verification.".into());
         }
         Ok((bytes, *mode))
     }
@@ -234,15 +282,16 @@ impl VerifiedNativeVendorBaseline {
         )
     }
 
-    /// 只比较九槽原厂前像；调用方另负责当前来源认证。
+    /// 只比较manifest版本对应的原厂固定槽；调用方另负责来源认证。
     pub(crate) fn verify_stock_preimage(&self, app_path: &Path) -> Result<(), String> {
         let root = validate_canonical_app(app_path)?;
         if root != self.install_root {
             return Err("Restored Cavalry root does not match its native baseline.".to_string());
         }
         let stored = load_at(&root, &self.state_root, self.baseline_id())?;
-        let inventory = contract::observe_stock_inventory(&root)?;
-        let slots = contract::observe_stock_slots(&root, &inventory)?;
+        let inventory = contract::observe_stock_inventory(&root, stored.manifest.schema_version)?;
+        let slots =
+            contract::observe_stock_slots(&root, &inventory, stored.manifest.schema_version)?;
         if slots != stored.manifest.slots {
             return Err("Restored Cavalry slots differ from the native baseline.".to_string());
         }
@@ -284,9 +333,9 @@ where
 {
     let root = validate_canonical_app(app_path)?;
     let state = validate_state_root(state_dir, &root)?;
-    let inventory_before = contract::observe_stock_inventory(&root)?;
+    let inventory_before = contract::observe_stock_inventory(&root, SCHEMA_VERSION)?;
     contract::validate_inventory_text(&inventory_before)?;
-    let slots = contract::observe_stock_slots(&root, &inventory_before)?;
+    let slots = contract::observe_stock_slots(&root, &inventory_before, SCHEMA_VERSION)?;
     let mut manifest = BaselineManifest {
         schema_version: SCHEMA_VERSION,
         baseline_id: String::new(),
@@ -356,8 +405,10 @@ where
         &manifest.target_sha256,
         &manifest.policy_id,
     )?;
-    let inventory_after = contract::observe_stock_inventory(root)?;
-    if contract::observe_stock_slots(root, &inventory_after)? != manifest.slots {
+    let inventory_after = contract::observe_stock_inventory(root, manifest.schema_version)?;
+    if contract::observe_stock_slots(root, &inventory_after, manifest.schema_version)?
+        != manifest.slots
+    {
         return Err("Cavalry slots changed during native baseline capture.".to_string());
     }
     Ok(())

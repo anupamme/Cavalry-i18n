@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖capture_inner、source fixture与临时原厂bundle。
- * [OUTPUT]: 验证暂存后单次source proof、stock前后像与不可变发布。
+ * [OUTPUT]: 验证schema 2四个必需源槽的前后像与不可变发布。
  * [POS]: baseline capture隔离合同；不访问真实Cavalry、profile或codesign。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -189,12 +189,12 @@ fn create_fifo(path: &Path) {
 }
 
 #[test]
-fn baseline_backs_up_only_three_required_preimages_not_the_whole_bundle() {
+fn baseline_v2_backs_up_four_required_preimages_not_the_whole_bundle() {
     let fixture = fixture(false);
     let baseline = capture_inner(&fixture.state, &fixture.app, successful_verifier()).unwrap();
     let blobs = generation_path(&fixture, baseline.baseline_id()).join("blobs");
 
-    assert_eq!(fs::read_dir(blobs).unwrap().count(), 3);
+    assert_eq!(fs::read_dir(blobs).unwrap().count(), 4);
     assert!(fixture
         .app
         .join("Contents/Resources/vendor-resource.txt")

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖load_baseline、expected baseline ID与临时私有store。
- * [OUTPUT]: 验证root、target/policy、ID、blob、目录成员和旧整树manifest兼容。
+ * [OUTPUT]: 验证root、target/policy、ID、blob、目录成员和schema 1旧槽读取。
  * [POS]: baseline load隔离合同；不把可伪造fixture解释为vendor证明。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -9,7 +9,7 @@ use std::{fs, os::unix::fs::PermissionsExt};
 use serde_json::Value;
 
 use super::super::{capture_inner, load_baseline, storage, BLOBS_DIRECTORY, MANIFEST_NAME};
-use super::successful_verifier;
+use super::{capture_schema_1_fixture, successful_verifier};
 use super::{fixture, generation_path};
 
 fn captured() -> (super::Fixture, String) {
@@ -38,7 +38,8 @@ fn load_requires_callers_expected_id_and_returns_same_verified_generation() {
 #[test]
 fn legacy_full_inventory_manifest_loads_without_rehashing_vendor_resources() {
     let fixture = fixture(false);
-    let baseline = capture_inner(&fixture.state, &fixture.app, successful_verifier()).unwrap();
+    let baseline = capture_schema_1_fixture(&fixture.app, &fixture.state);
+    assert_eq!(baseline.manifest.schema_version, 1);
     let mut legacy = baseline.manifest.clone();
     legacy.inventory = crate::native_mac_bundle_inventory::inventory_bundle(&fixture.app).unwrap();
     legacy.baseline_id = super::super::manifest_id(&legacy).unwrap();
