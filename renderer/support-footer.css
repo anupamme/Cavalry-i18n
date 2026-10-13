@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 tokens.css 的 72px footer、13px copy、32px hit box、16px glyph 与共享边框/动效角色。
+ * [INPUT]: 依赖 tokens.css 的77px footer、20px上下留白、13px/16px copy、按英文字形 cap 校准的上沿裁切、16px视觉图标行、32px hit box 与共享边框角色。
  * [OUTPUT]: 对外提供窗口底边以下的支持文案与 GitHub/X/小红书图标行；不影响原主内容轨道。
  * [POS]: 主窗口支持 footer 的唯一视觉层；独立消费 shared icons.js 装配的品牌 SVG。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -7,7 +7,8 @@
 .support-footer {
   min-height: var(--support-footer-height);
   display: grid;
-  align-content: center;
+  grid-template-rows: auto var(--support-link-icon-size);
+  align-content: space-between;
   justify-items: center;
   gap: var(--support-footer-gap);
   padding: var(--support-footer-padding-block) var(--padding-window);
@@ -24,6 +25,12 @@
   font-weight: var(--weight-regular);
   line-height: var(--line-height-label);
   white-space: nowrap;
+}
+
+@supports (text-box-trim: trim-start) {
+  .support-footer-message {
+    text-box: trim-start cap;
+  }
 }
 
 .support-footer-links {

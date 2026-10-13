@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、语义 token/图标表、user-profile-text→ui-text四语字典、project-link-control固定外链适配、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review补丁状态与fake bridge/动态目录、nativeDefaultEnglish/nativeOfficialDefaultEnglish/nativeOwnedHans preview fixture、Restore/remediation/permission handoff、Issue form、来源通知/窗口配置、冻结bridge API与scope/locale/resource策略合同、node:crypto。
- * [OUTPUT]: 守住 UI 单向依赖、400×556主窗（原444px内容+72px footer）/Activity、原生标题栏、主页面 20px padding 派生的 10px 同行动作关系、无重复视觉标题但保留 OS 标题的 About（含四语「关注+平台图标」双列、GitHub/License全宽、平台区分的可访问名称、Phosphor XLogo与Simple Icons CC0路径指纹及固定链接合同）、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、跨平台 reconciliation Restore、版本只读门禁、普通验证失败才显露固定报告入口/四语文案且不得要求重装或不可见详情、typed 缺失基线错误才要求重装的 Activity 原位合同、仅消费后端只读清理投影、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源；另锁定 installation/userProfile DTO 投影、原厂English/Japanese与unknown+owned zh-Hans徽章矩阵、scope不推断安装来源、用户级Switch直达事务、仅Restore确认、固定英文恢复、Switch-only resource gate 与 hostless owned-only strict grant、nativeRestoreOnly结果不启动及 host-probe不能伪造 Channel error 三项回归、三类固定 native 错误路由、仅 explicit Cavalry 2.8.0 preview + installed 2.7.2 时显露的闭合 legacyRelease 项和四语标签。
+ * [OUTPUT]: 守住 UI 单向依赖、400×561主窗（40px标题栏+444px原内容+77px footer）/Activity、原生标题栏、主页面 20px padding 派生的 10px 同行动作关系、无重复视觉标题但保留 OS 标题的 About（含四语「关注+平台图标」双列、GitHub/License全宽、平台区分的可访问名称、Phosphor XLogo与Simple Icons CC0路径指纹及固定链接合同）、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、跨平台 reconciliation Restore、版本只读门禁、普通验证失败才显露固定报告入口/四语文案且不得要求重装或不可见详情、typed 缺失基线错误才要求重装的 Activity 原位合同、仅消费后端只读清理投影、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源；另锁定 installation/userProfile DTO 投影、原厂English/Japanese与unknown+owned zh-Hans徽章矩阵、scope不推断安装来源、用户级Switch直达事务、仅Restore确认、固定英文恢复、Switch-only resource gate 与 hostless owned-only strict grant、nativeRestoreOnly结果不启动及host-probe不能伪造 Channel error 三项回归、三类固定 native 错误路由、仅 explicit Cavalry 2.8.0 preview + installed 2.7.2 时显露的闭合 legacyRelease 项和四语标签。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -93,7 +93,7 @@ test('renderer copy extraction stays in the renderer map and both pages load it 
   }
   assert.match(catalogs, /'<script src="\/renderer\/user-profile-text\.js"><\/script>',\s*'<script src="\/renderer\/ui-text\.js"><\/script>'/);
   assert.match(packagedCheck, /'user-profile-text\.js': sha256\(path\.join\(rendererRoot, 'user-profile-text\.js'\)\)/);
-  assert.match(packagedCheck, /'index\.html', '\/styles\.css', '\/support-footer\.css', '\/support-footer\.js', '\/operation-log\.css', '\/user-profile-text\.js', '\/ui-text\.js'/);
+  assert.match(packagedCheck, /'index\.html', '\/styles\.css', '\/support-footer\.css', '\/project-link-control\.js', '\/support-footer\.js', '\/operation-log\.css', '\/user-profile-text\.js', '\/ui-text\.js'/);
   assert.ok(artifactManifest.requiredPaths.includes('renderer/user-profile-text.js'));
   assert.ok(artifactManifest.requiredPaths.includes('renderer/support-footer.css'));
   assert.ok(artifactManifest.requiredPaths.includes('renderer/support-footer.js'));
@@ -119,7 +119,7 @@ test('UI Review renders the exact production shell and replaces only the data br
 
   assert.equal(normalized, production, 'review app may inject a base and fixture bridge, but may not copy or edit production UI');
   assert.notEqual(workspace, '<stale-workspace />', 'review server must evict stale workspace modules before rendering');
-  assert.match(workspace, /\.window \{[^}]*width: 400px; height: 556px;/, 'review workspace must preserve the old main track and add the footer below it');
+  assert.match(workspace, /\.window \{[^}]*width: 400px; height: 561px;/, 'review workspace must preserve the old main track and add the footer below it');
   assert.equal(
     aboutReview.replace('\n  <base href="/renderer/" />', '').replace('<script src="/fixture.js"></script>\n  ', ''),
     aboutProduction,
@@ -484,7 +484,8 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.doesNotMatch(windowControlStyles, /@import|url\([\"']?https?:/i, 'window controls must not load remote resources');
   assert.match(html, /<footer id="supportFooter" class="support-footer">[\s\S]*?id="supportFooterMessage"[\s\S]*?id="supportFooterLinks"[\s\S]*?id="supportGithubLink"[\s\S]*?id="supportTwitterLink"[\s\S]*?id="supportXiaohongshuLink"[\s\S]*?<\/footer>/);
   assert.match(styles, /grid-template-rows:\s*var\(--titlebar-height\) minmax\(0, 1fr\) var\(--support-footer-height\)/, 'footer occupies a separate shell track below existing content');
-  assert.match(tokens, /--support-footer-height:\s*72px/);
+  assert.match(tokens, /--support-footer-padding-block:\s*var\(--padding-window\)/, 'footer reuses the original content padding');
+  assert.match(tokens, /--support-footer-height:\s*calc\(/, 'footer derives its height from actual shared geometry');
   assert.match(tokens, /--support-link-hit-size:\s*var\(--space-8\)/);
   assert.match(tokens, /--support-link-icon-size:\s*var\(--space-4\)/);
   assert.match(supportStyles, /\.support-footer-message\s*\{[^}]*font-size:\s*var\(--type-label\)[^}]*line-height:\s*var\(--line-height-label\)[^}]*white-space:\s*nowrap/);
@@ -1090,6 +1091,7 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
 test('Tauri configuration disables global injection and declares a local-only CSP', () => {
   const tokens = read('renderer/tokens.css');
   const styles = read('renderer/styles.css');
+  const supportFooterStyles = read('renderer/support-footer.css');
   const windowControls = read('renderer/window-controls.js');
   const windowControlStyles = read('renderer/window-controls.css');
   const config = JSON.parse(read('src-tauri/tauri.conf.json'));
@@ -1103,9 +1105,9 @@ test('Tauri configuration disables global injection and declares a local-only CS
   assert.equal(window.titleBarStyle, 'Overlay');
   assert.equal(window.hiddenTitle, true);
   assert.equal(window.width, 400);
-  assert.equal(window.height, 556);
+  assert.equal(window.height, 561);
   assert.equal(window.minWidth, 400);
-  assert.equal(window.minHeight, 556);
+  assert.equal(window.minHeight, 561);
   const capabilities = JSON.parse(read('src-tauri/capabilities/default.json'));
   assert.ok(capabilities.permissions.includes('core:window:allow-start-dragging'));
   for (const permission of [
@@ -1120,12 +1122,28 @@ test('Tauri configuration disables global injection and declares a local-only CS
   }
   assert.equal(windowsWindow.decorations, false);
   assert.equal(windowsWindow.width, 420);
-  assert.equal(windowsWindow.height, 576);
+  assert.equal(windowsWindow.height, 581);
   assert.equal(windowsWindow.minWidth, 420);
-  assert.equal(windowsWindow.minHeight, 576);
+  assert.equal(windowsWindow.minHeight, 581);
   assert.equal(windowsWindow.transparent, true);
   assert.equal(windowsWindow.shadow, false);
   assert.equal(windowsWindow.visible, false);
+  assert.match(tokens, /--line-height-label:\s*16px/);
+  assert.match(tokens, /--space-1:\s*4px/);
+  assert.match(tokens, /--space-4:\s*16px/);
+  assert.match(tokens, /--space-5:\s*20px/);
+  assert.match(tokens, /--space-8:\s*32px/);
+  assert.match(tokens, /--padding-window:\s*var\(--space-5\)/);
+  assert.match(tokens, /--support-footer-padding-block:\s*var\(--padding-window\)/);
+  assert.match(tokens, /--support-footer-gap:\s*var\(--space-1\)/);
+  assert.match(tokens, /--support-link-hit-size:\s*var\(--space-8\)/);
+  assert.match(tokens, /--support-link-icon-size:\s*var\(--space-4\)/);
+  assert.match(tokens, /--support-footer-height:\s*calc\(var\(--support-footer-padding-block\)\s*\+\s*var\(--line-height-label\)\s*\+\s*var\(--support-footer-gap\)\s*\+\s*var\(--support-link-icon-size\)\s*\+\s*var\(--support-footer-padding-block\)\s*\+\s*var\(--stroke-hairline\)\)/);
+  assert.match(supportFooterStyles, /\.support-footer\s*\{[\s\S]*?grid-template-rows:\s*auto var\(--support-link-icon-size\);[\s\S]*?align-content:\s*space-between;[\s\S]*?gap:\s*var\(--support-footer-gap\)/);
+  assert.match(supportFooterStyles, /padding:\s*var\(--support-footer-padding-block\)\s+var\(--padding-window\)/);
+  assert.match(supportFooterStyles, /@supports\s*\(text-box-trim:\s*trim-start\)\s*\{\s*\.support-footer-message\s*\{\s*text-box:\s*trim-start cap;/, 'supported browsers trim only the English glyph cap edge');
+  assert.match(supportFooterStyles, /\.support-footer-links\s*\{[^}]*display:\s*flex;[^}]*align-items:\s*center/);
+  assert.match(supportFooterStyles, /\.support-footer-link\s*\{[^}]*width:\s*var\(--support-link-hit-size\);[^}]*height:\s*var\(--support-link-hit-size\)/, '32px hit targets remain centered inside the 16px visual row');
   assert.match(tokens, /--windows-shell-radius:\s*32px/);
   assert.match(tokens, /--window-shadow-inset:\s*10px/);
   assert.match(tokens, /--about-caption-icon-size:\s*var\(--windows-caption-icon-size\)/);

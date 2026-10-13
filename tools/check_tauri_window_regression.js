@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 packaged Tauri binary 与 macOS 截图/窗口探测能力
- * [OUTPUT]: 对外提供 Tauri 主窗口回归测试，验证精确子进程的原生交通灯垂直中心与水平位置、resize/restore、About 窗口、400×556主窗、420×576 resize 尺寸、内容区截图与 backing scale
+ * [OUTPUT]: 对外提供 Tauri 主窗口回归测试，验证精确子进程的原生交通灯垂直中心与水平位置、resize/restore、About 窗口、400×561主窗、420×581 resize 尺寸、内容区截图与 backing scale
  * [POS]: tools 的 Phase 6 UI 回归守门；通过同名对照进程验证所有 AX 查询、截图和关闭动作绑定 launchTauri 子进程，拒绝同名已安装 App 污染证据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -31,7 +31,7 @@ const FROZEN_WINDOW = {
   title: 'Cavalry Language Switcher',
   processName: 'cavalry-i18n-tauri',
   outerWidth: 400,
-  outerHeight: 556,
+  outerHeight: 561,
   chromeHeight: 0,
 };
 const ABOUT_WINDOW = {
@@ -41,7 +41,7 @@ const ABOUT_WINDOW = {
 const TITLEBAR_HEIGHT = 40;
 const TRAFFIC_LIGHT_CENTER_TOLERANCE = 1;
 const TRAFFIC_LIGHT_LEFT_OFFSETS = [12, 35, 58];
-const RESIZED_WINDOW = { width: 420, height: 576 };
+const RESIZED_WINDOW = { width: 420, height: 581 };
 
 function assertTrafficLightGeometry(selector, label, t) {
   const geometry = readTrafficLightGeometry(selector);
