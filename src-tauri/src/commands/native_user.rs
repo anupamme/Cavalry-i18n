@@ -2,7 +2,7 @@
  * [INPUT]: 依赖native编译manifest/digest、受限owner source hint、fixed profile事务和privilege准入。
  * [OUTPUT]: 提供typed用户语言状态、pack/runtime更新提示、English恢复、stock/managed启动与apply提交后的直接launch。
  * [POS]: status先比pack摘要；仅Current-owned非英语profile再比approved runtime source。
- * Owner hint只验证schema/root；不读journal、App槽或签名，也不授权apply。
+ * Owner hint只验证schema/root；不读journal、App槽或签名，不授权App写或恢复。
  * English恢复能力仍只由Current-owned profile决定。
  * apply只读目标pack。file transaction负责pending恢复与写前像比较。
  * leaf不发布空恢复阶段；caller只报告自身实际准入。

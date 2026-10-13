@@ -1,7 +1,8 @@
 /**
  * [INPUT]: 依赖NRT精确postimage、固定baseline、旧owner bytes/mode和fd-relative存储。
  * [OUTPUT]: 读取v1/v2/v3 owner、发布或撤销八槽/九槽归属，并提供只读source hint。
- * [POS]: apply_transaction的耐久owner投影；status hint校验owner schema、固定字段形状与bundle root。
+ * [POS]: apply_transaction的耐久owner投影；hint供status和同源profile判路。
+ * Hint只核owner schema、字段形状与bundle root，不授App写入或恢复权。
  * Hint不读journal、App槽或签名。完整runtime准入仍核owner版本对应槽与签名。
  * v1/v2仍按八槽读取与恢复；v3把ExtensionLayer纳入九槽归属。
  * 先原子发布owner，再退役journal。比较旧像不是OS CAS；第三态保留journal。
@@ -251,7 +252,7 @@ fn verify_slots(owner: &RuntimeOwner, app: &SecureDirectory) -> Result<(), Strin
     Ok(())
 }
 
-/// status专用的只读owner摘要；不读取journal、App槽或签名。
+/// 只读owner摘要供status及profile判路；不授权App写入或恢复。
 pub(crate) fn native_runtime_owner_hint_for_selection(
     state_dir: &Path,
     app: &Path,

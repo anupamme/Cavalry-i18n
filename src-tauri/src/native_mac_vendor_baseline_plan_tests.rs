@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖schema 1/2 typed baseline、受管CopyPair plan与隔离Unix store。
- * [OUTPUT]: 验证Extension原像、旧/新恢复槽、签名槽与原始mode。
- * [POS]: baseline恢复计划合同；fixture source只测校验逻辑，不证明vendor真实性。
+ * [OUTPUT]: 验证Info单槽复验、stock固定槽漂移与schema 1/2恢复计划。
+ * [POS]: baseline恢复合同；fixture只测校验逻辑，不证明vendor真实性。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{cell::Cell, collections::BTreeSet, fs, os::unix::fs::PermissionsExt};
@@ -106,7 +106,7 @@ fn present_optional_signature_components_are_copied_with_original_modes() {
 }
 
 #[test]
-fn info_preimage_rechecks_blob_bytes_and_mode_on_each_read() {
+fn info_preimage_rechecks_only_its_blob_bytes_and_mode_on_each_read() {
     let fixture = fixture(false);
     let info = fixture.app.join("Contents/Info.plist");
     fs::set_permissions(&info, fs::Permissions::from_mode(0o640)).unwrap();
@@ -116,8 +116,47 @@ fn info_preimage_rechecks_blob_bytes_and_mode_on_each_read() {
     assert_eq!(bytes, b"<plist>fixture-info</plist>");
     assert_eq!(mode, 0o640);
 
-    let blob = generation_path(&fixture, baseline.baseline_id()).join("blobs/slot-0.bin");
-    fs::write(&blob, b"changed info bytes").unwrap();
+    let extension_blob_name = baseline
+        .manifest
+        .slots
+        .iter()
+        .find(|slot| slot.relative_path == super::super::NRT_EXTENSION_PATH)
+        .and_then(|slot| match &slot.preimage {
+            super::super::SlotState::Present { blob_name, .. } => Some(blob_name),
+            super::super::SlotState::Absent => None,
+        })
+        .expect("schema 2 fixture includes the ExtensionLayer preimage");
+    let extension_blob = generation_path(&fixture, baseline.baseline_id())
+        .join("blobs")
+        .join(extension_blob_name);
+    let original_extension_blob = fs::read(&extension_blob).unwrap();
+    fs::write(&extension_blob, b"changed unrelated ExtensionLayer blob").unwrap();
+    assert_eq!(
+        baseline.read_info_plist_preimage().unwrap().0,
+        b"<plist>fixture-info</plist>"
+    );
+    baseline.verify_stock_preimage(&fixture.app).unwrap();
+    assert!(baseline.read_extension_preimage().is_err());
+
+    fs::write(&extension_blob, original_extension_blob).unwrap();
+    let info_blob_name = baseline
+        .manifest
+        .slots
+        .iter()
+        .find(|slot| slot.relative_path == "Contents/Info.plist")
+        .and_then(|slot| match &slot.preimage {
+            super::super::SlotState::Present { blob_name, .. } => Some(blob_name),
+            super::super::SlotState::Absent => None,
+        })
+        .expect("Info.plist preimage is present");
+    let info_blob = generation_path(&fixture, baseline.baseline_id())
+        .join("blobs")
+        .join(info_blob_name);
+    fs::write(&info_blob, b"changed info bytes").unwrap();
+    assert!(baseline.read_info_plist_preimage().is_err());
+
+    fs::write(&info_blob, b"<plist>fixture-info</plist>").unwrap();
+    fs::set_permissions(&info_blob, fs::Permissions::from_mode(0o400)).unwrap();
     assert!(baseline.read_info_plist_preimage().is_err());
 }
 

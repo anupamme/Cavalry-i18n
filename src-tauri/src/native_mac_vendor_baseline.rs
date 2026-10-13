@@ -141,10 +141,9 @@ impl VerifiedNativeVendorBaseline {
         self.manifest.schema_version == 2
     }
 
-    /// 每次读取都重验原始Info blob的bytes、blob mode与manifest绑定mode。
+    /// 只复验Info blob的bytes、私有mode与摘要，不重载其他固定槽。
     pub(crate) fn read_info_plist_preimage(&self) -> Result<(Vec<u8>, u32), String> {
-        let current = load_at(&self.install_root, &self.state_root, self.baseline_id())?;
-        let slot = current
+        let slot = self
             .manifest
             .slots
             .iter()
@@ -162,8 +161,8 @@ impl VerifiedNativeVendorBaseline {
         if *byte_len > MAX_INFO_BYTES {
             return Err("Native baseline Info.plist exceeds its read limit.".to_string());
         }
-        let blob_path = current.blob_path(blob_name);
-        let (bytes, blob_mode) = storage::read_bounded_regular(&blob_path, MAX_INFO_BYTES)?;
+        let (bytes, blob_mode) =
+            storage::read_bounded_regular(&self.blob_path(blob_name), MAX_INFO_BYTES)?;
         if blob_mode != storage::PRIVATE_FILE_MODE
             || u64::try_from(bytes.len()).ok() != Some(*byte_len)
             || sha256_bytes(&bytes) != *sha256
@@ -282,17 +281,15 @@ impl VerifiedNativeVendorBaseline {
         )
     }
 
-    /// 只比较manifest版本对应的原厂固定槽；调用方另负责来源认证。
+    /// 只比较当前App固定槽与typed manifest；调用方另负责来源认证。
     pub(crate) fn verify_stock_preimage(&self, app_path: &Path) -> Result<(), String> {
         let root = validate_canonical_app(app_path)?;
         if root != self.install_root {
             return Err("Restored Cavalry root does not match its native baseline.".to_string());
         }
-        let stored = load_at(&root, &self.state_root, self.baseline_id())?;
-        let inventory = contract::observe_stock_inventory(&root, stored.manifest.schema_version)?;
-        let slots =
-            contract::observe_stock_slots(&root, &inventory, stored.manifest.schema_version)?;
-        if slots != stored.manifest.slots {
+        let inventory = contract::observe_stock_inventory(&root, self.manifest.schema_version)?;
+        let slots = contract::observe_stock_slots(&root, &inventory, self.manifest.schema_version)?;
+        if slots != self.manifest.slots {
             return Err("Restored Cavalry slots differ from the native baseline.".to_string());
         }
         Ok(())

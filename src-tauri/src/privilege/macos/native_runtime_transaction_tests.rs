@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 apply_transaction.rs 的私有 journal 阶段、严格构造器、验证器和恢复入口。
- * [OUTPUT]: 锁定state-bound兼容、bundle-only terminal、验源一次、deferred proof门、漂移拒绝与crash recovery。
- * [POS]: NRT事务只用fixture；不调用Cavalry，不写真实profile。
+ * [OUTPUT]: 锁定state-bound兼容、bundle-only terminal、验源一次、deferred proof门、漂移拒绝与crash recovery；提供NRT临时fixture供同层测试复用。
+ * [POS]: NRT隔离合同测试；fixture供phase回归共享，不调用Cavalry或写真实profile。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::*;
@@ -30,7 +30,7 @@ fn advance_to_bundle_verified_with_proof(
     proof
 }
 
-fn begin_native_runtime_transaction(
+pub(super) fn begin_native_runtime_transaction(
     state: &Path,
     app: &Path,
     source: &Path,

@@ -3,10 +3,11 @@
 
 成员清单
 native_resources.rs: 编译manifest字节等同和pack metadata由一个入口验证；冻结target仍为官方10473/补充373，manifest另计隐藏schema caption1与插件caption1（补充375、总键10848）；baseline仍绑定target原字节；status仅读三份文件长度，apply校验所选pack长度/SHA；运行时不扫描定义。
-native_runtime.rs: 显式native动作协调中性runtime与profile；NRT只有实际回写App前才预读profile，沿同份manifest执行，profile错误code不变；非English只读所选pack并核长度/SHA；同源managed且无runtime候选时跳过facade profile recovery/admission，由canonical file transaction恢复pending并核前像；stock、runtime更新与English bundle写继续先准入profile；独立restart不变。
+native_runtime.rs: 显式native动作协调runtime与profile；NRT恢复先于路由，profile错误code不变；非English同源候选先读bounded owner hint与approved SHA，再用observe_install核canonical 2.8.0身份；匹配时只走canonical profile事务，不读baseline/槽/签名、不写App、不授App写恢复权；English、缺hint、坏hint、源不匹配与非2.8候选保留原完整owner准入；独立restart不变。
+native_runtime_profile_route_tests.rs: 用临时2.8 bundle/owner/profile证明同源hint只准profile快路；故意缺vendor baseline与Extension以证明未调用整包owner；覆盖English、未知/坏owner、源漂移/缺失、错误版本、坏/漂移UserReceipt和NRT失败边界；不接真实App/profile。
 native_runtime_source.rs: 只读编译嵌入的arm64字体制品；默认产物为空，运行时不接受环境或任意路径。
 native_official.rs: 固定Developer-ID requirement、canonical bundle/可显示版本/原厂executable的5秒OS验签只证明vendor_origin；最终Official显示还需native_user证明内置locale与无Switcher覆盖，不授予恢复或写入许可。另提供独立typed baseline源桥，要求canonical root、2.8 target与固定OS验签共同通过；不改变Official显示门。内置policy id与target摘要给baseline loader独立复核，不从manifest自报。
-native_user.rs: typed用户语言投影与profile事务；status先比pack摘要；仅Current-owned非英语profile再比approved runtime source与owner hint；runtime不匹配或owner缺失显示updateAvailable，owner/候选不可读显示unknown；hint不读journal、App槽或签名；English、漂移和未受管语义不变；apply仍委托canonical file transaction及完整runtime准入；apply提交后复核同一guard与writer guard再启动；独立Restart保留profile/NRT/owner准入；Official由原厂来源与profile语言合成。apply_profile仅向commands父域暴露，不进入renderer IPC。
+native_user.rs: typed用户语言投影与profile事务；status先比pack摘要；仅Current-owned非英语profile再比approved runtime source与owner hint；runtime不匹配或owner缺失显示updateAvailable，owner/候选不可读显示unknown；hint不读journal、App槽或签名；English、漂移和未受管语义不变；apply委托canonical file transaction；同源profile判路由native_runtime负责，App写与English仍完整准入；apply提交后复核同一guard与writer guard再启动；独立Restart保留profile/NRT/owner准入；Official由原厂来源与profile语言合成。apply_profile仅向commands父域暴露，不进入renderer IPC。
 patch_receipt.rs: 已应用补丁的历史源身份；随包语言、平台 runtime、wrapper 与 Switcher 版本构成内容地址，严格绑定安装根/宿主 revision/语言，版本比较只读，不写成功状态。
 patch_receipt_storage.rs: 私有补丁 generation 存储；按规范相对路径逐文件验证摘要/模式及闭合集合，拒绝 symlink 与内容漂移，发布新目录而不覆盖旧历史源。
 patch_receipt_tests.rs: generation 发布/旧版本重读与源变化合同；与 status/真实 clone 升级测试分层，不将孤立 generation 当作成功回执。

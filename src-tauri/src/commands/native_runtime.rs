@@ -1,10 +1,11 @@
 /**
- * [INPUT]: 依赖operation guard、selected native pack、approved runtime SHA、已验版本化owner槽与profile事务。
- * [OUTPUT]: 协调stock首装、同源跳过、managed制品更新与English双owner恢复。
- * [POS]: 显式native预览动作编排。非English只读目标pack并验长度/SHA。
- * 同源受管非English跳过后续bundle写；canonical profile事务恢复pending并核前像。
+ * [INPUT]: 依赖operation guard、bounded owner source hint、2.8 bundle观察、approved runtime/pack与profile事务。
+ * [OUTPUT]: 协调同源profile快路、stock首装、managed制品更新与English双owner恢复。
+ * [POS]: 显式native预览动作编排。匹配hint只准profile事务，不准App完整性结论或bundle写。
+ * 同源profile快路仍由canonical UserReceipt事务恢复pending并核前像。
  * NRT仅在实际回写App前预读profile；判定使用恢复器同份manifest。
  * stock、runtime更新和English恢复保留App写前profile准入。
+ * English、源不匹配、坏hint与非2.8候选保留原完整owner准入。
  * 独立restart保留独立准入。source SHA绑定嵌入字节与staging实读。不自动启动Cavalry。
  * staging dylib 使用bundle安装模式0755；0700父目录隔离暂存内容。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -81,7 +82,44 @@ fn apply_with_paths<R: OperationReporter, C: CommandRunner>(
     reporter: R,
     runner: &mut C,
 ) -> ActionPayload {
+    apply_with_paths_using_loaders(
+        operation,
+        repo,
+        state,
+        resources,
+        app,
+        language,
+        paths,
+        super::native_runtime_source::approved_runtime_bytes,
+        native_resources::load_language_resource,
+        reporter,
+        runner,
+    )
+}
+
+/// 生产包装器固定使用编译期approved source与manifest核验pack；闭包只隔离fixture读入。
+fn apply_with_paths_using_loaders<'source, R, C, RuntimeLoader, PackLoader>(
+    operation: &BundleOperationGuard,
+    repo: &Path,
+    state: &Path,
+    resources: &Path,
+    app: &Path,
+    language: &str,
+    paths: &UserLanguagePaths,
+    runtime_loader: RuntimeLoader,
+    pack_loader: PackLoader,
+    reporter: R,
+    runner: &mut C,
+) -> ActionPayload
+where
+    R: OperationReporter,
+    C: CommandRunner,
+    RuntimeLoader: FnOnce() -> Result<&'source [u8], String>,
+    PackLoader: FnOnce(&Path, &Path, &str) -> Result<Vec<u8>, String>,
+{
     let language = native_action_language(language);
+    let mut runtime_loader = Some(runtime_loader);
+    let mut pack_loader = Some(pack_loader);
     let mut verify = OperationPhaseGuard::start(&reporter, OperationPhase::VerifyInstallation);
     if !super::context::is_supported_language(language) {
         return ActionPayload::error_with_code(
@@ -115,6 +153,55 @@ fn apply_with_paths<R: OperationReporter, C: CommandRunner>(
             None => runtime_error(error.into()),
         };
     }
+
+    // 同源hint只缩短profile-only动作；源、owner或宿主不吻合时沿用原完整准入顺序。
+    let mut hinted_source = None;
+    if language != "en" {
+        if let Ok(hint) = privilege::native_runtime_owner_hint_for_selection(state, app) {
+            if hint.owned {
+                if let Some(owner_sha256) = hint.source_sha256.as_deref() {
+                    let load_source = runtime_loader
+                        .take()
+                        .expect("runtime loader is consumed at most once");
+                    let source = load_source();
+                    let source_matches = source
+                        .as_ref()
+                        .is_ok_and(|bytes| format!("{:x}", Sha256::digest(bytes)) == owner_sha256);
+                    hinted_source = Some(source);
+                    if source_matches
+                        && matches!(
+                            native_resources::observe_install(app),
+                            Ok((_canonical_app, version))
+                                if version == native_resources::NATIVE_VERSION
+                        )
+                    {
+                        let load_pack = pack_loader
+                            .take()
+                            .expect("pack loader is consumed at most once");
+                        let pack = match load_pack(repo, resources, language) {
+                            Ok(pack) => pack,
+                            Err(error) => {
+                                return ActionPayload::error_with_code(
+                                    &error,
+                                    "nativeResourceUnavailable",
+                                )
+                            }
+                        };
+                        verify.completed();
+                        // profile事务自行核验恢复记录；不提前发布空baseline阶段。
+                        return native_user::apply_profile(
+                            paths,
+                            language,
+                            Some(&pack),
+                            &mut native_user::writer_guard,
+                            &reporter,
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     let managed = match privilege::load_owned_native_runtime_details(state, app, runner) {
         Ok(managed) => managed,
         Err(error) if language == "en" => {
@@ -148,7 +235,13 @@ fn apply_with_paths<R: OperationReporter, C: CommandRunner>(
     let runtime_candidate = if language == "en" {
         None
     } else {
-        match super::native_runtime_source::approved_runtime_bytes() {
+        let source = hinted_source.unwrap_or_else(|| {
+            let load_source = runtime_loader
+                .take()
+                .expect("runtime loader is consumed at most once");
+            load_source()
+        });
+        match source {
             Ok(bytes) => {
                 let source_sha256 = format!("{:x}", Sha256::digest(bytes));
                 let owner_sha256 = managed
@@ -165,7 +258,10 @@ fn apply_with_paths<R: OperationReporter, C: CommandRunner>(
     let pack = if language == "en" {
         None
     } else {
-        match native_resources::load_language_resource(repo, resources, language) {
+        let load_pack = pack_loader
+            .take()
+            .expect("pack loader is consumed at most once");
+        match load_pack(repo, resources, language) {
             Ok(pack) => Some(pack),
             Err(error) => {
                 return ActionPayload::error_with_code(&error, "nativeResourceUnavailable")
@@ -482,3 +578,7 @@ mod tests {
         assert_eq!(fs::read_dir(&state).unwrap().count(), before);
     }
 }
+
+#[cfg(test)]
+#[path = "native_runtime_profile_route_tests.rs"]
+mod profile_route_tests;

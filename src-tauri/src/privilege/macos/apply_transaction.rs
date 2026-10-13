@@ -1,7 +1,8 @@
 /**
  * [INPUT]: 依赖CopyPair、版本化八/九槽前像、staged source SHA、owner前像、进程门、验签、fd与renameatx_np。
- * [OUTPUT]: 提供schema 6 StateBound、schema 7 NativeRuntimeOnly及只读owner hint facade。
+ * [OUTPUT]: 提供schema 6 StateBound、schema 7 NativeRuntimeOnly、只读owner hint与测试期槽计数接点。
  * [POS]: macOS bundle事务owner。schema 6保持不变；schema 7绑定来源与旧owner槽像。
+ * begin_signing与bundle checkpoint复用同一当前指纹，避免相邻完整文件重读。
  * NRT live proof绑定operation、bundle与已记录签名后像；deferred App写入清空后签发。
  * 终态复核固定槽后发布owner。
  * 崩溃恢复从同份journal意图验源。有效NRT回滚phase仅四个。
@@ -92,6 +93,8 @@ thread_local! {
     static AFTER_RETIRED_CLEANUP_ENTRY: RefCell<Option<Box<dyn FnOnce()>>> = const { RefCell::new(None) };
     /// 在 RuntimeCommitted 持久化后、备份退役前注入测试漂移。
     static BEFORE_NATIVE_RUNTIME_RETIRE: RefCell<Option<Box<dyn FnOnce()>>> = const { RefCell::new(None) };
+    /// 只统计当前测试线程中指定bundle固定槽的指纹读取。
+    static TEST_FINGERPRINT_READ_WATCH: RefCell<Option<(PathBuf, PathBuf, usize)>> = const { RefCell::new(None) };
 }
 
 /// A directory descriptor pins the object that was validated. Every transaction descendant is
@@ -1831,15 +1834,21 @@ impl MacApplyTransaction {
             .iter_mut()
             .filter(|entry| entry.scope == EntryScope::Bundle && entry.signing_side_effect)
         {
-            if entry.expected_absent {
-                require_absent(entry, roots)?;
-            } else if entry.expected_copy.is_some() {
-                verify_current_matches_expected_copy(entry, roots)?;
-            } else {
-                verify_current_matches_preimage(entry, roots)?;
-            }
+            let current = read_and_verify_fingerprint_once(
+                || roots.current_fingerprint(entry),
+                |current| {
+                    if entry.expected_absent {
+                        require_fingerprint_absent(entry, current)
+                    } else if entry.expected_copy.is_some() {
+                        let expected = expected_copy_fingerprint(entry)?;
+                        verify_fingerprint_matches_expected_copy(entry, current, expected)
+                    } else {
+                        verify_fingerprint_matches_preimage(entry, current)
+                    }
+                },
+            )?;
             entry.signing_preimage = Some(ExpectedFileState {
-                fingerprint: roots.current_fingerprint(entry)?,
+                fingerprint: current,
             });
             entry.signing_postimage = None;
         }
@@ -2025,22 +2034,29 @@ impl MacApplyTransaction {
             .iter_mut()
             .filter(|entry| entry.scope == EntryScope::Bundle)
         {
-            if entry.signing_side_effect {
-                let current = roots.current_fingerprint(entry)?;
-                if !matches_expected_file_state(&entry.signing_postimage, &current) {
-                    return Err(format!(
-                        "Signing side effect lacks a verified exact postimage at {}",
-                        entry.destination
-                    ));
-                }
-            } else {
-                if entry.expected_absent {
-                    require_absent(entry, roots)?;
-                } else if entry.expected_copy.is_some() {
-                    verify_current_matches_expected_copy(entry, roots)?;
-                }
-            }
-            snapshot_verified_postimage(entry, roots)?;
+            let current = read_and_verify_fingerprint_once(
+                || roots.current_fingerprint(entry),
+                |current| {
+                    if entry.signing_side_effect {
+                        if matches_expected_file_state(&entry.signing_postimage, current) {
+                            Ok(())
+                        } else {
+                            Err(format!(
+                                "Signing side effect lacks a verified exact postimage at {}",
+                                entry.destination
+                            ))
+                        }
+                    } else if entry.expected_absent {
+                        require_fingerprint_absent(entry, current)
+                    } else if entry.expected_copy.is_some() {
+                        let expected = expected_copy_fingerprint(entry)?;
+                        verify_fingerprint_matches_expected_copy(entry, current, expected)
+                    } else {
+                        Ok(())
+                    }
+                },
+            )?;
+            record_verified_postimage(entry, current);
         }
         if self.manifest.kind == JournalKind::NativeRuntimeOnly
             && !has_verified_native_signature_postimage(&self.manifest)
@@ -3409,10 +3425,42 @@ fn current_fingerprint_at(
     root: &SecureDirectory,
     path: &Path,
 ) -> Result<Option<FileFingerprint>, String> {
+    #[cfg(test)]
+    record_test_fingerprint_read(root, path);
     let Some(mut opened) = root.open_regular_path(path)? else {
         return Ok(None);
     };
     Ok(Some(fingerprint_open_file(&mut opened.file, opened.mode)?))
+}
+
+#[cfg(test)]
+fn watch_test_fingerprint_reads(root: &Path, target: &Path) {
+    TEST_FINGERPRINT_READ_WATCH.with(|slot| {
+        let mut slot = slot.borrow_mut();
+        assert!(slot.is_none(), "fingerprint read watch is already active");
+        *slot = Some((root.to_path_buf(), target.to_path_buf(), 0));
+    });
+}
+
+#[cfg(test)]
+fn take_test_fingerprint_read_count() -> usize {
+    TEST_FINGERPRINT_READ_WATCH.with(|slot| {
+        slot.borrow_mut()
+            .take()
+            .map(|(_, _, count)| count)
+            .expect("fingerprint read watch is not active")
+    })
+}
+
+#[cfg(test)]
+fn record_test_fingerprint_read(root: &SecureDirectory, path: &Path) {
+    TEST_FINGERPRINT_READ_WATCH.with(|slot| {
+        if let Some((watched_root, watched_target, count)) = slot.borrow_mut().as_mut() {
+            if root.path.as_path() == watched_root.as_path() && path == watched_target.as_path() {
+                *count += 1;
+            }
+        }
+    });
 }
 
 fn open_regular_nofollow(path: &Path) -> Result<Option<SecureRegularFile>, String> {
@@ -3459,8 +3507,15 @@ fn verify_current_matches_preimage(
     roots: TransactionRoots<'_>,
 ) -> Result<(), String> {
     let current = roots.current_fingerprint(entry)?;
+    verify_fingerprint_matches_preimage(entry, &current)
+}
+
+fn verify_fingerprint_matches_preimage(
+    entry: &JournalEntry,
+    current: &Option<FileFingerprint>,
+) -> Result<(), String> {
     let expected = original_fingerprint(entry)?;
-    if current == expected {
+    if current == &expected {
         Ok(())
     } else {
         Err(format!(
@@ -3474,13 +3529,17 @@ fn verify_current_matches_expected_copy(
     entry: &JournalEntry,
     roots: TransactionRoots<'_>,
 ) -> Result<(), String> {
-    let expected = entry.expected_copy.as_ref().ok_or_else(|| {
-        format!(
-            "Transaction entry has no intended copy postimage: {}",
-            entry.destination
-        )
-    })?;
-    if roots.current_fingerprint(entry)?.as_ref() == Some(expected) {
+    let expected = expected_copy_fingerprint(entry)?;
+    let current = roots.current_fingerprint(entry)?;
+    verify_fingerprint_matches_expected_copy(entry, &current, expected)
+}
+
+fn verify_fingerprint_matches_expected_copy(
+    entry: &JournalEntry,
+    current: &Option<FileFingerprint>,
+    expected: &FileFingerprint,
+) -> Result<(), String> {
+    if current.as_ref() == Some(expected) {
         Ok(())
     } else {
         Err(format!(
@@ -3490,8 +3549,25 @@ fn verify_current_matches_expected_copy(
     }
 }
 
+fn expected_copy_fingerprint(entry: &JournalEntry) -> Result<&FileFingerprint, String> {
+    entry.expected_copy.as_ref().ok_or_else(|| {
+        format!(
+            "Transaction entry has no intended copy postimage: {}",
+            entry.destination
+        )
+    })
+}
+
 fn require_absent(entry: &JournalEntry, roots: TransactionRoots<'_>) -> Result<(), String> {
-    if roots.current_fingerprint(entry)?.is_none() {
+    let current = roots.current_fingerprint(entry)?;
+    require_fingerprint_absent(entry, &current)
+}
+
+fn require_fingerprint_absent(
+    entry: &JournalEntry,
+    current: &Option<FileFingerprint>,
+) -> Result<(), String> {
+    if current.is_none() {
         Ok(())
     } else {
         Err(format!(
@@ -3505,7 +3581,13 @@ fn snapshot_verified_postimage(
     entry: &mut JournalEntry,
     roots: TransactionRoots<'_>,
 ) -> Result<(), String> {
-    match roots.current_fingerprint(entry)? {
+    let current = roots.current_fingerprint(entry)?;
+    record_verified_postimage(entry, current);
+    Ok(())
+}
+
+fn record_verified_postimage(entry: &mut JournalEntry, current: Option<FileFingerprint>) {
+    match current {
         Some(fingerprint) => {
             entry.verified_post = Some(fingerprint);
             entry.verified_post_absent = false;
@@ -3515,7 +3597,15 @@ fn snapshot_verified_postimage(
             entry.verified_post_absent = true;
         }
     }
-    Ok(())
+}
+
+fn read_and_verify_fingerprint_once(
+    read: impl FnOnce() -> Result<Option<FileFingerprint>, String>,
+    verify: impl FnOnce(&Option<FileFingerprint>) -> Result<(), String>,
+) -> Result<Option<FileFingerprint>, String> {
+    let current = read()?;
+    verify(&current)?;
+    Ok(current)
 }
 
 fn matches_preimage(
@@ -5144,6 +5234,10 @@ mod native_runtime_transaction_tests;
 #[cfg(test)]
 #[path = "native_runtime_finalizer_sentinel_tests.rs"]
 mod native_runtime_finalizer_sentinel_tests;
+
+#[cfg(test)]
+#[path = "native_runtime_fingerprint_reuse_tests.rs"]
+mod native_runtime_fingerprint_reuse_tests;
 
 #[cfg(test)]
 mod tests {

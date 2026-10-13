@@ -4,6 +4,7 @@
  * [POS]: NRT writer主测试集；Keychain兼容合同由keychain子模块隔离。
  * Fixture只验槽或模拟codesign，不证明厂商；ignored smoke不启动App。
  * coordinator烟测先核编译期候选，再复制原厂副本。
+ * writer耗时子测试分离baseline、stock写入、严格验签与vendor恢复，不调用整树审计。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::*;
@@ -150,6 +151,8 @@ fn fixture() -> (
 
 #[path = "native_mac_runtime_keychain_tests.rs"]
 mod keychain;
+#[path = "native_mac_runtime_apply_timing_tests.rs"]
+mod timing_smoke;
 
 fn verify_fixture<R: CommandRunner>(
     b: &VerifiedNativeVendorBaseline,
