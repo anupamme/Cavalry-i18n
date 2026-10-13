@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖 Tauri 平台配置、renderer 静态资源装载方式、macOS Info.plist/InfoPlist.strings 资源、release.config、Qt injector/QPA 构建入口、共享 translation policy、编译期 Windows 资源 trust-anchor catalog、固定官方 CMake 4.4.3 archive 与 SHA-256、NSIS provenance/安装态守门、pinned toolchain、disposable live-clone 截图门与打包检查脚本
-[OUTPUT]: 对外提供原生交通灯 exact-PID 几何回归、renderer 新鲜度受控的本地视觉验证、macOS ad-hoc 包、App Management 用途说明的 bundle readback、本地化资源路径合同、tag 级 Tauri updater 签名与明确未公证的发布合同、source artifact 完整性、中文发布说明与英文分类语义分离、七项公开资产回读与 CI 内部 provenance、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable acceptance producer 与 Windows NSIS 构建/安装态边界说明（Developer ID/notarization 与 Authenticode 均另跟踪）
+[INPUT]: 依赖 Tauri 平台配置、renderer 静态资源装载方式、macOS Info.plist/InfoPlist.strings 资源、默认/2.8 release profile、Qt injector/QPA 构建入口、共享 translation policy、编译期 Windows 资源 trust-anchor catalog、固定官方 CMake 4.4.3 archive 与 SHA-256、NSIS provenance/安装态守门、pinned toolchain、disposable live-clone 截图门与打包检查脚本
+[OUTPUT]: 对外提供原生交通灯 exact-PID 几何回归、renderer 新鲜度受控的本地视觉验证、macOS ad-hoc 包、App Management 用途说明的 bundle readback、本地化资源路径合同、tag 级 Tauri updater 签名与明确未公证的发布合同、source artifact 完整性、中文发布说明与英文分类语义分离、历史七项/2.8纯合同八项公开资产回读与 CI 内部 provenance、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable acceptance producer 与 Windows NSIS 构建/安装态边界说明（Developer ID/notarization 与 Authenticode 均另跟踪）
 [POS]: 仓库唯一桌面打包与 release runbook 操作合同；区分本地 ad-hoc 验证、CI PR 编译门与带 updater/证据闭包的 ad-hoc tag 产物
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -43,7 +43,8 @@ npm run prepare:qt-sdk:windows  # Windows x64
 发布版本分两层，不能混用：
 
 - Internal app version: SemVer，写在 `CHANGELOG.md`、`package.json`、`src-tauri/Cargo.toml` 与 `src-tauri/tauri.conf.json`，由 `npm run sync:version` 同步。
-- Release tag: `cavalry-2.7.2-pN`，表示“面向 Cavalry 2.7.2 的第 N 个补丁发布”，触发 GitHub Windows/macOS runner 打包与 GitHub Release。
+- Release tag: 历史版本使用 `cavalry-2.7.2-pN`；旧 `latest.json` feed 永久冻结于 p12，当前发布器只读复核p12，不上传或修复资产。
+- Cavalry 2.8.0 的独立配置为 `release-2.8.config.json`，标签为 `cavalry-2.8.0-pN`。候选 endpoint 使用 `latest-cavalry-2.8.json`，双feed纯合同附带固定p12的`latest.json`。各平台2.8生产runtime尚未接通，tag preflight以`implementation-not-ready`拒绝构建和发布；不得给旧2.7 runtime换名称。默认2.7配置不变。
 - 三种发布资产：
   - Apple Silicon: `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_aarch64.dmg`
   - Intel: `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_x64.dmg`
@@ -75,11 +76,11 @@ git push origin "$TAG"
 ```
 
 3. Tag 流水线会验证 tag commit 已包含于 `origin/main`，随后在固定平台 label 上重新运行依赖漏洞、合同、Rust/native、Windows NSIS 生命周期与 macOS 打包检查。只有 `release-production` 中既有的 Tauri updater 私钥会进入 tag packaging；普通 build 和验收工具不接触它。
-4. 发布 job 生成两份 DMG、一份 Windows NSIS、两个 macOS updater archive、三平台签名输入与 `latest.json`，并在 CI 内生成 `CycloneDX.json`、`toolchain-evidence.json` 和 `release-asset-provenance.json`。公开 Release 只上传三项安装包、两个 macOS updater archive、`latest.json` 与 `SHA256SUMS` 共七项资产；独立 `.sig` 和构建证据仅在 CI 内验证。发布器先创建 private draft，上传后逐项下载并复算这七项公开字节；缺件、额外资产、摘要漂移或远端冲突都会停止，全部一致后才公开。
+4. 当前2.7只准p12只读回读，不创建draft或上传资产。2.8 tag在preflight拒绝，以下仅描述纯publisher合同，不能作为当前发布指令：runtime接通并重新验收后，计划交付两份DMG、一份Windows NSIS、两个macOS updater archive、独立manifest与固定p12 `latest.json`，共八项公开资产。CI内部闭合 `CycloneDX.json`、`toolchain-evidence.json`、`release-asset-provenance.json` 与独立 `.sig`。通用publisher的显式2.8分支具备draft上传和逐字节回读能力；fake-gh合同仅证明该流程，不授发布权限。当前workflow不会到达此分支。
 5. **Apple Developer ID/notarization** 与 **Windows Authenticode** 均不在当前 SOP 的发布前提内；获得相应身份后再单独升级，不得预先写成已完成。macOS updater 仍由独立 Tauri Ed25519 签名验证，但它不创造 Apple 平台身份。
 
 6. Release 正文由 workflow 中的版本更新记录与固定用户指引组成。**从 p8 开始，版本更新说明只显示中文**，不额外显示“中文 / English”语言标题。CHANGELOG 使用 Added/Changed/Fixed 等稳定英文分类键，条目写本版实际中文变化；抽取器只把分类标题映射为新增/变更/修复，不自动翻译正文，不用产品介绍代替更新条目。未来 GitHub Release 与 updater notes 共用该中文投影。已发布正文修订不替换历史 updater manifest 或安装包。固定部分保留 macOS 首次打开、Windows 首次安装、带版本链接的源码构建步骤、四语支持列表、权限/备份须知及简短英日说明；不要用维护者私有绝对路径替代通用 `<仓库路径>`。只修改已发布正文时使用 `gh release edit --notes-file`，不重打 tag、不替换资产，并回读正文及资产摘要。
-7. 七项资产完成回读且 Release 公开后，`tools/post_release_reactions.js <tag> <owner/repo>` 添加并分页回读 👍、😄、🎉、❤️、🚀、👀 六种 reactions。沿用 Incodex 的六种反馈，GitHub 按账号去重；CI 使用现有 job token，失败作为非阻断提示，不重新发布资产。可用同一命令为已公开版本补做，但拒绝 draft/prerelease。
+7. 所选 profile 的资产完成回读且 Release 公开后，`tools/post_release_reactions.js <tag> <owner/repo> [--profile <config>]` 添加并分页回读 👍、😄、🎉、❤️、🚀、👀 六种 reactions。默认 profile 是 2.7；2.8 必须显式给出 2.8 profile。GitHub 按账号去重；CI 使用现有 job token，失败作为非阻断提示，不重新发布资产。可用同一命令为已公开版本补做，但拒绝 draft/prerelease。
 
 ### 3.2 版本更新说明模板
 

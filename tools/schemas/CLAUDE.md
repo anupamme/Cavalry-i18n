@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-release_asset_provenance.schema.json: 公开 ReleaseAssetProvenance v5 的资产与 sidecar 字节身份合同；精确绑定 release commit、SBOM/toolchain、三项人工安装加六项 updater 分发资产，并如实声明 macOS ad-hoc、Windows unsigned 与 Updater Ed25519 状态。
+release_asset_provenance.schema.json: 公开 ReleaseAssetProvenance v5 的资产与 sidecar 字节身份合同；接受受支持的2.7/2.8 tag，精确绑定release commit、SBOM/toolchain、profile分账的九/十项分发资产，并如实声明macOS ad-hoc、Windows unsigned与Updater Ed25519状态。
 release_toolchain_evidence.schema.json: ReleaseToolchainEvidence 的构建工具链身份合同，供 source/macOS/Windows producer evidence 聚合使用。
 windows_release_acceptance.schema.json: WindowsReleaseAcceptance 原始 session 派生摘要合同；供可选 Windows 维护者验收复验 tag/source/session、installer、generic/QPA 和现场矩阵绑定，不参与常规 tag 发布闭环。
 windows_nsis_provenance.schema.json: WindowsNsisProvenance v2 跨 producer/verifier 结构合同；固定 x64 target、安装器、可空 updater signature 与 packaging-input fingerprint 的精确键集合，真实文件和摘要仍由双方代码独立复验。

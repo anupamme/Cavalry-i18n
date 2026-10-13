@@ -9,12 +9,12 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { postReleaseReactions } = require('./post_release_reactions');
 const tag = 'cavalry-2.7.2-p7';
-function fixture(overrides = {}) {
+function fixture(overrides = {}, fixtureTag = tag) {
   const records = [];
   const calls = [];
   const api = (route, method = 'GET', fields, paginate = false) => {
     calls.push({ route, method, fields, paginate });
-    if (route.includes('/releases/tags/')) return { id: 42, tag_name: tag, draft: false, prerelease: false, ...overrides };
+    if (route.includes('/releases/tags/')) return { id: 42, tag_name: fixtureTag, draft: false, prerelease: false, ...overrides };
     if (method === 'POST') {
       let row = records.find(r => r.content === fields.content);
       if (!row) { row = { id: records.length + 1, content: fields.content }; records.push(row); }
@@ -41,6 +41,21 @@ test('rejects draft, prerelease, wrong tag or invalid identity before posting', 
   assert.throws(() => postReleaseReactions({ tag: 'v1', repo: 'owner/repo', api: f.api }));
   assert.equal(f.calls.length, 0);
 });
+test('2.8 release reactions require the explicit 2.8 profile', () => {
+  const releaseTag = 'cavalry-2.8.0-p17';
+  const defaultProfile = fixture({}, releaseTag);
+  assert.throws(() => postReleaseReactions({ tag: releaseTag, repo: 'owner/repo', api: defaultProfile.api }));
+  assert.equal(defaultProfile.calls.length, 0);
+
+  const explicitProfile = fixture({}, releaseTag);
+  postReleaseReactions({
+    tag: releaseTag,
+    repo: 'owner/repo',
+    api: explicitProfile.api,
+    profilePath: require('node:path').join(__dirname, '../release-2.8.config.json'),
+  });
+  assert.equal(explicitProfile.records.length, 6);
+});
 test('API failures and missing readback remain visible failures', () => {
   assert.throws(() => postReleaseReactions({ tag, repo: 'owner/repo', api: () => { throw Error('API denied'); } }), /API denied/);
   const f = fixture();
@@ -57,6 +72,6 @@ test('workflow posts reactions only after verified publication and keeps failure
   const reaction = steps.findIndex(s => s.name === 'Add positive Release reactions');
   assert.ok(publish >= 0 && reaction > publish);
   assert.equal(steps[reaction]['continue-on-error'], true);
-  assert.equal(steps[reaction].run, 'node tools/post_release_reactions.js "$GITHUB_REF_NAME" "$GITHUB_REPOSITORY"');
+  assert.equal(steps[reaction].run, 'node tools/post_release_reactions.js "$GITHUB_REF_NAME" "$GITHUB_REPOSITORY" --profile "$RELEASE_PROFILE_CONFIG"');
   assert.equal(steps[reaction].if, undefined, 'normal success chaining must not become always()');
 });

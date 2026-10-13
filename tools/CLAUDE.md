@@ -66,8 +66,8 @@ check_macos_quick_add_category.test.js: 同时比对完整 injector fixture 与�
 quick_add_placeholder_fixture.cpp / check_quick_add_placeholder.sh: Qt vendor-free 空结果显示合同，锁定三语、exact Classic owner、viewport、重复 Paint 幂等与原厂英文重写恢复；不替代平台 ABI 或实机。
 classic_rank_contract_fixture.cpp: Qt 6.6.3 合成评分器与既有 Classic 搜索共同挂接，验证三语完整/前缀标题排序、UTF-8 长度与三语界面英文回退、分数归还、碰撞、独立 detach 与 1000 次生命周期；不冒充原厂 ABI 或实机证据。
 check_classic_rank_contract.sh: macOS 隔离编译运行共享评分 fixture，固定 Qt 6.6.3 与 QT_NO_KEYWORDS，可选 ASan/UBSan，不启动 Cavalry。
-post_release_reactions.js: 已公开 Release 的六种正向反馈与分页回读；GitHub 按账号幂等，拒绝 draft/prerelease，不触碰资产。
-post_release_reactions.test.js: 注入式 GitHub API 离线合同，验证六种 reaction、重复调用、公开状态前置条件与回读失败。
+post_release_reactions.js: 已公开 Release 的六种正向反馈与分页回读；默认使用 2.7 profile，显式 profile 可为已公开的2.8 Release补 reactions；GitHub 按账号幂等，拒绝 draft/prerelease，不触碰资产。
+post_release_reactions.test.js: 注入式 GitHub API 离线合同，验证六种 reaction、重复调用、默认/显式 profile tag 约束、公开状态前置条件与回读失败。
 check_quick_add_display_tags.h: Fast 显示 fixture 的独立标签片段，验证原厂显示别名、paint/sizeHint 一致投影及源分类/创建身份保真，覆盖短字符串与大块堆存储边界。
 
 check_macos_selection_values.sh: 本地原生 fixture 构建入口，显式接收 Qt SDK/vendor Frameworks、链接 Classic 评分 ABI 适配器，只读链接 libskia 并强制 SDK 单套 Qt/offscreen plugin，保留测试退出码。
@@ -98,7 +98,7 @@ ui_review_server.js: 补丁 fixture 明确区分 current/updateAvailable/unknown
 ui_review_catalogs.js: UI Review 三类动态总览；从生产 tokens/styles 与 user-profile-text→ui-text 字典加载顺序读取四语反馈文案、语义图标和 Badge 状态，不维护第二套产品视觉资产。
 classify_ci_changes.js: GitHub Actions 变更风险分类器；以 PR merge-base、push before/head 或事件强制策略投影 documentation/source/vulnerability/windows/macOS-injector 门，未知源码路径和不可解析 diff 均 fail-closed，tag/workflow_dispatch 永远跑完整闭环；共享 Quick Add 顶部标签与显示适配器、Classic 评分、描述输入/策略与生成表进入双平台 native 门。
 classify_ci_changes.test.js: CI 风险分类器离线合同；覆盖纯文档、合同/SOP、Windows、macOS、共享翻译表及翻译/输入/Quick Add 顶部标签/显示/搜索/Classic 搜索与评分策略的逐文件双平台门、macOS-only 原生源码、依赖/workflow、定时漏洞复审、空 diff 与未知源码/自动化路径边界。
-check_tauri_build_sop.js: 四语运行时目录精确映射且不打包 native 构建期审定数据；Tauri 打包 SOP、四语 README 用户路径、CI 风险调度与配置 contract 测试；除跨平台发布、updater 资产、tag preflight、macOS/Windows 打包门外，验证 workflow 按 classifier 输出选择昂贵证据并由稳定 ci_gate 汇总选中/跳过结果、macOS 原生门实际调用无 vendor Quick Add 搜索/Classic/显示 fixture、Windows CMake/CTest 接入共享搜索 fixture，Quick Add 顶部标签/显示与 Classic 评分头文件变更同时触发双平台门并使旧 installer provenance 失效，Quick Add 描述生成器/English+三语 JSON/共享 header/生成表进入 package/native/provenance 闭包，四语徽章直接读取最新正式 Release 且禁止本地 JSON/发布后 PR 同步、README 到最新 Release/唯一构建 SOP 的导航，以及 SOP/配置同构的 400×556固定最小窗口（旧444px主内容+72pxfooter）、主窗口无滚动而 Select/任务事件视窗可内部滚动、macOS decorations/Overlay/hiddenTitle 原生窗口合同与显式标题拖动 capability，并验证 `NSAppBundlesUsageDescription` 四语源文件、`bundle.macOS.files` 目标、DMG `产品 + SemVer + 架构` 卷标和可选最终 `.app` readback。
+check_tauri_build_sop.js: Tauri打包、README与CI配置合同；验证2.7 p12只读回读、2.8双feed纯profile以及production tag在任何原生构建前被implementation-not-ready阻断，另核source artifact、renderer/Tauri窗口、App Management和provenance边界。
 check_tauri_packaged_app.js: packaged Tauri `.app`资源测试，打包后按runtime resource候选检查renderer关键shell及user-profile-text→ui-text共享文案路由/语义图标/任务事件/Updater投影，并以源文件→唯一Brotli payload→最终二进制的字节闭包拒绝缺失/过时WebView资源；同时验证languages、injector哈希同一性与Qt ABI、seal及size report。
 windows_nsis_provenance_contract.js: Windows NSIS provenance 跨边界结构真相层；从 machine-readable schema 读取唯一版本、目标与 required keys，向 producer 提供文档构造器、向 producer/verifier 提供同一 fail-closed 结构校验，但不替代双方对真实文件与哈希的独立复验。
 windows_nsis_provenance.js: Windows x64 NSIS 当前输入自证器；通过共享 contract 生成 schema v2 sidecar，intent 区分普通构建与 tag updater 构建，前者拒绝任意 `.exe.sig`，后者要求并绑定 exact base64 signature；只清本版本受控 EXE/provenance/signature，拒绝外国输出，并对 renderer/languages/Tauri/updater overlay/Rust/native/shared translation+input+Quick Add context+tabs+display+search+Classic search/rank+Quick Add 描述 policy/JSON/generated table/generic/QPA 复算 fingerprint。
@@ -114,14 +114,14 @@ check_git_hooks.js: Windows 兼容 Git hook 合同测试，模拟 stale PATH、�
 python_command.js: Python 3 命令边界，优先尊重 `PYTHON`；Windows 先探测用户级 Python Launcher 的绝对路径，再回退 `py -3`/`python`，隔离 IDE/Codex 继承旧 PATH 与 Windows Store 假别名；其余平台使用 `python3`，供 Node 验证器与 Qt SDK 解析器复用。
 npm_command.js: npm 工具链身份命令边界，优先以当前 Node 执行 `npm_execpath` 保持无 shell；仅在缺少 CLI 路径的 Windows 宿主为固定 `npm --version` 使用 shell fallback，供漏洞门与 toolchain evidence recorder 复用。
 powershell_command.js: Windows 开发脚本宿主边界；优先单次启动 `pwsh.exe`，仅在宿主不存在时清除继承的 `PSModulePath` 并回退 `powershell.exe`，脚本非零或启动拒绝原样失败，供 injector 构建与 NSIS 安装态守门复用。
-release_metadata.js: GitHub Release 协议守门器，以 `release.config.json` 为真相源，校验 `cavalry-2.7.2-pN` tag，生成双架构 DMG、Windows x64 NSIS、macOS updater archive、三份签名 sidecar 与 `latest.json` 的唯一名称，并向 manifest producer 共享同一解析函数。
-create_updater_manifest.js: 静态 Tauri updater manifest producer；从当前 package SemVer、已审阅 notes、三个 exact-name artifact 及对应 base64 `.sig` 确定性生成 `latest.json`，只允许两个 macOS 架构与 Windows x64，不持有密钥也不上传。
-create_updater_manifest.test.js: updater manifest 离线对抗测试；以临时伪 artifact/signature 验证三平台映射、稳定 URL/时间归一化，以及命名、签名格式和 symlink 输入失败关闭。
-create_legacy_updater_manifest.js: 固定p12原文/输出字节锁的离线producer，独立于当前SemVer/平台profile，仅将三条URL固定到p12并保留原签名；CLI只新建或验证同字节latest.json，不接production发布器、不重验archive签名。
+release_metadata.js: GitHub Release 元数据守门器；默认 `release.config.json` 输出保持2.7 `latest.json`，显式profile纯生成2.8双feed元数据；生产tag仍由workflow在原生构建前阻断。
+create_updater_manifest.js: 静态 Tauri updater manifest producer；从所选 profile、当前 package SemVer、已审阅 notes、三个 exact-name artifact 与 base64 `.sig` 确定性生成指定 JSON；2.8 archive URL 固定到 tag，平台仍限 macOS 双架构与 Windows x64。
+create_updater_manifest.test.js: updater manifest 离线对抗测试；以临时伪 artifact/signature 验证默认 latest.json 与显式 2.8 manifest、tag-pinned URL、三平台映射、时间归一化及命名/签名/symlink 失败关闭。
+create_legacy_updater_manifest.js: 固定 p12 原文/输出字节锁的离线 producer；显式2.8 profile确定输出名；本脚本只生成并校验冻结latest.json，provenance、上传与远端回读归release_publish.js，不重验archive签名。
 create_legacy_updater_manifest.test.js: 固定历史feed的离线合同；锁原文字节/三条tag URL/原签名指纹、真实input/output变异和CLI新建/同字节幂等/异内容保留/参数与symlink拒绝；独立source fixture，不依赖动态发行平台或密码学验签。
-release_publish.js: 幂等 GitHub Release 发布器；先以三项签名 sidecar 生成并验证 manifest/provenance，再让私有 draft 只上传三项安装包、两个 macOS updater archive、`latest.json` 与 `SHA256SUMS` 七项用户/updater 资产并逐字节回读，最后一步才公开；SBOM、toolchain、provenance 与独立签名仅在 CI 内验证，远端冲突仍 fail-closed。
-create_sbom.js / verify_release_provenance.js: 从 npm/Cargo lockfiles 生成确定性 CycloneDX 1.5 SBOM，并在 CI 内复核 ReleaseAssetProvenance v5 对 release commit、真实平台签名声明、SBOM、toolchain、九项安装/updater/signature 输入及 manifest 三平台语义的精确绑定；这些构建证据不再作为用户下载附件。
-create_source_artifact.js / verify_source_artifact.js / source_artifact_manifest.json + schemas/: 用 mode-preserving tar 输出 repo 外 source artifact；verifier 独立生成同 commit 的 `git archive`，逐 entry 拒绝 link/special/traversal/duplicate/secret 并精确比对路径、bytes、type 与 mode，marker 不能替代 tree 校验。
+release_publish.js: profile-aware GitHub Release发布器；2.7 p12仅只读回读七项资产，p13+拒绝；2.8双feed发布闭环仅由fake-gh纯合同覆盖，生产workflow尚不准入。
+create_sbom.js / verify_release_provenance.js: 从 npm/Cargo lockfiles 生成确定性 CycloneDX 1.5 SBOM，并在 CI 内按所选profile复核 ReleaseAssetProvenance v5、release commit、真实平台签名声明、SBOM/toolchain、默认九项或双feed十项分发身份及manifest语义；这些构建证据不作为用户下载附件。
+create_source_artifact.js / verify_source_artifact.js / source_artifact_manifest.json + schemas/: 用 mode-preserving tar 输出 repo 外 source artifact；必需路径包含2.7/2.8 release profiles及2.8 endpoint overlay；verifier独立生成同commit的`git archive`，拒绝link/special/traversal/duplicate/secret并精确比对路径、bytes、type与mode，marker不能替代tree校验。
 verify_ci_action_pins.js + ci_action_pins.json: 以 strict unique-key YAML AST 枚举 job/step 全部 `uses`（含 unnamed、`if`-first、flow mapping 与 quoted key），执行 GitHub Actions 全量 40 位 SHA allowlist、Node/Python/aqt/Rust 精确 pin，并拒绝 cargo-audit 绕过 channel qualifier 触发项目组件调和。
 record_toolchain_evidence.js / create_toolchain_evidence_bundle.js: 前者在 source-contract/macOS 真实 producer 上 fail-closed 捕获无 secret 的版本与 runner 证据；后者要求 source-contracts、macOS aarch64/x64 三 scope 与 release commit/target 精确一致，聚合为由公开 provenance 绑定的 `toolchain-evidence.json`；Windows producer evidence 由 `record_windows_toolchain_evidence.js` 单独上传，待 #16 纳入 release 聚合。
 extract_release_changelog.js: 保留英文分类语义并投影中文标题、要求逐条中文且拒绝伪列表的 Release notes 内容守门器，按内部 SemVer 从 `CHANGELOG.md` 精确抽取单个已发布日期区块；缺失、重复、未标日期或空正文时失败关闭，防止固定产品模板吞掉版本更新。
@@ -159,6 +159,8 @@ zh-Hant.ts: 繁体中文 compiled UI 翻译源。
 runtime_ui_allowlist.json: runtime UI 覆盖率允许保留英文/快捷键/格式标签/样本值的 exact、contains、regex 与 stripRegex 清单；可翻译的自动编号 Composition 标签不得进入噪声豁免。
 fixtures/: fake Cavalry.app测试工厂与已发行p12公开manifest的固定字节输入；不包含真实应用包或用户配置。
 git-hooks/: Git Hook bootstrap 目录，承载提交前 Node 路径解析与快速门禁入口（详见 git-hooks/CLAUDE.md）。
+release.config.json / release-2.8.config.json: 2.7默认profile与2.8纯准备profile；2.8固定双feed元数据和tag-pinned archive URL，但生产workflow在runtime接线完成前拒绝2.8 tag。
+release_publish.test.js: fake-gh离线合同；验证p12只读七项回读、阻断p13、合成2.8 profile的双manifest/provenance与八项公开资产闭环；不授予生产tag权限。
 
 依赖边界:
 tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修改真实应用；会产生副作用的脚本必须由 npm script 或手动命令显式触发。

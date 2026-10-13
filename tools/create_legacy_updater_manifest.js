@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖已发行 p12 manifest 的固定原文字节和 Node fs/path/crypto；不依赖当前包版本或新平台发行配置。
- * [OUTPUT]: 提供 renderLegacyManifest、assertLegacyManifest 与只生成固定 latest.json 的离线 CLI，仅将三条旧 URL 固定到 p12 tag。
- * [POS]: tools 的旧客户端 feed 冻结边界；保留原版本/说明/日期/签名，尚未接入 production publisher，不重验 archive 签名。
+ * [OUTPUT]: 提供 renderLegacyManifest、assertLegacyManifest 与生成固定 latest.json 的离线 CLI；显式 2.8 profile 复用字节验证器。
+ * [POS]: tools 的旧客户端 feed 冻结边界；保留原版本/说明/日期/签名，2.8 publisher 将其作为独立旧feed并回读，不重验 archive 签名。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';

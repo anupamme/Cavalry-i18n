@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 gh CLI、release metadata 环境、三项人工安装资产、updater manifest/archive/signature 输入及 CI 内部供应链证据
- * [OUTPUT]: 生成并验证内部 v5 provenance，先创建/恢复 private draft、上传并逐字节回读三项安装包、两项 macOS updater archive、latest.json 与 SHA256SUMS 后才公开；签名 sidecar/SBOM/toolchain/provenance 仅在 CI 内验证
- * [POS]: GitHub Release 幂等发布边界；公开面绝不出现脚本制造的半成品，也不覆盖远端资产或把网络/鉴权失败误判为“不存在”
+ * [INPUT]: 依赖 gh CLI、显式 release profile metadata、人工安装资产、updater feed/archive/signature 与 CI 内部供应链证据
+ * [OUTPUT]: 生成并验证内部 v5 provenance；p12仅回读既有七项资产，2.8双feed先私有draft逐字节回读
+ * [POS]: GitHub Release 发布边界；2.7 p12只读且p13+拒绝，显式2.8 profile绑定冻结旧feed并发布独立feed
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -12,6 +12,8 @@ const path = require('node:path');
 const os = require('node:os');
 const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
+const { loadConfig, metadataForTag } = require('./release_metadata');
+const { assertLegacyManifest } = require('./create_legacy_updater_manifest');
 
 const rootDir = process.cwd();
 const args = process.argv.slice(2);
@@ -218,11 +220,21 @@ function verifyPublishedRelease(remote, local, meta) {
   console.log(`[release-publish] OK: ${meta.tag} already exists with matching metadata and all asset bytes.`);
 }
 
+function profileEnv(name, metadata) {
+  const value = requireEnv(name);
+  if (value !== metadata[name]) fail(`${name} does not match the selected release profile.`);
+  return value;
+}
+
 function main() {
   const tag = optionValue('--tag') || requireEnv('GITHUB_REF_NAME');
-  const releaseConfig = JSON.parse(fs.readFileSync(path.join(rootDir, 'release.config.json'), 'utf8'));
-  const tagPattern = new RegExp(releaseConfig.releaseTagPattern);
-  if (!tagPattern.test(tag)) fail(`Release tag does not match ${releaseConfig.releaseTagPattern}: ${tag}.`);
+  const profilePath = optionValue('--profile');
+  const releaseConfig = loadConfig(profilePath);
+  let releaseMetadata;
+  try { releaseMetadata = metadataForTag(releaseConfig, tag); } catch (error) { fail(error.message); }
+  if (releaseConfig.targetCavalryVersion === '2.7.2' && tag !== 'cavalry-2.7.2-p12') {
+    fail('The default 2.7 updater feed is frozen at cavalry-2.7.2-p12; use the explicit 2.8 profile for new releases.');
+  }
   const commitSha = (optionValue('--release-commit') || optionValue('--commit') || process.env.GITHUB_SHA || '').toLowerCase();
   if (!/^[a-f0-9]{40}$/.test(commitSha)) fail('--release-commit/GITHUB_SHA must be a 40-character SHA.');
   const tagCommitSha = resolveTagCommit(tag);
@@ -233,26 +245,39 @@ function main() {
   const notesFile = path.resolve(optionValue('--notes') || path.join(rootDir, 'release-notes.md'));
   if (!title || !fs.existsSync(notesFile)) fail('Release title and notes file are required.');
   const notes = fs.readFileSync(notesFile, 'utf8').replace(/\r\n/g, '\n');
-  const distributionNames = [
-    requireEnv('RELEASE_ASSET_NAME_AARCH64'),
-    requireEnv('RELEASE_ASSET_NAME_X64'),
-    requireEnv('RELEASE_ASSET_NAME_WINDOWS_X64'),
-    requireEnv('RELEASE_UPDATER_MANIFEST_NAME'),
-    requireEnv('RELEASE_UPDATER_ASSET_NAME_AARCH64'),
-    requireEnv('RELEASE_UPDATER_SIGNATURE_NAME_AARCH64'),
-    requireEnv('RELEASE_UPDATER_ASSET_NAME_X64'),
-    requireEnv('RELEASE_UPDATER_SIGNATURE_NAME_X64'),
-    requireEnv('RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64'),
+  const releaseAssetNames = [
+    profileEnv('RELEASE_ASSET_NAME_AARCH64', releaseMetadata),
+    profileEnv('RELEASE_ASSET_NAME_X64', releaseMetadata),
+    profileEnv('RELEASE_ASSET_NAME_WINDOWS_X64', releaseMetadata),
   ];
+  const manifestNames = [profileEnv('RELEASE_UPDATER_MANIFEST_NAME', releaseMetadata)];
+  if (releaseMetadata.RELEASE_UPDATER_LEGACY_MANIFEST_NAME) {
+    manifestNames.push(profileEnv('RELEASE_UPDATER_LEGACY_MANIFEST_NAME', releaseMetadata));
+  }
+  profileEnv('RELEASE_UPDATER_DOWNLOAD_BASE_URL', releaseMetadata);
+  profileEnv('RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL', releaseMetadata);
+  const updaterNames = [
+    profileEnv('RELEASE_UPDATER_ASSET_NAME_AARCH64', releaseMetadata),
+    profileEnv('RELEASE_UPDATER_SIGNATURE_NAME_AARCH64', releaseMetadata),
+    profileEnv('RELEASE_UPDATER_ASSET_NAME_X64', releaseMetadata),
+    profileEnv('RELEASE_UPDATER_SIGNATURE_NAME_X64', releaseMetadata),
+    profileEnv('RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64', releaseMetadata),
+  ];
+  const distributionNames = [...releaseAssetNames, ...manifestNames, ...updaterNames];
   const distribution = localAssets(distDir, distributionNames);
   const publicDistributionNames = [
-    requireEnv('RELEASE_ASSET_NAME_AARCH64'),
-    requireEnv('RELEASE_ASSET_NAME_X64'),
-    requireEnv('RELEASE_ASSET_NAME_WINDOWS_X64'),
-    requireEnv('RELEASE_UPDATER_MANIFEST_NAME'),
-    requireEnv('RELEASE_UPDATER_ASSET_NAME_AARCH64'),
-    requireEnv('RELEASE_UPDATER_ASSET_NAME_X64'),
+    ...releaseAssetNames,
+    ...manifestNames,
+    releaseMetadata.RELEASE_UPDATER_ASSET_NAME_AARCH64,
+    releaseMetadata.RELEASE_UPDATER_ASSET_NAME_X64,
   ];
+  if (releaseMetadata.RELEASE_UPDATER_LEGACY_MANIFEST_NAME) {
+    try {
+      assertLegacyManifest(fs.readFileSync(path.join(distDir, releaseMetadata.RELEASE_UPDATER_LEGACY_MANIFEST_NAME)));
+    } catch (error) {
+      fail(`Frozen legacy updater feed is invalid: ${error.message}`);
+    }
+  }
   const publicDistribution = localAssets(distDir, publicDistributionNames);
   writeChecksums(publicDistribution, path.join(distDir, 'SHA256SUMS'));
   const createdAtUtc = git(['show', '-s', '--format=%cI', commitSha]);
@@ -265,11 +290,24 @@ function main() {
   });
   run(process.execPath, [
     path.join(rootDir, 'tools/verify_release_provenance.js'), '--dist', distDir,
+    ...(profilePath ? ['--profile', profilePath] : []),
     ...distributionNames.flatMap((name) => ['--primary', name]),
   ]);
   const local = localAssets(distDir, [...publicDistributionNames, 'SHA256SUMS']);
   const meta = { tag, commitSha, title, notes };
   const remote = remoteRelease(tag);
+  if (releaseConfig.targetCavalryVersion === '2.7.2') {
+    if (!remote) {
+      fail('Frozen p12 release is missing; refusing to create or upload a replacement.');
+    }
+    verifyRemoteMetadata(remote, meta, false);
+    const missing = verifyRemoteAssets(remote, local, meta);
+    if (missing.length) {
+      fail(`Frozen p12 release is incomplete and will not be mutated: ${missing.map((item) => item.name).join(', ')}.`);
+    }
+    console.log(`[release-publish] OK: frozen ${tag} matches all ${local.length} asset bytes; no remote mutation performed.`);
+    return;
+  }
   if (remote) {
     if (remote.isDraft === true) completeDraftRelease(remote, local, meta);
     else verifyPublishedRelease(remote, local, meta);

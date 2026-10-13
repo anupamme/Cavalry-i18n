@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 gh CLI、release.config.json 的 tag 约束和已公开 GitHub Release
+ * [INPUT]: 依赖 gh CLI、默认或显式 release profile 的 tag 约束和已公开 GitHub Release
  * [OUTPUT]: 添加并回读六种正向 reactions；只操作指定 Release 的反馈，不修改正文、tag 或资产
  * [POS]: 发布成功后的非关键反馈步骤，沿用 Incodex 六种 reaction；GitHub 按账号去重，失败不触发重新发布
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
 const { spawnSync } = require('node:child_process');
-const { releaseTagPattern } = require('../release.config.json');
+const { loadConfig, metadataForTag } = require('./release_metadata');
 const reactions = ['+1', 'laugh', 'hooray', 'heart', 'rocket', 'eyes'];
 
 function githubApi(route, method = 'GET', fields = {}, paginate = false) {
@@ -21,8 +21,8 @@ function githubApi(route, method = 'GET', fields = {}, paginate = false) {
   return paginate ? value.flat() : value;
 }
 
-function postReleaseReactions({ tag, repo, api = githubApi }) {
-  if (typeof tag !== 'string' || !new RegExp(releaseTagPattern).test(tag)) throw new Error('Invalid release tag');
+function postReleaseReactions({ tag, repo, api = githubApi, profilePath = null }) {
+  try { metadataForTag(loadConfig(profilePath), tag); } catch { throw new Error('Invalid release tag'); }
   if (typeof repo !== 'string' || !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo)) throw new Error('Invalid repository');
   const release = api(`repos/${repo}/releases/tags/${tag}`);
   if (!Number.isSafeInteger(release.id) || release.id <= 0 || release.tag_name !== tag
@@ -48,8 +48,20 @@ function postReleaseReactions({ tag, repo, api = githubApi }) {
 
 if (require.main === module) {
   try {
-    if (process.argv.length !== 4) throw new Error('Usage: node tools/post_release_reactions.js <tag> <owner/repo>');
-    const id = postReleaseReactions({ tag: process.argv[2], repo: process.argv[3] });
+    const args = process.argv.slice(2);
+    const profileIndex = args.indexOf('--profile');
+    let profilePath = null;
+    if (profileIndex !== -1) {
+      profilePath = args[profileIndex + 1];
+      if (!profilePath || profilePath.startsWith('--') || args.indexOf('--profile', profileIndex + 1) !== -1) {
+        throw new Error('--profile requires one value.');
+      }
+      args.splice(profileIndex, 2);
+    }
+    if (args.length !== 2) {
+      throw new Error('Usage: node tools/post_release_reactions.js <tag> <owner/repo> [--profile <release-config.json>]');
+    }
+    const id = postReleaseReactions({ tag: args[0], repo: args[1], profilePath });
     console.log(`[release-reactions] Verified six reactions on release ${id}`);
   } catch (error) {
     console.error(`[release-reactions] ${error.message}`);

@@ -1,6 +1,6 @@
-# [INPUT]: 依赖仓库版本/CHANGELOG/release.config、可测试 CI 变更分类器、跨平台 Tauri 与 tag-only updater artifact 配置、受保护 updater 凭据、Qt runtime 构建入口与共享 Classic 评分/空结果幂等合同、Windows provenance、pinned Actions/toolchain 与 GitHub tag/artifact 环境
-# [OUTPUT]: 对外提供始终可结算的必需检查、按文档/合同/依赖/平台风险选择的证据门、每周依赖漏洞复审、平台 Runner 原生构建、NSIS 生命周期、无 tag updater 签名 smoke、tag 上 ad-hoc macOS 包与 Tauri updater 签名产物、确定性 latest.json、七项公开资产 exact readback、CI 内部 provenance/SBOM/toolchain 证据、幂等公开 Release 与非阻断六种 Release reactions 回读
-# [POS]: .github/workflows 的唯一 CI/CD 编排器；普通 PR/main 由 classify_ci_changes.js 缩减无关原生 Runner，未知路径 fail-closed，tag/workflow_dispatch 无条件跑完整闭环；普通 CI 不接触 updater 私钥，显式 workflow_dispatch smoke 只验证签名且不进入 release job，tag 必须来自 origin/main 并在唯一 updater 凭据与资产闭环后才能公开；macOS Developer ID/notarization 与 Windows Authenticode 均未作为当前发布前提
+# [INPUT]: 依赖默认2.7 profile、尚未具备生产runtime的2.8准备profile、CI变更分类器、跨平台Tauri与tag-only updater配置、受保护updater凭据、Qt runtime构建入口、Windows provenance与GitHub环境
+# [OUTPUT]: 对外提供风险分流、平台构建、NSIS生命周期、签名smoke、2.7 p12只读回读、2.8 implementation-not-ready阻断及profile-aware provenance/Release闭环
+# [POS]: 唯一CI/CD编排器；所有tag先过preflight；2.8在profile解析和任一原生构建前拒绝，避免旧2.7 runtime换名；纯profile合同不授予发布权
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
 
@@ -84,6 +84,8 @@ jobs:
 
   release_tag_preflight:
     runs-on: ubuntu-24.04
+    outputs:
+      release_profile_config: ${{ steps.release_profile.outputs.config }}
 
     steps:
       - name: Checkout release tag history
@@ -97,6 +99,36 @@ jobs:
         run: |
           git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
           git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main
+
+      - name: Set up pinned Node.js for release profile validation
+        if: startsWith(github.ref, 'refs/tags/cavalry-')
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.20.0
+
+      - name: Select release profile by tag
+        id: release_profile
+        shell: bash
+        env:
+          RELEASE_REF: ${{ github.ref }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [[ "$RELEASE_REF" == refs/tags/cavalry-* ]]; then
+            case "$RELEASE_TAG" in
+              cavalry-2.7.2-p12) profile='release.config.json' ;;
+              cavalry-2.7.2-p[0-9]*) echo "The legacy updater feed is frozen at cavalry-2.7.2-p12: $RELEASE_TAG" >&2; exit 1 ;;
+              cavalry-2.8.0-p[0-9]*)
+                echo "implementation-not-ready: Cavalry 2.8 production runtime is not wired for all declared platforms; refusing to build or publish." >&2
+                exit 1
+                ;;
+              *) echo "Unsupported Cavalry release tag: $RELEASE_TAG" >&2; exit 1 ;;
+            esac
+            node tools/release_metadata.js --profile "$profile" --check --tag "$RELEASE_TAG"
+          else
+            profile='release.config.json'
+          fi
+          echo "config=$profile" >> "$GITHUB_OUTPUT"
 
       - name: Skip release ancestry gate for non-tag CI
         if: ${{ !startsWith(github.ref, 'refs/tags/cavalry-') }}
@@ -216,6 +248,8 @@ jobs:
     needs: [release_tag_preflight, change_scope, dependency_vulnerability_gate]
     if: ${{ always() }}
     runs-on: ubuntu-24.04
+    env:
+      RELEASE_PROFILE_CONFIG: ${{ needs.release_tag_preflight.outputs.release_profile_config }}
 
     steps:
       - name: Fail if CI scope or required upstream gates did not settle
@@ -258,7 +292,7 @@ jobs:
 
       - name: Validate release protocol
         if: needs.change_scope.outputs.source == 'true'
-        run: npm run check:release
+        run: npm run check:release -- --profile "$RELEASE_PROFILE_CONFIG"
 
       - name: Validate supply-chain pins and source completeness contracts
         if: needs.change_scope.outputs.source == 'true'
@@ -382,6 +416,8 @@ jobs:
     needs: [release_tag_preflight, change_scope, dependency_vulnerability_gate]
     if: ${{ always() && needs.change_scope.result == 'success' && needs.release_tag_preflight.result == 'success' && needs.change_scope.outputs.windows == 'true' && (needs.dependency_vulnerability_gate.result == 'success' || needs.dependency_vulnerability_gate.result == 'skipped') }}
     runs-on: windows-2022
+    env:
+      RELEASE_PROFILE_CONFIG: ${{ needs.release_tag_preflight.outputs.release_profile_config }}
     environment:
       name: ${{ startsWith(github.ref, 'refs/tags/cavalry-') && 'release-production' || 'ci-readonly' }}
 
@@ -418,7 +454,7 @@ jobs:
       - name: Validate project metadata and app contracts
         run: |
           npm run check:version
-          npm run check:release
+          npm run check:release -- --profile "$env:RELEASE_PROFILE_CONFIG"
           npm run check:app
           npm run test:contracts
 
@@ -611,6 +647,7 @@ jobs:
     environment:
       name: ${{ (startsWith(github.ref, 'refs/tags/cavalry-') || (github.event_name == 'workflow_dispatch' && inputs.updater_signing_smoke)) && 'release-production' || 'ci-readonly' }}
     env:
+      RELEASE_PROFILE_CONFIG: ${{ needs.release_tag_preflight.outputs.release_profile_config }}
       # The action installs this minimal toolchain explicitly. Do not let the repository override
       # reconcile rustfmt/clippy against a runner image that may contain stale component files.
       RUSTUP_TOOLCHAIN: '1.98.0'
@@ -662,11 +699,11 @@ jobs:
         run: npm run check:version
 
       - name: Validate release protocol
-        run: npm run check:release
+        run: npm run check:release -- --profile "$RELEASE_PROFILE_CONFIG"
 
       - name: Resolve release metadata
         if: startsWith(github.ref, 'refs/tags/cavalry-')
-        run: npm run release:metadata -- --github-env
+        run: npm run release:metadata -- --profile "$RELEASE_PROFILE_CONFIG" --github-env
 
       - name: Require updater signing secrets for tag or signing smoke
         if: ${{ startsWith(github.ref, 'refs/tags/cavalry-') || (github.event_name == 'workflow_dispatch' && inputs.updater_signing_smoke) }}
@@ -875,6 +912,8 @@ jobs:
       name: release-production
     permissions:
       contents: write
+    env:
+      RELEASE_PROFILE_CONFIG: ${{ needs.release_tag_preflight.outputs.release_profile_config }}
 
     steps:
       - name: Checkout repository
@@ -921,7 +960,7 @@ jobs:
           path: dist/toolchain-records
 
       - name: Resolve release metadata
-        run: npm run release:metadata -- --github-env
+        run: npm run release:metadata -- --profile "$RELEASE_PROFILE_CONFIG" --github-env
 
       - name: Flatten release assets into dist/
         run: |
@@ -1006,7 +1045,12 @@ jobs:
       - name: Create and verify deterministic updater manifest
         run: |
           pub_date="$(git show -s --format=%cI "$GITHUB_SHA")"
+          if [ -n "$RELEASE_UPDATER_LEGACY_MANIFEST_NAME" ]; then
+            node tools/create_legacy_updater_manifest.js \
+              --output "dist/$RELEASE_UPDATER_LEGACY_MANIFEST_NAME"
+          fi
           node tools/create_updater_manifest.js \
+            --profile "$RELEASE_PROFILE_CONFIG" \
             --tag "$GITHUB_REF_NAME" \
             --output "dist/$RELEASE_UPDATER_MANIFEST_NAME" \
             --notes release-changes.md \
@@ -1106,6 +1150,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           node tools/release_publish.js \
+            --profile "$RELEASE_PROFILE_CONFIG" \
             --tag "$GITHUB_REF_NAME" \
             --release-commit "$GITHUB_SHA" \
             --dist dist \
@@ -1116,4 +1161,4 @@ jobs:
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node tools/post_release_reactions.js "$GITHUB_REF_NAME" "$GITHUB_REPOSITORY"
+        run: node tools/post_release_reactions.js "$GITHUB_REF_NAME" "$GITHUB_REPOSITORY" --profile "$RELEASE_PROFILE_CONFIG"

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、CI 变更分类器、test_temp_dir.js、DMG 卷标身份解析器、人工安装/updater 发布元数据、共享 Windows NSIS provenance schema/四策略输入合同/Quick Add context/display/顶部标签 与描述生成闭包/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、发布 provenance schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、四语 README 用户路径合同、按文档/合同/依赖/平台风险选择且未知路径 fail-closed 的 CI 调度合同、renderer 视觉验收新进程合同、人工安装/updater 资产命名、macOS DMG `产品 + SemVer + 架构` 卷标、显式 renderer 文档入口、400×561窗口合同（原444px内容+77px footer）、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、保留英文分类语义、发布只显示中文的版本更新说明、七项公开资产 readback 与 CI 内部 provenance、source 完整性、Actions/toolchain pin、幂等 release、直接读取最新正式 Release 的四语徽章、平台原生构建隔离及仅映射四个 runtime languages 子目录、Windows x64 provenance producer-consumer 同构与 PR 级 clean-macOS link gate
+ * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、CI 变更分类器、test_temp_dir.js、DMG 卷标身份解析器、默认/显式人工安装与 updater profile、共享 Windows NSIS provenance schema/四策略输入合同/Quick Add context/display/顶部标签 与描述生成闭包/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、发布 provenance schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、四语 README 用户路径合同、按文档/合同/依赖/平台风险选择且未知路径 fail-closed 的 CI 调度合同、renderer 视觉验收新进程合同、2.7 p12只读回读与2.8双feed纯profile合同；2.8 tag当前必须在原生构建前以implementation-not-ready拒绝、不得给旧runtime换名、不得发布；另覆盖macOS DMG `产品 + SemVer + 架构` 卷标、400×561窗口、capability、source/provenance闭包、幂等Release与平台构建隔离
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1096,6 +1096,8 @@ test('PowerShell launcher prefers pwsh and falls back only when the host is abse
 
 test('release protocol separates internal SemVer from target Cavalry tag naming', () => {
   const releaseConfig = readJson('release.config.json');
+  const release28Config = readJson('release-2.8.config.json');
+  const release28TauriConfig = readJson('src-tauri/tauri.release-2.8.conf.json');
   const workflow = readText('.github/workflows/build.yml');
   const localSop = readText('LOCAL_BUILD_SOP.md');
   const windowsBuild = readText('injector/windows/build.ps1');
@@ -1125,6 +1127,16 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
       x64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_x64.app.tar.gz',
     },
   });
+  assert.equal(release28Config.targetCavalryVersion, '2.8.0');
+  assert.equal(release28Config.releaseTagPrefix, 'cavalry-2.8.0-p');
+  assert.equal(release28Config.releaseTagPattern, '^cavalry-2\\.8\\.0-p[0-9]+$');
+  assert.equal(release28Config.updater.manifestAssetName, 'latest-cavalry-2.8.json');
+  assert.equal(release28Config.updater.legacyManifestAssetName, 'latest.json');
+  assert.equal(
+    release28TauriConfig.plugins.updater.endpoints[0],
+    `${release28Config.updater.downloadBaseUrl}/${release28Config.updater.manifestAssetName}`
+  );
+  assert.deepEqual(Object.keys(release28TauriConfig.plugins.updater), ['endpoints']);
   assert.match(windowsBuild, /'-A', 'x64'/);
   assert.match(windowsBuild, /function Assert-NoReparsePathChain/);
   assert.match(windowsBuild, /function Reset-GeneratedBuildDirectory/);
@@ -1212,6 +1224,19 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
     /if:\s*startsWith\(github\.ref, 'refs\/tags\/cavalry-'\)[\s\S]*uses:\s*actions\/checkout@[0-9a-f]{40}[\s\S]*fetch-depth:\s*0/,
     'release ancestry needs a tag-only complete checkout with full action SHA pin'
   );
+  assert.match(preflightJob[1], /cavalry-2\.7\.2-p12\) profile='release\.config\.json'/);
+  assert.match(preflightJob[1], /legacy updater feed is frozen at cavalry-2\.7\.2-p12/);
+  assert.match(
+    preflightJob[1],
+    /cavalry-2\.8\.0-p\[0-9\]\*\)[\s\S]*implementation-not-ready:[\s\S]*refusing to build or publish/
+  );
+  const implementationNotReadyIndex = preflightJob[1].indexOf('implementation-not-ready:');
+  const profileValidationIndex = preflightJob[1].indexOf('node tools/release_metadata.js');
+  assert.ok(
+    implementationNotReadyIndex >= 0 && implementationNotReadyIndex < profileValidationIndex,
+    '2.8 production tags must fail before profile validation or any native build job'
+  );
+  assert.doesNotMatch(workflow, /tauri\.release-2\.8\.conf\.json/);
   assert.match(
     preflightJob[1],
     /git fetch --no-tags origin \+refs\/heads\/main:refs\/remotes\/origin\/main[\s\S]*git merge-base --is-ancestor "\$GITHUB_SHA" refs\/remotes\/origin\/main/,
@@ -1237,7 +1262,13 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
     'release must consume the shared preflight rather than rechecking ancestry after platform builds'
   );
   assert.match(workflow, /npm run check:release/);
-  assert.match(workflow, /npm run release:metadata -- --github-env/);
+  assert.match(workflow, /npm run release:metadata -- --profile "\$RELEASE_PROFILE_CONFIG" --github-env/);
+  assert.match(releaseJob[1], /release:metadata -- --profile "\$RELEASE_PROFILE_CONFIG" --github-env/);
+  assert.match(releaseJob[1], /create_legacy_updater_manifest\.js[\s\S]*--output "dist\/\$RELEASE_UPDATER_LEGACY_MANIFEST_NAME"/);
+  assert.equal(readJson('release-2.8.config.json').updater.legacyManifestAssetName, 'latest.json');
+  assert.match(releaseJob[1], /create_updater_manifest\.js[\s\S]*--profile "\$RELEASE_PROFILE_CONFIG"/);
+  assert.match(releaseJob[1], /release_publish\.js[\s\S]*--profile "\$RELEASE_PROFILE_CONFIG"/);
+  assert.match(releaseJob[1], /post_release_reactions\.js[\s\S]*--profile "\$RELEASE_PROFILE_CONFIG"/);
   assert.match(
     workflow,
     /node tools\/extract_release_changelog\.js[\s\S]*--version "\$INTERNAL_APP_VERSION"[\s\S]*--changelog CHANGELOG\.md[\s\S]*--output release-changes\.md/
@@ -1251,7 +1282,8 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   assert.match(workflow, /RELEASE_ASSET_NAME_WINDOWS_X64/);
   assert.match(workflow, /x86_64-apple-darwin/);
   assert.match(localSop, /Internal app version: SemVer/);
-  assert.match(localSop, /Release tag: `cavalry-2\.7\.2-pN`/);
+  assert.match(localSop, /Release tag: 历史版本使用 `cavalry-2\.7\.2-pN`/);
+  assert.match(localSop, /旧 `latest\.json` feed 永久冻结于 p12/);
   assert.match(localSop, /三种发布资产：/);
   assert.match(localSop, /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-pN_aarch64\.dmg/);
   assert.match(localSop, /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-pN_x64\.dmg/);
@@ -1283,7 +1315,10 @@ test('release metadata script renders GitHub release fields from the patch tag',
     RELEASE_ASSET_NAME_WINDOWS_X64:
       'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_windows-x64-setup.exe',
     RELEASE_UPDATER_MANIFEST_NAME: 'latest.json',
+    RELEASE_UPDATER_LEGACY_MANIFEST_NAME: '',
     RELEASE_UPDATER_DOWNLOAD_BASE_URL:
+      'https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download',
+    RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL:
       'https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download',
     RELEASE_UPDATER_ASSET_NAME_AARCH64:
       'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_aarch64.app.tar.gz',
@@ -1298,6 +1333,20 @@ test('release metadata script renders GitHub release fields from the patch tag',
   });
   assert.notEqual(invalid.status, 0, invalid.stderr || invalid.stdout);
   assert.match(invalid.stderr, /does not match/);
+
+  const explicit28 = spawnSync(process.execPath, [
+    'tools/release_metadata.js', '--profile', 'release-2.8.config.json', '--tag', 'cavalry-2.8.0-p17',
+  ], { cwd: repoRoot, encoding: 'utf8' });
+  assert.equal(explicit28.status, 0, explicit28.stderr || explicit28.stdout);
+  const metadata28 = JSON.parse(explicit28.stdout);
+  assert.equal(metadata28.TARGET_CAVALRY_VERSION, '2.8.0');
+  assert.equal(metadata28.INTERNAL_APP_VERSION, readJson('package.json').version);
+  assert.equal(metadata28.RELEASE_UPDATER_MANIFEST_NAME, 'latest-cavalry-2.8.json');
+  assert.equal(metadata28.RELEASE_UPDATER_LEGACY_MANIFEST_NAME, 'latest.json');
+  assert.equal(
+    metadata28.RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL,
+    'https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p17'
+  );
 });
 
 test('release metadata refuses x86 and i686 asset templates', () => {

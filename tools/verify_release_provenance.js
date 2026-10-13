@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 release-asset-provenance.json、CycloneDX SBOM、toolchain evidence 与人工安装/updater 九项分发资产
- * [OUTPUT]: 校验公开 provenance 与 tag/release commit、供应链 sidecar、完整分发字节及 updater manifest 语义一致
- * [POS]: GitHub Release 上传前的最终本地 provenance 守门器；不重复引入额外发布签名或现场验收凭据
+ * [INPUT]: 依赖所选 release profile、release-asset-provenance.json、CycloneDX SBOM、toolchain evidence 与分发资产
+ * [OUTPUT]: 校验 profile tag、供应链 sidecar、分发字节及 updater manifest；双feed时逐字节锁定 p12 legacy manifest
+ * [POS]: GitHub Release 上传前的最终本地 provenance 守门器；默认 2.7 检查保持不变
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -12,6 +12,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { loadConfig, metadataForTag } = require('./release_metadata');
 const { verifyManifestClosure } = require('./create_updater_manifest');
+const { assertLegacyManifest } = require('./create_legacy_updater_manifest');
 
 const args = process.argv.slice(2);
 function fail(message) { throw new Error(message); }
@@ -64,6 +65,9 @@ function expectedAssetNames(metadata) {
     metadata.RELEASE_UPDATER_ASSET_NAME_X64,
     metadata.RELEASE_UPDATER_SIGNATURE_NAME_X64,
     metadata.RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64,
+    ...(metadata.RELEASE_UPDATER_LEGACY_MANIFEST_NAME
+      ? [metadata.RELEASE_UPDATER_LEGACY_MANIFEST_NAME]
+      : []),
   ];
 }
 
@@ -91,15 +95,18 @@ function main() {
     ['schemaVersion', 'kind', 'tag', 'releaseCommitSha', 'createdAtUtc', 'assets', 'supplyChain', 'signing'],
     'Provenance'
   );
+  const profilePath = optionValue('--profile');
+  const releaseConfig = loadConfig(profilePath);
   if (
     provenance.schemaVersion !== 5 ||
     provenance.kind !== 'ReleaseAssetProvenance' ||
-    !/^cavalry-2\.7\.2-p[0-9]+$/.test(provenance.tag) ||
     !/^[a-f0-9]{40}$/.test(provenance.releaseCommitSha) ||
     !Number.isFinite(Date.parse(provenance.createdAtUtc))
   ) {
     fail('Provenance identity fields are invalid.');
   }
+  let metadata;
+  try { metadata = metadataForTag(releaseConfig, provenance.tag); } catch (error) { fail(error.message); }
 
   exactKeys(provenance.signing, ['macos', 'windows', 'updater'], 'Provenance signing');
   if (
@@ -138,7 +145,6 @@ function main() {
     fail('Toolchain evidence does not semantically bind the release commit.');
   }
 
-  const metadata = metadataForTag(loadConfig(), provenance.tag);
   const expectedNames = expectedAssetNames(metadata);
   if (!Array.isArray(provenance.assets) || provenance.assets.length !== expectedNames.length) {
     fail(`Provenance must bind exactly ${expectedNames.length} distribution assets.`);
@@ -171,6 +177,14 @@ function main() {
       'windows-x86_64': path.join(dist, metadata.RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64),
     },
   });
+
+  if (metadata.RELEASE_UPDATER_LEGACY_MANIFEST_NAME) {
+    try {
+      assertLegacyManifest(fs.readFileSync(path.join(dist, metadata.RELEASE_UPDATER_LEGACY_MANIFEST_NAME)));
+    } catch (error) {
+      fail(`Frozen legacy updater feed is invalid: ${error.message}`);
+    }
+  }
 
   const requested = repeated('--primary');
   if (requested.length) {

@@ -6,7 +6,7 @@ macOS 2.8 NRT将Extension补丁纳入恢复事务。baseline schema 2保存原�
 <directory>
 .agents/ - 项目技能发现入口；翻译偏好与macOS原生显示验收分别路由，显示按语言/场景合批，脚本自测留tools；不参与产品构建或运行 (1 子目录: skills)
 .baoyu-skills/ - 项目本地 Agent 技能扩展配置，约束翻译偏好与术语来源 (Markdown)
-.github/ - GitHub Actions 自动化与 Issue 模板入口；普通 PR/main 按路径风险选择 Runner 并由稳定 ci_gate 汇总，未知路径 fail-closed；main-contained tag preflight 阻断旁支发布，tag 验证三平台 updater 签名与 provenance/SBOM/toolchain，七项用户资产逐字节回读后公开 (YAML)
+.github/ - GitHub Actions 自动化与 Issue 模板入口；2.7旧feed只允许p12只读回读，2.8生产tag在任何原生构建前以implementation-not-ready拒绝 (YAML)
 desktop-patcher/ - 旧桌面补丁器产物镜像，仅保留 injector 生成物与预编译 dylib (C++, dylib)
 docs/ - 公开项目必须的翻译规范、可重复维护 SOP 与 README 图片资产；研究、事件簿、实跑记录和历史方案不进入公开仓 (Markdown, JSON, PNG)
 injector/ - macOS 时间轴名称在已验证 measure/draw 双调用点共用全名称字体覆盖策略，启动期固定系统候选、原文字段不变、热路径无诊断落盘；共享 Mach-O ABI 解析服务既有工具提示与新适配器； macOS DYLD 注入器、Cavalry 2.7.2 TransformTool Mach-O/Skia ABI 防火墙与 Windows Qt generic translator/QPA delegate 与独立的时间轴名称系统字体适配（Quick Add 顶部类别以已验证 getter 保留完整源并投影 QLabel，Classic 空结果通过 exact 列表/viewport 与 vendor ABI 门投影占位提示，macOS 复用已锁定映像并逐架构验证 setter 字节，仅原厂英文重写后再投影；Fast 标题/类别标签以各平台 ABI 证明复用显示副本，原厂分类显示语义与源创建身份不变）；共享 Add Layer policy 保留两类搜索框查询并只为 FastQuickAdd 过滤角色扩展本地语言别名；共享输入 policy 保护可编辑/字体 Combo 及其编辑器/弹出列表的原始选择值；双平台共享 `translateLineEditPlaceholder` 只翻译 QLineEdit `placeholderText`，普通/只读名称与 parentless/重挂接查询实际值保持原文，翻译 policy 区分 8 条跨平台 exact-only 表面和双平台 owner-scoped 邻接 key，Windows 另构建不发布的 acceptance-only generic plugin，以 Qt test profile 隔离登录/工作区并驱动 Onboarding/Tag/Assets 真机证据，各平台 Runner 现场生成不入库的原生库 (C++, Objective-C++)；injector/native/ 仅为非默认 Cavalry 2.8 arm64 预览候选；Easing在精确addAction caller投影20项标签，复用locale且不改枚举身份；GetPath仅追加已证Pivot/Skeleton完整组合，225槽保全旧213，当前新制品实屏另验；不进入 2.7 默认发布链；Classic 搜索说明通过 JSON 身份对齐生成独立说明反向索引；完整及前缀本地标题评分由共享 layout scope 策略与双平台独立 ABI 适配器配合，不改变原厂命令数据或新增排序。
@@ -28,7 +28,7 @@ README.zh-Hant.md - 繁体中文 README，与英文入口保持标题结构、�
 README.ja_JP.md - 日文 README，与英文入口保持标题结构、用户事实、命令和导航同构，包括 macOS 公式ベースライン復元要件
 package.json - 项目元数据与核心构建/测试指令；默认合同与语法门包含365条raw source adapter、365批准caption/旧364冻结与单键撤批missing反例及显式官方集合/合法数字开头vendor owner反例；默认合同与语法门覆盖native源身份/ICU、已审批次及88槽真实旧译回退、13厂商纠错/377原样闭合，历史批准摘要与现行译文摘要分别守门；p12旧feed、候选路径和四语userProfile copy保持独立；check:app语法门包含user-profile-text模块。显式tauri:dev:native仅运行未发布2.8预览，build:native-resources必须传官方assets；FormatJS仅作构建期格式校验
 package-lock.json - npm 依赖锁定文件，冻结 Tauri CLI/API 与构建期 ICU parser，不增加产品运行时解释器
-release.config.json - GitHub Release 协议真相源，声明 Cavalry 目标版本、tag/标题、三种人工安装资产及 updater manifest/download/archive 的唯一命名；线上更新仍由共享 Tauri 配置中的最终公钥/endpoint 独立启用
+release.config.json - 2.7默认GitHub Release协议真相源；tag/标题、安装资产与latest.json命名保持不变
 SECURITY.md - 支持渠道、私密漏洞上报、平台签名边界与 supply-chain 控制说明
 rust-toolchain.toml - CI/本地 Rust channel 固定入口，禁止 tag 构建漂移到浮动 stable
 requirements-ci.in / requirements-ci.txt - Qt SDK bootstrap 的 Python 顶层声明与完整 `--require-hashes` 锁定闭包；固定 CPython 3.12.6/Linux active set 另由漏洞策略精确绑定
@@ -44,6 +44,8 @@ src-tauri/tauri.updater-artifacts.conf.json - updater 产物覆盖，仅启用�
 injector/generated_translations.inc - 编译期嵌入的翻译静态表
 injector/cavalry_i18n_input_policy.h - 双平台共享 QLineEdit 输入边界；只翻译 `placeholderText`，名称/查询实际值（含只读、parentless/重挂接）保持原文并继续承担改名/过滤语义
 injector/cavalry_i18n_macos_tool_help_text_path.{h,cpp} - macOS TransformTool 五条自绘 action 的双 slice Mach-O/caller/Skia ABI 适配边界
+release-2.8.config.json - 2.8双feed纯准备profile；固定cavalry-2.8.0-pN、三平台资产、新manifest与tag-pinned archive URL，不代表生产runtime或发布授权
+src-tauri/tauri.release-2.8.conf.json - 2.8 endpoint候选覆盖；保留纯profile合同，生产workflow未接入，等待runtime资源就绪
 </config>
 
 法则: 极简·稳定·导航·版本精确

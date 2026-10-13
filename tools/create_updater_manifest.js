@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 release.config.json/package.json 的 tag 与 SemVer 真相、三个 updater artifact、对应 Tauri `.sig` 和已审阅更新摘要
- * [OUTPUT]: 对外提供确定性 `latest.json` 生成器，只发布 darwin-aarch64、darwin-x86_64、windows-x86_64 三个平台映射
- * [POS]: tools 的静态 updater manifest 边界；把签名产物投影为公开下载描述，不生成密钥、不签名、不上传 Release
+ * [INPUT]: 依赖默认或显式 release profile、package.json、三个 updater artifact、对应 Tauri `.sig` 和已审阅更新摘要
+ * [OUTPUT]: 对外提供确定性 profile-named manifest；默认仍为 latest.json，显式 profile 可固定 archive tag URL
+ * [POS]: tools 的静态 updater manifest 边界；验证签名产物与平台闭包，不生成密钥、不签名、不上传 Release
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -148,7 +148,7 @@ function verifyManifestClosure({ manifestPath, metadata, artifacts, signatures, 
     const platform = manifest.platforms[spec.key];
     exactKeys(platform, ['signature', 'url'], `Updater manifest platforms.${spec.key}`);
     if (platform.signature !== signature) fail(`Updater manifest ${spec.key} signature does not match its sidecar.`);
-    if (platform.url !== encodedAssetUrl(metadata.RELEASE_UPDATER_DOWNLOAD_BASE_URL, expectedName)) {
+    if (platform.url !== encodedAssetUrl(metadata.RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL, expectedName)) {
       fail(`Updater manifest ${spec.key} URL does not match release metadata.`);
     }
   }
@@ -160,7 +160,7 @@ function main() {
   const output = path.resolve(requireOption('--output'));
   const notes = readNotes(path.resolve(requireOption('--notes')));
   const pubDate = normalizePubDate(requireOption('--pub-date'));
-  const config = loadConfig();
+  const config = loadConfig(optionValue('--profile'));
   const metadata = metadataForTag(config, tag);
   if (path.basename(output) !== metadata.RELEASE_UPDATER_MANIFEST_NAME) {
     fail(`Updater manifest output must be named ${metadata.RELEASE_UPDATER_MANIFEST_NAME}.`);
@@ -184,7 +184,7 @@ function main() {
     signatures[spec.key] = signatureFile;
     platforms[spec.key] = {
       signature: readSignature(signatureFile, `${spec.key} signature`),
-      url: encodedAssetUrl(metadata.RELEASE_UPDATER_DOWNLOAD_BASE_URL, expectedName),
+      url: encodedAssetUrl(metadata.RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL, expectedName),
     };
   }
 
