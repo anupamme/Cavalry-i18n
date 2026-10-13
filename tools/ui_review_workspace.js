@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 UI Review server 暴露的真实主窗口/About 页面、安装/版本兼容/补丁新旧与结构拒绝/普通验证失败报告入口/typed 错误/成功/阻塞/警告 fixture 矩阵、feedback/icons/badges 目录，以及 ui_review_permission_handoff 的独立权限审查页；依赖 localhost query 传递 locale/scenario。
- * [OUTPUT]: 对外提供 workspaceHtml，并兼容转发 permissionHandoffHtml；以单一侧栏切换生产界面、320×354 且 Chrome 覆盖完整画布的无重复视觉标题 About、审查总览和占满可用 stage 的独立 macOS 权限交接原型，revision 变化时重载整个工作台而非只刷新 iframe。
+ * [OUTPUT]: 对外提供 workspaceHtml，并兼容转发 permissionHandoffHtml；以单一侧栏切换400×556主窗（原444px内容+72px footer）与生产界面、320×354 且 Chrome 覆盖完整画布的无重复视觉标题 About、审查总览和占满可用 stage 的独立 macOS 权限交接原型，revision 变化时重载整个工作台而非只刷新 iframe。
  * [POS]: tools UI Review 的纯导航壳；只拥有页面选择、fixture/locale 路由与主/About 审查窗口外框，权限页不再套用会压缩原型的假窗口，动画状态机由兄弟模块独立承担。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -39,7 +39,7 @@ function workspaceHtml() {
     .locales button[aria-pressed="true"] { background: #202020; color: #fff; }
     .truth { margin-top: auto; padding: 12px 8px 4px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 16px; }
     .stage { min-width: 0; display: grid; place-items: center; overflow: hidden; }
-    .window { position: relative; width: 400px; height: 484px; overflow: hidden; border: 1px solid #bcbcb9; border-radius: 18px; background: #fff; box-shadow: 0 24px 70px rgba(0,0,0,.18); transition: width 160ms ease, height 160ms ease, border-radius 160ms ease; }
+    .window { position: relative; width: 400px; height: 556px; overflow: hidden; border: 1px solid #bcbcb9; border-radius: 18px; background: #fff; box-shadow: 0 24px 70px rgba(0,0,0,.18); transition: width 160ms ease, height 160ms ease, border-radius 160ms ease; }
     .window iframe { display: block; width: 100%; height: 100%; border: 0; background: #fff; }
     .lights { position: absolute; z-index: 5; top: 12px; left: 12px; display: flex; gap: 8px; pointer-events: none; }
     .lights i { width: 16px; height: 16px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.13); }

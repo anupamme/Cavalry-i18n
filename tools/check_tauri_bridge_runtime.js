@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer bridge/user-profile-text/ui-text/language-scope/version-guidance/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 camelCase scope/受控 currentLang/nativeLocaleState/error code 白名单、四语 installation Official badge 对原厂 English/Japanese 的显示及后端 unknown+owned zh-Hans 的隐藏、不按 locale 推断来源、严格 owned-only hostless English Restore 与 nativeRestoreOnly no-launch 语义、用户级英文三阶段 copy 与安装级 Cavalry copy 的隔离、用户级Switch立即apply/Restore确认与资源门、失败回执 reconciliation 刷新且保留 failure Activity、未知语言重应用、固定三类 native 错误和跨副本退出提示、用户配置恢复阶段文案、2.8 preview 中仅为 2.7.2 安装显示的 fixed legacyRelease link、About Twitter 固定链接分发，以及 installation 原合同、权限事务、任务流、组件状态机、Updater Channel 与 Toast。
+ * [INPUT]: renderer bridge/user-profile-text/ui-text/language-scope/version-guidance/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/support-footer/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
+ * [OUTPUT]: 验证四语支持 footer 文案/无障碍名称与 GitHub/X/小红书固定 ID 分发；验证 About「关注」文案和平台区分的四语名称；保留 camelCase scope/错误白名单、严格 Restore/恢复语义、失败 Activity、局部外链 Toast、任务流、权限、Updater 与组件状态机合同。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -50,7 +50,7 @@ function runtime({
   aboutPlatform = 'other',
   projectLinkResult = { ok: true },
 } = {}) {
-  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutTwitterLink', 'aboutRepositoryLink', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'legacyReleaseButton', 'reportIssueButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
+  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'supportFooterMessage', 'supportFooterLinks', 'supportGithubLink', 'supportGithubIcon', 'supportTwitterLink', 'supportTwitterIcon', 'supportXiaohongshuLink', 'supportXiaohongshuIcon', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutTwitterLink', 'aboutTwitterLabel', 'aboutTwitterIcon', 'aboutXiaohongshuLink', 'aboutXiaohongshuLabel', 'aboutXiaohongshuIcon', 'aboutRepositoryLink', 'aboutRepositoryIcon', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'legacyReleaseButton', 'reportIssueButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   const calls = [];
   const channels = [];
@@ -85,7 +85,7 @@ function runtime({
   const window = {
     navigator,
     innerWidth: 400,
-    innerHeight: 484,
+    innerHeight: 556,
     location: { protocol: 'http:', hostname: '127.0.0.1', search: preview ? '?preview=update' : '' },
     addEventListener(type, callback) { windowListeners.set(type, [...(windowListeners.get(type) || []), callback]); },
     __TAURI_INTERNALS__: {
@@ -188,6 +188,8 @@ function boot(options) {
   vm.runInNewContext(read('renderer/permission-handoff.js'), r.context, { filename: 'permission-handoff.js' });
   vm.runInNewContext(read('renderer/update-progress.js'), r.context, { filename: 'update-progress.js' });
   vm.runInNewContext(read('renderer/toast-control.js'), r.context, { filename: 'toast-control.js' });
+  vm.runInNewContext(read('renderer/project-link-control.js'), r.context, { filename: 'project-link-control.js' });
+  vm.runInNewContext(read('renderer/support-footer.js'), r.context, { filename: 'support-footer.js' });
   vm.runInNewContext(read('renderer/about-control.js'), r.context, { filename: 'about-control.js' });
   vm.runInNewContext(read('renderer/window-controls.js'), r.context, { filename: 'window-controls.js' });
   vm.runInNewContext(read('renderer/app.js'), r.context, { filename: 'app.js' });
@@ -201,6 +203,7 @@ function bootAbout(options) {
   vm.runInNewContext(read('renderer/ui-text.js'), r.context, { filename: 'ui-text.js' });
   vm.runInNewContext(read('renderer/icons.js'), r.context, { filename: 'icons.js' });
   vm.runInNewContext(read('renderer/toast-control.js'), r.context, { filename: 'toast-control.js' });
+  vm.runInNewContext(read('renderer/project-link-control.js'), r.context, { filename: 'project-link-control.js' });
   vm.runInNewContext(read('renderer/about-window.js'), r.context, { filename: 'about-window.js' });
   return r;
 }
@@ -209,6 +212,37 @@ function activityRows(runtimeState) { return runtimeState.elements['#statusText'
 function activityText(runtimeState) { return runtimeState.elements['#statusText'].textContent; }
 function activityTitle(runtimeState, index = 0) { return activityRows(runtimeState)[index]?.children[1]?.children[0]?.textContent || ''; }
 function toastViewport(runtimeState) { return runtimeState.context.document.body.children.find((child) => child.className === 'toast-viewport'); }
+
+test('main support footer localizes all four accessible labels and dispatches only fixed links', async () => {
+  const cases = [
+    { locale: 'en-US', message: 'If this helps, please star us on GitHub.', nav: 'Support links', github: 'GitHub', twitter: 'X (Twitter)', xiaohongshu: 'Xiaohongshu' },
+    { locale: 'zh-CN', message: '如果对你有帮助，欢迎在 GitHub 点个 Star 支持我们', nav: '支持链接', github: 'GitHub', twitter: 'X（Twitter）', xiaohongshu: '小红书' },
+    { locale: 'zh-TW', message: '如果這對你有幫助，歡迎在 GitHub 點個 Star 支持我們', nav: '支援連結', github: 'GitHub', twitter: 'X（Twitter）', xiaohongshu: '小紅書' },
+    { locale: 'ja-JP', message: '役に立ったらGitHubにStarをお願いします', nav: 'サポートリンク', github: 'GitHub', twitter: 'X（Twitter）', xiaohongshu: '小紅書' },
+  ];
+  for (const expected of cases) {
+    const r = boot({ locale: expected.locale, projectLinkResult: { ok: false } });
+    await flush();
+    assert.equal(r.elements['#supportFooterMessage'].textContent, expected.message);
+    assert.equal(r.elements['#supportFooterLinks'].attributes.get('aria-label'), expected.nav);
+    assert.equal(r.elements['#supportGithubLink'].attributes.get('aria-label'), expected.github);
+    assert.equal(r.elements['#supportTwitterLink'].attributes.get('aria-label'), expected.twitter);
+    assert.equal(r.elements['#supportXiaohongshuLink'].attributes.get('aria-label'), expected.xiaohongshu);
+    const before = activityText(r);
+    let prevented = 0;
+    for (const id of ['supportGithubLink', 'supportTwitterLink', 'supportXiaohongshuLink']) {
+      dispatch(r.elements[`#${id}`], 'click', { preventDefault() { prevented += 1; } });
+    }
+    await flush();
+    assert.equal(prevented, 3);
+    assert.deepEqual(
+      r.calls.filter(({ command }) => command === 'open_project_link').map(({ payload }) => payload.link),
+      ['repository', 'twitter', 'xiaohongshu']
+    );
+    assert.equal(activityText(r), before, 'footer failures stay in Toast and do not add Activity rows');
+    assert.ok(toastViewport(r), 'a fixed-link failure must use the shared peripheral Toast');
+  }
+});
 
 test('Windows caption controls keep right-side native semantics and localized maximize state', async () => {
   const r = boot({ status: { platform: 'windows' }, locale: 'zh-CN' });
@@ -450,6 +484,10 @@ test('About entry delegates to one native window command and keeps links fixed',
     [{ command: 'show_about' }]
   );
   await assert.rejects(() => r.window.cavalryI18n.openProjectLink('https://attacker.invalid'), /Unsupported project link/);
+  await assert.rejects(
+    () => r.window.cavalryI18n.openProjectLink('https://www.xiaohongshu.com/user/profile/5f4696c800000000010011f6'),
+    /Unsupported project link/
+  );
 
   const windows = boot({ status: { platform: 'windows' } });
   await flush();
@@ -494,16 +532,29 @@ test('project links keep fixed bridge ids and report browser failure inside the 
   assert.match(viewport.children[0].textContent, /default browser/);
 });
 
-test('About Twitter/X row dispatches only its fixed follow link id', async () => {
-  for (const locale of ['en-US', 'zh-CN', 'zh-TW', 'ja-JP']) {
+test('About follow labels and platform names localize in four locales', async () => {
+  for (const [locale, follow, twitterAria, xiaohongshuAria] of [
+    ['en-US', 'Follow', 'Follow on X (Twitter)', 'Follow on Xiaohongshu'],
+    ['zh-CN', '关注', '在Twitter/X关注', '在小红书关注'],
+    ['zh-TW', '關注', '在Twitter/X關注', '在小紅書關注'],
+    ['ja-JP', 'フォロー', 'X（Twitter）をフォロー', '小紅書をフォロー'],
+  ]) {
     const r = bootAbout({ locale });
     await flush();
+    assert.equal(r.elements['#aboutTwitterLabel'].textContent, follow, locale);
+    assert.equal(r.elements['#aboutXiaohongshuLabel'].textContent, follow, locale);
+    assert.equal(r.elements['#aboutTwitterLink'].attributes.get('aria-label'), twitterAria, locale);
+    assert.equal(r.elements['#aboutXiaohongshuLink'].attributes.get('aria-label'), xiaohongshuAria, locale);
     dispatch(r.elements['#aboutTwitterLink'], 'click', { preventDefault() {} });
+    dispatch(r.elements['#aboutXiaohongshuLink'], 'click', { preventDefault() {} });
     await flush();
 
     assert.deepEqual(
       JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'open_project_link'))),
-      [{ command: 'open_project_link', payload: { link: 'twitter' } }],
+      [
+        { command: 'open_project_link', payload: { link: 'twitter' } },
+        { command: 'open_project_link', payload: { link: 'xiaohongshu' } },
+      ],
       locale
     );
   }
@@ -1172,7 +1223,7 @@ test('macOS handoff captures the forward action plus persistent return target an
     permission: 'appManagement',
     sourceRect: { x: 10, y: 10, width: 100, height: 32 },
     returnRect: { x: 20, y: 430, width: 360, height: 36 },
-    viewportCss: { width: 400, height: 484 },
+    viewportCss: { width: 400, height: 556 },
   });
   assert.equal(call.payload.onEvent, true);
   assert.equal(r.elements['#modalBackdrop'].open, false, 'native start acknowledgement closes the source only after capture');

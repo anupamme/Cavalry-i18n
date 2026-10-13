@@ -2,7 +2,7 @@
 /**
  * [INPUT]: 依赖 renderer/user-profile-text.js 与ui-text.js组合后的四语 userProfile copy、language-scope.js投影器与固定语言清单。
  * [OUTPUT]: 锁定共享范围通知、unset+English默认徽章/无障碍文案、矛盾状态Unknown隔离、legacy显示与默认语言不授予恢复能力。
- * [POS]: tools 的本地化与状态投影合同；不冒充浏览器排版、400×484 窗口或现场可见性验证。
+ * [POS]: tools 的本地化与状态投影合同；不冒充浏览器排版、400×556 窗口或现场可见性验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');

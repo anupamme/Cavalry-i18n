@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 tokens.css/button.css、styles.css 的共享 40px 标题栏与 window-controls.css 的 Windows caption primitive；about.html 只提供独立页面语义。
- * [OUTPUT]: 对外提供覆盖在完整内容画布上的 macOS/Windows 共用可拖动 Chrome、无重复视觉标题/分隔线、10px 紧密动作组与真实 20px 底边距的独立 About 视觉层；Windows 关闭按钮与 10px 透明阴影外壳直接消费共享几何。
+ * [INPUT]: 依赖 tokens.css/button.css、styles.css 的共享 40px 标题栏与 window-controls.css 的 Windows caption primitive；about.html 只提供独立页面语义和共享图标载体。
+ * [OUTPUT]: 对外提供覆盖在完整内容画布上的 macOS/Windows 共用可拖动 Chrome、无重复视觉标题/分隔线、4px列间距的双列关注行、小红书品牌红横向 mark、10px入口纵向间距和真实20px底边距；品牌 SVG 由 icons.js 装配。
  * [POS]: renderer 的 About 视觉层；与主窗口 Dialog 解耦，只选择平台 Chrome 显隐，不复制标题栏或按钮尺寸，不加载远程资源。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -87,6 +87,12 @@ html:is([data-platform="macos"], [data-platform="windows"]) .about-titlebar {
   margin: var(--gap-section) 0 0;
 }
 
+.about-social-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+
 .about-link {
   min-height: var(--control-height);
   display: flex;
@@ -108,7 +114,20 @@ html:is([data-platform="macos"], [data-platform="windows"]) .about-titlebar {
 .about-link-icon {
   width: var(--about-link-icon-size);
   height: var(--about-link-icon-size);
+  display: grid;
+  place-items: center;
   flex: 0 0 auto;
+}
+
+.about-link-icon > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.about-link-icon-xiaohongshu {
+  width: calc(var(--about-link-icon-size) * 2);
+  color: var(--brand-xiaohongshu);
 }
 
 .about-link:hover {
