@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖Fast/Classic独立owner、只读API、查询快照与真实Switcher AX树。
-[OUTPUT]: 提供查询保全、节点类型读回和Switcher备用动作方法。
+[OUTPUT]: 提供查询保全、节点类型读回、Switcher备用动作与计时/退出记账方法。
 [POS]: 独立入口参考；不成为通用控件树扫描器。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -91,6 +91,11 @@ WK可展开徽章包装层；不强求独立AXGroup。
 激活后补采并独立判图，不将AX匹配直接判像素通过。
 运行写者拒绝须核typed错误、Activity及profile字节/mode不变。
 这只覆盖实际操作，不从AX动作返回推导产品事务成功。
+计时按真实Started/Finished的event、PID与action配对。
+同源profile、stock首装与English恢复分别记账。
+提交后工具失败时，先读回终态；不重放已成功动作。
+正常退出后只核exact PID，不再读该App的AX。
+工具读取已退出App的AX会再次启动它。
 
 ## Switcher界面语言
 
