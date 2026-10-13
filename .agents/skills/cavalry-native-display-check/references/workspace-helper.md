@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖获准owned副本、已批准helper和exact PID回执。
-[OUTPUT]: 提供免登录工作区启动、进程清理与恢复归属方法。
+[INPUT]: 依赖获准owned副本、已批准helper、exact PID回执和配置前像。
+[OUTPUT]: 提供免登录启动、精确清理、配置回交与恢复归属方法。
 [POS]: 固定UI测试入口辅助；不修改认证或字体。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -56,6 +56,14 @@ injector须已部署在该副本内；省略时只加载helper。
 cleanup只核回执exact PID仍映射同一主程序后发SIGTERM。
 PID消失或映像不匹配时不发信号，不找其他Cavalry进程。
 它不等退出、不杀进程树；SIGTERM不算正常生命周期通过。
+
+## 配置回交
+
+本批会改变布局时，启动前另存`~/Library/Preferences/Cavalry/workspace.json`原字节与mode。
+`preferences.json`快照不能替代布局快照。
+恢复函数必须显式接收目标路径，不默认写真实HOME。
+离线夹具只传临时路径，并断言真实配置没有写入。
+写者全部退场后，按本轮前像恢复；受污染后的快照不是原像。
 
 ## 恢复弹窗归属
 
