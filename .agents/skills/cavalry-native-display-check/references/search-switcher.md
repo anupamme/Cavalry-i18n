@@ -1,5 +1,5 @@
 <!--
-[INPUT]: 依赖Quick Add owner、只读API、查询快照与真实Switcher AX树。
+[INPUT]: 依赖Fast/Classic独立owner、只读API、查询快照与真实Switcher AX树。
 [OUTPUT]: 提供查询保全、节点类型读回和Switcher备用动作方法。
 [POS]: 独立入口参考；不成为通用控件树扫描器。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -42,6 +42,14 @@
 以空场景变化、唯一节点面板和API返回建立因果链。
 公开行角色没有UUID时，不猜字段或新增UUID必验门。
 类型返回值按官方源比对；不把niceName当type，不猜命名空间格式。
+
+Classic入口是`Window > Add Layers`，不是Fast Popover。
+其`QuickAddWindow`可停靠于MainDock，不只查顶层窗。
+Classic过滤可保留全部模型行，只隐藏非匹配行。
+分别记录模型总行、未隐藏行与视口可见行；不要求模型只剩一行。
+查询后绑定唯一可见目标及本次请求ID，再向同一行发送标准双击。
+复用上面的创建/类型链；空树只有原图时，不声称读回模型行数。
+私人查找键：`classic_quickadd_probe.mm`、`request_classic_quickadd.py`。
 
 标准Run会保存全部脚本tab和整个Preferences文件。
 运行前在内存保存该文件字节与mode，保持Cavalry写者独占。
