@@ -3,7 +3,7 @@
 
 成员清单
 ISSUE_TEMPLATE/: GitHub Issue Forms 用户报告入口；模板字段由子级地图维护，Issue 不自动收集或上传本地诊断数据。
-workflows/: 唯一 CI/CD 工作流目录；PR/main仍由可测试路径分类器选择必需检查；手动默认`none`，只有显式`macos-2.8-preflight`才在macos-26 ARM与macos-26-intel矩阵打包2.8，不跑Windows、不签updater、不创建Release；2.7 p12 tag只作历史下载并拒绝重打包；公开2.8 tag仍由三平台runtime guard在构建前阻断。
+workflows/: 唯一 CI/CD 工作流目录；PR/main仍由可测试路径分类器选择必需检查；手动默认`none`，只有显式`macos-2.8-preflight`才跳过依赖漏洞扫描、等待同SHA源码门通过后在macos-26 ARM与macos-26-intel矩阵打包2.8，不跑Windows、不签updater、不创建Release；漏洞扫描失败仍阻断打包；2.7 p12 tag只作历史下载并拒绝重打包；公开2.8 tag仍由三平台runtime guard在构建前阻断。
 
 依赖边界:
 .github 管理 GitHub 自动化与 Issue 报告入口；CI 路径分类由 `tools/classify_ci_changes.js` 统一决定，禁止 workflow 自造第二套 glob，也禁止用 `paths-ignore` 让必需检查悬空。Tauri 是唯一产品构建主线，Windows 与 macOS job 必须从源码现场生成原生库，中间 dylib/DLL 不得混入 source artifact；Updater artifact overlay 只允许 tag 生产流程读取受保护私钥；2.8 macOS-only预验不提供 no-tag updater-signing smoke，不能据此宣称密钥签名闭环。默认与2.7 endpoint保持旧`latest.json`，2.8 profile只选择`latest-cavalry-2.8.json` overlay；当前三平台runtime guard仍阻断公开2.8 tag；名称/manifest读取所选profile，不旁路上传；Windows仍必须通过NSIS hooks与TEMP三文件哨兵生命周期门。

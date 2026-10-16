@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# [INPUT]: 依赖只读Cavalry 2.8 Frameworks、Qt 6.9.2公开头和当前源码树。
-# [OUTPUT]: 核x86身份与owner合同，生成源码manifest并链接隔离native dylib；失败时回显Popup runner原文。
+# [INPUT]: 依赖只读Cavalry 2.8 Frameworks（含Core）、Qt 6.9.2公开头和当前源码树。
+# [OUTPUT]: 核x86身份与owner合同，链接同bundle Core并生成隔离native dylib；失败时回显Popup runner原文。
 # [POS]: Intel native编译入口；不构建Tauri，不启动或部署Cavalry。
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 set -euo pipefail
@@ -422,6 +422,7 @@ LINK_COMMAND=(xcrun --sdk macosx clang++ -std=c++17 -arch x86_64 -O1 \
   "$OUT_DIR/help_description_veneer_x86_64.o" \
   "$OUT_DIR/welcome_log_it_veneer_x86_64.o" \
   -L "$FRAMEWORKS_DIR" -lskia "$FRAMEWORKS_DIR/libApi.dylib" \
+  "$FRAMEWORKS_DIR/libCore.dylib" \
   "$FRAMEWORKS_DIR/libfmt.10.dylib" "$FRAMEWORKS_DIR/libCavalryUI.dylib" \
   -lspdlog.1.13 -F "$FRAMEWORKS_DIR" \
   -framework QtCore -framework QtGui -framework QtWidgets \

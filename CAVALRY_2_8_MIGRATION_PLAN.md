@@ -6039,3 +6039,48 @@ Intel诊断已证官方输入门通过，候选QLayout绑定缺少interpose行�
 手动预验增加1天失败native候选留存，避免销毁诊断输入。
 仅上传自研候选dylib，不上传官方Frameworks或用户数据。
 失败制品不进入打包、更新器或Release。
+
+
+### 66.188 预验统一诊断与去重复（2026-10-16）
+
+维护者要求删除过期、错版本与过度防御检查。
+本轮不重验已过GUI，不增加主账验收项。
+只检查同一份线上失败候选，不重新编译来猜原因。
+
+392d0fb的Actions 38885967801源码门通过。
+两份失败候选已留存并下载，未加载或安装。
+ARM摘要为e37ca4c1519462ccb74b48ce0cb6b7331a5a2e2569ef4ecff442f85c18380ef4。
+Intel摘要为964e0569e5b20993fc549c07dce072658f128353804ae4b39b9b929581221a6c。
+同一文件在runner macOS26的dyld_info中出现绑定名称错位。
+本机macOS27的dyld_info与LLVM --bind读值一致。
+ARM SkTextBlob及Intel QLayout真实绑定正确。
+没有证据指认Apple内部具体缺陷提交。
+
+候选门改读LLVM绑定字段，不匹配双空格或错位展示。
+保留正确库、精确符号、GOT与interpose语义。
+ARM Popup另有旧abi命名文本断言。
+现有产品已用双架构popup_abi，检查须跟随真实接线。
+不为修检查而修改已过的ARM产品代码。
+
+Intel还存在独立真实缺口：链接输入漏传libCore。
+textFromFile因此落入flat namespace，不是工具误报。
+加同bundle Core后，复用M61原.o隔离重链接。
+两个槽均变为Core，全候选无flat目标。
+该证据只证明链接修复，不授予Intel实机UI信用。
+
+显式手动macOS预验跳过全量依赖漏洞扫描。
+PR/main/tag/schedule原扫描边界保留。
+源码合同、版本与协议门只在Ubuntu执行一次。
+两架构包任务等待同SHA源码成功后运行。
+去掉被cargo test覆盖的重复cargo check。
+保留各架构Rust测试、production包与DMG验收。
+
+主账仍40/44，余G-3、D-6、G-5、G-6。
+统一修复后再推一次功能分支并验新SHA。
+不合并main、不tag/release，不重验旧UI。
+
+统一离线回放已过四个checker：ARM三门与Intel Popup/Demo。
+ARM消费同一CI失败二进制，Intel消费仅补Core的隔离重链。
+本轮SOP合同38/38，binding回归8/8，Popup alias/发布回归4/4。
+CI输入合同通过；本机无py7zr的合成archive用例跳过1项。
+源码语法、差分检查通过；线上必须用新SHA重新裁决。

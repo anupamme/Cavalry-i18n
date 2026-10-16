@@ -29,7 +29,7 @@ native_resource_bundle.test.js: 纯生成合同覆盖DNT、vendor优先与补充
 prepare_cavalry_28_ci_inputs.sh: 仅被显式2.8 macOS矩阵调用；按arm64/x86_64 runner与target下载并校验官方Cavalry/Qt字节，在runner隔离目录生成production包和同架构dylib；仅成功后写入GitHub环境。
 prepare_native_qt_headers.py: 验证官方Qt6.9.2 qtbase归档SHA与长度；兼容include与framework Versions/A/Headers布局，将三个模块归一到include前缀，只复制公开头文件。
 prepare_native_qt_headers.test.py: 标准库路径合同与可选锁定py7zr的合成7z输入；验证framework成员映射、私有版本目录排除及旧include兼容，不读取网络或Qt运行库。
-check_native_28_ci_input_contract.js: mock双架构下载/构建边界；验证CI分派与发布边界，并调用native源码manifest临时树合同核生成/消费及漂移拒绝，不运行vendor或GitHub Actions。
+check_native_28_ci_input_contract.js: YAML解析同SHA源码前置条件， mock双架构下载/构建边界；验证CI分派与发布边界，并调用native源码manifest临时树合同核生成/消费及漂移拒绝，不运行vendor或GitHub Actions。
 native_schema_supplement.js: 2.8 nodeDefinitions原始SHA、Forge owner父链、八字段完整schema及Inspector顺序的source-only投影；固定catalogId/source notes与dontTranslate=false、补充target字段及官方键碰撞门，不生成locale译文、不扩展任意ID。
 native_schema_supplement.test.js: 合成nodeDefinitions边界合同；验证8个owner/ID/fallback source及显式DNT=false、父链/schema/UI顺序/重复身份/官方碰撞和原始字节摘要拒绝，不依赖安装、App或profile。
 native_schema_gap_sources.js: SHA锁定的2.8 nodeDefinitions adapter；历史365源行摘要不变，额外输出隐藏Background Rendering行，当前投影366；固定行继续校验父链/schema/Inspector顺序，隐藏字段另校验hide=true、无UI自有字段、bool/default及碰撞；不装配审批或运行时。
@@ -107,7 +107,7 @@ ui_review_server.js: 补丁 fixture 明确区分 current/updateAvailable/unknown
 ui_review_catalogs.js: UI Review 三类动态总览；从生产 tokens/styles 与 user-profile-text→ui-text 字典加载顺序读取四语反馈文案、语义图标和 Badge 状态，不维护第二套产品视觉资产。
 classify_ci_changes.js: GitHub Actions 变更风险分类器；项目技能Markdown只走文档门，技能脚本仍按未知源码全门；以 PR merge-base、push before/head 或事件强制策略投影 documentation/source/vulnerability/windows/macOS-injector 门，未知源码路径和不可解析 diff 均 fail-closed，tag/workflow_dispatch 永远跑完整闭环；共享 Quick Add 顶部标签与显示适配器、Classic 评分、描述输入/策略与生成表进入双平台 native 门。
 classify_ci_changes.test.js: CI 风险分类器离线合同；覆盖技能Markdown/脚本/混合原生/tag边界、纯文档、合同/SOP、Windows、macOS、共享翻译表及翻译/输入/Quick Add 顶部标签/显示/搜索/Classic 搜索与评分策略的逐文件双平台门、macOS-only 原生源码、依赖/workflow、定时漏洞复审、空 diff 与未知源码/自动化路径边界。
-check_tauri_build_sop.js: 当前2.8 ARM/Intel共用无target Tauri生产入口，架构alias各传一次target；旧2.7 SDK/验收仅历史参考；Tauri打包、README与CI配置合同；验证2.7 p12只作历史资产、双feed profile隔离、production tag阻断、手动预验不误触ci_gate或updater签名；另核source artifact、窗口合同、Rust工具链与release provenance。
+check_tauri_build_sop.js: 当前2.8 ARM/Intel共用无target Tauri生产入口，架构alias各传一次target；旧2.7 SDK/验收仅历史参考；Tauri打包、README与CI配置合同；验证显式手动预验仅跳过漏洞扫描、等待同SHA源码合同成功、只跑目标Rust测试与packaged检查；保留2.7 p12历史资产、双feed隔离、production tag阻断、CI聚合及updater边界；另核source artifact、窗口合同、Rust工具链与release provenance。
 check_tauri_packaged_app.js: 最终App资源验收；production-2.8按显式arm64/x86_64目标核App架构、架构中立manifest/三payload、同架构runtime内嵌与renderer字节闭包。默认仍选arm64；不把SKIP当生产通过。
 packaged_native_resources.js: 纯文件校验production包与构建输入一致；按显式目标架构将runtime Mach-O切片绑定可执行文件，manifest保持架构中立；不启动App。
 packaged_native_resources.test.js: 临时fixture验证资源manifest中立性、arm64/x86_64 runtime正反例、错误profile/缺译/字节漂移与错误目标架构。

@@ -1,6 +1,6 @@
-# [INPUT]: 依赖受控workflow_dispatch选择器、2.8 ARM/Intel生产输入、tag-only updater、Windows闭包与GitHub环境
-# [OUTPUT]: 对外提供风险分流、显式2.8 macOS双架构预验、PR/main聚合门、Windows闭环、2.8 tag阻断及Release闭环
-# [POS]: 唯一CI/CD编排器；手动2.8预验先拉源码/准备Node再验证profile，只上传macOS包与失败诊断候选；公开tag仍受三平台guard约束
+# [INPUT]: 依赖受控workflow_dispatch选择器、2.8 ARM/Intel生产输入、漏洞审计例外、tag-only updater、Windows闭包与GitHub环境
+# [OUTPUT]: 对外提供风险分流、同SHA源码门后的2.8 macOS双架构预验、PR/main聚合门、Windows闭环、2.8 tag阻断及Release闭环
+# [POS]: 唯一CI/CD编排器；手动2.8预验仅跳过漏洞审计，等待同SHA源码门后打包；公开tag仍受三平台guard约束
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
 
@@ -157,7 +157,7 @@ jobs:
 
   dependency_vulnerability_gate:
     needs: [release_tag_preflight, change_scope]
-    if: needs.change_scope.outputs.vulnerability == 'true'
+    if: ${{ needs.change_scope.outputs.vulnerability == 'true' && (github.event_name != 'workflow_dispatch' || inputs.package_scope != 'macos-2.8-preflight') }}
     runs-on: ubuntu-24.04
 
     steps:
@@ -676,8 +676,13 @@ jobs:
           require_selected macos_injector_check "$EXPECT_MACOS_INJECTOR" "$MACOS_INJECTOR_RESULT"
 
   package_macos:
-    needs: [release_tag_preflight, dependency_vulnerability_gate]
-    if: startsWith(github.ref, 'refs/tags/cavalry-') || (github.event_name == 'workflow_dispatch' && inputs.package_scope == 'macos-2.8-preflight')
+    needs: [release_tag_preflight, dependency_vulnerability_gate, build]
+    if: >-
+      ${{ always() &&
+          (startsWith(github.ref, 'refs/tags/cavalry-') || (github.event_name == 'workflow_dispatch' && inputs.package_scope == 'macos-2.8-preflight')) &&
+          needs.release_tag_preflight.result == 'success' &&
+          needs.build.result == 'success' &&
+          (needs.dependency_vulnerability_gate.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.package_scope == 'macos-2.8-preflight' && needs.dependency_vulnerability_gate.result == 'skipped')) }}
     runs-on: ${{ matrix.runner_label }}
     environment:
       name: ${{ startsWith(github.ref, 'refs/tags/cavalry-') && 'release-production' || 'ci-readonly' }}
@@ -734,12 +739,6 @@ jobs:
 
       - name: Install app dependencies
         run: npm ci
-
-      - name: Validate project version metadata
-        run: npm run check:version
-
-      - name: Validate release protocol
-        run: npm run check:release -- --profile "$RELEASE_PROFILE_CONFIG"
 
       - name: Resolve release metadata
         if: startsWith(github.ref, 'refs/tags/cavalry-')
@@ -868,10 +867,7 @@ jobs:
         run: |
           bundle_root="src-tauri/target/${{ matrix.rust_target }}/release/bundle"
           app_path="$bundle_root/macos/Cavalry Language Switcher.app"
-          npm run check:app
-          npm run test:contracts
-          npm run check:tauri
-          npm run test:tauri
+          npm run test:tauri -- --target ${{ matrix.rust_target }}
           PACKAGED_NATIVE_PROFILE=production-2.8 PACKAGED_APP_PATH="$app_path" PACKAGED_EXPECTED_ARCH="${{ matrix.expected_arch }}" npm run test:tauri:packaged
           bash tools/check_dmg_layout.sh "$bundle_root/dmg"
 

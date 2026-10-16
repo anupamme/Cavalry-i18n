@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖候选源码、冻结表、Frameworks与system/Xcode Mach-O工具。
-[OUTPUT]: 核验225槽GetPath及字体/FPS/Graph/标题/Fast/Mesh ABI；Skia失败回显fixup元组。
+[INPUT]: 依赖候选源码、冻结表、Frameworks与LLVM候选Bind表。
+[OUTPUT]: 核验225槽GetPath及字体/FPS/Graph/标题/Fast/Mesh ABI；聚合two-level绑定错误。
 [POS]: 候选静态门；核GetPath精确veneer、source-bound文本与二进制ABI。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 """
@@ -16,6 +16,10 @@ import tempfile
 
 from getpath_mesh_source_contract import verify_mesh_getpath_contract
 from getpath_toolhelp_source_contract import verify_toolhelp_source_contract
+from macho_bindings import (
+    BindingRequirement, read_bindings, validate_bindings,
+    validate_no_flat_namespace,
+)
 
 
 def run(*command: str) -> str:
@@ -320,7 +324,6 @@ def main() -> None:
     load_flags = run("xcrun", "otool", "-hv", str(candidate))
     load_commands = run("xcrun", "otool", "-l", str(candidate))
     dependencies = run("xcrun", "otool", "-L", str(candidate))
-    fixups = run("dyld_info", "-arch", "arm64", "-fixups", str(candidate))
     require("TWOLEVEL" in load_flags, "candidate未启用two-level namespace")
     require("@rpath/libApi.dylib" in dependencies and
             "@rpath/libskia.dylib" in dependencies and
@@ -413,56 +416,27 @@ def main() -> None:
             "Extension Fast C1调用没有到达锁定的import stub")
 
     locale_symbol = "__ZN7cavalry12activeLocaleEP3Api"
-    locale_rows = [line for line in fixups.splitlines() if locale_symbol in line]
-    require(len(locale_rows) >= 2 and
-            all(f"bind  libApi/{locale_symbol}" in row for row in locale_rows) and
-            any("__interpose" in row for row in locale_rows) and
-            any("__got" in row for row in locale_rows) and
-            "flat-namespace" not in fixups,
-            "activeLocale interpose/target缺少Api two-level fixup")
     skia_symbols = (
         "__ZN11SkTextUtils7GetPathEPKvm14SkTextEncodingffRK6SkFontP6SkPath",
         "__ZNK6SkFont11measureTextEPKvm14SkTextEncodingP6SkRectPK7SkPaint",
         "__ZN8SkCanvas14drawSimpleTextEPKvm14SkTextEncodingffRK6SkFontRK7SkPaint",
         "__ZN10SkTextBlob12MakeFromTextEPKvmRK6SkFont14SkTextEncoding",
     )
-    for symbol in skia_symbols:
-        rows = [line for line in fixups.splitlines() if symbol in line]
-        all_libskia_bind = bool(rows) and all(
-            f"bind  libskia/{symbol}" in row for row in rows)
-        has_interpose = any("__interpose" in row for row in rows)
-        has_got = any("__got" in row for row in rows)
-        if not (all_libskia_bind and has_interpose and has_got):
-            related_fixups = "\n".join(f"    {row}" for row in rows) or "    <none>"
-            alternate = run("xcrun", "dyld_info", "-arch", "arm64",
-                            "-fixups", str(candidate))
-            alternate_rows = "\n".join(line for line in alternate.splitlines()
-                                       if symbol in line or "__interpose" in line)
-            raise SystemExit(
-                f"Skia目标未按two-level绑定: {symbol}\n"
-                f"  candidate: {candidate}\n"
-                f"  expected: every related row binds  libskia/{symbol}; "
-                "require __interpose and __got\n"
-                f"  actual: rows={len(rows)} all_libskia_bind={all_libskia_bind} "
-                f"interpose={has_interpose} got={has_got}\n"
-                f"  related fixups:\n{related_fixups}\n  Xcode dyld_info:\n{alternate_rows}")
+    bindings = read_bindings(candidate, "arm64")
     fmt_symbol = cpp_string(title_abi, "kVformatSymbol")
-    fmt_rows = [line for line in fixups.splitlines() if fmt_symbol in line]
-    require(fmt_rows and
-            all(f"bind  libfmt.10/{fmt_symbol}" in row for row in fmt_rows) and
-            any("__interpose" in row for row in fmt_rows) and
-            "flat-namespace" not in fixups,
-            "fmt vformat目标缺少libfmt.10 two-level interpose/import")
-    fast_rows = [line for line in fixups.splitlines() if fast_symbol in line]
-    require(len(fast_rows) >= 2 and
-            all(f"bind  QtCore/{fast_symbol}" in row for row in fast_rows) and
-            any("__interpose" in row for row in fast_rows) and
-            any("__got" in row for row in fast_rows) and
-            any("bind  QtCore/_qVersion" in row for row in fixups.splitlines()) and
-            "flat-namespace" not in fixups,
-            "Fast C1与Qt版本查询必须two-level绑定目标QtCore")
-    require("__interpose" in fixups and "flat-namespace" not in fixups,
-            "四个Skia入口缺少two-level interpose合同")
+    binding_requirements = [
+        BindingRequirement(locale_symbol, "libApi", ("__interpose", "__got")),
+        *(BindingRequirement(symbol, "libskia", ("__interpose", "__got"))
+          for symbol in skia_symbols),
+        BindingRequirement(fmt_symbol, "libfmt.10", ("__interpose",)),
+        BindingRequirement(fast_symbol, "QtCore", ("__interpose", "__got")),
+        BindingRequirement("_qVersion", "QtCore", ()),
+    ]
+    binding_errors = validate_bindings(bindings, binding_requirements)
+    binding_errors.extend(validate_no_flat_namespace(bindings))
+    require(not binding_errors,
+            "candidate required binding contract failed:\n  - " +
+            "\n  - ".join(binding_errors))
     require(locale.count("kActiveLocaleGotOffset") == 1 and
             "extensionGotTargetsInterposer" in locale and
             "kActiveLocaleEntryOffset" in locale,

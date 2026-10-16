@@ -125,3 +125,7 @@ M74/G4成功脚本私档3a605cdc已远端逐文件读回，写锁释放，自有
 M88 ARM根因已实证：整行arm64匹配误中了CI路径，取到x86 UUID。按架构字段选slice；固定UUID/offset不变。路径干扰回归接入check:native-2.8-ci-inputs；072d6b8线上源码检查通过，完整macOS包仍待。
 
 M88手动预验失败候选仅保留1天，供读取真实Mach-O；不包含官方库，不发布。ARM已越过UUID门并编译，SkTextBlob静态门待定位；Intel继续查实际interpose槽。
+
+M88统一根因：同一CI候选在runner旧dyld_info中符号错位，LLVM绑定表与本机新版读值一致。候选绑定检查统一读取LLVM，不放宽库/符号/槽语义。Intel另补实际漏传的libCore链接；复用原.o隔离relink已证两槽从flat变为Core。ARM Popup旧abi文本断言与现popup_abi接线不同，修检查不改运行时。
+手动2.8预验去重复源码门及漏洞扫描等待；同SHA源码门只跑一次，包任务保留架构Rust与production制品检查。PR/main/tag/schedule扫描规则不变。主账仍40/44，线上新结果另记。
+候选binding与Popup源码回归接入check:native-2.8-ci-inputs；不新增依赖或运行时组件。

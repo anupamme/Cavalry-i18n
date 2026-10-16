@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖官方2.8 x86映像、候选、窄适配器与dyld_info/otool静态投影。
-[OUTPUT]: 核验DocumentationPopup唯一调用窗、return PC和two-level导入；失败时输出实测UUID、偏移及import/fixup行。
+[INPUT]: 依赖官方2.8 x86映像、候选LLVM Bind表、窄适配器与vendor dyld_info/otool投影。
+[OUTPUT]: 核验Popup调用窗、return PC、QtWidgets与Demo Core two-level绑定。
 [POS]: 构建后静态ABI门；不启动Cavalry或授予实屏信用。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 """
@@ -16,6 +16,7 @@ from x86_macho_contract import (
     cpp_byte_array, cpp_hex, cpp_string, macho_bytes_at, require, run,
     symbol_address, uuid_for_arch,
 )
+from macho_bindings import BindingRequirement, read_bindings, validate_bindings
 
 
 def namespace_body(source: str, namespace: str) -> str:
@@ -136,33 +137,22 @@ def main() -> None:
                 for line in exports.splitlines()),
             f"候选缺少布局interpose入口: symbol={interpose_symbol}; "
             f"相关nm行:\n{show_lines(matching_exports)}")
-    candidate_fixups = run("dyld_info", "-arch", "x86_64", "-fixups",
-                           str(candidate))
-    popup_fixup_lines = [
-        line for line in candidate_fixups.splitlines()
-        if "__ZN7QLayout8activateEv" in line
-    ]
-    candidate_import_ok = (
-        any("__interpose" in line and "QtWidgets/" in line and
-            "<flat-namespace>/" not in line for line in popup_fixup_lines) and
-        any("__got" in line and "QtWidgets/" in line and
-            "<flat-namespace>/" not in line for line in popup_fixup_lines))
-    if not candidate_import_ok:
-        # -- 失败只展开tuple实值，不把lazy绑定当作interpose证明 ---------
-        sections = run("dyld_info", "-arch", "x86_64",
-                       "-section", "__DATA", "__interpose",
-                       "-section", "__DATA_CONST", "__interpose", str(candidate))
-        indirect = run("otool", "-Iv", str(candidate))
-        alternate = run("xcrun", "dyld_info", "-arch", "x86_64",
-                        "-fixups", str(candidate))
-        require(False,
-                "候选缺少QtWidgets two-level QLayout导入或保持flat namespace: "
-                f"candidate={candidate}; QLayout fixups:\n"
-                f"{show_lines(popup_fixup_lines)}\n全部interpose fixups:\n"
-                f"{show_lines(matching_lines(candidate_fixups, '__interpose'))}\n"
-                f"interpose sections:\n{sections}\nQLayout indirect symbols:\n"
-                f"{show_lines(matching_lines(indirect, layout_symbol))}\nXcode dyld_info:\n"
-                f"{show_lines(matching_lines(alternate, layout_symbol, '__interpose'))}")
+    demo_abi = (pathlib.Path(__file__).resolve().parent /
+                "demo_reader_abi_contract.h").read_text()
+    demo_symbol = cpp_string(demo_abi, "kTextFromFileSymbol")
+    candidate_bindings = read_bindings(candidate, "x86_64")
+    candidate_binding_errors = validate_bindings(
+        candidate_bindings,
+        [
+            BindingRequirement(layout_symbol, "QtWidgets",
+                               ("__interpose", "__got")),
+            BindingRequirement(demo_symbol, "libCore",
+                               ("__interpose", "__got")),
+        ],
+    )
+    require(not candidate_binding_errors,
+            "候选Popup/Demo two-level绑定失败:\n  - " +
+            "\n  - ".join(candidate_binding_errors))
 
     receipt = {
         "status": "PASS_OFFICIAL_X86_DOCUMENTATION_POPUP_ABI",
@@ -186,6 +176,7 @@ def main() -> None:
             "gotOffset": f"0x{got:x}",
             "source": "QtWidgets",
             "candidateTwoLevelFixup": "PASS",
+            "demoTextFromFileTwoLevelFixup": "PASS",
         },
         "layoutRuntimeAdmission": "EXACT_RETURN_PC_ONLY",
         "CavalryRuntimeOrDisplay": "NOT_RUN",

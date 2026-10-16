@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖2.8 ARM/Intel生产profile、Qt6.9.2与同源码native runtime、Tauri macOS/release overlays、production语言包、package/CHANGELOG、跨平台工具、CI变更分类器、Windows NSIS provenance、macOS资源readback、SOP/workflow、发布provenance、Actions pins与source artifact清单
- * [OUTPUT]: 校验双架构入口、packaged profile、手动预验源码前置和CI聚合边界；保留三平台tag guard、2.8双feed、p12历史下载、Windows NSIS与release provenance合同
+ * [OUTPUT]: 校验双架构入口、packaged profile、手动预验唯一漏洞例外、源码前置与CI聚合边界；保留三平台tag guard、2.8双feed、p12历史下载、Windows NSIS与release provenance合同
  * [POS]: tools 的 Tauri打包守门；macOS预验与公开三平台发行分别裁决
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1771,7 +1771,7 @@ test('CI selects evidence by changed-path risk without skipping required workflo
   assert.match(scopeJob[1], /github\.event\.pull_request\.base\.sha \|\| github\.event\.before/);
   assert.match(
     dependencyJob[1],
-    /needs:\s*\[release_tag_preflight, change_scope\][\s\S]*if:\s*needs\.change_scope\.outputs\.vulnerability == 'true'/
+    /needs:\s*\[release_tag_preflight, change_scope\][\s\S]*if:\s*\$\{\{ needs\.change_scope\.outputs\.vulnerability == 'true' && \(github\.event_name != 'workflow_dispatch' \|\| inputs\.package_scope != 'macos-2\.8-preflight'\) \}\}/
   );
   assert.match(buildJob[1], /needs:\s*\[release_tag_preflight, change_scope, dependency_vulnerability_gate\]/);
   assert.match(buildJob[1], /if:\s*\$\{\{ always\(\) \}\}/);
@@ -1817,6 +1817,50 @@ test('CI selects evidence by changed-path risk without skipping required workflo
     aggregateJob[1],
     /require_exact change_scope[\s\S]*require_exact build[\s\S]*require_selected dependency_vulnerability_gate[\s\S]*require_selected windows_check[\s\S]*require_selected macos_injector_check/
   );
+});
+
+test('manual macOS preflight skips only the vulnerability scan and waits for source contracts', () => {
+  const workflow = readText('.github/workflows/build.yml');
+  const jobs = require('yaml').parse(workflow).jobs;
+  const packageJob = jobs.package_macos;
+  const packageGate = packageJob.steps.find(
+    ({ name }) => name === 'Validate packaged app with LOCAL_BUILD_SOP gates'
+  );
+
+  assert.equal(
+    jobs.dependency_vulnerability_gate.if,
+    "${{ needs.change_scope.outputs.vulnerability == 'true' && (github.event_name != 'workflow_dispatch' || inputs.package_scope != 'macos-2.8-preflight') }}",
+    'only the explicit manual macOS preflight may skip the dependency scan'
+  );
+  assert.deepEqual([...packageJob.needs].sort(), [
+    'release_tag_preflight',
+    'dependency_vulnerability_gate',
+    'build',
+  ].sort());
+  assert.equal(
+    packageJob.if.replace(/\s+/g, ' ').trim(),
+    "${{ always() && (startsWith(github.ref, 'refs/tags/cavalry-') || (github.event_name == 'workflow_dispatch' && inputs.package_scope == 'macos-2.8-preflight')) && needs.release_tag_preflight.result == 'success' && needs.build.result == 'success' && (needs.dependency_vulnerability_gate.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.package_scope == 'macos-2.8-preflight' && needs.dependency_vulnerability_gate.result == 'skipped')) }}",
+    'failed scans must block packaging; only a skipped scan for this exact input is allowed'
+  );
+  assert.ok(packageGate, 'packaged-app verification step missing');
+  assert.match(packageGate.run, /npm run test:tauri -- --target \$\{\{ matrix\.rust_target \}\}/);
+  assert.match(packageGate.run, /npm run test:tauri:packaged/);
+  assert.match(packageGate.run, /tools\/check_dmg_layout\.sh/);
+  assert.doesNotMatch(
+    packageJob.steps.map(({ run = '' }) => run).join('\n'),
+    /npm run (?:check:app|test:contracts|check:version|check:release|check:tauri)(?:\s|$)/,
+    'source validation and standalone cargo check must not repeat in both package runners'
+  );
+
+  const sourceRuns = jobs.build.steps.map(({ run = '' }) => run).join('\n');
+  for (const command of [
+    'npm run check:version',
+    'npm run check:release -- --profile "$RELEASE_PROFILE_CONFIG"',
+    'npm run test:contracts',
+    'npm run check:app',
+  ]) {
+    assert.ok(sourceRuns.includes(command), `source build must retain ${command}`);
+  }
 });
 
 test('tauri macOS package uses ad-hoc signing while tag updater artifacts require the independent Tauri key', () => {

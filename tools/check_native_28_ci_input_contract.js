@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖build.yml、双架构输入准备器、源码manifest producer/consumer、Qt头提取器与BuildMode合同。
- * [OUTPUT]: 对外提供双架构输入、源码闭包、手动预验前置、失败诊断制品、matrix分派与发布边界的离线合同。
+ * [OUTPUT]: 对外提供双架构输入、源码闭包、手动预验同SHA前置、失败诊断制品、matrix分派与发布边界的离线合同。
  * [POS]: G-3 CI producer合同；mock网络/vendor构建边界，不运行产品或GitHub Actions。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -96,7 +96,9 @@ assert.match(tagGuard, /startsWith\(github\.ref, 'refs\/tags\/cavalry-'\)/);
 assert.match(tagGuard, /implementation-not-ready/);
 assert.match(tagGuard, /exit 1/);
 assert.ok(workflow.indexOf('      - name: Require ready production runtime for 2.8 tags') < workflow.indexOf('  package_macos:'), 'public 2.8 tag guard must precede macOS packaging');
-assert.match(packageJob, /if: startsWith\(github\.ref, 'refs\/tags\/cavalry-'\) \|\|[\s\S]*macos-2\.8-preflight/);
+const packageCondition = require('yaml').parse(workflow).jobs.package_macos.if;
+assert.match(packageCondition, /startsWith\(github\.ref, 'refs\/tags\/cavalry-'\) \|\| \(github\.event_name == 'workflow_dispatch' && inputs\.package_scope == 'macos-2\.8-preflight'\)/);
+assert.match(packageCondition, /needs\.build\.result == 'success'/);
 assert.match(windowsJob, /github\.event_name != 'workflow_dispatch'/, 'manual 2.8 preflight must skip Windows');
 assert.match(releaseJob, /if: startsWith\(github\.ref, 'refs\/tags\/cavalry-'\)/, 'manual preflight must not create a Release');
 assert.match(dispatch, /default: 'none'/);

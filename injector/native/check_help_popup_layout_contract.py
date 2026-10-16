@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖401根布局表、精确arm64帮助调用与候选Qt two-level fixup。
-[OUTPUT]: 核验调用方原函数透传、401表、Qt绑定和窄布局边界。
+[INPUT]: 依赖401根布局表、精确arm64帮助调用与候选LLVM Bind表。
+[OUTPUT]: 核验调用方原函数透传、401表、Qt two-level绑定和窄布局边界。
 [POS]: 候选构建后的静态ABI门；不启动Cavalry或授予实屏消费信用。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 """
@@ -15,6 +15,23 @@ import sys
 from check_candidate_contract import (
     arm64_macho_bytes_at, cpp_byte_array, cpp_hex, cpp_string, require, run,
 )
+from macho_bindings import (
+    BindingRequirement, read_bindings, validate_bindings,
+    validate_no_flat_namespace,
+)
+
+
+def arm_popup_adapter_contract(adapter: str) -> bool:
+    arm_alias = re.search(
+        r"#else\s+namespace popup_abi = native_help_popup_layout::abi;"
+        r"\s+namespace help_abi = native_help_description::contract;",
+        adapter,
+    ) is not None
+    return (arm_alias and
+            "gExpectedReturn.store" in adapter and
+            "imageAddress(ui, popup_abi::kActivateReturnOffset)" in adapter and
+            "isExactActivationCaller(caller, expected)" in adapter and
+            adapter.count("original(layout)") == 1)
 
 
 def symbol_address(image: pathlib.Path, symbol: str, *, local: bool = False) -> int:
@@ -125,10 +142,8 @@ def main() -> None:
     require(import_stub == cpp_byte_array(abi, "kActivateImportStubBytes"),
             "CavalryUI QtWidgets import stub字节不匹配")
 
-    require("isExactActivationCaller(caller, expected)" in adapter
-            and adapter.count("original(layout)") == 1
-            and "gExpectedReturn.store" in adapter
-            and "imageAddress(ui, abi::kActivateReturnOffset)" in adapter,
+    require(arm_popup_adapter_contract(adapter)
+            and "gExpectedReturn.store" in adapter,
             "adapter必须只准入精确return PC并对所有路径单次原函数透传")
     require(adapter.count("measureCatalogEnvelope(") == 1
             and "static const int envelopeWidth" in adapter
@@ -163,12 +178,15 @@ def main() -> None:
                 == "_nativeHelpLayoutActivateInterpose"
                 for line in exports.splitlines()),
             "候选缺少布局interpose入口")
-    fixups = run("dyld_info", "-arch", "arm64", "-fixups", str(candidate))
-    require(any("QtWidgets/" in line and "QLayout8activateEv" in line
-                for line in fixups.splitlines())
-            and "__interpose" in fixups
-            and "flat-namespace" not in fixups,
-            "candidate缺少QtWidgets two-level QLayout import或interpose")
+    layout_symbol = cpp_string(abi, "kQtLayoutActivateSymbol")
+    bindings = read_bindings(candidate, "arm64")
+    binding_errors = validate_bindings(
+        bindings, [BindingRequirement(
+            layout_symbol, "QtWidgets", ("__interpose", "__got"))])
+    binding_errors.extend(validate_no_flat_namespace(bindings))
+    require(not binding_errors,
+            "candidate QtWidgets QLayout binding contract failed:\n  - " +
+            "\n  - ".join(binding_errors))
 
     print("PASS: 401-row table receipt and approved source identity")
     print("PASS: exact setContent QLayout::activate arm64 source window")

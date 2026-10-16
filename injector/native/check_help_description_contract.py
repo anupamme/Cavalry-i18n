@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖384/17 source-bound表、arm64候选与同bundle Extension/UI二进制。
-[OUTPUT]: 核验main/def caller、完整veneer指令与分支地址。
+[INPUT]: 依赖384/17 source-bound表、arm64候选LLVM Bind表与同bundle Extension/UI二进制。
+[OUTPUT]: 核验main/def caller、完整veneer指令、分支地址及UI two-level绑定。
 [POS]: 帮助后置静态门；按目标符号截取，不授予live消费者信用。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 """
@@ -16,6 +16,10 @@ from check_candidate_contract import (
     bytes_at, cpp_byte_array, cpp_hex, cpp_string,
     compiled_function_instructions, compiled_function_lines,
     disassembly_bytes, require, run, source_instructions,
+)
+from macho_bindings import (
+    BindingRequirement, read_bindings, validate_bindings,
+    validate_no_flat_namespace,
 )
 
 
@@ -92,14 +96,15 @@ def main() -> None:
 
     symbol = cpp_string(header, "kEntrySymbol")
     dependencies = run("xcrun", "otool", "-L", str(candidate))
-    fixups = run("dyld_info", "-arch", "arm64", "-fixups", str(candidate))
-    rows = [line for line in fixups.splitlines() if symbol in line]
-    require("@rpath/libCavalryUI.dylib" in dependencies and rows and
-            all(f"bind  libCavalryUI/{symbol}" in line for line in rows) and
-            any("__interpose" in line for line in rows) and
-            any("__got" in line for line in rows) and
-            "flat-namespace" not in fixups,
-            "帮助原目标与interpose缺少UI two-level绑定")
+    bindings = read_bindings(candidate, "arm64")
+    binding_errors = validate_bindings(
+        bindings, [BindingRequirement(
+            symbol, "libCavalryUI", ("__interpose", "__got"))])
+    binding_errors.extend(validate_no_flat_namespace(bindings))
+    require("@rpath/libCavalryUI.dylib" in dependencies and not binding_errors,
+            "帮助原目标与interpose缺少UI two-level绑定: " +
+            ("; ".join(binding_errors) if binding_errors else
+             "candidate未加载@rpath/libCavalryUI.dylib"))
     veneer = (source / "help_description_veneer.S").read_text()
     source_ops = source_instructions(veneer, "_nativeHelpDocumentationInterpose")
     expected_ops = [

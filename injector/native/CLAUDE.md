@@ -31,8 +31,11 @@ save_scene_caption_policy.h: 仅按精确caller及Save Scene/Save as .cv原文�
 save_scene_caption_runtime.inc: 绑定同bundle QtWidgets；其它caller原参单次转发。
 save_scene_caption_contract_test.cpp: QtCore-only合同验证两种原文、三语映射、QString返回、引用寿命与透传。
 candidate_static_contract_test.py: 用合成反汇编锁定目标符号边界，并拒绝混合FAT UUID。
+macho_bindings.py: 读取候选LLVM Bind/Lazy bind表；按精确符号、库与section校验GOT/interpose槽。
+macho_bindings_test.py: 离线验证LLVM列解析、错库、缺slot、flat反例与多合同汇总。
+check_help_popup_layout_contract_test.py: 验证arm Popup checker接受arm alias并拒绝x86/generic alias。
 native_uuid_slice_selector_contract_test.py: 用双slice双路径顺序fixture验证两构建器按dwarfdump第三字段选UUID；不调用vendor。
-check_candidate_contract.py: 核GetPath/FPS来源、ABI与two-level fixup；Skia失败对照system/Xcode实值。
+check_candidate_contract.py: 核GetPath/FPS来源、ABI与候选LLVM two-level绑定；一次汇总所有必需槽错误。
 build_candidate.sh: 核Core/Extension/spdlog ABI；拒绝时打印实值与工具链身份；通过后生成Demo表、编译arm64候选并运行ABI合同。
 demo_reader_abi_contract.h: 锁定Core optional<string>结果槽、Extension Preset caller、GOT与返回点。
 demo_reader_policy.h: 只替换审批位置的JS字面量；未知locale与源结果保持不变。
@@ -65,7 +68,7 @@ help_description_policy.h: 将裸name、精确英文源和三语locale映射到�
 help_description_adapter.inc: 按精确LR选表；source匹配时只复制description并单次转发。
 help_description_runtime.inc: 验证双caller机器码并发布两返回PC；复用同一gLocale与原导入。
 help_description_veneer.S: 仅比较LR；main/def进入dispatcher，其它caller保寄存器与返回槽尾跳原UI导入。
-check_help_description_contract.py: 按帮助入口符号截取13条指令；核双caller分支地址与two-level接线。
+check_help_description_contract.py: 按帮助入口符号截取13条指令；核双caller分支地址及候选LLVM two-level接线。
 help_description_contract_test.cpp: 无Qt/vendor合同；测分表、同名异源、locale、shadow与异常透传。
 help_description_veneer_contract_test.cpp: 直链真实veneer；测两未知LR透传及main/def精确LR分流。
 help_description_veneer_probe.S: 合成callee记录x0-x8、v0-v7、sp/x29/x30和原返回寄存器。
@@ -74,7 +77,7 @@ help_popup_layout_policy.h: 识别四行结构及401项上限；只激活未显�
 help_popup_layout_adapter.mm: 仅在精确setContent caller前改布局；未知调用单次透传。
 help_popup_layout_contract_test.cpp: 用同bundleQt离线测401项上限、QLabel绘制行界、枚举词完整性与未知结构。
 help_popup_layout_sequence_test.inc: 三语核长短参数/返回切换、fresh行几何及隐藏行恢复。
-check_help_popup_layout_contract.py: 核精确caller、401表、arm64/Qt绑定及字体/内容/padding/事件泵边界。
+check_help_popup_layout_contract.py: 核精确arm caller、401表、arm popup_abi与候选LLVM Qt绑定；保留全局no-flat门。
 title_format_policy.h: 按原生目录键投影Project/Scene标签；同时要求24字节源对象为空及借用指针/文本精确。
 title_format_abi_contract.h: 锁定Gui::updateAppTitle到fmt10的调用、frame偏移、24字节源对象与libc++空tag。
 title_format_adapter.inc: 复用唯一gLocale与fmt原函数；fmt前快照源对象，原调用后只适配精确LR/format/descriptor。
@@ -126,7 +129,7 @@ native_source_manifest_x86_64.py: 从仓库现行native编译闭包生成外部�
 native_source_manifest_x86_64_contract_test.py: 临时源码树行为合同；验证生成/消费、文件闭包与字节/模式漂移拒绝，不调用vendor或编译器。
 check_font_abi_x86_64.py: 逐字节核官方x86字体、Viewport、FPS机器码并输出回执。
 check_getpath_cache_x86_64.py: 从官方Core/Extension切片核UUID、调用窗和two-level导入。
-check_help_popup_layout_x86_64.py: 核官方UI/QtWidgets x86窗口、GOT槽和候选two-level导入；失败输出身份、interpose槽与system/Xcode实值。
+check_help_popup_layout_x86_64.py: 用dyld_info核官方UI/QtWidgets x86窗口与GOT；用LLVM核候选Popup QtWidgets和Demo libCore双slot绑定。
 check_timeline_owner_observer_x86_64.py: 核官方x86 Timeline字节与builder传入的当前源码manifest，再编译寄存器合同；不回退私档路径。
 getpath_cache_x86_64_abi_contract.h: 锁定Core→缓存→ToolHelp/Viewport质量生产者的x86返回点与字节窗。
 getpath_cache_x86_64_contract_test.cpp: Rosetta验证双帧owner、错误链拒绝和原函数单次透传。

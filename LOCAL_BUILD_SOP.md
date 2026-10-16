@@ -169,6 +169,11 @@ Intel实机UI尚未验，不阻断此本地编译合同。
 `workflow_dispatch`默认`package_scope=none`，不打包产品。
 维护者显式选择`macos-2.8-preflight`后，GitHub在macos-26 ARM与macos-26-intel矩阵各构建一份2.8 ad-hoc App/DMG。
 该选择器跳过Windows job，不读取updater私钥、不生成updater签名，也不创建GitHub Release。
+该预验跳过全量依赖漏洞扫描；PR/main/tag/schedule扫描规则不变。
+同一SHA的源码合同只在Ubuntu执行一次。
+两个macOS包任务等待该源码门成功，不重复源码合同。
+各架构保留Rust测试、production构建、包内资源与DMG检查。
+自有native候选的绑定表由LLVM读取；不以旧dyld_info错位输出裁决。
 公开2.8 tag仍由三平台`implementation-not-ready` guard在任何平台构建前拒绝。
 旧2.7 p12只作历史下载；所有旧2.7 tag都拒绝重打包。
 Windows 2.8打包与验收仍待后续接入；macOS预验不能替代Windows验收。
