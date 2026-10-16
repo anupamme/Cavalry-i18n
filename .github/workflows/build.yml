@@ -1,5 +1,5 @@
 # [INPUT]: 依赖受控workflow_dispatch选择器、2.8 ARM/Intel生产输入、漏洞审计例外、tag-only updater、Windows闭包与GitHub环境
-# [OUTPUT]: 对外提供风险分流、同SHA源码门后的2.8 macOS双架构预验、PR/main聚合门、Windows闭环、2.8 tag阻断及Release闭环
+# [OUTPUT]: 对外提供风险分流、同SHA源码门后的2.8 macOS双架构预验、隔离资源的Rust测试、PR/main聚合门、Windows闭环、2.8 tag阻断及Release闭环
 # [POS]: 唯一CI/CD编排器；手动2.8预验仅跳过漏洞审计，等待同SHA源码门后打包；公开tag仍受三平台guard约束
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
@@ -867,7 +867,8 @@ jobs:
         run: |
           bundle_root="src-tauri/target/${{ matrix.rust_target }}/release/bundle"
           app_path="$bundle_root/macos/Cavalry Language Switcher.app"
-          npm run test:tauri -- --target ${{ matrix.rust_target }}
+          TAURI_CONFIG='{"bundle":{"resources":[]}}' \
+            npm run test:tauri -- --target ${{ matrix.rust_target }} --no-fail-fast
           PACKAGED_NATIVE_PROFILE=production-2.8 PACKAGED_APP_PATH="$app_path" PACKAGED_EXPECTED_ARCH="${{ matrix.expected_arch }}" npm run test:tauri:packaged
           bash tools/check_dmg_layout.sh "$bundle_root/dmg"
 

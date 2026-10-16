@@ -74,7 +74,7 @@ fn protected_commit_cleans_handoff_before_restart_and_finalizer_cleans_every_fai
         .find("let applied = match applied_result")
         .expect("protected apply call missing");
     let apply_gate = commands[apply_start..]
-        .find("if !should_restart_after_apply(&applied, native_preview)")
+        .find("if !should_restart_after_apply(&applied, native_runtime_enabled)")
         .map(|offset| apply_start + offset)
         .expect("protected apply result gate missing");
     let cleanup_start = commands
@@ -95,7 +95,7 @@ fn protected_commit_cleans_handoff_before_restart_and_finalizer_cleans_every_fai
         .expect("restart policy missing");
     let restart_policy = &commands[restart_policy_start..apply_start];
     assert!(restart_policy.contains("!applied.native_restore_only"));
-    assert!(restart_policy.contains("native_preview && applied.reconciliation_required"));
+    assert!(restart_policy.contains("native_runtime && applied.reconciliation_required"));
     assert!(apply_start < apply_gate);
     assert!(
         apply_gate < cleanup_start,

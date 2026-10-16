@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖2.8 macOS arm64/x86_64生产profile、官方Qt6.9.2、同源码目标架构native runtime、production语言包、Tauri平台与release overlays；另保留Windows NSIS和发布合同来源
-[OUTPUT]: 提供macOS arm64/x86_64本地生产包、packaged profile检查、三平台tag guard、资源readback及发布provenance合同
+[OUTPUT]: 提供macOS arm64/x86_64本地生产包、隔离资源的Rust测试、packaged profile检查、三平台tag guard、资源readback及发布provenance合同
 [POS]: 仓库唯一桌面打包SOP；本地macOS生产包不代替公开发行验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -173,6 +173,11 @@ Intel实机UI尚未验，不阻断此本地编译合同。
 同一SHA的源码合同只在Ubuntu执行一次。
 两个macOS包任务等待该源码门成功，不重复源码合同。
 各架构保留Rust测试、production构建、包内资源与DMG检查。
+Rust检查与测试命令单独设置`TAURI_CONFIG='{"bundle":{"resources":[]}}'`。
+`tauri-build`先合并平台配置，再用此JSON覆盖`bundle.resources`为空数组。
+该覆盖只作用于Rust检查和测试，不作用于production构建或打包检查。
+测试使用`--no-fail-fast`收齐独立失败，再按影响范围修复复验。
+生产App仍使用macOS、native-production-2.8与release-2.8三份CLI配置。
 自有native候选的绑定表由LLVM读取；不以旧dyld_info错位输出裁决。
 公开2.8 tag仍由三平台`implementation-not-ready` guard在任何平台构建前拒绝。
 旧2.7 p12只作历史下载；所有旧2.7 tag都拒绝重打包。
@@ -313,12 +318,11 @@ bash tools/stamp_dmg_icon.sh src-tauri/target/aarch64-apple-darwin/release/bundl
 ```bash
 npm run check:app
 npm run test:contracts
-npm run check:tauri
-npm run test:tauri
+TAURI_CONFIG='{"bundle":{"resources":[]}}' npm run check:tauri
+TAURI_CONFIG='{"bundle":{"resources":[]}}' npm run test:tauri -- --no-fail-fast
 PACKAGED_NATIVE_PROFILE=production-2.8 npm run test:tauri:packaged
 npm run test:tauri:dmg-layout
 npm run test:tauri:ui
-npm run test:tauri:manual-smoke
 ```
 
 以下 macOS ignored smoke 是2.7终版历史流程，不是2.8执行入口。其优先输入是只读挂载的官方 Cavalry 2.7.2 DMG，而不是当前可能已经翻译或 ad-hoc 重签的 `/Applications/Cavalry.app`：

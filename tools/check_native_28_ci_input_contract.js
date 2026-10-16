@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖build.yml、双架构输入准备器、源码manifest producer/consumer、Qt头提取器与BuildMode合同。
- * [OUTPUT]: 对外提供双架构输入、源码闭包、手动预验同SHA前置、失败诊断制品、matrix分派与发布边界的离线合同。
+ * [OUTPUT]: 对外提供双架构输入、源码闭包、手动预验同SHA前置、测试资源隔离、失败诊断制品、matrix分派与发布边界的离线合同。
  * [POS]: G-3 CI producer合同；mock网络/vendor构建边界，不运行产品或GitHub Actions。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -141,6 +141,21 @@ assert.match(tagBuild, /tauri\.updater-artifacts\.conf\.json/);
 assert.doesNotMatch(manualBuild, /TAURI_SIGNING_PRIVATE_KEY|tauri\.updater-artifacts\.conf\.json/);
 assert.match(packagedGate, /PACKAGED_NATIVE_PROFILE=production-2\.8/);
 assert.match(packagedGate, /PACKAGED_EXPECTED_ARCH="\$\{\{ matrix\.expected_arch \}\}"/);
+const testTauriConfig = packagedGate.match(/TAURI_CONFIG='([^']+)'/);
+assert.ok(testTauriConfig, 'macOS Rust tests must use a test-only Tauri config overlay');
+assert.deepEqual(JSON.parse(testTauriConfig[1]), { bundle: { resources: [] } },
+  'the Rust test overlay must remove bundle resources without changing product configs');
+const rustTestCommand = 'npm run test:tauri -- --target ${{ matrix.rust_target }} --no-fail-fast';
+const packagedGateLines = packagedGate.split(/\r?\n/);
+const testConfigLine = packagedGateLines.findIndex((line) =>
+  line.trim() === `TAURI_CONFIG='${testTauriConfig[1]}' \\`);
+assert.ok(testConfigLine >= 0, 'the test-only overlay must be a single shell command prefix');
+assert.equal(packagedGateLines[testConfigLine + 1].trim(), rustTestCommand,
+  'the empty-resource overlay must scope only to the target-specific Rust test command');
+assert.equal((packagedGate.match(/TAURI_CONFIG=/g) || []).length, 1,
+  'the test-only Tauri config must not leak into packaged-app or DMG gates');
+assert.doesNotMatch(manualBuild, /TAURI_CONFIG=/,
+  'the product build must retain the explicit production configuration overlays');
 assert.match(packageJob, /label: aarch64[\s\S]*rust_target: aarch64-apple-darwin[\s\S]*expected_arch: arm64[\s\S]*runner_label: macos-26/);
 assert.match(packageJob, /label: x64[\s\S]*rust_target: x86_64-apple-darwin[\s\S]*expected_arch: x86_64[\s\S]*runner_label: macos-26-intel/);
 assert.match(workflowMap, /macOS.*arm64.*x86_64/);
