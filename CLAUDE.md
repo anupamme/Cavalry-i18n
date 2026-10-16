@@ -123,3 +123,5 @@ M74/G4成功脚本私档3a605cdc已远端逐文件读回，写锁释放，自有
 2026-10-16 M88候选e9f2500已推送功能分支并启动Actions 38880747612。手动前置通过；Demo测试旧签名、ARM综合ABI门和Intel Popup静态门失败。仅修测试并补失败诊断，不放宽ABI，不重验已过界面。主账40/44；未合并main、tag或Release。
 
 M88 ARM根因已实证：整行arm64匹配误中了CI路径，取到x86 UUID。按架构字段选slice；固定UUID/offset不变。路径干扰回归接入check:native-2.8-ci-inputs；072d6b8线上源码检查通过，完整macOS包仍待。
+
+M88手动预验失败候选仅保留1天，供读取真实Mach-O；不包含官方库，不发布。ARM已越过UUID门并编译，SkTextBlob静态门待定位；Intel继续查实际interpose槽。

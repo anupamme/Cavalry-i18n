@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # [INPUT]: 依赖经字节锁验证的官方2.8.0 DMG、Qt6.9.2头包和目标架构runner。
-# [OUTPUT]: 生成production-2.8语言包并导出同源arm64或x86_64 native候选路径。
+# [OUTPUT]: 在runner隔离目录生成production资源与同架构候选，成功后才导出产品路径。
 # [POS]: 仅由显式2.8 macOS矩阵调用；不签名更新器、不发布，也不触碰旧p12资产。
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 set -euo pipefail
@@ -83,7 +83,7 @@ actual_qt_sha256="$(shasum -a 256 "$qt_archive" | awk '{print $1}')"
 echo "[native-2.8-ci-inputs] Building the approved $candidate_arch candidate from the verified bundle frameworks."
 export CAVALRY_QT_PREFIX="$qt_prefix"
 if [[ "$candidate_arch" == 'arm64' ]]; then
-  bash "$candidate_builder" "$frameworks" 2>&1 | tee "$candidate_log"
+  TMPDIR="$run_dir" bash "$candidate_builder" "$frameworks" 2>&1 | tee "$candidate_log"
 else
   readonly candidate_output="$run_dir/native-candidate-output"
   bash "$candidate_builder" "$frameworks" "$candidate_output" 2>&1 | tee "$candidate_log"

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖build.yml、双架构输入准备器、源码manifest producer/consumer、Qt头提取器与BuildMode合同。
- * [OUTPUT]: 对外提供双架构输入、源码闭包、手动预验前置、matrix分派与发布边界的离线合同。
+ * [OUTPUT]: 对外提供双架构输入、源码闭包、手动预验前置、失败诊断制品、matrix分派与发布边界的离线合同。
  * [POS]: G-3 CI producer合同；mock网络/vendor构建边界，不运行产品或GitHub Actions。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -103,6 +103,14 @@ assert.match(dispatch, /default: 'none'/);
 assert.match(dispatch, /- macos-2\.8-preflight/);
 assert.match(workflow, /if: env\.RELEASE_PROFILE_CONFIG == 'release-2\.8\.config\.json'/);
 assert.doesNotMatch(packageJob, /npm run prepare:qt-sdk(?:\s|$)/, '2.8 package matrix must not build the legacy Qt 6.6.3 injector');
+
+// 失败候选只供诊断；不把官方库或失败字节混入产品制品。
+const failureArtifact = stepBlock(packageJob, 'Preserve failed native candidate for diagnosis');
+assert.match(failureArtifact, /if: failure\(\) && github\.event_name == 'workflow_dispatch' && inputs\.package_scope == 'macos-2\.8-preflight'/);
+assert.match(failureArtifact, /name: failed-native-candidate-\$\{\{ matrix\.label \}\}/);
+assert.match(failureArtifact, /path: \$\{\{ runner\.temp \}\}\/cavalry-2\.8-\$\{\{ matrix\.expected_arch \}\}-inputs\/\*\*\/libCavalryNativeFontCandidate\*\.dylib/);
+assert.match(failureArtifact, /retention-days: 1/);
+assert.match(inputPreparer, /TMPDIR="\$run_dir" bash "\$candidate_builder"/);
 
 // One target owner per build invocation: aliases bind local architectures; the matrix binds CI once.
 const genericTauriBuild = packageJson.scripts['tauri:build'];

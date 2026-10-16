@@ -6033,3 +6033,9 @@ x86行末路径触发匹配，脚本提前取第一行UUID。
 Intel诊断已证官方输入门通过，候选QLayout绑定缺少interpose行。
 现有日志仅见QtWidgets的GOT与lazy绑定，不能据此放行。
 下一轮展开实际tuple与section fixup，保持原失败判据。
+
+第三轮b58b5b2的ARM已通过UUID、编译及前序合同。
+其后停在SkTextBlob候选two-level静态门，仍未成包。
+手动预验增加1天失败native候选留存，避免销毁诊断输入。
+仅上传自研候选dylib，不上传官方Frameworks或用户数据。
+失败制品不进入打包、更新器或Release。

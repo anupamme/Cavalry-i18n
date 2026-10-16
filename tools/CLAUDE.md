@@ -26,7 +26,7 @@ native_ten_owner_translations.test.js: 官方catalogId+owner双身份选择，�
 native_ten_owner_semantic_contract.js: 纯测试合同；以既有Auto Animate显示词约束Stagger引用，按source-notes绑定通用宽度渐变、沿路径移动与仅未设置材质时替换的已审caption，双端渐细独立守边界；共享正向guard与单槽真实旧译反例，改译须重新审定，不进入产品运行时。
 native_resource_bundle.js: 构建期生成三语native包；默认development-preview，显式production-2.8要求10848键完整。两模式复用审批与payload；freshness核源摘要，缺译或profile不符拒绝。
 native_resource_bundle.test.js: 纯生成合同覆盖DNT、vendor优先与补充源；另锁生产完整度、计数一致性、资源overlay及2.8独立endpoint。
-prepare_cavalry_28_ci_inputs.sh: 仅被显式2.8 macOS矩阵调用；按arm64/x86_64 runner与target下载并校验官方Cavalry/Qt字节，生成production语言包和同架构dylib并写入GitHub环境。
+prepare_cavalry_28_ci_inputs.sh: 仅被显式2.8 macOS矩阵调用；按arm64/x86_64 runner与target下载并校验官方Cavalry/Qt字节，在runner隔离目录生成production包和同架构dylib；仅成功后写入GitHub环境。
 prepare_native_qt_headers.py: 验证官方Qt6.9.2 qtbase归档SHA与长度；兼容include与framework Versions/A/Headers布局，将三个模块归一到include前缀，只复制公开头文件。
 prepare_native_qt_headers.test.py: 标准库路径合同与可选锁定py7zr的合成7z输入；验证framework成员映射、私有版本目录排除及旧include兼容，不读取网络或Qt运行库。
 check_native_28_ci_input_contract.js: mock双架构下载/构建边界；验证CI分派与发布边界，并调用native源码manifest临时树合同核生成/消费及漂移拒绝，不运行vendor或GitHub Actions。

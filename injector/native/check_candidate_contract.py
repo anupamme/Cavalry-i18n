@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖候选源码、GetPath81/93基线、Graph catalog与锁定Frameworks。
-[OUTPUT]: 核验字体、FPS/Graph owner、标题、Fast、Mesh与225槽GetPath表。
+[INPUT]: 依赖候选源码、冻结表、Frameworks与system/Xcode Mach-O工具。
+[OUTPUT]: 核验225槽GetPath及字体/FPS/Graph/标题/Fast/Mesh ABI；Skia失败回显fixup元组。
 [POS]: 候选静态门；核GetPath精确veneer、source-bound文本与二进制ABI。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 """
@@ -428,10 +428,24 @@ def main() -> None:
     )
     for symbol in skia_symbols:
         rows = [line for line in fixups.splitlines() if symbol in line]
-        require(rows and all(f"bind  libskia/{symbol}" in row for row in rows) and
-                any("__interpose" in row for row in rows) and
-                any("__got" in row for row in rows),
-                f"Skia目标未按two-level绑定: {symbol}")
+        all_libskia_bind = bool(rows) and all(
+            f"bind  libskia/{symbol}" in row for row in rows)
+        has_interpose = any("__interpose" in row for row in rows)
+        has_got = any("__got" in row for row in rows)
+        if not (all_libskia_bind and has_interpose and has_got):
+            related_fixups = "\n".join(f"    {row}" for row in rows) or "    <none>"
+            alternate = run("xcrun", "dyld_info", "-arch", "arm64",
+                            "-fixups", str(candidate))
+            alternate_rows = "\n".join(line for line in alternate.splitlines()
+                                       if symbol in line or "__interpose" in line)
+            raise SystemExit(
+                f"Skia目标未按two-level绑定: {symbol}\n"
+                f"  candidate: {candidate}\n"
+                f"  expected: every related row binds  libskia/{symbol}; "
+                "require __interpose and __got\n"
+                f"  actual: rows={len(rows)} all_libskia_bind={all_libskia_bind} "
+                f"interpose={has_interpose} got={has_got}\n"
+                f"  related fixups:\n{related_fixups}\n  Xcode dyld_info:\n{alternate_rows}")
     fmt_symbol = cpp_string(title_abi, "kVformatSymbol")
     fmt_rows = [line for line in fixups.splitlines() if fmt_symbol in line]
     require(fmt_rows and

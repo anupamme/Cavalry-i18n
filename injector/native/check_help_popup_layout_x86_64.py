@@ -153,13 +153,16 @@ def main() -> None:
                        "-section", "__DATA", "__interpose",
                        "-section", "__DATA_CONST", "__interpose", str(candidate))
         indirect = run("otool", "-Iv", str(candidate))
+        alternate = run("xcrun", "dyld_info", "-arch", "x86_64",
+                        "-fixups", str(candidate))
         require(False,
                 "候选缺少QtWidgets two-level QLayout导入或保持flat namespace: "
                 f"candidate={candidate}; QLayout fixups:\n"
                 f"{show_lines(popup_fixup_lines)}\n全部interpose fixups:\n"
                 f"{show_lines(matching_lines(candidate_fixups, '__interpose'))}\n"
                 f"interpose sections:\n{sections}\nQLayout indirect symbols:\n"
-                f"{show_lines(matching_lines(indirect, layout_symbol))}")
+                f"{show_lines(matching_lines(indirect, layout_symbol))}\nXcode dyld_info:\n"
+                f"{show_lines(matching_lines(alternate, layout_symbol, '__interpose'))}")
 
     receipt = {
         "status": "PASS_OFFICIAL_X86_DOCUMENTATION_POPUP_ABI",

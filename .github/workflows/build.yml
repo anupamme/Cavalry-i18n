@@ -1,6 +1,6 @@
 # [INPUT]: 依赖受控workflow_dispatch选择器、2.8 ARM/Intel生产输入、tag-only updater、Windows闭包与GitHub环境
 # [OUTPUT]: 对外提供风险分流、显式2.8 macOS双架构预验、PR/main聚合门、Windows闭环、2.8 tag阻断及Release闭环
-# [POS]: 唯一CI/CD编排器；手动2.8预验先拉源码/准备Node再验证profile，只上传双架构macOS包；公开tag仍受三平台guard约束
+# [POS]: 唯一CI/CD编排器；手动2.8预验先拉源码/准备Node再验证profile，只上传macOS包与失败诊断候选；公开tag仍受三平台guard约束
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
 
@@ -765,6 +765,15 @@ jobs:
         env:
           CAVALRY_NATIVE_CI_TARGET: ${{ matrix.rust_target }}
         run: bash tools/prepare_cavalry_28_ci_inputs.sh
+
+      - name: Preserve failed native candidate for diagnosis
+        if: failure() && github.event_name == 'workflow_dispatch' && inputs.package_scope == 'macos-2.8-preflight'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: failed-native-candidate-${{ matrix.label }}
+          path: ${{ runner.temp }}/cavalry-2.8-${{ matrix.expected_arch }}-inputs/**/libCavalryNativeFontCandidate*.dylib
+          if-no-files-found: warn
+          retention-days: 1
 
       - name: Build packaged macOS app (tag = ad-hoc + signed updater)
         if: startsWith(github.ref, 'refs/tags/cavalry-')
