@@ -1,14 +1,16 @@
 /**
  * [INPUT]: 依赖Qt 6.9.2 C1及可执行文件推导的同bundle映像和Fast ABI合同。
  * [OUTPUT]: 仅为精确Fast正则构造传递Unicode属性选项。
- * [POS]: 2.8单一native候选内的arm64互操作；未知调用原样透传。
+ * [POS]: 仅在目标ABI逐字节匹配后改写正则选项；x86字节门仍未获准。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
-#if !defined(__arm64__)
-#error "Fast Unicode adapter is arm64-only."
+#if !defined(__arm64__) && !defined(__x86_64__)
+#error "Fast Unicode adapter supports only verified macOS target architectures."
 #endif
 
+#if defined(__arm64__)
 #include <arm_acle.h>
+#endif
 #include <QtCore/QRegularExpression>
 #include <QtCore/QString>
 #include <QtCore/qglobal.h>

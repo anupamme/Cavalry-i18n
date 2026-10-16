@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖同目录已经由主代理审定的UI显示批次；Forge8/缺源365/插件caption1独立登记，不加载草稿或帮助说明。
+ * [INPUT]: 依赖同目录已经由主代理审定的UI显示批次；官方demo菜单100条、Forge8、缺源365和插件caption1独立登记。
  * [OUTPUT]: 提供构建原生用户包的唯一显式审批模块清单与合并入口。
  * [POS]: languages/native 的审批装配边界；新增批次显式进入此清单，构建不依赖AGY/Grok或私库。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -8,7 +8,7 @@
 const APPROVED_MODULES = Object.freeze([
   'reviewed_translations', 'ai_studio_supplement', 'ai_studio_reuse_and_credits',
   'canva_and_assets', 'menus_file_edit_create_help', 'menus_comp_animation',
-  'menus_view_window', 'menus_other', 'nodes_group_transform_null', 'nodes_shape',
+  'menus_view_window', 'menus_other', 'official_demo_menus', 'nodes_group_transform_null', 'nodes_shape',
   'nodes_text_shape', 'nodes_basic_primitives', 'nodes_accumulator_renderqueue',
   'nodes_apply_opentype', 'runtime_observed_supplement', 'nodes_auto_animate', 'nodes_sound', 'nodes_sound_legacy', 'nodes_rgb_split', 'nodes_slit_scan', 'nodes_array_distribution', 'nodes_align_distortion_glow',
   'nodes_apply_distribution', 'nodes_apply_layout', 'nodes_bevel', 'nodes_boolean', 'nodes_chop_path', 'nodes_color_material', 'nodes_count_sub_meshes', 'nodes_material_behaviour_hsv', 'nodes_stroke_material', 'nodes_sub_mesh',

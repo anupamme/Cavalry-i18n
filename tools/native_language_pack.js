@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖调用方提供的 2.8 catalog/dontTranslate/厂商日语及源审校决定；有限纠错须精确命中受信调用方的独立登记
- * [OUTPUT]: 提供显示键投影/未知叶台账、语言码、源身份摘要、默认厂商优先及有限纠错选择与单语言 strings.json
- * [POS]: tools 的构建期纯数据投影；未知键族不猜测或丢弃，不改模型身份，格式验收和用户文件事务由独立边界承担
+ * [INPUT]: 依赖调用方提供的 2.8 catalog/dontTranslate/厂商日语及源审校决定；DNT显示例外只认官方demo叶身份
+ * [OUTPUT]: 提供显示键投影/未知叶台账、语言码、源身份摘要、默认厂商优先及受限例外选择与单语言 strings.json
+ * [POS]: tools 的构建期纯数据投影；默认保留DNT，例外只改显示值，不改模型身份或原始catalog
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
 const { createHash } = require('node:crypto');
+const { OFFICIAL_DEMO_SCENE_DNT_IDENTITIES } = require('./native_demo_scene_dnt_identities');
 
 const NATIVE_LOCALES = Object.freeze({ en: 'en-GB', 'zh-Hans': 'zh-Hans', 'zh-Hant': 'zh-Hant', ja_JP: 'ja' });
 const compareKeys = (a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : 0;
@@ -173,6 +174,61 @@ function indexEntries(entries) {
   return result;
 }
 
+function indexDemoSceneDntDisplayExceptions(entries, keys = []) {
+  if (!Array.isArray(keys)) throw new Error('demo scene DNT display exception keys must be an array');
+  if (Object.keys(OFFICIAL_DEMO_SCENE_DNT_IDENTITIES).length !== 100) {
+    throw new Error('official demo scene DNT identity registry cardinality differs');
+  }
+  const indexedEntries = indexEntries(entries);
+  const result = new Map();
+  for (const key of keys) {
+    if (typeof key !== 'string' || result.has(key)) throw new Error('invalid or duplicate demo scene DNT display exception key');
+    const identity = Object.hasOwn(OFFICIAL_DEMO_SCENE_DNT_IDENTITIES, key)
+      ? OFFICIAL_DEMO_SCENE_DNT_IDENTITIES[key] : null;
+    const entry = indexedEntries.get(key);
+    if (!identity || !entry || !key.startsWith('demoScene.') || key.split('.').length < 3
+        || key === 'demoScene.audio.audioSolver' || entry.catalogId !== 'Definitions/Translation/appStrings'
+        || entry.dontTranslate !== true || nativeSourceIdentitySha256(entry) !== identity) {
+      throw new Error(`unapproved or stale demo scene DNT display exception: ${key}`);
+    }
+    result.set(key, identity);
+  }
+  return result;
+}
+
+function validateDemoSceneDntDisplayApprovals(entries, approved, keys = []) {
+  const selected = indexDemoSceneDntDisplayExceptions(entries, keys);
+  if (!selected.size) return selected;
+  if (!Array.isArray(approved)) throw new Error('approved native translations must be an array');
+  const byKey = new Map();
+  for (const row of approved) {
+    if (byKey.has(row?.key)) throw new Error(`duplicate approved key: ${row?.key}`);
+    byKey.set(row?.key, row);
+  }
+  const indexedEntries = indexEntries(entries);
+  for (const key of selected.keys()) {
+    const source = indexedEntries.get(key);
+    const row = byKey.get(key);
+    if (!row || row.catalogId !== source.catalogId || row.source !== source.source
+        || JSON.stringify(row.fieldPath) !== JSON.stringify(source.fieldPath)
+        || (row.owner ?? null) !== (source.owner ?? null)
+        || row.vendorJapanese !== source.vendorJapanese
+        || JSON.stringify(row.notes) !== JSON.stringify(source.notes) || row.dontTranslate !== true
+        || !row.translations || typeof row.translations !== 'object' || Array.isArray(row.translations)
+        || JSON.stringify(Object.keys(row.translations).sort()) !== JSON.stringify(['ja_JP', 'zh-Hans', 'zh-Hant'])) {
+      throw new Error(`missing or stale three-locale demo scene DNT approval: ${key}`);
+    }
+    for (const language of ['zh-Hans', 'zh-Hant', 'ja_JP']) {
+      const decision = row.translations[language];
+      if (!exactFields(decision, ['decision', 'text']) || decision.decision !== 'translate'
+          || typeof decision.text !== 'string' || !decision.text.trim() || decision.text === source.source) {
+        throw new Error(`invalid three-locale demo scene DNT approval: ${key}:${language}`);
+      }
+    }
+  }
+  return selected;
+}
+
 // -- 有限厂商纠错：批准来源/精确含义/新译三者均绑定，不按英语扩散 ---
 const sha256 = value => createHash('sha256').update(value).digest('hex');
 function nativeSourceIdentitySha256(entry) {
@@ -238,15 +294,28 @@ function indexReviews(entries, reviews, language, trusted) {
   return result;
 }
 
-function resolveTranslations(entries, language, reviews = [], trustedVendorCorrections = []) {
+function resolveTranslations(entries, language, reviews = [], trustedVendorCorrections = [], dntDisplayExceptionApprovals = []) {
   const nativeLocale = nativeLocaleForLanguage(language);
   const indexedEntries = indexEntries(entries);
+  if (!Array.isArray(dntDisplayExceptionApprovals)) throw new Error('demo scene DNT approvals must be an array');
+  const dntDisplayExceptions = validateDemoSceneDntDisplayApprovals([...indexedEntries.values()],
+    dntDisplayExceptionApprovals, dntDisplayExceptionApprovals.map(row => row?.key));
+  const approvedDntByKey = new Map(dntDisplayExceptionApprovals.map(row => [row.key, row]));
   const trusted = indexVendorCorrections(trustedVendorCorrections);
   const indexedReviews = indexReviews(indexedEntries, reviews, language, trusted);
   const rows = [...indexedEntries.values()].sort(compareKeys).map(entry => {
     const row = { ...entry, notes: [...(entry.notes || [])] };
-    if (entry.dontTranslate === true) return { ...row, status: 'preserved', text: entry.source };
     const reviewed = indexedReviews.get(entry.key);
+    if (entry.dontTranslate === true) {
+      if (!dntDisplayExceptions.has(entry.key)) return { ...row, status: 'preserved', text: entry.source };
+      const approved = approvedDntByKey.get(entry.key)?.translations?.[language];
+      if (!reviewed || !approved || reviewed.decision !== approved.decision || reviewed.text !== approved.text
+          || reviewed.decision !== 'translate' || reviewed.text === entry.source
+          || Object.hasOwn(reviewed, 'vendorCorrection')) {
+        throw new Error(`missing exact locale review for demo scene DNT display exception: ${entry.key}`);
+      }
+      return { ...row, status: 'reviewed', text: reviewed.text };
+    }
     if (language === 'ja_JP' && typeof entry.vendorJapanese === 'string'
         && entry.vendorJapanese.trim() && entry.vendorJapanese !== entry.source) {
       if (reviewed?.vendorCorrection) return { ...row, status: 'vendor-corrected', text: reviewed.text };
@@ -275,4 +344,5 @@ function renderNativePack(resolved) {
 }
 
 module.exports = { collectStringCatalog, collectNativeCatalog, nativeLocaleForLanguage,
-  nativeSourceIdentitySha256, resolveTranslations, renderNativePack };
+  nativeSourceIdentitySha256, indexDemoSceneDntDisplayExceptions,
+  validateDemoSceneDntDisplayApprovals, resolveTranslations, renderNativePack };

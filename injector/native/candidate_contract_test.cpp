@@ -1,11 +1,12 @@
 /**
- * [INPUT]: 依赖GetPath FPS/cache owner、三语文本表、字体选择与标题策略。
- * [OUTPUT]: 验证双返回地址、75项lane、44条ToolHelp及FPS与标题边界。
+ * [INPUT]: 依赖GetPath FPS/Graph/cache owner、三语文本表与标题策略。
+ * [OUTPUT]: 验证精确owner/文本门、75项lane、ToolHelp及单次透传。
  * [POS]: 纯合同测试；不加载App、vendor framework或candidate dylib。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "getpath_owner_adapter.h"
 #include "getpath_font_texts.inc"
+#include "getpath_graph_editor_empty_texts.inc"
 #include "native_locale_abi_contract.h"
 #include "native_locale_snapshot.h"
 #include "native_image_paths.h"
@@ -409,6 +410,90 @@ bool cachedGetPathProducersKeepTheirOwnerChain()
     return true;
 }
 
+bool graphEditorEmptyOwnerUsesOneDirectFrameRead()
+{
+    using Owner = native_getpath_font::Owner;
+    using namespace native_getpath_abi::contract;
+    alignas(16) std::array<std::uintptr_t, 8> words{};
+    const std::uintptr_t low = reinterpret_cast<std::uintptr_t>(words.data());
+    const std::uintptr_t frame = low;
+    const viewport_owner::StackRange stack{low, low + sizeof(words)};
+    constexpr std::uintptr_t coreBase = 0x10000000;
+    constexpr std::uintptr_t extensionBase = 0x20000000;
+    words[0] = low + 16;
+    words[1] = extensionBase + kGraphEditorEmptyStateProducerReturn;
+    int reads = 0;
+    const auto read = [&](std::uintptr_t address, std::size_t size,
+                          void *destination) noexcept {
+        ++reads;
+        if (address < low || address > stack.high || size > stack.high - address)
+            return false;
+        std::memcpy(destination, reinterpret_cast<const void *>(address), size);
+        return true;
+    };
+    const auto graph = native_getpath::owner(
+        coreBase, extensionBase, coreBase + kCoreOwnerReturnOffset,
+        frame, stack, read);
+    if (graph != Owner::GraphEditorEmptyState || reads != 1) return false;
+
+    reads = 0;
+    words[1] = extensionBase + kGraphEditorEmptyStateProducerReturn + 4;
+    const auto unknown = native_getpath::owner(
+        coreBase, extensionBase, coreBase + kCoreOwnerReturnOffset,
+        frame, stack, read);
+    int forwards = 0;
+    if (unknown != Owner::Unknown || reads != 1 ||
+        !native_getpath::forwardUnknownOwner(
+            unknown, [&forwards] { ++forwards; }) || forwards != 1) return false;
+
+    reads = 0;
+    const auto wrongCore = native_getpath::owner(
+        coreBase, extensionBase, coreBase + kCoreOwnerReturnOffset + 4,
+        frame, stack, read);
+    return wrongCore == Owner::Unknown && reads == 0;
+}
+
+bool graphEditorEmptyTextRequiresExactLocaleAndSource()
+{
+    using namespace native_getpath_font;
+    struct Case {
+        cavalry_native_font::Locale locale;
+        const char *text;
+    };
+    constexpr Case cases[] = {
+        {cavalry_native_font::Locale::Hans, "选择图层或属性以查看其关键帧"},
+        {cavalry_native_font::Locale::Hant, "選取圖層或屬性以檢視其關鍵幀"},
+        {cavalry_native_font::Locale::Japanese,
+         "レイヤーまたは属性を選択するとキーフレームが表示されます"},
+    };
+    for (const Case &item : cases) {
+        const TextEntry *entry = graphEditorEmptyTextEntry(item.locale);
+        if (entry == nullptr || entry->owner != Owner::GraphEditorEmptyState ||
+            !exactGraphEditorEmptyText(item.text, std::strlen(item.text), 0,
+                                       Owner::GraphEditorEmptyState, entry))
+            return false;
+    }
+    if (graphEditorEmptyTextEntry(cavalry_native_font::Locale::English) != nullptr ||
+        graphEditorEmptyTextEntry(cavalry_native_font::Locale::Unknown) != nullptr)
+        return false;
+
+    const TextEntry *hans = graphEditorEmptyTextEntry(
+        cavalry_native_font::Locale::Hans);
+    constexpr char wrongLocale[] = "選取圖層或屬性以檢視其關鍵幀";
+    if (exactGraphEditorEmptyText(wrongLocale, sizeof(wrongLocale) - 1, 0,
+                                  Owner::GraphEditorEmptyState, hans) ||
+        exactGraphEditorEmptyText(cases[0].text, std::strlen(cases[0].text), 1,
+                                  Owner::GraphEditorEmptyState, hans) ||
+        exactGraphEditorEmptyText(cases[0].text, std::strlen(cases[0].text), 0,
+                                  Owner::ToolHelp, hans)) return false;
+
+    int forwards = 0;
+    const bool forwarded = forwardUnapprovedGraphEditorEmptyText(
+        wrongLocale, sizeof(wrongLocale) - 1, 0,
+        Owner::GraphEditorEmptyState, hans, [&forwards] { ++forwards; });
+    return forwarded && forwards == 1;
+}
+
 bool viewportFpsPrefixRequiresApprovedLocaleAndSuffix()
 {
     using namespace native_getpath_font;
@@ -697,6 +782,9 @@ int main()
     std::puts("GREEN: FPS requires the Core and direct Extension return PCs");
     if (!cachedGetPathProducersKeepTheirOwnerChain()) return fail(11);
     std::puts("GREEN: ToolHelp and ViewportStatus retain the cached owner chain");
+    if (!graphEditorEmptyOwnerUsesOneDirectFrameRead()) return fail(13);
+    if (!graphEditorEmptyTextRequiresExactLocaleAndSource()) return fail(14);
+    std::puts("GREEN: GraphEditor exact direct caller and three approved empty-state strings only");
     if (!viewportFpsPrefixRequiresApprovedLocaleAndSuffix()) return fail(12);
     std::puts("GREEN: FPS prefix matches approved locales and non-empty suffixes only");
     if (!extensionGotMustMatchThisInterposer()) return fail(4);

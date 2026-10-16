@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 tauri_build、cc、sha2、macOS AppKit handoff 源、四语言 JSON 源与 Windows generic/QPA 发布 DLL；显式macOS native preview构建另读固定target工件manifest、官方域摘要、Forge/缺源/插件caption生成器及可选arm64 dylib。
- * [OUTPUT]: 生成 Tauri runtime context与资源信任锚；仅显式macOS debug预览把manifest和审批injector固定到OUT_DIR，默认/发布流水线不读injector路径。
+ * [INPUT]: 依赖 tauri_build、cc、sha2、macOS AppKit handoff 源、四语言 JSON 源与 Windows generic/QPA 发布 DLL；显式macOS native模式另读固定target工件manifest、官方域摘要及目标架构dylib，并将BuildMode写入OUT_DIR。
+ * [OUTPUT]: preview或2.8生产模式按profile核对资源摘要与目标Mach-O架构；BuildMode作为编译期文件嵌入，运行时不读环境变量。
  * [POS]: src-tauri 的构建钩子；在用户可写安装资源之外固定 Windows source provenance，不参与运行时路径发现。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -16,30 +16,55 @@ use sha2::{Digest, Sha256};
 #[path = "native/native_preview_injector_contract.rs"]
 mod native_preview_injector_contract;
 
+#[path = "native/native_candidate_build_contract.rs"]
+mod native_candidate_build_contract;
+use native_candidate_build_contract::{select_native_build_mode, NativeBuildMode};
+
 const LANGUAGES: [&str; 4] = ["en", "zh-Hans", "zh-Hant", "ja_JP"];
 const GENERIC_RELATIVE_PATH: &str = "injector/windows/generic/cavalryi18n.dll";
 const QPA_RELATIVE_PATH: &str = "injector/windows/qpa/qwindows.dll";
 
 fn main() {
+    println!("cargo:rerun-if-env-changed=CAVALRY_I18N_ENABLE_NATIVE_PREVIEW");
+    println!("cargo:rerun-if-env-changed=CAVALRY_I18N_NATIVE_RELEASE_CANDIDATE");
+    println!("cargo:rerun-if-env-changed=CAVALRY_I18N_NATIVE_BUILD_PROFILE");
+    let native_mode = select_native_build_mode(
+        &env::var("CARGO_CFG_TARGET_OS").unwrap_or_default(),
+        &env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default(),
+        &env::var("PROFILE").unwrap_or_default(),
+        env::var("CAVALRY_I18N_ENABLE_NATIVE_PREVIEW")
+            .ok()
+            .as_deref(),
+        env::var("CAVALRY_I18N_NATIVE_RELEASE_CANDIDATE")
+            .ok()
+            .as_deref(),
+        env::var("CAVALRY_I18N_NATIVE_BUILD_PROFILE")
+            .ok()
+            .as_deref(),
+    )
+    .expect("native build mode rejected");
     build_macos_permission_handoff();
     generate_source_provenance_catalog();
-    embed_native_preview_manifest();
-    embed_native_preview_injector();
+    embed_native_build_mode(native_mode);
+    embed_native_resource_manifest(native_mode);
+    embed_native_runtime_injector(native_mode);
     tauri_build::build();
 }
 
-// -- 开发预览显式准入：运行时工件必须逐字匹配此编译期manifest --------
-fn embed_native_preview_manifest() {
+// -- 将构建模式固定进OUT_DIR；运行时不读取环境变量 --------------------
+fn embed_native_build_mode(mode: NativeBuildMode) {
+    let output = PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR is required"));
+    fs::write(output.join("native_build_mode.txt"), mode.as_str())
+        .expect("native build mode could not be embedded");
+}
+
+// -- 显式native构建核对资源profile与payload摘要 ------------------------
+fn embed_native_resource_manifest(mode: NativeBuildMode) {
     println!("cargo:rerun-if-env-changed=CAVALRY_I18N_ENABLE_NATIVE_PREVIEW");
+    println!("cargo:rerun-if-env-changed=CAVALRY_I18N_NATIVE_BUILD_PROFILE");
     let input = Path::new("target/native-language-packs/manifest.json");
     println!("cargo:rerun-if-changed={}", input.display());
-    let enabled = native_preview_build_enabled();
-    let bytes = if enabled {
-        assert_ne!(
-            env::var("PROFILE").as_deref(),
-            Ok("release"),
-            "native development preview must not be compiled as a release"
-        );
+    let bytes = if mode != NativeBuildMode::Disabled {
         for source in [
             "../languages/native",
             "../tools/native_resource_bundle.js",
@@ -54,16 +79,20 @@ fn embed_native_preview_manifest() {
         ] {
             println!("cargo:rerun-if-changed={source}");
         }
-        let checked = std::process::Command::new("node")
-            .args(["../tools/native_resource_bundle.js", "--check"])
+        let mut check = std::process::Command::new("node");
+        check.args(["../tools/native_resource_bundle.js", "--check"]);
+        if mode == NativeBuildMode::Production {
+            check.args(["--profile", "production-2.8"]);
+        }
+        let checked = check
             .status()
-            .expect("native preview freshness check requires Node and npm dependencies");
+            .expect("native resource freshness check requires Node and npm dependencies");
         assert!(
             checked.success(),
-            "native preview resources are stale or changed; rebuild with explicit official assets"
+            "native resources are stale, incomplete, or from another profile; rebuild from approved official assets"
         );
         let metadata = fs::symlink_metadata(input)
-            .expect("native preview requires build:native-resources before compiling");
+            .expect("native profile requires approved native resources before compiling");
         assert!(
             metadata.is_file() && !metadata.file_type().is_symlink(),
             "native preview manifest must be a regular file"
@@ -73,29 +102,31 @@ fn embed_native_preview_manifest() {
         Vec::new()
     };
     let output = PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR is required"));
-    fs::write(output.join("native_preview_manifest.json"), bytes)
-        .expect("native preview compile-time manifest could not be written");
+    fs::write(output.join("native_resource_manifest.json"), bytes)
+        .expect("native compile-time resource manifest could not be written");
 }
 
-// -- 可选预览 injector：默认与非debug产物始终嵌入空字节 ----------------
-fn embed_native_preview_injector() {
+// -- 预览可选；候选与生产模式必须嵌入匹配目标架构的runtime -----------
+fn embed_native_runtime_injector(mode: NativeBuildMode) {
     println!("cargo:rerun-if-env-changed=CAVALRY_I18N_NATIVE_INJECTOR_FILE");
-    let bytes = if native_preview_build_enabled() && env::var("PROFILE").as_deref() == Ok("debug") {
-        load_native_preview_injector()
+    let bytes = if mode != NativeBuildMode::Disabled {
+        load_native_runtime_injector()
     } else {
         Vec::new()
     };
+    assert!(
+        !matches!(
+            mode,
+            NativeBuildMode::ReleaseCandidate | NativeBuildMode::Production
+        ) || !bytes.is_empty(),
+        "native candidate/production mode requires CAVALRY_I18N_NATIVE_INJECTOR_FILE"
+    );
     let output = PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR is required"));
-    fs::write(output.join("native_preview_injector.dylib"), bytes)
-        .expect("native preview injector compile-time artifact could not be written");
+    fs::write(output.join("native_runtime_injector.dylib"), bytes)
+        .expect("native runtime injector compile-time artifact could not be written");
 }
 
-fn native_preview_build_enabled() -> bool {
-    env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("macos")
-        && env::var("CAVALRY_I18N_ENABLE_NATIVE_PREVIEW").as_deref() == Ok("1")
-}
-
-fn load_native_preview_injector() -> Vec<u8> {
+fn load_native_runtime_injector() -> Vec<u8> {
     let Some(value) = env::var_os("CAVALRY_I18N_NATIVE_INJECTOR_FILE") else {
         return Vec::new();
     };
@@ -104,10 +135,10 @@ fn load_native_preview_injector() -> Vec<u8> {
         !configured_path.as_os_str().is_empty(),
         "CAVALRY_I18N_NATIVE_INJECTOR_FILE must not be empty"
     );
-    assert_eq!(
-        env::var("CARGO_CFG_TARGET_ARCH").as_deref(),
-        Ok("aarch64"),
-        "native preview injector requires an arm64 macOS target"
+    let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
+    assert!(
+        matches!(target_arch.as_str(), "aarch64" | "x86_64"),
+        "native runtime injector requires a supported macOS architecture"
     );
 
     let manifest_dir =
@@ -119,11 +150,11 @@ fn load_native_preview_injector() -> Vec<u8> {
     };
     println!("cargo:rerun-if-changed={}", configured_path.display());
     let source = no_symlink_regular_file(&configured_path)
-        .unwrap_or_else(|error| panic!("native preview injector input rejected: {error}"));
+        .unwrap_or_else(|error| panic!("native runtime injector input rejected: {error}"));
     let bytes = fs::read(&source)
-        .unwrap_or_else(|error| panic!("native preview injector input could not be read: {error}"));
-    native_preview_injector_contract::validate_arm64_dylib(&bytes)
-        .unwrap_or_else(|error| panic!("native preview injector input rejected: {error}"));
+        .unwrap_or_else(|error| panic!("native runtime injector input could not be read: {error}"));
+    native_preview_injector_contract::validate_dylib_for_arch(&bytes, &target_arch)
+        .unwrap_or_else(|error| panic!("native runtime injector input rejected: {error}"));
     bytes
 }
 

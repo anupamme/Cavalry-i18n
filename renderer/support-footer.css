@@ -1,39 +1,34 @@
 /**
- * [INPUT]: 依赖 tokens.css 的77px footer、20px上下留白、13px/16px copy、按英文字形 cap 校准的上沿裁切、16px视觉图标行、32px hit box 与共享边框角色。
- * [OUTPUT]: 对外提供窗口底边以下的支持文案与 GitHub/X/小红书图标行；不影响原主内容轨道。
- * [POS]: 主窗口支持 footer 的唯一视觉层；独立消费 shared icons.js 装配的品牌 SVG。
+ * [INPUT]: 依赖 tokens.css 的30px footer、14px/20px、Medium正文、16px图标与32px命中区；上方与底部均消费固定10px间距；上方归content底留白所有。
+ * [OUTPUT]: 对外提供无分割线、整组居中的单行关注入口；保持原主内容轨道。
+ * [POS]: 主窗口支持 footer 的唯一视觉层；独立消费 shared icons.js 装配的品牌 SVG；宽标识扩展槽宽以保持可见间距。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 .support-footer {
   min-height: var(--support-footer-height);
   display: grid;
-  grid-template-rows: auto var(--support-link-icon-size);
-  align-content: space-between;
-  justify-items: center;
+  grid-template-columns: auto auto;
+  grid-template-rows: var(--line-height-compact);
+  justify-content: center;
+  align-items: center;
   gap: var(--support-footer-gap);
-  padding: var(--support-footer-padding-block) var(--padding-window);
-  border-top: var(--stroke-hairline) solid var(--border);
+  padding: 0 var(--padding-window) var(--support-footer-spacing);
   background: var(--window);
-  text-align: center;
+  text-align: left;
 }
 
 .support-footer-message {
   width: 100%;
   margin: 0;
   color: var(--text-secondary);
-  font-size: var(--type-label);
-  font-weight: var(--weight-regular);
-  line-height: var(--line-height-label);
+  font-size: var(--type-compact);
+  font-weight: var(--weight-medium);
+  line-height: var(--line-height-compact);
   white-space: nowrap;
 }
 
-@supports (text-box-trim: trim-start) {
-  .support-footer-message {
-    text-box: trim-start cap;
-  }
-}
-
 .support-footer-links {
+  height: var(--support-link-icon-size);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -74,6 +69,10 @@
 
 .support-footer-icon-xiaohongshu {
   width: calc(var(--support-link-icon-size) * 2);
+}
+
+.support-footer-link-xiaohongshu {
+  width: calc(var(--support-link-hit-size) + var(--support-link-icon-size));
 }
 
 .support-footer-link-xiaohongshu:hover {

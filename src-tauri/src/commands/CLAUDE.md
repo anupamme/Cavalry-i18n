@@ -2,17 +2,18 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-native_resources.rs: 编译manifest字节等同和pack metadata由一个入口验证；冻结target仍为官方10473/补充373，manifest另计隐藏schema caption1与插件caption1（补充375、总键10848）；baseline仍绑定target原字节；status仅读三份文件长度，apply校验所选pack长度/SHA；运行时不扫描定义。
+native_resources.rs: 按编译期BuildMode绑定manifest kind；production-2.8要求三语完整10848键。status核文件长度，apply只校验所选payload摘要；不扫描定义或写profile。
+native_resources_tests.rs: 显式模式的资源读取合同；生产完整包正例、错误kind/缺译反例与原preview合同共用真实loader，不依赖测试二进制的编译模式。
 native_runtime.rs: 显式native动作协调runtime与profile；NRT恢复先于路由，profile错误code不变；非English同源候选先读bounded owner hint与approved SHA，再用observe_install核canonical 2.8.0身份；匹配时只走canonical profile事务，不读baseline/槽/签名、不写App、不授App写恢复权；同源路由由native_user报告receipt恢复检查并在新receipt写前启动Apply；English、缺hint、坏hint、源不匹配与非2.8候选保留原完整owner准入；独立restart不变。
 native_runtime_profile_route_tests.rs: 用临时2.8 bundle/owner/profile证明同源hint只准profile快路；精确断言成功Verify→Ensure→Apply，坏receipt或漂移在Ensure以error结束；故意缺vendor baseline与Extension以证明未调用整包owner；覆盖English、未知/坏owner、源漂移/缺失、错误版本和NRT失败；不接真实App/profile。
-native_runtime_source.rs: 只读编译嵌入的arm64字体制品；默认产物为空，运行时不接受环境或任意路径。
+native_runtime_source.rs: 只读build.rs嵌入的当前目标native runtime；preview与production按当前Rust目标校验thin dylib，运行时不接受环境或路径，不载旧2.7 dylib。
 native_official.rs: 固定Developer-ID requirement、canonical bundle/可显示版本/原厂executable的5秒OS验签只证明vendor_origin；最终Official显示还需native_user证明内置locale与无Switcher覆盖，不授予恢复或写入许可。另提供独立typed baseline源桥，要求canonical root、2.8 target与固定OS验签共同通过；不改变Official显示门。内置policy id与target摘要给baseline loader独立复核，不从manifest自报。
 native_user.rs: typed用户语言投影与profile事务；status先比pack摘要；仅Current-owned非英语profile再比approved runtime source与owner hint；runtime不匹配或owner缺失显示updateAvailable，owner/候选不可读显示unknown；hint不读journal、App槽或签名；English、漂移和未受管语义不变；非English先报告receipt恢复检查，canonical ready回调在首次新receipt写前结束检查并启动Apply，早期失败归恢复阶段；完整runtime外层使用NoopReporter避免重复事件；apply提交后复核同一guard与writer guard再启动；独立Restart保留profile/NRT/owner准入；Official由原厂来源与profile语言合成。apply_profile仅向commands父域暴露，不进入renderer IPC。
 patch_receipt.rs: 已应用补丁的历史源身份；随包语言、平台 runtime、wrapper 与 Switcher 版本构成内容地址，严格绑定安装根/宿主 revision/语言，版本比较只读，不写成功状态。
 patch_receipt_storage.rs: 私有补丁 generation 存储；按规范相对路径逐文件验证摘要/模式及闭合集合，拒绝 symlink 与内容漂移，发布新目录而不覆盖旧历史源。
 patch_receipt_tests.rs: generation 发布/旧版本重读与源变化合同；与 status/真实 clone 升级测试分层，不将孤立 generation 当作成功回执。
 apply.rs: 语言写入事务编排；macOS 受管态先判定是否存在完整 vendor/English baseline，旧 JSON-only provenance 即使沿用历史 revision 格式也返回稳定 `reinstallRequired`；只有基线完整时才比较 state/path/revision 与 marker，绑定、受管 runtime postimage 或 marker drift 均安全拒绝而不误报重装；旧 wrapper/injector 仅作为普通 0755 安全替换槽，不要求历史版本身份，非 English 每次从当前 package 重建 runtime，Official Restore 从 baseline 精确还原/删除；Windows legacy provenance 迁移不受该 macOS 门影响；候选源冻结后才写安装，成功完成时才原子提交补丁回执，原厂恢复清除回执；保持 `apply_language_inner` 公开测试 seam；Switch/Restore 在共享 operation lock 内按当前选择静默收敛本工具 journal，再执行完整身份、English 基线与写入证明；macOS 共用只读 exact-PID admission，不替用户关闭 Cavalry，并在首个 mutation 前复核；Windows 生产/测试共用 pair 构造，Program Files 恢复继续走 same-EXE RunAs；stock runtime 外置签名组件按自有路径进入 durable cleanup；已由 official baseline 验证的 managed vendor postimage 即使 strict codesign 漂移也可进入正常事务重签；App Management 只由事务层 typed PermissionDenied 进入 renderer。
-context.rs: Tauri 应用路径与资源候选解析；显式native预览state独立子域，不覆盖2.7 baseline；复用 root 级 runtime_paths，把 repo、state、Resources 以及 `_up_` 打包布局统一为 command 可消费的路径上下文，并只发布固定四语 manifest。
+context.rs: 应用路径与资源解析；production使用app-data/native-2.8，preview使用native-2.8-preview。隔离Switcher回执，不改变Cavalry共享profile；资源候选复用runtime_paths。
 contract.rs: 含languageScope/nativeResourceAvailable、可选nativeLocaleState三态、receipt证明的nativeEnglishRestoreAvailable与patchStatus版本状态的renderer DTO、九命令及operation event合同；installationMode在legacy默认unknown，显式macOS预览须固定厂商requirement验签及内置语言/无Switcher覆盖同时成立才标`official`且不代表版本/资源/应用许可；内部签名凭据/baseline/journal不进入renderer；集中camelCase JSON、稳定错误码、App Management handoff与Channel post-commit语义。
 restart.rs: Restart命令编排；显式native preview独立Restart保留profile准入、NRT恢复与owner/host验证；native apply在同一guard内提交后直接调用native_user launch leaf，不经过本模块；默认2.7 apply与legacy Restart仍复用legacy入口并同步旧state/runtime，不探测或恢复语言事务journal。
 user_language.rs: 产品语言码到 Cavalry native locale 的纯投影；生产文件事务复用同一映射并保留 typed locale 元数据，纯 JSON apply helper 协作；CAS rollback 与 English helper 仅 cfg(test)，不触及文件、安装 marker、baseline、QPA 或 IPC。
@@ -28,7 +29,7 @@ tests.rs: commands 基础契约 owner tests；验证缺少补丁回执的旧安�
 tests/runtime.rs: macOS apply fixture 与 Windows DLL/语言资源解析分开验证，覆盖打包资源、语言 apply、macOS直接调用内部legacy helper的fixture runner与Windows restart边界回归；native profile准入由独立fixture合同覆盖；Windows 断言 QPA ACTIVE 且子进程环境只含诊断 marker，复用父级 fixture，不在磁盘写魔法 ACTIVE sentinel。
 tests/native_user_official_independence.rs: tempfile双门合同；只有可信vendor+无Switcher覆盖的内置en/ja可声明Official，自有三语/旧pack/缺资源/漂移/pending/坏证据隐藏徽章；另测Current-owned非英语的runtime source失配、一致、缺失与不可读投影；不改变语言、资源或owned English恢复能力。
 tests/native_status_readonly_smoke.rs: status人工ignored组合烟测；真实原厂签名/编译包/OS默认profile经同一次生产native status owner投影，不启动GUI或创建模拟首次运行的state，细节由tests地图约束。
-update.rs: Switcher 自更新领域边界；显式native预览禁止消费旧共享endpoint；通过官方 updater plugin 检查版本并把待验证的 `Update` 仅保存在 Rust State，renderer 只取得脱敏 camelCase DTO；安装命令拒绝外部 URL/签名/版本输入，与语言写入共用全局 operation lock，并以 camelCase Channel 只发送 downloading、verifying/installing、restarting 三个真实边界，其中下载结束回调先于签名验证，故绝不虚构独立 verified 事件，Channel 失效也不改变更新事务。
+update.rs: Switcher自更新；preview禁用，production仅允许正式identifier与唯一latest-cavalry-2.8.json。安装只消费Rust持有的已检查Update，复用operation lock与三阶段Channel；不回退旧feed。
 
 法则: facade 只保留稳定命令与兼容 seam；领域逻辑按状态、快照、写入、平台运行时单向下沉。
 

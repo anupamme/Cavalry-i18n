@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖主窗固定 footer DOM、共享 SVG 图标、四语 UI_TEXT 与固定项目外链回调。
- * [OUTPUT]: 对外提供支持文案的四语同步、GitHub/X/小红书图标装配及固定 ID 点击分发。
+ * [OUTPUT]: 对外提供单行关注文案与操作提示的四语同步、GitHub/X/小红书图标装配及固定 ID 点击分发。
  * [POS]: 主窗口独立 footer 控制器；只把已知链接 ID 交给 app.js，不接受或拼接 URL。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -27,7 +27,9 @@
       message.textContent = text('supportFooterMessage');
       nav.setAttribute('aria-label', text('supportFooterLinksAria'));
       for (const entry of LINKS) {
-        links[entry.element].setAttribute('aria-label', text(entry.label));
+        const label = text(entry.label);
+        links[entry.element].setAttribute('aria-label', label);
+        links[entry.element].setAttribute('title', label);
       }
     }
 

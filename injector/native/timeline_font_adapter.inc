@@ -10,6 +10,26 @@ auto dispatchFont(const void *originalFont, const void *text, std::size_t textLe
                   Caller caller, Original original) noexcept
     -> decltype(original(originalFont))
 {
+#if defined(__x86_64__)
+    const bool admitted = !gInsideRuntime && gAdmitted.load(std::memory_order_acquire);
+    const std::uintptr_t callerOffset = caller == Caller::Measure
+        ? timeline_owner_observer::x86_64_contract::kMeasureReturnOffset
+        : timeline_owner_observer::x86_64_contract::kDrawReturnOffset;
+    const bool exactCaller = admitted && callerPc == reinterpret_cast<std::uintptr_t>(
+        imageAddress(gExtensionImage, callerOffset));
+    TextSnapshot textSnapshot{};
+    policy::OwnerProof ownerProof{};
+    const bool completeOwner = exactCaller && snapshotOwner(
+        text, textLength, closure, callerPc, caller, &textSnapshot, &ownerProof);
+    return native_font_x86_64_abi::contract::forwardUnlessVerified(
+        admitted, exactCaller, completeOwner,
+        [&]() { return original(originalFont); },
+        [&]() {
+            RuntimeScope runtimeScope;
+            return dispatchVerifiedText(originalFont, textSnapshot, encoding,
+                caller, original, [](DecisionReason) noexcept {});
+        });
+#else
     if (gInsideRuntime || !gAdmitted.load(std::memory_order_acquire))
         return original(originalFont);
     const std::uintptr_t callerOffset = caller == Caller::Measure
@@ -25,4 +45,5 @@ auto dispatchFont(const void *originalFont, const void *text, std::size_t textLe
     }
     return dispatchVerifiedText(originalFont,textSnapshot,encoding,caller,original,
         [](DecisionReason) noexcept {});
+#endif
 }

@@ -1,13 +1,24 @@
 /**
  * [INPUT]: 依赖候选二进制的原始字节切片，不访问路径、环境变量或平台命令。
- * [OUTPUT]: 提供build.rs与native_runtime_source共用的arm64薄MH_DYLIB边界校验。
- * [POS]: src-tauri/native的纯Mach-O合同；只验证头部、架构、文件类型和load-command边界，不证明ABI或签名。
+ * [OUTPUT]: 提供build.rs与native_runtime_source共用的arm64/x86_64薄MH_DYLIB边界校验。
+ * [POS]: src-tauri/native的纯Mach-O合同；只验证头部、目标架构、文件类型和load-command边界，不证明ABI或签名。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 pub(crate) fn validate_arm64_dylib(bytes: &[u8]) -> Result<(), &'static str> {
+    validate_dylib_for_arch(bytes, "aarch64")
+}
+
+pub(crate) fn validate_dylib_for_arch(bytes: &[u8], target_arch: &str) -> Result<(), &'static str> {
     const HEADER_SIZE: usize = 32;
     const CPU_TYPE_ARM64: u32 = 0x0100_000c;
+    const CPU_TYPE_X86_64: u32 = 0x0100_0007;
     const MH_DYLIB: u32 = 6;
+
+    let expected_cpu = match target_arch {
+        "aarch64" => CPU_TYPE_ARM64,
+        "x86_64" => CPU_TYPE_X86_64,
+        _ => return Err("target architecture is unsupported"),
+    };
 
     if bytes.len() < HEADER_SIZE {
         return Err("Mach-O header is truncated");
@@ -15,8 +26,8 @@ pub(crate) fn validate_arm64_dylib(bytes: &[u8]) -> Result<(), &'static str> {
     if bytes[..4] != [0xcf, 0xfa, 0xed, 0xfe] {
         return Err("input is not a thin little-endian 64-bit Mach-O");
     }
-    if read_u32_le(bytes, 4) != Some(CPU_TYPE_ARM64) {
-        return Err("Mach-O CPU type is not arm64");
+    if read_u32_le(bytes, 4) != Some(expected_cpu) {
+        return Err("Mach-O CPU type does not match target architecture");
     }
     if read_u32_le(bytes, 12) != Some(MH_DYLIB) {
         return Err("Mach-O file type is not a dylib");
@@ -62,7 +73,7 @@ fn read_u32_le(bytes: &[u8], offset: usize) -> Option<u32> {
 
 #[cfg(test)]
 mod tests {
-    use super::validate_arm64_dylib;
+    use super::{validate_arm64_dylib, validate_dylib_for_arch};
 
     #[test]
     fn accepts_only_bounded_thin_arm64_dylib_headers() {
@@ -87,13 +98,32 @@ mod tests {
         assert!(validate_arm64_dylib(&[]).is_err());
     }
 
+    #[test]
+    fn validates_target_architecture_without_accepting_fat_or_mismatched_images() {
+        let arm64 = valid_dylib(0x0100_000c);
+        let x86_64 = valid_dylib(0x0100_0007);
+        assert!(validate_dylib_for_arch(&arm64, "aarch64").is_ok());
+        assert!(validate_dylib_for_arch(&x86_64, "x86_64").is_ok());
+        assert!(validate_dylib_for_arch(&arm64, "x86_64").is_err());
+        assert!(validate_dylib_for_arch(&x86_64, "aarch64").is_err());
+        assert!(validate_dylib_for_arch(&x86_64, "arm64").is_err());
+
+        let mut fat_magic = x86_64.clone();
+        fat_magic[..4].copy_from_slice(&[0xca, 0xfe, 0xba, 0xbe]);
+        assert!(validate_dylib_for_arch(&fat_magic, "x86_64").is_err());
+    }
+
     fn valid_arm64_dylib() -> Vec<u8> {
+        valid_dylib(0x0100_000c)
+    }
+
+    fn valid_dylib(cpu_type: u32) -> Vec<u8> {
         const HEADER_SIZE: usize = 32;
         const LC_UUID_SIZE: usize = 24;
 
         let mut bytes = vec![0_u8; HEADER_SIZE + LC_UUID_SIZE];
         bytes[..4].copy_from_slice(&[0xcf, 0xfa, 0xed, 0xfe]);
-        write_u32_le(&mut bytes, 4, 0x0100_000c);
+        write_u32_le(&mut bytes, 4, cpu_type);
         write_u32_le(&mut bytes, 12, 6);
         write_u32_le(&mut bytes, 16, 1);
         write_u32_le(&mut bytes, 20, LC_UUID_SIZE as u32);

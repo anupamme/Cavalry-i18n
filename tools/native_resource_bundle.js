@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖官方assets、冻结target、Forge8、缺源365、隐藏caption1与插件caption1。
- * [OUTPUT]: 提供10848键三语预览/确定性manifest；target补充373不变，资源补充总计375。
- * [POS]: macOS用户语言事务的构建输入owner；源身份/格式不符拒绝发布，不复制原厂catalog、不读私库或用户profile。
+ * [INPUT]: 依赖官方assets、冻结target、Forge8、缺源365、隐藏caption1、插件caption1与源绑定DNT批准。
+ * [OUTPUT]: 默认生成development-preview；显式production-2.8拒绝缺源包并绑定三语payload摘要。
+ * [POS]: macOS用户语言事务的构建输入owner；两种profile复用同一批准源，生产不改译文或target。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
 const { createHash, randomUUID } = require('node:crypto');
-const { collectNativeCatalog, resolveTranslations, renderNativePack } = require('./native_language_pack');
+const { collectNativeCatalog, resolveTranslations, renderNativePack,
+  validateDemoSceneDntDisplayApprovals } = require('./native_language_pack');
 const { assertNativeTranslationFormat } = require('./native_translation_format');
 const { sourceEntries: forgeSourceEntries, validateSupplementEntries, SUPPLEMENT_CATALOG_ID } = require('./native_schema_supplement');
 const { sourceEntries: gapSourceEntries, validateGapEntries, GAP_CATALOG_ID,
@@ -19,7 +20,12 @@ const { sourceEntries: pluginCaptionSourceEntries, validatePluginCaptionEntries,
   SOURCE_PATH: PLUGIN_CAPTION_SOURCE_PATH } = require('./native_plugin_caption_supplement');
 const { assertOfficialTarget } = require('./native_official_target');
 const { APPROVED_VENDOR_CORRECTIONS } = require('../languages/native/approved_vendor_corrections');
+const { DEMO_MENU_DNT_KEYS } = require('../languages/native/official_demo_menus');
 const LANGUAGES = Object.freeze(['zh-Hans', 'zh-Hant', 'ja_JP']);
+const RESOURCE_PROFILES = Object.freeze({
+  'development-preview': { kind: 'development-preview', requiresComplete: false },
+  'production-2.8': { kind: 'production-2.8', requiresComplete: true },
+});
 const sha256 = value => createHash('sha256').update(value).digest('hex');
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
@@ -34,7 +40,9 @@ function collectOfficialEntries(pairs) {
   return entries;
 }
 function buildNativeResourceBundle(pairs, approved, trustedVendorCorrections = APPROVED_VENDOR_CORRECTIONS,
-  supplementalEntries = []) {
+  supplementalEntries = [], dntDisplayExceptionKeys = [], profile = 'development-preview') {
+  const resourceProfile = RESOURCE_PROFILES[profile];
+  if (!resourceProfile) throw new Error(`unsupported native resource profile: ${profile}`);
   const entries = collectOfficialEntries(pairs);
   if (!Array.isArray(supplementalEntries)) throw new Error('native schema supplement entries must be an array');
   const forge = supplementalEntries.filter(row => row?.catalogId === SUPPLEMENT_CATALOG_ID);
@@ -80,9 +88,10 @@ function buildNativeResourceBundle(pairs, approved, trustedVendorCorrections = A
       }
     }
   }
+  const dntDisplayExceptions = validateDemoSceneDntDisplayApprovals(entries, approved, dntDisplayExceptionKeys);
   const packs = {};
   const manifest = {
-    schemaVersion: 1, kind: 'development-preview', cavalryVersion: '2.8.0',
+    schemaVersion: 1, kind: resourceProfile.kind, cavalryVersion: '2.8.0',
     approvedUIKeys: approved.length, nativeKeys: entries.length,
     supplementalKeys: supplements.length, complete: false, packs: {},
   };
@@ -93,7 +102,8 @@ function buildNativeResourceBundle(pairs, approved, trustedVendorCorrections = A
       if (Object.hasOwn(translation, 'vendorCorrection')) review.vendorCorrection = translation.vendorCorrection;
       return review;
     });
-    const resolved = resolveTranslations(entries, language, reviews, trustedVendorCorrections);
+    const selectedDntApprovals = approved.filter(row => dntDisplayExceptions.has(row.key));
+    const resolved = resolveTranslations(entries, language, reviews, trustedVendorCorrections, selectedDntApprovals);
     const counts = { reviewed: 0, preserved: 0, vendor: 0, missing: 0 };
     for (const row of resolved.rows) {
       // vendor按官方来源槽计数；内部状态区分原样采用与源绑定纠错，不增typed manifest字段。
@@ -107,6 +117,9 @@ function buildNativeResourceBundle(pairs, approved, trustedVendorCorrections = A
     };
   }
   manifest.complete = LANGUAGES.every(language => manifest.packs[language].missing === 0);
+  if (resourceProfile.requiresComplete && !manifest.complete) {
+    throw new Error(`${profile} requires complete translations for every product language`);
+  }
   return { manifest, packs };
 }
 
@@ -125,7 +138,7 @@ function safeRegularFile(root, relative) {
 }
 
 // -- 明确输入：锁定全部source/厂商JA，不递归猜测未来catalog ----------
-function buildFromAssetRoot(assetRoot) {
+function buildFromAssetRoot(assetRoot, profile = 'development-preview') {
   const root = fs.realpathSync(assetRoot);
   const targetBytes = fs.readFileSync(path.join(__dirname, 'cavalry_native_target.json'));
   const { target } = assertOfficialTarget(targetBytes);
@@ -145,7 +158,7 @@ function buildFromAssetRoot(assetRoot) {
     ...gapSourceEntries(nodeDefinitions, officialEntries),
     ...pluginCaptionSourceEntries(safeRegularFile(root, PLUGIN_CAPTION_SOURCE_PATH), officialEntries)];
   const { approvedEntries } = require('../languages/native/approved_modules');
-  const result = buildNativeResourceBundle(pairs, approvedEntries(), undefined, supplements);
+  const result = buildNativeResourceBundle(pairs, approvedEntries(), undefined, supplements, DEMO_MENU_DNT_KEYS, profile);
   if (result.manifest.nativeKeys !== target.nativeKeys + target.supplementalKeys
       + PLUGIN_CAPTION_KEY_COUNT + BACKGROUND_RENDERING_GAP_COUNT
       || result.manifest.supplementalKeys !== target.supplementalKeys
@@ -166,6 +179,7 @@ function inputDigest() {
     'languages/native/approved_vendor_corrections.js',
     ...APPROVED_MODULES.map(name => `languages/native/${name}.js`),
     'tools/native_resource_bundle.js', 'tools/native_language_pack.js',
+    'tools/native_demo_scene_dnt_identities.js',
     'tools/native_translation_format.js', 'tools/native_schema_supplement.js',
     'tools/native_schema_gap_sources.js', 'tools/native_plugin_caption_supplement.js',
     'tools/native_official_target.js', 'package-lock.json',
@@ -178,10 +192,30 @@ function validateBuildFreshness(manifest, expectedInputs, expectedTarget) {
   if (manifest.targetSha256 !== expectedTarget) throw new Error('native preview target is stale; rebuild native resources');
   return true;
 }
-function checkBuildOutput() {
+function validateResourceProfile(manifest, profile = 'development-preview') {
+  const resourceProfile = RESOURCE_PROFILES[profile];
+  if (!resourceProfile) throw new Error(`unsupported native resource profile: ${profile}`);
+  if (manifest.kind !== resourceProfile.kind) throw new Error(`native resource profile differs: expected ${resourceProfile.kind}`);
+  const countsAreConsistent = Number.isSafeInteger(manifest.nativeKeys) && manifest.nativeKeys > 0
+    && LANGUAGES.every(language => {
+      const counts = manifest.packs?.[language];
+      const values = [counts?.reviewed, counts?.preserved, counts?.vendor, counts?.missing];
+      return values.every(value => Number.isSafeInteger(value) && value >= 0)
+        && values.reduce((sum, value) => sum + value, 0) === manifest.nativeKeys;
+    });
+  if (!countsAreConsistent) throw new Error('native coverage counts differ from manifest key total');
+  const countsShowComplete = LANGUAGES.every(language => manifest.packs[language].missing === 0);
+  if (manifest.complete !== countsShowComplete) throw new Error('native coverage claim differs from language counts');
+  if (resourceProfile.requiresComplete && !countsShowComplete) {
+    throw new Error(`${profile} requires complete translations for every product language`);
+  }
+  return true;
+}
+function checkBuildOutput(profile = 'development-preview') {
   const root = path.resolve(__dirname, '../src-tauri/target/native-language-packs');
   const manifest = JSON.parse(safeRegularFile(root, 'manifest.json'));
   validateBuildFreshness(manifest, inputDigest(), sha256(fs.readFileSync(path.join(__dirname, 'cavalry_native_target.json'))));
+  validateResourceProfile(manifest, profile);
   for (const language of LANGUAGES) {
     const info = manifest.packs?.[language];
     if (info?.file !== `${language}.json`) throw new Error('native preview pack path differs');
@@ -218,9 +252,13 @@ function publishBuildOutput(result) {
 if (require.main === module) {
   try {
     const args = process.argv.slice(2);
-    if (args.length === 1 && args[0] === '--check') { checkBuildOutput(); process.exit(0); }
-    if (args.length !== 2 || args[0] !== '--assets-root') throw new Error('usage: native_resource_bundle.js --assets-root <official Contents/assets>');
-    const result = buildFromAssetRoot(args[1]);
+    const profileAt = args.indexOf('--profile');
+    const profile = profileAt >= 0 ? args[profileAt + 1] : 'development-preview';
+    if (profileAt >= 0 && (!profile || args.indexOf('--profile', profileAt + 1) >= 0)) throw new Error('invalid --profile argument');
+    const positional = profileAt >= 0 ? args.filter((_, index) => index !== profileAt && index !== profileAt + 1) : args;
+    if (positional.length === 1 && positional[0] === '--check') { checkBuildOutput(profile); process.exit(0); }
+    if (positional.length !== 2 || positional[0] !== '--assets-root') throw new Error('usage: native_resource_bundle.js --assets-root <official Contents/assets> [--profile development-preview|production-2.8]');
+    const result = buildFromAssetRoot(positional[1], profile);
     const output = publishBuildOutput(result);
     console.log(JSON.stringify({
       output,
@@ -233,4 +271,4 @@ if (require.main === module) {
     }, null, 2));
   } catch (error) { console.error(`[native-resource-bundle] ${error.message}`); process.exitCode = 1; }
 }
-module.exports = { buildNativeResourceBundle, buildFromAssetRoot, publishBuildOutput, validateBuildFreshness };
+module.exports = { buildNativeResourceBundle, buildFromAssetRoot, publishBuildOutput, validateBuildFreshness, validateResourceProfile };

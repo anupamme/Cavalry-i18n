@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖显式native-preview编译、Tauri build-only AppHandle、生产get_status、真实OS home、当前target与人工指定的原厂App；只允许locale/strings/receipt全Absent的首装前置；tempfile仅隔离Switcher诊断。
- * [OUTPUT]: 人工验证一次真实AppHandle状态投影及bundle/profile前后摘要、诚实partial资源计数，输出有限JSON回执并清理自有state；默认不自动运行。
+ * [INPUT]: 依赖显式native-preview编译、Tauri build-only AppHandle、生产get_status、真实OS home、当前target与人工指定的原厂App；仅locale/strings/receipt全Absent可运行，插件caption1另计入source分母。
+ * [OUTPUT]: 人工验证一次真实状态投影与bundle/profile前后摘要，输出有限回执并清理自有state；默认不自动运行。
  * [POS]: examples的只读CLI烟测，不调用product run、不进入GUI事件循环、不建窗口/WebView、不注册写命令，不代验IPC、徽章DOM或Switch/Restore。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -14,6 +14,8 @@ fn main() {
         path::Path,
     };
     use tauri::Manager;
+
+    const PLUGIN_CAPTION_SUPPLEMENT_KEYS: u64 = 1;
 
     // -- 固定只读目标：不使用临时HOME冒充OS用户隔离 --------------------
     let app_path = fs::canonicalize(
@@ -85,14 +87,15 @@ fn main() {
     // -- 当前target决定源分母；首装状态探针不要求所有caption已译完 ------
     let target_bytes = include_bytes!("../../tools/cavalry_native_target.json");
     let target: serde_json::Value = serde_json::from_slice(target_bytes).unwrap();
-    let source_keys =
-        target["nativeKeys"].as_u64().unwrap() + target["supplementalKeys"].as_u64().unwrap();
+    let supplemental_keys =
+        target["supplementalKeys"].as_u64().unwrap() + PLUGIN_CAPTION_SUPPLEMENT_KEYS;
+    let source_keys = target["nativeKeys"].as_u64().unwrap() + supplemental_keys;
     assert_eq!(
         manifest["targetSha256"],
         format!("{:x}", Sha256::digest(target_bytes))
     );
     assert_eq!(manifest["nativeKeys"], source_keys);
-    assert_eq!(manifest["supplementalKeys"], target["supplementalKeys"]);
+    assert_eq!(manifest["supplementalKeys"], supplemental_keys);
     let approved_keys = manifest["approvedUIKeys"].as_u64().unwrap();
     assert!(approved_keys > 0 && approved_keys <= source_keys);
     let missing_counts = ["zh-Hans", "zh-Hant", "ja_JP"].map(|language| {

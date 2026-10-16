@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖two-level activeLocale导入、同 bundle 路径与Extension GOT证据。
- * [OUTPUT]: 提供原getter一次转发、精确映像查找及caller准入门。
- * [POS]: native getter适配层；未知target只透传，不发布字体locale。
+ * [INPUT]: 依赖two-level activeLocale导入、同bundle映像、x86 caller窗与GOT。
+ * [OUTPUT]: 提供getter单次转发、locale快照和分架构owner门。
+ * [POS]: locale门与字体门分离；未知caller透传，不能单独启用字体lane。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 // -- 精确映像查找与two-level原函数绑定 ----------------------------------
@@ -44,6 +44,15 @@ bool exactNativeLocaleRuntimeBinding(
     const LoadedImage &api, const LoadedImage &extension) noexcept
 {
     const NativeLocaleGetter original = resolveNativeLocaleOriginal();
+#if defined(__x86_64__)
+    if (original == nullptr ||
+        reinterpret_cast<const void *>(original) != imageAddress(
+            api, native_locale_x86::kGetterEntryOffset)) return false;
+    const void *extensionTarget = nullptr;
+    return readSelf(imageAddress(extension, native_locale_x86::kGotOffset),
+                    sizeof(extensionTarget), &extensionTarget) &&
+        extensionTarget == reinterpret_cast<const void *>(nativeActiveLocaleInterpose);
+#else
     if (original == nullptr ||
         reinterpret_cast<const void *>(original) != imageAddress(
             api, native_locale_contract::kActiveLocaleEntryOffset)) return false;
@@ -53,7 +62,64 @@ bool exactNativeLocaleRuntimeBinding(
             sizeof(extensionTarget), &extensionTarget)) return false;
     return native_locale_contract::extensionGotTargetsInterposer(
         extensionTarget, reinterpret_cast<const void *>(nativeActiveLocaleInterpose));
+#endif
 }
+
+#if defined(__x86_64__)
+bool verifyNativeLocaleRuntimeContract() noexcept
+{
+    std::array<char, PATH_MAX> corePath{};
+    std::array<char, PATH_MAX> extensionPath{};
+    std::array<char, PATH_MAX> apiPath{};
+    LoadedImage core{};
+    LoadedImage extension{};
+    LoadedImage api{};
+    if (!appFrameworkPath("libCore.dylib", corePath.data(), corePath.size()) ||
+        !appFrameworkPath("libExtensionLayer.dylib", extensionPath.data(),
+                          extensionPath.size()) ||
+        !appFrameworkPath("libApi.dylib", apiPath.data(), apiPath.size()) ||
+        !findLoadedImageExactPath(corePath.data(), &core) ||
+        !findLoadedImageExactPath(extensionPath.data(), &extension) ||
+        !findLoadedImageExactPath(apiPath.data(), &api) ||
+        !imageUuidEquals(core, native_candidate_arch::expectedUuid(
+            native_candidate_arch::ImageRole::Core,
+            native_candidate_arch::Architecture::X86_64)) ||
+        !imageUuidEquals(extension, native_candidate_arch::expectedUuid(
+            native_candidate_arch::ImageRole::Extension,
+            native_candidate_arch::Architecture::X86_64)) ||
+        !imageUuidEquals(api, native_candidate_arch::expectedUuid(
+            native_candidate_arch::ImageRole::Api,
+            native_candidate_arch::Architecture::X86_64)) ||
+        !symbolAt(api, native_locale_x86::kGetterSymbol,
+                  native_locale_x86::kGetterEntryOffset) ||
+        !symbolAt(extension, native_locale_x86::kRegisterNodesSetupSymbol,
+                  native_locale_x86::kRegisterNodesSetupEntryOffset) ||
+        !matchesCode(api, native_locale_x86::kGetterEntryOffset,
+                     native_locale_x86::kGetterEntryBytes) ||
+        !matchesCode(api, native_locale_x86::kGetterSretSaveOffset,
+                     native_locale_x86::kGetterSretSaveBytes) ||
+        !matchesCode(api, native_locale_x86::kGetterReturnSretOffset,
+                     native_locale_x86::kGetterReturnSretBytes) ||
+        !matchesCode(extension, native_locale_x86::kOwnerSretArgumentOffset,
+                     native_locale_x86::kOwnerSretArgumentBytes) ||
+        !matchesCode(extension, native_locale_x86::kOwnerApiArgumentOffset,
+                     native_locale_x86::kOwnerApiArgumentBytes) ||
+        !matchesCode(extension, native_locale_x86::kRegisterNodesSetupCallOffset,
+                     native_locale_x86::kOwnerCallBytes) ||
+        !matchesCode(extension, native_locale_x86::kOwnerReturnUseOffset,
+                     native_locale_x86::kOwnerReturnUseBytes) ||
+        !matchesCode(extension, native_locale_x86::kOwnerSetLocaleCallOffset,
+                     native_locale_x86::kOwnerSetLocaleCallBytes) ||
+        !matchesCode(extension, native_locale_x86::kStubOffset,
+                     native_locale_x86::kActiveLocaleStubBytes) ||
+        !exactNativeLocaleRuntimeBinding(api, extension)) return false;
+
+    gCoreImage = core;
+    gExtensionImage = extension;
+    gApiImage = api;
+    return true;
+}
+#endif
 
 bool policyLocaleFor(native_locale::Locale locale, Locale *output) noexcept
 {
@@ -73,6 +139,12 @@ bool exactNativeLocaleOwner(std::uintptr_t callerPc) noexcept
 {
     if (!gNativeLocaleContractReady.load(std::memory_order_acquire) ||
         gApiImage.header == nullptr || gExtensionImage.header == nullptr) return false;
+#if defined(__x86_64__)
+    return callerPc == reinterpret_cast<std::uintptr_t>(imageAddress(
+        gExtensionImage,
+        native_locale_x86::kRegisterNodesSetupReturnOffset));
+#else
     return callerPc == reinterpret_cast<std::uintptr_t>(imageAddress(
         gExtensionImage, native_locale_contract::kActiveLocaleReturnOffset));
+#endif
 }

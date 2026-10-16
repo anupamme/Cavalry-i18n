@@ -21,7 +21,7 @@ Cavalry-i18n/
 ├── languages/                    # Runtime JSON language packs: en, zh-Hans, zh-Hant, ja_JP
 ├── tools/                        # Build, extraction, translation, packaging, and tracked macOS/Windows gate producers
 ├── docs/                         # Public translation rules, repeatable maintenance SOPs, images, badge data
-├── output/                       # Derived JSON-surface audit artifacts; not runtime truth
+├── output/                       # Stable derived-artifact rules only; live evidence stays session-scoped
 ├── desktop-patcher/              # Legacy injector artifact mirror; not current mainline
 ├── .github/workflows/            # CI/CD, manual installers plus signed three-platform updater release closure
 ├── LOCAL_BUILD_SOP.md            # Local Tauri packaging contract
@@ -67,6 +67,15 @@ Cavalry-i18n/
 - New root or module files require the matching `CLAUDE.md` map update in the same change.
 - Communicate in Chinese, start user-facing replies with `哥`, and report evidence before claiming completion.
 
+### Current 2.8 migration scope
+
+- 2.7 p12 is the final 2.7 release. Do not develop, update, or rerun acceptance for 2.7. Historical downloads remain available.
+- Current macOS packaging targets 2.8 with `production-2.8`, complete native resources, and an explicitly approved arm64 runtime. Do not use the historical Qt 6.6.3 injector build as a 2.8 prerequisite.
+- Keep the frozen legacy feed isolated; this is not a 2.7 maintenance lane. Intel complete-app compilation and Windows 2.8 implementation remain separate acceptance items.
+
+- 2.8 migration targets one selected Cavalry 2.8 installation. Do not require a 2.7.2 installer, old-version coexistence, or two-installation acceptance. These are not release gates and no cross-version support is promised.
+- Keep existing target-version admission and owned-file restoration. Legacy updater feed isolation is a separate release obligation; do not remove it as a coexistence cleanup.
+
 ### Renderer
 
 - `app.js` must not know Tauri internals. It talks only to `window.cavalryI18n`.
@@ -101,6 +110,9 @@ Cavalry-i18n/
 - `QLineEdit` display translation must not mutate model identity. Time Editor item views and `QAbstractItemView` model roles preserve English where required.
 - `QTextEdit` MessageBar handling is append-time only. Do not scan full QTextEdit documents during Paint/Show or inventory.
 - ExtensionLayer 只翻译经二进制调用点与真实界面共同证明的固定自绘 UI 提示；精确白名单之外的画布、模型及用户文本保持原文，禁止扩大为全局 `QPainter::drawText` 拦截。
+
+- Native 字体迁移先冻结成功源码与制品，逐段复用已验链路；不得用“逻辑等价”替换未复验接线。新制品必须回归简体、繁体、日文的 Time Editor 列表名/时间条名（含测量与绘制）、Viewport 名称/质量文字和固定工具提示，再替换成功制品。编译、静态 ABI 检查或单位置显示不抵扣这项实屏回归；失败候选不得继承旧制品的 PASS。
+- Native 字体验收分开记录稳定显示与启动首帧。交付要求注入后首次可见文字即正确；方框后刷新可读不算首帧通过。必须区分未注入官方 App 与 owned 测试副本的 exact PID。禁止用定时重刷、开窗后补写或测试 helper 掩盖首帧失败。
 
 ### Build and release
 
@@ -233,6 +245,6 @@ Windows packaging follows the same JSON source and generated translation table, 
 
 - Public `docs/` contains only stable project rules, repeatable SOPs and assets. If a maintainer checkout has `.internal-docs`, research, event ledgers, live run notes and historical workflows live there; no build, test or release may depend on that local link.
 - `desktop-patcher/` is a legacy artifact mirror; the root `injector/` and Tauri bundle resources are the active path.
-- `output/json-surfaces/` is audit/draft state. It can guide translation work, but runtime source truth is `languages/`.
+- `output/` tracks only its map and stable policy. Derived reports are not build/test/runtime inputs; use external session evidence and private history archives. Runtime source truth stays in `languages/`.
 - Several files are intentionally large because they encode contract coverage or translation surfaces. Do not casually split them during unrelated work.
 - For any architecture change, update L3 headers, L2 module maps, and the L1 `CLAUDE.md` map before calling the task done.

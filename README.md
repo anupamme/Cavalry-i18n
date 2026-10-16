@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 GitHub 最新正式 Release、当前发布配置、平台运行时边界与 LOCAL_BUILD_SOP
-[OUTPUT]: 对外提供 macOS / Windows 用户安装、当前补丁更新、macOS 受管安装恢复基线要求、已发布排序限制与开发分支行为、缺陷反馈入口、开发与安全说明
+[OUTPUT]: 对外提供 macOS / Windows 用户安装、当前补丁更新、macOS受管恢复要求、已发布排序限制、开发与安全说明及JSON DNT显示边界
 [POS]: 仓库英文用户入口；与三份本地化 README 同步发布真相，不替代平台真机验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -119,6 +119,8 @@ The project translates two surfaces:
 
 1. **JSON assets** in `languages/`, kept structurally aligned with the English baseline.
 2. **Compiled Qt/UI text** from `tools/*.ts` and `tools/model_display_translations.json`, embedded into the platform runtime translator.
+
+The native JSON builder preserves official `dontTranslate` rows by default. The explicit asset-root producer selects only the 100 root-approved, source-bound built-in demo menu labels and checks their full catalog identity plus exact values in all three target languages. The generic projection API remains closed by default. This display exception does not change preset paths, model names, or menu actions.
 
 Generated translations live in `injector/generated_translations.inc` and must not be edited by hand. Translation rules and live verification are documented in [docs/translation-guidelines.md](docs/translation-guidelines.md) and [docs/runtime-ui-live-capture-workflow.md](docs/runtime-ui-live-capture-workflow.md).
 

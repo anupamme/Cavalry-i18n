@@ -29,7 +29,11 @@ bool resolveOriginals() noexcept
     return true;
 }
 
+#if defined(__x86_64__)
+[[maybe_unused]] bool exactSkiaOriginalBindings() noexcept
+#else
 bool exactSkiaOriginalBindings() noexcept
+#endif
 {
     if (gSkiaImage.header == nullptr) return false;
     const auto address = [](auto function) noexcept {

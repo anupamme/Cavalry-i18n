@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Tauri AppHandle/IPC Channel、官方 tauri-plugin-updater 2.10.1 的 Update、Updater 单飞状态，以及安装阶段复用的 bundle operation lock。
- * [OUTPUT]: 提供 check_update/install_update 两条 renderer-facing command、只暴露 currentVersion/version/notes/pubDate/available/errorCode 的 DTO、三阶段脱敏更新事件，以及进程内 pending Update 状态；显式native开发预览拒绝check/install旧共享endpoint，不把未发布预览自动升级为2.7。
+ * [OUTPUT]: 提供 check_update/install_update 两条 renderer-facing command、只暴露 currentVersion/version/notes/pubDate/available/errorCode 的 DTO、三阶段脱敏更新事件，以及进程内 pending Update 状态；native preview禁用更新；production只接受精确2.8 endpoint；默认2.7 updater不变。
  * [POS]: commands 的更新领域边界；检查网络不占用 Cavalry bundle 锁，检查与安装彼此单飞；安装只消费 Rust State 中最近一次签名验证通过的 Update，并以 Channel 观察下载、安装和重启边界。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -253,12 +253,36 @@ fn state_error_payload(app: &AppHandle) -> UpdatePayload {
     UpdatePayload::error(current_version(app), UPDATE_STATE_UNAVAILABLE_ERROR_CODE)
 }
 
+const NATIVE_PRODUCTION_IDENTIFIER: &str = "com.daftai.cavalry-i18n";
+const NATIVE_PRODUCTION_ENDPOINT: &str =
+    "https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download/latest-cavalry-2.8.json";
+
+fn production_updater_config_matches(identifier: &str, config: Option<&serde_json::Value>) -> bool {
+    let Some(endpoints) = config
+        .and_then(|value| value.get("endpoints"))
+        .and_then(serde_json::Value::as_array)
+    else {
+        return false;
+    };
+    identifier == NATIVE_PRODUCTION_IDENTIFIER
+        && endpoints.len() == 1
+        && endpoints[0].as_str() == Some(NATIVE_PRODUCTION_ENDPOINT)
+}
+
 fn updater_is_configured(app: &AppHandle) -> bool {
     #[cfg(target_os = "macos")]
-    if super::native_resources::preview_enabled() {
-        return false;
+    {
+        if super::native_resources::preview_enabled() {
+            return false;
+        }
+        if super::native_resources::production_enabled() {
+            return production_updater_config_matches(
+                &app.config().identifier,
+                app.config().plugins.0.get("updater"),
+            );
+        }
     }
-    // 未发布2.8预览绝不消费旧2.7.2的共享latest.json。
+    // 默认2.7路径沿用既有updater配置；2.8生产只接受被release overlay覆盖的专用feed。
     app.config().plugins.0.contains_key("updater")
 }
 
@@ -438,6 +462,34 @@ mod tests {
         assert!(value.get("url").is_none());
         assert!(value.get("signature").is_none());
         assert!(value.get("rawJson").is_none());
+    }
+
+    #[test]
+    fn production_feed_requires_exact_identity_and_single_2_8_endpoint() {
+        let exact = serde_json::json!({"endpoints":[NATIVE_PRODUCTION_ENDPOINT]});
+        assert!(production_updater_config_matches(
+            NATIVE_PRODUCTION_IDENTIFIER,
+            Some(&exact)
+        ));
+        assert!(!production_updater_config_matches(
+            "com.daftai.cavalry-i18n.native-preview",
+            Some(&exact)
+        ));
+        for rejected in [
+            serde_json::json!({"endpoints":[]}),
+            serde_json::json!({"endpoints":["https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download/latest.json"]}),
+            serde_json::json!({"endpoints":[NATIVE_PRODUCTION_ENDPOINT, "https://example.invalid/feed.json"]}),
+            serde_json::json!({"endpoint":NATIVE_PRODUCTION_ENDPOINT}),
+        ] {
+            assert!(!production_updater_config_matches(
+                NATIVE_PRODUCTION_IDENTIFIER,
+                Some(&rejected)
+            ));
+        }
+        assert!(!production_updater_config_matches(
+            NATIVE_PRODUCTION_IDENTIFIER,
+            None
+        ));
     }
 
     #[test]

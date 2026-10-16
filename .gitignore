@@ -27,3 +27,8 @@ src-tauri/gen/
 *.log
 aqtinstall.log
 aqtrace.log
+
+# ── 派生产物：只保留公开稳定规则 ──
+/output/*
+!/output/CLAUDE.md
+!/output/README.md

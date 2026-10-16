@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖GetPath owner、225项固定lane与唯一 native gLocale。
- * [OUTPUT]: 为225项固定文本与FPS格式串调用Caller::Draw共享字形核心。
+ * [INPUT]: 依赖GetPath owner、225项固定lane、Graph专表与唯一 native gLocale。
+ * [OUTPUT]: 为固定lane、Graph空状态与FPS格式串调用Caller::Draw共享字形核心。
  * [POS]: 未知ABI/owner/locale/prefix或空参数只透传一次，不建候选字体。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -39,8 +39,14 @@ extern "C" void getPathFontDispatch(
     const auto coreBase = reinterpret_cast<std::uintptr_t>(imageAddress(gCoreImage, 0));
     const auto extensionBase = reinterpret_cast<std::uintptr_t>(
         imageAddress(gExtensionImage, 0));
+#if defined(__x86_64__)
+    constexpr std::uintptr_t expectedCoreReturn =
+        native_getpath_graph_x86_64::contract::kCoreGetPathReturnOffset;
+    if (callerPc < coreBase || callerPc - coreBase != expectedCoreReturn) {
+#else
     if (callerPc < coreBase ||
         callerPc - coreBase != native_getpath_abi::contract::kCoreOwnerReturnOffset) {
+#endif
         forward();
         return;
     }
@@ -54,29 +60,37 @@ extern "C" void getPathFontDispatch(
     if (native_getpath::forwardUnknownOwner(owner, forward)) return;
 
     const native_locale::Locale locale = gLocale.value();
-    const native_getpath_font::TextEntry *entries = getPathEntries(locale);
-    if (entries == nullptr) {
-        forward();
-        return;
-    }
     TextSnapshot snapshot{};
     if (!readSelf(text, size, snapshot.bytes.data())) {
         forward();
         return;
     }
     snapshot.size = size;
-    if (owner == native_getpath_font::Owner::ViewportFps) {
-        if (!native_getpath_font::viewportFpsText(
-                snapshot.bytes.data(), snapshot.size, encoding, owner,
-                native_getpath_font::viewportFpsPrefix(locale))) {
+    if (owner == native_getpath_font::Owner::GraphEditorEmptyState) {
+        const native_getpath_font::TextEntry *entry =
+            native_getpath_font::graphEditorEmptyTextEntry(locale);
+        if (native_getpath_font::forwardUnapprovedGraphEditorEmptyText(
+                snapshot.bytes.data(), snapshot.size, encoding, owner, entry,
+                forward)) return;
+    } else {
+        const native_getpath_font::TextEntry *entries = getPathEntries(locale);
+        if (entries == nullptr) {
             forward();
             return;
         }
-    } else if (native_getpath_font::exactText(
+        if (owner == native_getpath_font::Owner::ViewportFps) {
+            if (!native_getpath_font::viewportFpsText(
+                    snapshot.bytes.data(), snapshot.size, encoding, owner,
+                    native_getpath_font::viewportFpsPrefix(locale))) {
+                forward();
+                return;
+            }
+        } else if (native_getpath_font::exactText(
                    snapshot.bytes.data(), snapshot.size, encoding, owner, entries,
                    native_getpath_font::kEntriesPerLocale) < 0) {
-        forward();
-        return;
+            forward();
+            return;
+        }
     }
 
     RuntimeScope scope;

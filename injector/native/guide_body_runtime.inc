@@ -4,7 +4,9 @@
  * [POS]: 同TU窄interpose；ABI失败只关投影，未知caller不读文本或locale。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+#if defined(__arm64__)
 #include <arm_acle.h>
+#endif
 #include <QtCore/QString>
 #include <QtCore/qglobal.h>
 #include <QtWidgets/QTextEdit>

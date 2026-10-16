@@ -1,14 +1,16 @@
 /**
  * [INPUT]: 依赖同bundle CavalryUI/QtWidgets、401根布局表与原QLayout::activate。
- * [OUTPUT]: 在已验setContent唯一caller前应用一次当前locale行宽上限。
- * [POS]: 独立原生布局hook；未知caller只调用原函数一次，不修改字体或内容。
+ * [OUTPUT]: 仅在完整架构ABI合同通过后应用一次当前locale行宽上限。
+ * [POS]: 独立原生布局hook；未知caller或未核架构只调用原函数一次。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
-#if !defined(__arm64__)
-#error "Help popup layout candidate is arm64-only."
+#if !defined(__arm64__) && !defined(__x86_64__)
+#error "Help popup layout supports only verified macOS target architectures."
 #endif
 
+#if defined(__arm64__)
 #include <arm_acle.h>
+#endif
 #include <QtCore/qglobal.h>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLayout>
@@ -35,7 +37,14 @@ extern "C" bool nativeHelpLayoutActivateInterpose(QLayout *);
 
 namespace {
 namespace abi = native_help_popup_layout::abi;
+#if defined(__x86_64__)
+namespace popup_abi = native_help_popup_layout::abi::x86_64;
+constexpr const char *kPopupUiUuid = popup_abi::kCavalryUiUuid;
+#else
+namespace popup_abi = native_help_popup_layout::abi;
 namespace help_abi = native_help_description::contract;
+constexpr const char *kPopupUiUuid = help_abi::kCavalryUiUuid;
+#endif
 namespace macho = cavalry_i18n::macos_abi;
 using Original = bool (*)(QLayout *);
 using macho::LoadedImage;
@@ -89,19 +98,19 @@ __attribute__((constructor)) void initializeHelpPopupLayout() noexcept
                         std::memory_order_release);
     }
     const bool ready = std::strcmp(qVersion(), "6.9.2") == 0
-        && macho::imageUuidEquals(ui, help_abi::kCavalryUiUuid)
-        && macho::imageUuidEquals(widgets, abi::kQtWidgetsUuid)
-        && target == imageAddress(widgets, abi::kQtLayoutActivateOffset)
-        && findMachOSymbol(ui, abi::kDocumentationSetContentSymbol)
-            == imageAddress(ui, abi::kDocumentationSetContentOffset)
-        && macho::matchesCode(ui, abi::kActivateCallWindowOffset,
-                              abi::kActivateCallWindowBytes)
-        && macho::matchesCode(ui, abi::kActivateImportStubOffset,
-                              abi::kActivateImportStubBytes);
+        && macho::imageUuidEquals(ui, kPopupUiUuid)
+        && macho::imageUuidEquals(widgets, popup_abi::kQtWidgetsUuid)
+        && target == imageAddress(widgets, popup_abi::kQtLayoutActivateOffset)
+        && findMachOSymbol(ui, popup_abi::kDocumentationSetContentSymbol)
+            == imageAddress(ui, popup_abi::kDocumentationSetContentOffset)
+        && macho::matchesCode(ui, popup_abi::kActivateCallWindowOffset,
+                              popup_abi::kActivateCallWindowBytes)
+        && macho::matchesCode(ui, popup_abi::kActivateImportStubOffset,
+                              popup_abi::kActivateImportStubBytes);
     if (!ready) return;
 
     gExpectedReturn.store(reinterpret_cast<std::uintptr_t>(
-        imageAddress(ui, abi::kActivateReturnOffset)),
+        imageAddress(ui, popup_abi::kActivateReturnOffset)),
         std::memory_order_release);
 }
 

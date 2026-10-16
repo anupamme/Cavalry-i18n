@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 detect/state/status 同步、snapshot English 真相投影、platform_runtime.restart、native_user独立Restart准入、共享operation_lock与CommandRunner。
- * [OUTPUT]: 提供restart_cavalry_inner与内部legacy owner；独立native preview Restart先只读检查profile，再复核stock/managed宿主与NRT终态后启动，不同步2.7状态；native apply自动启动不调用本模块，legacy apply与Restart仍同步revision并按已证明现实投影stale marker。
+ * [OUTPUT]: 提供restart_cavalry_inner与内部legacy owner；独立native runtime Restart先只读检查profile，再复核stock/managed宿主与NRT终态后启动，不同步2.7状态；native apply自动启动不调用本模块，legacy apply与Restart仍同步revision并按已证明现实投影stale marker。
  * [POS]: commands的重启编排层；独立Restart保留完整native准入，apply提交后由native_user专用leaf复用同一operation guard与writer admission；Windows QPA/plugin/诊断marker和平台启动落在各自owner。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -21,7 +21,7 @@ pub fn restart_cavalry_inner<R: CommandRunner>(
     runner: &mut R,
 ) -> Result<(), String> {
     #[cfg(target_os = "macos")]
-    if super::native_resources::preview_enabled() {
+    if super::native_resources::native_runtime_enabled() {
         return super::native_user::restart(app_path, state_dir, runner);
     }
     restart_cavalry_legacy_inner(repo_root, state_dir, resource_dir, app_path, runner)

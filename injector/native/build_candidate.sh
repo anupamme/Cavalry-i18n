@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# [INPUT]: 依赖只读2.8 Frameworks、Qt 6.9.2公开头与已批显示源。
-# [OUTPUT]: 编译完整arm64字体/标题/帮助/Guide/Fast/Easing候选并核合同。
+# [INPUT]: 依赖只读2.8 Frameworks、Qt 6.9.2头、批准源及Demo/Welcome ABI。
+# [OUTPUT]: 编译完整arm64候选并核vendor-free、Demo源、ABI与dyld合同。
 # [POS]: 显式候选入口；不连接默认npm build，不签名、安装或启动App。
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 set -euo pipefail
@@ -48,6 +48,38 @@ for image in libCore.dylib libExtensionLayer.dylib libskia.dylib libApi.dylib; d
     exit 1
   fi
 done
+SPDLOG="$FRAMEWORKS_DIR/libspdlog.1.13.dylib"
+EXTENSION="$FRAMEWORKS_DIR/libExtensionLayer.dylib"
+if [[ ! -f "$SPDLOG" ]]; then
+  echo "缺少Welcome生产者ABI输入: $SPDLOG" >&2
+  exit 1
+fi
+EXPECTED_EXTENSION_UUID="448DD50E-75F4-3F2D-A46B-2C9F00DF9408"
+EXPECTED_CORE_UUID="55C6FCB7-E0DA-3AC1-8C45-055CC6ECEAD9"
+EXPECTED_SPDLOG_UUID="F9429837-12E6-3A4A-8436-97E5257E75EA"
+LOG_IT_SYMBOL="__ZN6spdlog6logger7log_it_ERKNS_7details7log_msgEbb"
+TEXT_FROM_FILE_SYMBOL="__ZN7cavalry12textFromFileERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEE"
+EXTENSION_UUID="$(xcrun dwarfdump --uuid "$EXTENSION" | awk '/arm64/ {print $2; exit}')"
+CORE_UUID="$(xcrun dwarfdump --uuid "$FRAMEWORKS_DIR/libCore.dylib" | awk '/arm64/ {print $2; exit}')"
+SPDLOG_UUID="$(xcrun dwarfdump --uuid "$SPDLOG" | awk '/arm64/ {print $2; exit}')"
+LOG_IT_OFFSET="$(nm -arch arm64 -gU "$SPDLOG" | awk -v symbol="$LOG_IT_SYMBOL" '$NF == symbol {print $1}')"
+EXTENSION_IMPORT="$(dyld_info -arch arm64 -imports "$EXTENSION" | grep -F "$LOG_IT_SYMBOL" || true)"
+EXTENSION_FIXUP="$(dyld_info -arch arm64 -fixups "$EXTENSION" | grep -F "$LOG_IT_SYMBOL" || true)"
+TEXT_FROM_FILE_OFFSET="$(nm -arch arm64 -gU "$FRAMEWORKS_DIR/libCore.dylib" | awk -v symbol="$TEXT_FROM_FILE_SYMBOL" '$NF == symbol {print $1}')"
+TEXT_FROM_FILE_IMPORT="$(dyld_info -arch arm64 -imports "$EXTENSION" | grep -F "$TEXT_FROM_FILE_SYMBOL" || true)"
+TEXT_FROM_FILE_FIXUP="$(dyld_info -arch arm64 -fixups "$EXTENSION" | grep -F "$TEXT_FROM_FILE_SYMBOL" || true)"
+if [[ "$EXTENSION_UUID" != "$EXPECTED_EXTENSION_UUID" ||
+      "$CORE_UUID" != "$EXPECTED_CORE_UUID" ||
+      "$SPDLOG_UUID" != "$EXPECTED_SPDLOG_UUID" ||
+      "$LOG_IT_OFFSET" != "000000000000992c" ||
+      "$EXTENSION_IMPORT" != *"(from libspdlog.1.13)"* ||
+      "$EXTENSION_FIXUP" != *"libspdlog.1.13/$LOG_IT_SYMBOL"* ||
+      "$TEXT_FROM_FILE_OFFSET" != "000000000049c7d0" ||
+      "$TEXT_FROM_FILE_IMPORT" != *"(from libCore)"* ||
+      "$TEXT_FROM_FILE_FIXUP" != *"libCore/$TEXT_FROM_FILE_SYMBOL"* ]]; then
+  echo "拒绝：Demo/Welcome Core、Extension、导出或two-level导入合同偏离。" >&2
+  exit 1
+fi
 if [[ ! -f "$FRAMEWORKS_DIR/QtCore.framework/Versions/A/QtCore" ]]; then
   echo "缺少目标bundle的QtCore 6.9.2映像: $FRAMEWORKS_DIR/QtCore.framework/Versions/A/QtCore" >&2
   exit 1
@@ -86,6 +118,12 @@ HELP_LAYOUT_TEST_BIN="$OUT_DIR/help_popup_layout_contract_test"
 GUIDE_BODY_TEST_BIN="$OUT_DIR/guide_body_contract_test"
 EASING_TABLE="$OUT_DIR/easing-display-table.inc"
 EASING_TEST_BIN="$OUT_DIR/easing_menu_contract_test"
+WELCOME_TEST_BIN="$OUT_DIR/welcome_log_it_contract_test"
+WELCOME_VENEER_TEST_BIN="$OUT_DIR/welcome_log_it_veneer_contract_test"
+SAVE_CAPTION_TEST_BIN="$OUT_DIR/save_scene_caption_contract_test"
+DEMO_TEXT_TABLE="$OUT_DIR/demo-reader-texts.inc"
+DEMO_FILES_TABLE="$OUT_DIR/demo-reader-files.inc"
+DEMO_TEST_BIN="$OUT_DIR/demo_reader_contract_test"
 
 echo "OUT_DIR: $OUT_DIR"
 echo "INPUT_FRAMEWORKS: $FRAMEWORKS_DIR"
@@ -95,6 +133,11 @@ node "$REPO_ROOT/tools/build_native_help_description_table.js" \
   --out "$HELP_TABLE" >"$OUT_DIR/help-description-table-command.log"
 node "$REPO_ROOT/tools/build_native_easing_display_table.js" \
   --out "$EASING_TABLE" >"$OUT_DIR/easing-display-table-command.log"
+node "$REPO_ROOT/tools/generate_demo_reader_tables.js" \
+  --source "$REPO_ROOT/languages/native/official_demo_scripts.js" \
+  --presets-root "$(cd "$(dirname "$FRAMEWORKS_DIR")/assets/Presets" && pwd -P)" \
+  --texts-out "$DEMO_TEXT_TABLE" --files-out "$DEMO_FILES_TABLE" \
+  >"$OUT_DIR/demo-reader-table-command.log"
 
 {
   xcrun --sdk macosx clang++ \
@@ -111,16 +154,21 @@ node "$REPO_ROOT/tools/build_native_easing_display_table.js" \
     "-DNATIVE_HELP_DESCRIPTION_TABLE=\"$HELP_TABLE\"" \
     "-DNATIVE_HELP_LAYOUT_ROWS=\"$HELP_LAYOUT_TABLE\"" \
     "-DNATIVE_EASING_DISPLAY_TABLE=\"$EASING_TABLE\"" \
+    "-DNATIVE_DEMO_READER_TEXTS_TABLE=\"$DEMO_TEXT_TABLE\"" \
+    "-DNATIVE_DEMO_READER_FILES_TABLE=\"$DEMO_FILES_TABLE\"" \
     "$NATIVE_DIR/native_font_candidate.mm" \
     "$NATIVE_DIR/help_popup_layout_adapter.mm" \
     "$NATIVE_DIR/fast_search_unicode_adapter.mm" \
     "$NATIVE_DIR/timeline_owner_observer_arm64.S" \
     "$NATIVE_DIR/viewport_blob_veneer.S" \
     "$NATIVE_DIR/help_description_veneer.S" \
+    "$NATIVE_DIR/welcome_log_it_veneer.S" \
     "$NATIVE_DIR/getpath_font_veneer.S" \
     -L "$FRAMEWORKS_DIR" -lskia "$FRAMEWORKS_DIR/libApi.dylib" \
+    "$FRAMEWORKS_DIR/libCore.dylib" \
     "$FRAMEWORKS_DIR/libfmt.10.dylib" \
     "$FRAMEWORKS_DIR/libCavalryUI.dylib" \
+    -lspdlog.1.13 \
     -F "$FRAMEWORKS_DIR" -framework QtCore -framework QtGui -framework QtWidgets \
     -framework CoreText -framework Foundation \
     -o "$DYLIB"
@@ -153,6 +201,35 @@ xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -Wall -Wextra -Werror \
   -o "$EASING_TEST_BIN"
 "$EASING_TEST_BIN"
 echo "PASS: Easing exact caller/source/locale and single-forwarding contract test"
+xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -O1 -Wall -Wextra -Werror \
+  -include arm_acle.h -I "$NATIVE_DIR" -I "$QT_HEADERS" \
+  -I "$QT_HEADERS/QtCore" -I "$QT_HEADERS/QtGui" -I "$QT_HEADERS/QtWidgets" \
+  -F "$FRAMEWORKS_DIR" -framework QtCore \
+  -Wl,-rpath,"$FRAMEWORKS_DIR/QtCore.framework/Versions/A" \
+  "$NATIVE_DIR/save_scene_caption_contract_test.cpp" \
+  -o "$SAVE_CAPTION_TEST_BIN"
+"$SAVE_CAPTION_TEST_BIN"
+echo "PASS: Save Scene QString return/ref/lifetime and exact caller/source ABI contract"
+xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -Wall -Wextra -Werror \
+  -I "$NATIVE_DIR" "$NATIVE_DIR/demo_reader_contract_test.cpp" \
+  -o "$DEMO_TEST_BIN"
+"$DEMO_TEST_BIN"
+echo "PASS: Demo optional<string> ABI, source hash, owner, and single-forwarding contract"
+xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -Wall -Wextra -Werror \
+  -I "$NATIVE_DIR" "$NATIVE_DIR/welcome_log_it_contract_test.cpp" \
+  -o "$WELCOME_TEST_BIN"
+"$WELCOME_TEST_BIN"
+xcrun --sdk macosx clang++ -std=c++17 -O0 -g -arch arm64 \
+  -mmacosx-version-min=12.0 \
+  "$NATIVE_DIR/welcome_log_it_veneer_contract_test.cpp" \
+  "$NATIVE_DIR/welcome_log_it_veneer_probe.S" \
+  "$NATIVE_DIR/welcome_log_it_veneer.S" -o "$WELCOME_VENEER_TEST_BIN"
+"$WELCOME_VENEER_TEST_BIN"
+echo "PASS: Welcome exact payload/locale/single-forward and unknown-caller veneer contracts"
+bash "$NATIVE_DIR/welcome_dyld_fixture.sh" green \
+  "$NATIVE_DIR/welcome_log_it_veneer.S" \
+  "$OUT_DIR/welcome-dyld-fixture-green"
+echo "PASS: dyld early-constructor original-import call-through fixture"
 xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -Wall -Wextra -Werror \
   -I "$NATIVE_DIR" \
   "$NATIVE_DIR/fast_search_unicode_contract_test.cpp" -o "$FAST_TEST_BIN"

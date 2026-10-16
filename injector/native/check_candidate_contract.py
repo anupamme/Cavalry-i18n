@@ -1,6 +1,6 @@
 """
-[INPUT]: 依赖候选源码、GetPath81/93基线、批准ToolHelp源与锁定Frameworks。
-[OUTPUT]: 核验字体、FPS、标题、Fast、Mesh前缀与225槽GetPath表。
+[INPUT]: 依赖候选源码、GetPath81/93基线、Graph catalog与锁定Frameworks。
+[OUTPUT]: 核验字体、FPS/Graph owner、标题、Fast、Mesh与225槽GetPath表。
 [POS]: 候选静态门；核GetPath精确veneer、source-bound文本与二进制ABI。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 """
@@ -205,6 +205,7 @@ def main() -> None:
     bindings = (source / "skia_original_bindings.inc").read_text()
     policy = (source / "getpath_font_policy.h").read_text()
     texts = (source / "getpath_font_texts.inc").read_text()
+    graph_texts = (source / "getpath_graph_editor_empty_texts.inc").read_text()
     title_policy = (source / "title_format_policy.h").read_text()
     title_abi = (source / "title_format_abi_contract.h").read_text()
     title_adapter = (source / "title_format_adapter.inc").read_text()
@@ -374,6 +375,35 @@ def main() -> None:
     require(fps_call_bytes == cpp_byte_array(
                 getpath_abi, "kViewportFpsGetPathCallBytes"),
             "Extension FPS MakePathFromText调用字节与合同不同")
+    graph_call_window = arm64_macho_bytes_at(
+        extension_image,
+        cpp_hex(getpath_abi, "kGraphEditorEmptyStateCallWindowOffset"),
+        len(cpp_byte_array(getpath_abi, "kGraphEditorEmptyStateCallWindowBytes")),
+        out_dir)
+    expected_graph_call_window = cpp_byte_array(
+        getpath_abi, "kGraphEditorEmptyStateCallWindowBytes")
+    require(graph_call_window == expected_graph_call_window and
+            cpp_hex(getpath_abi, "kGraphEditorEmptyStateMakePathCallOffset") ==
+            cpp_hex(getpath_abi, "kGraphEditorEmptyStateCallWindowOffset") + 12 and
+            cpp_hex(getpath_abi, "kGraphEditorEmptyStateProducerReturn") ==
+            cpp_hex(getpath_abi, "kGraphEditorEmptyStateMakePathCallOffset") + 4 and
+            graph_call_window[8:16] == bytes.fromhex("e0 c3 02 91 28 94 20 94"),
+            "GraphEditor空状态MakePathFromText调用窗与arm64合同不同")
+    graph_call_instruction = int.from_bytes(graph_call_window[12:16], "little")
+    graph_call_immediate = graph_call_instruction & 0x03ffffff
+    if graph_call_immediate & 0x02000000:
+        graph_call_immediate -= 0x04000000
+    make_path_stub_offset = cpp_hex(
+        getpath_abi, "kMakePathFromTextImportStubOffset")
+    require(cpp_hex(getpath_abi, "kGraphEditorEmptyStateMakePathCallOffset") +
+            graph_call_immediate * 4 == make_path_stub_offset,
+            "GraphEditor MakePath call没有到达已锁定的Extension import stub")
+    make_path_symbol = cpp_string(getpath_abi, "kMakePathFromTextSymbol")
+    make_path_imports = run("dyld_info", "-arch", "arm64", "-imports",
+                            str(extension_image))
+    require(re.search(rf"{re.escape(make_path_symbol)}\s+\(from libCore\)",
+                      make_path_imports) is not None,
+            "Extension没有从libCore导入MakePathFromText")
     instruction = int.from_bytes(call_bytes, "little")
     immediate = instruction & 0x03ffffff
     if immediate & 0x02000000:
@@ -442,8 +472,9 @@ def main() -> None:
             "English与未知locale必须沿原路径透传，不选择GetPath文本lane")
     require("callerFrameRecord" in owner and
             "kViewportFpsProducerReturn" in owner and
+            "kGraphEditorEmptyStateProducerReturn" in owner and
             "kCacheOwnerReturnOffset" in owner,
-            "GetPath必须单读区分FPS直绘与旧缓存链")
+            "GetPath必须单读区分FPS/Graph直绘与旧缓存链")
     require("native_getpath_font::exactText(" in getpath and
             "native_getpath_font::viewportFpsText(" in getpath and
             "native_getpath_font::viewportFpsPrefix(locale)" in getpath and
@@ -457,6 +488,16 @@ def main() -> None:
             "Owner::ViewportFps" in policy and
             len(re.findall(r"\{native_getpath_font::Owner::(?:ToolHelp|ViewportStatus),", texts)) == 225,
             "GetPath必须保留512上限和225条固定UI文本")
+    graph_entries = re.findall(
+        r'\{Owner::GraphEditorEmptyState,\s*"([^"\n]+)"\}', graph_texts)
+    require(len(graph_entries) == 3 and set(graph_entries) == {
+                "选择图层或属性以查看其关键帧",
+                "選取圖層或屬性以檢視其關鍵幀",
+                "レイヤーまたは属性を選択するとキーフレームが表示されます",
+            } and "forwardUnapprovedGraphEditorEmptyText" in getpath and
+            "exactGraphEditorEmptyText" in policy and
+            "Owner::GraphEditorEmptyState" in getpath,
+            "GraphEditor只能使用catalog批准的三语完整空状态文本")
     fps_entry = native_entry(
         root, "languages/native/remaining_global_ui_06.js", "viewport.fps")
     fps_rows = [line for line in (
@@ -625,6 +666,7 @@ def main() -> None:
         "PASS: runtime original-entry and Extension GOT gates",
         "PASS: native getter once/exception and GetPath unknown-owner source gates",
         "PASS: exact FPS direct caller bytes and two-return owner contract",
+        "PASS: exact GraphEditor caller bytes, direct frame owner and three full strings",
         "PASS: one gLocale, 512-byte GetPath cap, 225 source-bound UI strings",
         "PASS: exact Gui::updateAppTitle caller, format pointer/length and descriptor",
         "PASS: fmt10 ABI probe matches sret x8, format view x0/x1, args x2/x3",

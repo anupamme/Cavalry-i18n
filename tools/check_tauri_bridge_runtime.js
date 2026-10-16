@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/user-profile-text/ui-text/language-scope/version-guidance/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/support-footer/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证四语支持 footer 文案/无障碍名称与 GitHub/X/小红书固定 ID 分发；验证 About「关注」文案和平台区分的四语名称；保留 camelCase scope/错误白名单、严格 Restore/恢复语义、失败 Activity、局部外链 Toast、任务流、权限、Updater 与组件状态机合同。
+ * [OUTPUT]: 验证单行关注 footer 四语文案/提示/无障碍名称与 GitHub/X/小红书固定 ID 分发；验证 About「关注」文案和平台区分的四语名称；保留 camelCase scope/错误白名单、严格 Restore/恢复语义、失败 Activity、局部外链 Toast、任务流、权限、Updater 与组件状态机合同。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -215,10 +215,10 @@ function toastViewport(runtimeState) { return runtimeState.context.document.body
 
 test('main support footer localizes all four accessible labels and dispatches only fixed links', async () => {
   const cases = [
-    { locale: 'en-US', message: 'If this helps, please star us on GitHub.', nav: 'Support links', github: 'GitHub', twitter: 'X (Twitter)', xiaohongshu: 'Xiaohongshu' },
-    { locale: 'zh-CN', message: '如果对你有帮助，欢迎在 GitHub 点个 Star 支持我们', nav: '支持链接', github: 'GitHub', twitter: 'X（Twitter）', xiaohongshu: '小红书' },
-    { locale: 'zh-TW', message: '如果這對你有幫助，歡迎在 GitHub 點個 Star 支持我們', nav: '支援連結', github: 'GitHub', twitter: 'X（Twitter）', xiaohongshu: '小紅書' },
-    { locale: 'ja-JP', message: '役に立ったらGitHubにStarをお願いします', nav: 'サポートリンク', github: 'GitHub', twitter: 'X（Twitter）', xiaohongshu: '小紅書' },
+    { locale: 'en-US', message: 'Follow us', nav: 'Support links', github: 'Star us on GitHub', twitter: 'Follow us on X (Twitter)', xiaohongshu: 'Follow us on Xiaohongshu' },
+    { locale: 'zh-CN', message: '关注我们', nav: '支持链接', github: '在 GitHub 点 Star 支持我们', twitter: '在 X（Twitter）关注我们', xiaohongshu: '在小红书关注我们' },
+    { locale: 'zh-TW', message: '關注我們', nav: '支援連結', github: '在 GitHub 點 Star 支持我們', twitter: '在 X（Twitter）關注我們', xiaohongshu: '在小紅書關注我們' },
+    { locale: 'ja-JP', message: 'フォローする', nav: 'サポートリンク', github: 'GitHub で Star を付ける', twitter: 'X（Twitter）でフォローする', xiaohongshu: '小紅書でフォローする' },
   ];
   for (const expected of cases) {
     const r = boot({ locale: expected.locale, projectLinkResult: { ok: false } });
@@ -228,6 +228,9 @@ test('main support footer localizes all four accessible labels and dispatches on
     assert.equal(r.elements['#supportGithubLink'].attributes.get('aria-label'), expected.github);
     assert.equal(r.elements['#supportTwitterLink'].attributes.get('aria-label'), expected.twitter);
     assert.equal(r.elements['#supportXiaohongshuLink'].attributes.get('aria-label'), expected.xiaohongshu);
+    for (const [id, label] of [['supportGithubLink', expected.github], ['supportTwitterLink', expected.twitter], ['supportXiaohongshuLink', expected.xiaohongshu]]) {
+      assert.equal(r.elements[`#${id}`].attributes.get('title'), label);
+    }
     const before = activityText(r);
     let prevented = 0;
     for (const id of ['supportGithubLink', 'supportTwitterLink', 'supportXiaohongshuLink']) {

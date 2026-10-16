@@ -17,8 +17,16 @@ auto dispatchVerifiedText(const void *originalFont,const TextSnapshot &textSnaps
     }
     Locale policyLocale = Locale::Unset;
     (void)policyLocaleFor(gLocale.value(), &policyLocale);
+#if defined(__x86_64__)
+    const auto getCTFont = gGetCTFont;
+    if (getCTFont == nullptr) {
+        report(DecisionReason::FactoryFailed);
+        return original(originalFont);
+    }
+#else
     const auto getCTFont = reinterpret_cast<GetCTFont>(
         imageAddress(gSkiaImage, e4_contract::kGetCTFontOffset));
+#endif
     SlotLock slotLock;
     FontSlot *selectedSlot = nullptr;
     constexpr std::size_t candidateCount = 1 + viewport_font::kNamedFallbackPostScriptNameCount;

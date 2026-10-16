@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 native_resource_bundle 的纯生成入口、合成官方catalog/审定数据及固定schema补充源记录。
- * [OUTPUT]: 验证三语显示工件、DNT身份一致性、厂商默认优先/有限纠错、格式拒绝与官方/补充来源分计数和碰撞拒绝。
+ * [OUTPUT]: 验证预览/生产资源profile、完整度、摘要、2.8资源overlay与默认2.7 feed隔离。
  * [POS]: macOS native UI 接线的构建边界合同；补充测试只证明有限8键producer契约，不审批译文/不证明实际显示。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -10,6 +10,35 @@ const { test } = require('node:test');
 const { buildNativeResourceBundle } = require('./native_resource_bundle');
 const { createHash } = require('node:crypto');
 const sha = value => createHash('sha256').update(value).digest('hex');
+test('optimized ARM candidate command retains preview configuration and no updater artifacts', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const root = path.join(__dirname, '..');
+  const scripts = require('../package.json').scripts;
+  assert.equal(scripts['build:tauri:native:candidate'],
+    'CAVALRY_I18N_ENABLE_NATIVE_PREVIEW=1 CAVALRY_I18N_NATIVE_RELEASE_CANDIDATE=1 tauri build --target aarch64-apple-darwin --config src-tauri/tauri.native-preview.conf.json');
+  const preview = JSON.parse(fs.readFileSync(path.join(root, 'src-tauri/tauri.native-preview.conf.json')));
+  assert.equal(preview.identifier, 'com.daftai.cavalry-i18n.native-preview');
+  assert.equal(preview.build.beforeBuildCommand, null);
+  assert.deepEqual(preview.bundle.resources, ['target/native-language-packs']);
+  assert.notEqual(preview.bundle.createUpdaterArtifacts, true);
+  assert.doesNotMatch(scripts['tauri:build'], /NATIVE_RELEASE_CANDIDATE|native-preview/);
+});
+test('2.8 production overlay binds native resources and reuses the isolated 2.8 endpoint', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const root = path.join(__dirname, '..');
+  const production = JSON.parse(fs.readFileSync(path.join(root, 'src-tauri/tauri.native-production-2.8.conf.json')));
+  const endpoint = JSON.parse(fs.readFileSync(path.join(root, 'src-tauri/tauri.release-2.8.conf.json')));
+  const legacy = JSON.parse(fs.readFileSync(path.join(root, 'src-tauri/tauri.conf.json')));
+  assert.equal(production.productName, 'Cavalry Language Switcher');
+  assert.equal(production.identifier, 'com.daftai.cavalry-i18n');
+  assert.equal(production.build.beforeBuildCommand, null);
+  assert.deepEqual(production.bundle.resources, ['target/native-language-packs']);
+  assert.deepEqual(production.plugins.updater.endpoints, [], 'production overlay alone must not fall back to the 2.7 feed');
+  assert.deepEqual(endpoint.plugins.updater.endpoints, ['https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download/latest-cavalry-2.8.json']);
+  assert.deepEqual(legacy.plugins.updater.endpoints, ['https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download/latest.json']);
+});
 function fixture() {
   const pairs = [{ id: 'Definitions/Translation/appStrings',
     source: [{ type: 'strings', value: {
@@ -52,6 +81,32 @@ test('native build emits one-language display-only previews with honest fallback
     assert.equal(manifest.packs[code].missing, code === 'ja_JP' ? 1 : 2);
   }
   assert.deepEqual(JSON.parse(packs.ja_JP)[0].value.vendor, { 'UI-text': '完了' });
+});
+test('production resource profile rejects incomplete packs and binds the explicit profile', () => {
+  const { pairs, approved } = fixture();
+  assert.throws(() => buildNativeResourceBundle(pairs, approved, undefined, [], [], 'production-2.8'), /complete translations/i);
+  const { collectNativeCatalog } = require('./native_language_pack');
+  const rows = collectNativeCatalog(pairs[0].id, pairs[0].source, pairs[0].japanese).entries;
+  const completed = rows.filter(row => row.dontTranslate !== true).map(row => {
+    const texts = { 'zh-Hans': `简体 ${row.key}`, 'zh-Hant': `繁體 ${row.key}`, ja_JP: `日本語 ${row.key}` };
+    if (row.key === 'hello') Object.assign(texts, { 'zh-Hans': '你好 {0}', 'zh-Hant': '您好 {0}', ja_JP: 'こんにちは {0}' });
+    return { key: row.key, source: row.source, notes: row.notes, catalogId: row.catalogId, owner: row.owner, fieldPath: row.fieldPath,
+      translations: Object.fromEntries(Object.entries(texts).map(([language, text]) => [language, { decision: 'translate', text }])) };
+  });
+  const built = buildNativeResourceBundle(pairs, completed, undefined, [], [], 'production-2.8');
+  assert.equal(built.manifest.kind, 'production-2.8');
+  assert.equal(built.manifest.complete, true);
+  const { validateResourceProfile } = require('./native_resource_bundle');
+  assert.equal(validateResourceProfile(built.manifest, 'production-2.8'), true);
+  assert.throws(() => validateResourceProfile({ ...built.manifest, kind: 'development-preview' }, 'production-2.8'), /profile differs/i);
+  const incomplete = structuredClone(built.manifest);
+  incomplete.complete = false;
+  incomplete.packs['zh-Hans'].missing = 1;
+  incomplete.packs['zh-Hans'].reviewed -= 1;
+  assert.throws(() => validateResourceProfile(incomplete, 'production-2.8'), /complete translations/i);
+  const inconsistent = structuredClone(built.manifest);
+  inconsistent.packs['zh-Hans'].reviewed -= 1;
+  assert.throws(() => validateResourceProfile(inconsistent, 'production-2.8'), /coverage counts/i);
 });
 test('native build rejects duplicate/unknown reviews instead of silently omitting them', () => {
   const { pairs, approved } = fixture();

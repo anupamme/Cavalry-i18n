@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖2.8 arm64 getter/Skia、fmt10、帮助、Guide与Easing ABI。
- * [OUTPUT]: 提供唯一gLocale、共享字体核心、标题、FPS及窄文字投影。
- * [POS]: 未接入发布链的arm64候选；未知ABI/caller/owner/locale原样透传。
+ * [INPUT]: 依赖arm64或x86字体ABI合同、独立locale门及分架构owner校验。
+ * [OUTPUT]: 提供唯一gLocale、双合同字体准入门及精确caller文字投影。
+ * [POS]: x86字体门要求locale与ABI合同同时通过；ARM准入逻辑不变。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include <CoreText/CoreText.h>
@@ -20,12 +20,21 @@
 #include <mach-o/dyld.h>
 #include <mutex>
 #include <new>
+#include <optional>
 #include <utility>
 #include "timeline_owner_observer_abi.h"
 #include "../cavalry_i18n_macos_abi.h"
 #include "../cavalry_i18n_macos_timeline_font_policy.h"
 #include "getpath_font_abi_contract.h"
 #include "native_locale_abi_contract.h"
+#if defined(__x86_64__)
+#include "native_candidate_architecture.h"
+#include "native_locale_x86_64_abi_contract.h"
+#include "native_font_x86_64_abi_contract.h"
+#include "timeline_owner_observer_x86_64_contract.h"
+namespace native_locale_x86 = native_locale_interpose::x86_64_contract;
+namespace native_candidate_arch = native_candidate_architecture;
+#endif
 #include "timeline_owner_observer_contract.h"
 #include "timeline_system_fallback_contract.h"
 #include "timeline_system_fallback_policy.h"
@@ -36,13 +45,21 @@
 #include <string_view>
 #include "verified_text_selection.h"
 #include "viewport_blob_abi.h"
+#if defined(__x86_64__)
+#include "viewport_blob_x86_64_owner_snapshot.h"
+#endif
 #include "native_locale_snapshot.h"
 #include "getpath_font_abi.h"
 #include "getpath_owner_adapter.h"
 #include "getpath_font_texts.inc"
+#include "getpath_graph_editor_empty_texts.inc"
 #include "native_image_paths.h"
 #include "title_format_abi_contract.h"
 #include "help_description_abi_contract.h"
+#include "demo_reader_abi_contract.h"
+
+using DemoTextFromFileResult = native_demo_reader::contract::TextFromFileResult;
+namespace native_demo_reader { extern std::atomic<bool> gContractReady; }
 
 struct Api;
 #pragma clang diagnostic push
@@ -50,6 +67,10 @@ struct Api;
 extern "C" std::string nativeActiveLocaleInterpose(Api *api);
 extern "C" std::string activeLocaleTarget(Api *api)
     __asm__("__ZN7cavalry12activeLocaleEP3Api");
+extern "C" DemoTextFromFileResult nativeDemoTextFromFileInterpose(
+    const std::string &path);
+extern "C" DemoTextFromFileResult demoTextFromFileTarget(const std::string &path)
+    __asm__("__ZN7cavalry12textFromFileERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEE");
 extern "C" std::string nativeTitleVformatInterpose(
     native_title_format_abi::FormatStringView format,
     native_title_format_abi::FormatArguments arguments);
@@ -65,6 +86,18 @@ extern "C" void helpDocumentationEntryTarget(
     void *owner, const std::string &key,
     const native_help_description::contract::ScriptDocumentationAbiMirror &documentation)
     __asm__("__ZN8TextEdit27addScriptDocumentationEntryERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEERKN7cavalry19ScriptDocumentationE");
+extern "C" {
+__attribute__((visibility("hidden"))) std::atomic<std::uintptr_t>
+    nativeWelcomeLogItExpectedReturnPc{0};
+void nativeWelcomeLogItVeneer(void *logger, const void *message,
+                              bool logEnabled, bool tracebackEnabled);
+void nativeWelcomeLogItDispatcher(void *logger, const void *message,
+                                  bool logEnabled, bool tracebackEnabled,
+                                  std::uintptr_t callerPc);
+void welcomeLogItTarget(void *logger, const void *message,
+                        bool logEnabled, bool tracebackEnabled)
+    __asm__("__ZN6spdlog6logger7log_it_ERKNS_7details7log_msgEbb");
+}
 
 namespace {
 namespace e4_contract = native_getpath_abi::contract;
@@ -89,6 +122,7 @@ using policy::Locale;
 using policy::TextDisposition;
 using policy::GlyphLookup;
 using NativeLocaleGetter = std::string (*)(Api *);
+using DemoTextFromFileOriginal = native_demo_reader::contract::TextFromFileFunction;
 using NativeTitleVformat = std::string (*)(
     native_title_format_abi::FormatStringView,
     native_title_format_abi::FormatArguments);
@@ -101,6 +135,7 @@ static_assert(std::atomic<native_locale::Locale>::is_always_lock_free);
 using MakeTypeface = SkSpTypefaceAbi (*)(CTFontRef);
 using GetCTFont = CTFontRef (*)(const void *);
 using MakeFont = SkFontAbi (*)(SkSpTypefaceAbi, float);
+#include "native_font_factory_bindings.inc"
 using SetSize = void (*)(void *, float);
 enum class DecisionReason : unsigned {
     OwnerUnproven,
@@ -146,6 +181,10 @@ std::atomic<NativeLocaleGetter> gOriginalNativeLocale{nullptr};
 std::atomic<NativeTitleVformat> gOriginalTitleVformat{nullptr};
 std::atomic<bool> gAdmitted{false};
 std::atomic<bool> gNativeLocaleContractReady{false};
+#if defined(__x86_64__)
+std::atomic<bool> gFontContractReady{false};
+[[maybe_unused]] std::atomic<bool> gX86FontAbiContractReady{false};
+#endif
 std::atomic<bool> gTitleFormatContractReady{false};
 native_locale::LocaleSnapshot gLocale{};
 std::array<FontSlot, contract::kMaxFontSlots> gSlots{};
@@ -160,11 +199,18 @@ LoadedImage gFmtImage{};
 GlyphLookup gGlyph = nullptr;
 SetSize gSetSize = nullptr;
 #include "skia_original_bindings.inc"
+#include "native_image_runtime_helpers.inc"
 #include "native_locale_adapter.inc"
+#if defined(__x86_64__)
+#include "native_font_x86_64_runtime.inc"
+#endif
 bool verifyTitleFormatContract() noexcept;
 bool verifyHelpDescriptionContract() noexcept;
 bool verifyGuideBodyContract() noexcept;
 bool verifyEasingMenuContract() noexcept;
+bool verifySaveSceneCaptionContract() noexcept;
+bool verifyWelcomeLogItContract() noexcept;
+bool verifyDemoReaderContract() noexcept;
 thread_local bool gInsideRuntime = false;
 class RuntimeScope {
 public:
@@ -236,6 +282,7 @@ bool imagePathMatches(const char *path, const char *expected) noexcept
     return native_image_paths::pathMatchesCanonical(path, expected);
 }
 
+#if !defined(__x86_64__)
 bool appFrameworkPath(const char *leaf, char *output, std::size_t capacity) noexcept
 {
     char executable[PATH_MAX]{};
@@ -250,10 +297,23 @@ bool symbolAt(const LoadedImage &image, const char *symbol,
     return findMachOSymbol(image, symbol) == imageAddress(image, offset);
 }
 
+#endif
+#if defined(__x86_64__)
+[[maybe_unused]] bool verifyViewportProbe(const LoadedImage &) noexcept;
+#else
 bool verifyViewportProbe(const LoadedImage &) noexcept;
+#endif
 
 bool verifyContract() noexcept
 {
+#if defined(__x86_64__)
+    const bool localeReady = gNativeLocaleContractReady.load(
+        std::memory_order_acquire);
+    const bool fontAbiReady = verifyX86FontAbiContract();
+    gX86FontAbiContractReady.store(fontAbiReady, std::memory_order_release);
+    return native_font_x86_64_abi::contract::fontLaneContractsReady(
+        localeReady, fontAbiReady);
+#else
     LoadedImage core{};
     LoadedImage extension{};
     LoadedImage skia{};
@@ -333,6 +393,7 @@ bool verifyContract() noexcept
     if (gGlyph == nullptr || gSetSize == nullptr || !verifyViewportProbe(extension) ||
         !exactSkiaOriginalBindings()) return false;
     return exactNativeLocaleRuntimeBinding(api, extension);
+#endif
 }
 
 bool readSelf(const void *source, std::size_t size, void *destination) noexcept
@@ -360,61 +421,7 @@ bool addOffset(const void *base, std::uintptr_t offset, const void **output) noe
     return true;
 }
 
-bool readOwnerSpan(const void *closure, OwnerSpan *output) noexcept
-{
-    const void *captureAddress = nullptr;
-    if (output == nullptr ||
-        !addOffset(closure, observer_contract::kNodeDataCaptureOffset, &captureAddress)) return false;
-    std::uintptr_t nodeData = 0;
-    if (!readSelf(captureAddress, sizeof(nodeData), &nodeData) || nodeData == 0) return false;
-    const void *stringAddress = nullptr;
-    if (!addOffset(reinterpret_cast<const void *>(nodeData),
-                   observer_contract::kStringFieldOffset, &stringAddress)) return false;
-    unsigned char object[observer_contract::kStringObjectBytes]{};
-    if (!readSelf(stringAddress, sizeof(object), object)) return false;
-    const unsigned char tag = object[observer_contract::kStringTagOffset];
-    OwnerSpan candidate{};
-    if ((tag & 0x80U) != 0) {
-        std::uintptr_t dataAddress = 0;
-        std::uint64_t fullSize = 0;
-        std::memcpy(&dataAddress, object, sizeof(dataAddress));
-        std::memcpy(&fullSize, object + sizeof(dataAddress), sizeof(fullSize));
-        if (dataAddress == 0 || fullSize > std::numeric_limits<std::size_t>::max()) return false;
-        candidate.data = reinterpret_cast<const unsigned char *>(dataAddress);
-        candidate.size = static_cast<std::size_t>(fullSize);
-    } else {
-        if (tag > observer_contract::kShortStringCapacity || object[tag] != 0) return false;
-        candidate.data = reinterpret_cast<const unsigned char *>(stringAddress);
-        candidate.size = tag;
-    }
-    if (candidate.size == 0 ||
-        candidate.size > cavalry_i18n::mac_timeline::kMaxTextBytes) return false;
-    *output = candidate;
-    return true;
-}
-
-bool snapshotOwner(const void *text, std::size_t length, const void *closure,
-                   std::uintptr_t callerPc, Caller caller,
-                   TextSnapshot *snapshot, policy::OwnerProof *proof) noexcept
-{
-    const std::uintptr_t expectedOffset = caller == Caller::Measure
-        ? observer_contract::kMeasureReturnOffset : observer_contract::kDrawReturnOffset;
-    if (snapshot == nullptr || proof == nullptr) return false;
-    *proof = {};
-    if (callerPc != reinterpret_cast<std::uintptr_t>(
-            imageAddress(gExtensionImage, expectedOffset))) return false;
-    proof->exactCaller = true;
-    OwnerSpan owner{};
-    proof->readable = readOwnerSpan(closure, &owner);
-    if (!proof->readable) return false;
-    proof->pointerMatches = text == owner.data;
-    proof->lengthMatches = length == owner.size;
-    if (!proof->pointerMatches || !proof->lengthMatches ||
-        !readSelf(owner.data, owner.size, snapshot->bytes.data())) return false;
-    snapshot->size = owner.size;
-    proof->completeSpan = true;
-    return true;
-}
+#include "native_font_owner_snapshot.inc"
 
 const char *localeIdentifier(Locale locale) noexcept
 {
@@ -529,6 +536,16 @@ FontSlot *findOrCreateSlot(const FontKey &key, CTFontRef resolvedFont,
         if (failure != nullptr) *failure = slot.failure;
         return nullptr;
     }
+#if defined(__x86_64__)
+    if (gMakeTypeface == nullptr || gGetCTFont == nullptr || gMakeFont == nullptr) {
+        slot.failure = DecisionReason::FactoryFailed;
+        if (failure != nullptr) *failure = slot.failure;
+        return nullptr;
+    }
+    SkSpTypefaceAbi typefaceOwner = gMakeTypeface(seedFont.get());
+    if (typefaceOwner.pointer == nullptr ||
+        !sameFontIdentity(resolvedFont, gGetCTFont(typefaceOwner.pointer))) {
+#else
     const auto makeTypeface = reinterpret_cast<MakeTypeface>(
         imageAddress(gSkiaImage, e4_contract::kTypefaceOffset));
     const auto getCTFont = reinterpret_cast<GetCTFont>(
@@ -538,12 +555,17 @@ FontSlot *findOrCreateSlot(const FontKey &key, CTFontRef resolvedFont,
     SkSpTypefaceAbi typefaceOwner = makeTypeface(seedFont.get());
     if (typefaceOwner.pointer == nullptr ||
         !sameFontIdentity(resolvedFont, getCTFont(typefaceOwner.pointer))) {
+#endif
         slot.failure = DecisionReason::FactoryFailed;
         if (failure != nullptr) *failure = slot.failure;
         return nullptr;
     }
     // 只保存真实factory返回的SkFont及其内部true owner；它们进程期不析构、不伪造refcount。
+#if defined(__x86_64__)
+    SkFontAbi factoryResult = gMakeFont(std::move(typefaceOwner), contract::kFactorySeedSize);
+#else
     SkFontAbi factoryResult = makeFont(std::move(typefaceOwner), contract::kFactorySeedSize);
+#endif
     SkFontAbi *font = new (std::nothrow) SkFontAbi(std::move(factoryResult));
     if (font == nullptr) {
         slot.failure = DecisionReason::FactoryFailed;
@@ -574,6 +596,8 @@ FontSlot *findOrCreateSlot(const FontKey &key, CTFontRef resolvedFont,
 #include "viewport_font_adapter.inc"
 #include "timeline_font_adapter.inc"
 #include "getpath_font_adapter.inc"
+#include "welcome_log_it_adapter.inc"
+#include "welcome_log_it_runtime.inc"
 
 MeasureOriginal requireMeasureOriginal() noexcept
 {
@@ -595,14 +619,24 @@ DrawOriginal requireDrawOriginal() noexcept
 
 __attribute__((constructor)) void initializeSystemFallback() noexcept
 {
-    // -- 原函数先绑定。ABI门失败时，所有入口仍按原签名透传 ------------------
+    // -- 原函数先绑定；每个功能按自己的架构合同发布独立准入门 ------------
     (void)resolveOriginals();
     (void)resolveNativeLocaleOriginal();
+#if defined(__x86_64__)
+    gNativeLocaleContractReady.store(
+        verifyNativeLocaleRuntimeContract(), std::memory_order_release);
+    gFontContractReady.store(verifyContract(), std::memory_order_release);
+#else
     gNativeLocaleContractReady.store(verifyContract(), std::memory_order_release);
+#endif
     gTitleFormatContractReady.store(verifyTitleFormatContract(), std::memory_order_release);
     (void)verifyHelpDescriptionContract();
     (void)verifyGuideBodyContract();
     (void)verifyEasingMenuContract();
+    (void)verifySaveSceneCaptionContract();
+    (void)verifyWelcomeLogItContract();
+    native_demo_reader::gContractReady.store(
+        verifyDemoReaderContract(), std::memory_order_release);
 }
 
 __attribute__((used)) static struct {
@@ -653,6 +687,28 @@ __attribute__((used)) static struct {
 };
 } // namespace
 
+#include "demo_reader_runtime.inc"
+
+extern "C" __attribute__((noinline)) DemoTextFromFileResult nativeDemoTextFromFileInterpose(
+    const std::string &path)
+{
+    const std::uintptr_t callerReturnPc = reinterpret_cast<std::uintptr_t>(
+        __builtin_return_address(0));
+    const bool exactCaller = native_demo_reader::exactPresetCaller(callerReturnPc);
+    std::size_t fileIndex = 0;
+    const bool exactPath = exactCaller &&
+        native_demo_reader::exactPresetFileIndex(path, &fileIndex);
+    return native_demo_reader::forwardOnce(
+        [&]() { return requireDemoTextFromFileOriginal()(path); },
+        exactCaller, exactPath,
+        []() noexcept { return gLocale.value(); },
+        [&](std::string_view source, auto &&localeGetter, std::string *output) {
+            return native_demo_reader::projectVerifiedSource(
+                fileIndex, source,
+                std::forward<decltype(localeGetter)>(localeGetter), output);
+        });
+}
+
 extern "C" __attribute__((noinline)) std::string nativeActiveLocaleInterpose(Api *api)
 {
     const std::uintptr_t callerPc = reinterpret_cast<std::uintptr_t>(
@@ -665,7 +721,11 @@ extern "C" __attribute__((noinline)) std::string nativeActiveLocaleInterpose(Api
     const bool exactOwner = exactNativeLocaleOwner(callerPc);
     std::string result = native_locale::forwardNativeLocale(
         api, original, exactOwner, gLocale);
+#if defined(__x86_64__)
+    if (exactOwner && gFontContractReady.load(std::memory_order_acquire)) {
+#else
     if (exactOwner) {
+#endif
         Locale policyLocale{};
         if (policyLocaleFor(gLocale.value(), &policyLocale))
             gAdmitted.store(true, std::memory_order_release);
@@ -714,3 +774,17 @@ extern "C" viewport_blob::BlobResultAbi viewport_blob::viewportBlobDispatch(
 #include "help_description_runtime.inc"
 #include "guide_body_runtime.inc"
 #include "easing_menu_runtime.inc"
+#include "save_scene_caption_runtime.inc"
+
+extern "C" __attribute__((noinline, visibility("hidden")))
+void nativeWelcomeLogItDispatcher(void *logger, const void *message,
+                                  bool logEnabled, bool tracebackEnabled,
+                                  std::uintptr_t callerPc)
+{
+    const welcome_log_it::Original original = &welcomeLogItTarget;
+    welcome_log_it::forward(
+        original, logger, message, logEnabled, tracebackEnabled, callerPc,
+        nativeWelcomeLogItExpectedReturnPc.load(std::memory_order_acquire),
+        gLocale.value());
+}
+

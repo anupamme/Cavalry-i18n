@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖已审定剩余UI分区、共享source/格式守门及Forge/缺源/隐藏caption/插件caption补充。
- * [OUTPUT]: 锁定五分区与全registry；保护B-6实测范围及原译值。
+ * [OUTPUT]: 锁定五分区、82模块/10753审批键与100项demo DNT例外；保护B-6实测范围及原译值。
  * [POS]: tools剩余UI测试后半合同；不读取私账、不调用App、不批准或代表live。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -10,6 +10,7 @@ const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const { LOCALES, hash, assertAdditionalPartition, assertFiniteRepairs } = require('./native_remaining_ui_contract');
 const { APPROVED_MODULES, approvedEntries } = require('../languages/native/approved_modules');
+const DEMO_MENU_DNT_KEY_SET = new Set(require('../languages/native/official_demo_menus').DEMO_MENU_DNT_KEYS);
 const TARGET = require('./cavalry_native_target.json');
 const { BACKGROUND_RENDERING_GAP_COUNT } = require('./native_schema_gap_sources');
 const { NODE_A_FIFTH_REPAIRS, NODE_B_FIFTH_REPAIRS, NODE_B_SIXTH_REPAIRS, NODE_A_SIXTH_REPAIRS, NODE_B_FOURTH_REPAIRS } = require('./native_remaining_ui_final_repair_cases');
@@ -441,11 +442,11 @@ test('Node B05 keeps GIF/decay semantics and records bounded Destination Over ev
 test('approved native UI registry keeps 17 official catalogs distinct from Forge and schema-gap source domains', () => {
   const rows = approvedEntries();
   const uniqueKeys = new Set(rows.map(row => row.key));
-  // -- 总域扩大只来自显式schema补充；官方批准域/DNT不变，源分母固定且World Scale单键caption另审 ------
-  assert.equal(uniqueKeys.size, 10653);
-  assert.equal(rows.length, 10653);
-  assert.equal(APPROVED_MODULES.length, 81);
-  assert.equal(new Set(APPROVED_MODULES).size, 81);
+  // -- 总源分母不变；显式demo审批只改变准入数，schema补充仍独立计数 ------
+  assert.equal(uniqueKeys.size, 10753);
+  assert.equal(rows.length, 10753);
+  assert.equal(APPROVED_MODULES.length, 82);
+  assert.equal(new Set(APPROVED_MODULES).size, 82);
 
   assert.equal(TARGET.nativeKeys, 10473);
   assert.equal(TARGET.supplementalKeys, 373);
@@ -462,19 +463,19 @@ test('approved native UI registry keeps 17 official catalogs distinct from Forge
   assert.equal(BACKGROUND_RENDERING_GAP_COUNT, 1);
   assert.equal(pluginCaptions.length, 1);
   const supplements = [...forge, ...gaps, ...pluginCaptions];
-  assert.equal(rows.length - supplements.length, 10278);
+  assert.equal(rows.length - supplements.length, 10378);
   const explicitCatalogRows = rows.filter(row => Object.hasOwn(row, 'catalogId') && !supplements.includes(row));
   const compactRows = rows.filter(row => !Object.hasOwn(row, 'catalogId'))
     .sort((a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : 0);
-  assert.equal(explicitCatalogRows.length, 8857);
+  assert.equal(explicitCatalogRows.length, 8957);
   assert.equal(compactRows.length, 1421);
   assert.equal(hash(compactRows.map(row => row.key)), '2a21e4c75af004a3e2f25049f1231de40967531b37338ba03eb3d564bc0dada9');
   const registeredCatalogIds = new Set(explicitCatalogRows.map(row => row.catalogId));
   for (const catalogId of registeredCatalogIds) assert.ok(targetCatalogIds.has(catalogId), catalogId);
   assert.deepEqual([...registeredCatalogIds].sort(), [...targetCatalogIds].sort());
   assert.equal(TARGET.nativeKeys + TARGET.supplementalKeys + pluginCaptions.length
-    + BACKGROUND_RENDERING_GAP_COUNT - uniqueKeys.size, 195,
-  '195 automatic-DNT keys stay fixed after the independent captions join the resource manifest');
+    + BACKGROUND_RENDERING_GAP_COUNT - uniqueKeys.size, 95,
+  '100 selected demo DNT leaves reduce the remaining preserved rows from 195 to 95');
 
   const expectedLocales = [...LOCALES].sort();
   for (const row of rows) {
@@ -484,7 +485,9 @@ test('approved native UI registry keeps 17 official catalogs distinct from Forge
       assert.ok(['translate', 'preserve'].includes(decision.decision), `${row.key}/${locale}`);
       assert.equal(typeof decision.text, 'string', `${row.key}/${locale}`);
       assert.equal(decision.decision === 'preserve', decision.text === row.source, `${row.key}/${locale}`);
-      if (row.dontTranslate === true) assert.equal(decision.text, row.source, `${row.key}/${locale} DNT`);
+      if (row.dontTranslate === true && !DEMO_MENU_DNT_KEY_SET.has(row.key)) {
+        assert.equal(decision.text, row.source, `${row.key}/${locale} DNT`);
+      }
     }
   }
 });

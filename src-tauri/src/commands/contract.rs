@@ -372,7 +372,7 @@ mod permission_handoff_tests {
             }),
             viewport_css: Some(PermissionViewportSize {
                 width: 400.0,
-                height: 484.0,
+                height: 556.0,
             }),
         }
     }
@@ -400,7 +400,7 @@ mod permission_handoff_tests {
         let mut invalid_viewport = valid_request();
         invalid_viewport.viewport_css = Some(PermissionViewportSize {
             width: 0.0,
-            height: 484.0,
+            height: 556.0,
         });
         assert!(!invalid_viewport.is_valid());
 
@@ -416,7 +416,7 @@ mod permission_handoff_tests {
         let mut offscreen_return = valid_request();
         offscreen_return.return_rect = Some(PermissionSourceRect {
             x: 20.0,
-            y: 470.0,
+            y: 530.0,
             width: 360.0,
             height: 36.0,
         });

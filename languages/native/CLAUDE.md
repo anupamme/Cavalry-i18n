@@ -61,7 +61,7 @@ nodes_count_sub_meshes.js: 构建期源绑定审批，Count Sub Meshes完整10�
 nodes_material_behaviour_hsv.js: 构建期源绑定审批，HSV Material Behaviour完整5叶；保持HSV分量与行为用途，仅提供三语显示输入。 Grok基稿额度中止后由Luna Max修订/独立全域复核、主代理审定；AGY追加审稿不充当已通过门。
 nodes_stroke_material.js: 构建期源绑定审批，Stroke Material完整54叶；通用宽度渐变可变窄/变宽，双端渐细单独限定，Travel为沿路径移动，Alpha保留。 Grok基稿额度中止后由Luna Max修订/独立全域复核、主代理审定；AGY追加审稿不充当已通过门。
 nodes_sub_mesh.js: 构建期源绑定审批，Sub Mesh完整68叶；Stagger引用同已审节点，仅未设置填充/描边时替换保持材质限定，不改变子网格操作。 Grok基稿额度中止后由Luna Max修订/独立全域复核、主代理审定；AGY追加审稿不充当已通过门。
-approved_modules.js: 显式UI审批装配表；生成层读取81个已审模块共10653键（官方10278/Forge8/缺源365+隐藏caption1/插件caption1），不自动扫描目录或混入帮助草稿。
+approved_modules.js: 显式UI审批装配表；生成层读取82个已审模块共10753键（官方10378含demo叶100/Forge8/缺源365+隐藏caption1/插件caption1），不自动扫描目录或混入帮助草稿。
 plugin_caption_supplement.js: 构建期独立插件caption审批；锁directionalBlurFilter.amount的Amount source，复用已批准Blur Amount三语词，不提供单位/帮助/行为结论，不代验实机消费。
 nodes_align_distortion_glow.js: 构建期源绑定数据，Align6/Distortion47/Glow47完整100叶由AGY完整稿、Grok全300值与Luna独立语境核对后主代理修订；保持正负对齐方向、HSV明度/边距、Alpha命名与日语Porter-Duff操作、半径/强度和预览透明度区别，不写模型或算法。
 nodes_array_distribution.js: 构建期源绑定数据，Array完整4叶经AGY/宝玉Skill、Grok全12值与Luna独立审校后主代理审定；手工(X, Y)坐标列表长度决定副本数量，index保持序列含义、Array保持数据列表而非网格，不写模型身份。
@@ -87,10 +87,12 @@ ai_studio_reuse_and_credits.js: 构建期源绑定数据，审校复用 AI 工�
 canva_and_assets.js: 构建期源绑定数据，完整覆盖预检 44 条、上传 7 条与素材 20 条，保留原生 ICU 分支、导出能力和修复方向，审稿不等于实机通过。
 ai_studio_supplement.js: 构建期源绑定数据，103 条 AI 工作室完整缺口域由宝玉 Skill 驱动 AGY 出稿修订、Grok 审稿、主代理润色；只提供显示译值，不作运行时或布局证明。
 reviewed_translations.js: CommonJS构建期数据；保留九条AI Studio source/notes与原审批来源；results空区提示1键/3槽类别修订已批准，source/notes不变，liveApproval仍false。
+official_demo_scripts.js: 独立Demo reader审批输入，297源/891译值绑定100原脚本SHA与489个UTF-8文字位置；不入UI registry或82模块清单，构建表未正式部署或实屏验收。
+official_demo_menus.js: 构建期源绑定审批，100个官方demo叶/300译槽完整携带appStrings身份、notes、厂商日语与DNT；只给asset-root producer提供显式DNT显示例外键，不改preset路径或动作。
 
 依赖边界:
-本轮质量状态: 原4319键/63模块、12957槽全域非作者复审与62键88槽修订冻结；13厂商日语核证纠错/377原样。完整剩余分区已准入18/18（含冻结前4分区），冻结后新增5959键/14分区；当前77模块/10278正式键（100.0%），余0；全部六全局2596键正式。主/尾58、native/Skill380、源14实际全过/0fail/0skip；内存三语各10473投影（10278+195自动DNT），missing0、complete:true。全部18剩余分区准入，另显式全量15合同实际全过；DestinationOver有1个厂商源行为冲突仍待隔离实机验证，不等于译值缺口。历史回执不重写，该键冻结验收不含部署/live；维护者随后授权本机真实UI测试，需另记现场证据。
-当前接线状态（2026-10-10）：target保持官方10473与schema补充373。资源producer在target外计隐藏Background Rendering caption1和Directional Blur caption1，合计10848键/375补充。审批共81模块/10653键：官方10278、Forge8、缺源固定365+隐藏caption1、插件caption1。target与baseline原字节不变。Background Rendering仅有caption审批，属性隐藏，无UI或行为消费声明。其余插件显示与实机边界见当前验收记录。
-此目录与父级四语 2.7.2 overlay 资产分开：数据供生成层消费，不直接复制到用户 Plugins，不将审稿元数据写入 registry。UI 译文经 `tools/native_language_pack.js` 的源绑定和厂商日语优先选择后投影单语言 `strings.json`；脚本说明经 `tools/native_metadata_help.js` 只修改当前源 description，不能写进 UI registry 或套 ICU 门。UI 数据经显式 `tools/native_resource_bundle.js` 接入未发布的 macOS debug 开发预览；独立脚本帮助尚未部署。dontTranslate 是强身份边界；仅可译键由厂商实译日语优先选择，旧候选或新补译不得覆盖该厂商译值，唯有维护者授权后逐键核证、独审、root批准并精确命中独立纠错登记的显示决定可以例外。通常由 AGY 沿项目级宝玉 Skill 出稿、Grok 独立检查、主代理裁定；维护者授权的 CLI 额度回退仍须完整源绑定、独立全域审校与主代理审批，provenance 分别记录真实出稿/修订/审校来源和未完成终态，待收追加审稿不能充当通过门。构建和测试不需要这些 CLI、Skill 或私有过程文件。
+本轮质量状态: 原4319键/63模块、12957槽全域非作者复审与62键88槽修订冻结；13厂商日语核证纠错/377原样。完整剩余分区已准入18/18（含冻结前4分区），冻结后新增5959键/14分区；基础77模块/10278官方可译键闭合，另有本次独立demo DNT审批100键；全部六全局2596键正式。主/尾58、native/Skill380、源14实际全过/0fail/0skip；纯投影默认态三语各10473键（10278译键+195原样DNT），missing0、complete:true。全部18剩余分区准入，另显式全量15合同实际全过；DestinationOver有1个厂商源行为冲突仍待隔离实机验证，不等于译值缺口。历史回执不重写，该键冻结验收不含部署/live；维护者随后授权本机真实UI测试，需另记现场证据。
+当前接线状态（2026-10-15）：target保持官方10473与schema补充373。资源producer在target外计隐藏Background Rendering caption1和Directional Blur caption1，合计10848键/375补充。审批共82模块/10753键：官方10378含demo叶100、Forge8、缺源固定365+隐藏caption1、插件caption1。DNT源分母195不变；100个demo叶仅由asset-root入口显式选择，其他DNT继续原样保留。target与baseline原字节不变。Background Rendering仅有caption审批，属性隐藏，无UI或行为消费声明。其余插件显示与实机边界见当前验收记录。
+此目录与父级四语 2.7.2 overlay 资产分开：数据供生成层消费，不直接复制到用户 Plugins，不将审稿元数据写入 registry。UI 译文经 `tools/native_language_pack.js` 的源绑定和厂商日语优先选择后投影单语言 `strings.json`；脚本说明经 `tools/native_metadata_help.js` 只修改当前源 description，不能写进 UI registry 或套 ICU 门。UI 数据经显式 `tools/native_resource_bundle.js` 接入未发布的 macOS debug 开发预览；独立脚本帮助尚未部署。纯投影API默认保留全部 `dontTranslate`。生产asset-root入口只选择 `official_demo_menus.js` 中100个root批准的官方demo叶，并核对完整catalog/键/source/notes/vendor/DNT身份及三语精确译值。JavaScript类别、Audio Solver和其他DNT保持原文；该例外不改preset路径、模型名或触发动作。通常由 AGY 沿项目级宝玉 Skill 出稿、Grok 独立检查、主代理裁定；维护者授权的 CLI 额度回退仍须完整源绑定、独立全域审校与主代理审批，provenance 分别记录真实出稿/修订/审校来源和未完成终态，待收追加审稿不能充当通过门。构建和测试不需要这些 CLI、Skill 或私有过程文件。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

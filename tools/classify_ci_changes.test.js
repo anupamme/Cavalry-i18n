@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 classify_ci_changes.js 的纯路径分类接口
- * [OUTPUT]: 证明文档轻门、合同门、共享翻译/输入/Quick Add context/display/顶部标签/搜索/Classic 评分/Quick Add 描述策略双平台门、依赖门及未知路径 fail-closed 的离线回归测试
+ * [OUTPUT]: 证明技能 Markdown 文档轻门与脚本未知路径边界、合同门、共享翻译/输入/Quick Add context/display/顶部标签/搜索/Classic 评分/Quick Add 描述策略双平台门、依赖门及未知路径 fail-closed 的离线回归测试
  * [POS]: CI 风险调度器的单元测试，防止节省 Runner 时误跳产品或发布证据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -9,7 +9,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { classifyPaths } = require('./classify_ci_changes.js');
+const { classifyPaths, scopeForEvent } = require('./classify_ci_changes.js');
 
 function projection(scope) {
   return {
@@ -34,6 +34,39 @@ test('public documentation uses only the lightweight documentation contract', ()
       reason: 'documentation-only',
     }
   );
+});
+
+test('project skill Markdown stays documentation while executable additions remain unknown source', () => {
+  const entry = '.agents/skills/cavalry-native-display-check/SKILL.md';
+  const reference = '.agents/skills/cavalry-native-display-check/references/surfaces.md';
+  assert.deepEqual(projection(classifyPaths([entry, reference])), {
+    documentationOnly: true,
+    source: false,
+    vulnerability: false,
+    windows: false,
+    macosInjector: false,
+    reason: 'documentation-only',
+  });
+  assert.deepEqual(projection(classifyPaths([entry, '.agents/skills/cavalry-native-display-check/scripts/workspace_probe.py'])), {
+    documentationOnly: false,
+    source: true,
+    vulnerability: true,
+    windows: true,
+    macosInjector: true,
+    reason: 'unknown-source-path-fail-closed',
+  });
+  const nativeChange = classifyPaths([entry, 'injector/native/shared_font_fallback.mm']);
+  assert.equal(nativeChange.source, true);
+  assert.equal(nativeChange.windows, false);
+  assert.equal(nativeChange.macosInjector, true);
+  assert.equal(nativeChange.reason, 'path-classified');
+  const release = classifyPaths([entry], { forceFull: true, reason: 'release-tag' });
+  assert.equal(release.windows, true);
+  assert.equal(release.macosInjector, true);
+  assert.deepEqual(projection(scopeForEvent({
+    eventName: 'push', ref: 'refs/tags/cavalry-2.7.2-p99', baseSha: '', headSha: '',
+  })), projection(release));
+  assert.equal(scopeForEvent({ eventName: 'workflow_dispatch', ref: 'refs/heads/main' }).macosInjector, true);
 });
 
 test('contract and SOP changes run Ubuntu source contracts without native runners', () => {

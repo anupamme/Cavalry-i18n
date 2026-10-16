@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Tauri AppHandle、detect 的语言目录扫描与共享 runtime_paths。
- * [OUTPUT]: 提供应用路径上下文、资源候选、语言源定位和单调 staging nonce；显式native预览将state放入独立native-2.8-preview子域，保留旧baseline。
+ * [OUTPUT]: 提供应用路径上下文、资源候选、语言源定位和单调 staging nonce；preview使用native-2.8-preview状态子域；production使用native-2.8状态子域；Cavalry Preferences profile路径保持共享。
  * [POS]: commands 的运行环境解析层；业务动作只接收已经归一化的 repo/state/resource 路径。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -62,10 +62,26 @@ pub(crate) fn state_dir_for_app(app: &tauri::AppHandle) -> PathBuf {
     {
         let base = runtime_paths::resolve_state_dir(app.path().app_data_dir().ok());
         #[cfg(target_os = "macos")]
-        if super::native_resources::preview_enabled() {
-            return base.join("native-2.8-preview");
+        {
+            return state_dir_for_native_mode(
+                &base,
+                super::native_resources::preview_enabled(),
+                super::native_resources::production_enabled(),
+            );
         }
+        #[cfg(not(target_os = "macos"))]
         base
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn state_dir_for_native_mode(base: &Path, preview: bool, production: bool) -> PathBuf {
+    if preview {
+        base.join("native-2.8-preview")
+    } else if production {
+        base.join("native-2.8")
+    } else {
+        base.to_path_buf()
     }
 }
 
@@ -134,4 +150,23 @@ pub(crate) fn language_source_dir(repo_root: &Path, resource_dir: &Path, lang: &
 
 pub(crate) fn next_staging_nonce() -> u64 {
     STAGING_COUNTER.fetch_add(1, Ordering::Relaxed)
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod native_state_scope_tests {
+    use super::state_dir_for_native_mode;
+    use std::path::Path;
+
+    #[test]
+    fn production_and_preview_state_roots_do_not_reuse_the_legacy_state_document() {
+        let base = Path::new("/tmp/switcher-state");
+        let legacy = state_dir_for_native_mode(base, false, false);
+        let preview = state_dir_for_native_mode(base, true, false);
+        let production = state_dir_for_native_mode(base, false, true);
+        assert_eq!(legacy, base);
+        assert_eq!(preview, base.join("native-2.8-preview"));
+        assert_eq!(production, base.join("native-2.8"));
+        assert_ne!(legacy, production);
+        assert_ne!(preview, production);
+    }
 }

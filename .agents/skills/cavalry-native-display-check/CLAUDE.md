@@ -3,7 +3,7 @@
 
 成员清单
 SKILL.md: 任务入口与工具目录；先按语言和场景合批，再按需读取方法。
-references/: 合批、显示矩阵、场景、helper、控件、帮助、搜索和证据各有单一职责。
+references/: 资源单位与时钟分别记账，未选语禁用不判产品失败；复用成功驱动；超时后只续剩余动作。实际启动与载库分账；自绘文字按producer和字体分类，Save caption/Cancel保持单一职责。
 scripts/: 三个可执行工具；启动/清理helper或离线显示断言，不驱动GUI。
 assets/: Timeline、Erosion/Polar与Sound测试输入；expected只定义输入结构。
 

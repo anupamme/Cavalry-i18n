@@ -1,19 +1,21 @@
 <!--
-[INPUT]: 依赖 injector/native 候选源、Qt 6.9.2公开头与同bundle Cavalry 2.8 arm64 Frameworks。
-[OUTPUT]: 说明字体、FPS、标题、帮助、Guide正文、布局、Fast、Easing与225槽GetPath文本边界。
-[POS]: 原生候选模块入口；加载、搜索消费与生命周期由消费端另验。
+[INPUT]: 依赖 injector/native 候选源、Qt 6.9.2公开头与同bundle Cavalry 2.8 arm64/x86_64 Frameworks。
+[OUTPUT]: 说明已验证ARM候选边界与x86_64 ABI/build路径及其验收边界。
+[POS]: Cavalry 2.8原生候选源码入口；9c352155已部署到owned测试App，x86_64包已构建，Intel实机显示另验。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 # Cavalry 2.8 native candidate
 
 ## Scope
 
-This module holds a Cavalry 2.8 macOS arm64 candidate.
+This module documents the Cavalry 2.8 macOS arm64 candidate and the x86_64 implementation.
 It does not enter the Cavalry 2.7 build or release path.
 The default shipped product does not consume it.
 The explicit macOS native debug preview can embed the verified artifact at build time.
 Its coordinator installs that artifact into a selected Cavalry 2.8 copy.
 The candidate directory itself does not sign, install, or start an app.
+The frozen source keeps one blank line at the end of `native_font_candidate.mm`.
+`git diff --check` reports that inherited line; keep it to preserve source identity.
 
 The candidate reuses the existing Mach-O parser and UTF-8 glyph policy.
 It verifies the native getter and four direct Skia targets.
@@ -30,6 +32,17 @@ Quick Add regular-expression adapter, and one source-bound help-popup layout ada
 It uses typed Qt 6.9.2 public headers and the selected bundle's QtCore runtime.
 The layout adapter also links the selected bundle's QtGui and QtWidgets runtimes.
 The 2.7 translator and default release build do not consume this candidate.
+
+The Demo reader projects approved string-literal offsets only when the exact
+Preset-menu `textFromFile` return PC, canonical Presets path, and official source
+SHA all match. Its ABI uses the verified `std::optional<std::string>` result slot.
+Unknown callers and files receive the original optional unchanged. The catalog
+is build input; generated tables contain translated text and offsets, not vendor
+JavaScript source. Frozen candidate 9c352155 compiled and linked with this reader.
+The normal Switcher installed this artifact into the owned test app.
+Hans, Hant, and Japanese each expose all 100 approved menu titles through AX.
+The recorded first visible empty-workspace frames contain readable text.
+These results do not cover the full first-frame matrix or a production release.
 
 ## Runtime boundary
 
@@ -58,6 +71,31 @@ It replaces the font only for an exact owner and exact text match.
 Unknown ABI, caller, owner, locale, text, font, or path forwards to the original.
 The FPS owner accepts only the approved locale prefix and a non-empty suffix.
 It does not parse or rewrite the formatted frame-rate suffix.
+
+## Graph Editor empty state
+
+The Graph empty-state message reaches the existing GetPath owner through the
+verified Extension caller at `+0x59afd8`. The adapter reads that caller frame
+once. It selects a separate three-locale table only for the exact
+`GraphEditorEmptyState` owner and full source string. The existing 225-entry
+lane remains byte-for-byte unchanged. Unknown callers, locales, and strings
+retain the original path. The offline contract proves the narrow gate; it does
+not prove a live Graph message or first visible frame.
+
+## Demo Preset reader
+
+`tools/generate_demo_reader_tables.js` binds 297 approved source strings and
+891 translations to 100 official Preset files and 489 UTF-8 literal ranges.
+It checks each file's exact path, byte length, and SHA before emitting temporary
+C++ tables. The generated tables contain no vendor JavaScript.
+
+The interposer admits only the `StaticMenuBarManager::populatePresetsMenu::$_3`
+caller. It checks the exact `textFromFile` return PC, `Contents/assets/Presets`
+path, file SHA, source literal, and locale before projecting a string. The
+verified return ABI is `std::optional<std::string>`. Unknown calls preserve the
+original optional and call the original once. The candidate contract passed;
+formal deployment, live menu acceptance, and first-frame acceptance remain
+unverified.
 
 Timeline, Viewport, and GetPath share the existing verified-text fallback core.
 The core tests the existing CoreText-resolved font first.
@@ -104,6 +142,26 @@ The display labels reuse `colorWindow.header.project` and
 `cli.log.none` equivalent; the empty scene name reuses `recovery.untitled`.
 The compiled title policy is a display projection, not a new catalog consumer.
 Its static tests do not prove a loaded runtime hook or a live window title.
+
+## Save-panel captions
+
+The selected Cavalry 2.8 Extension constructs `Save Scene` in `saveScene` and
+`incrementAndSaveScene`. It constructs `Save as .cv` in `saveSceneAs` and the
+encrypted Save As path. Both values use the same imported Qt
+`QFileDialog::getSaveFileName` call. The exact return PC is `+0x6e4b8c`.
+The runtime gate checks the Extension and QtWidgets UUIDs, Qt 6.9.2, the full
+arm64 argument-setup/call window, and the exported QtWidgets symbol.
+
+The adapter changes only those two exact source captions at that return PC.
+It reuses the existing native locale snapshot and approved old-TS values.
+It leaves the selected directory, filter, selected-filter pointer, options,
+return value and every other caption unchanged. It does not translate the
+native panel's Save/Cancel controls.
+
+The QtCore-only contract exercises the real Qt `QString` type without loading
+Cavalry or opening a dialog. It verifies the returned `QString`, const-reference
+arguments, translated temporary lifetime, one original call, and exact caller
+and source gates. A contract pass is not live UI evidence.
 
 ## Help description boundary
 
@@ -228,6 +286,59 @@ exception propagation. The Easing policy test uses a synthetic table and does
 not verify the generated display table or live menu consumption. Neither test
 is evidence of a loaded hook or live UI result.
 
+## Welcome producer boundary
+
+The candidate interposes the exact `spdlog::logger::log_it_` import.
+The reviewed arm64 Extension UUID is
+`448DD50E-75F4-3F2D-A46B-2C9F00DF9408`; the spdlog UUID is
+`F9429837-12E6-3A4A-8436-97E5257E75EA`.
+The selected `libspdlog.1.13.dylib` export must resolve to offset `0x992c`.
+The Extension import is at `0x6a4e1c`; its return PC is `0x6a4e20`.
+The runtime publishes that PC only when the exact bundle images and the
+Extension GOT target match the candidate veneer.
+
+The arm64 veneer compares `x30` with the exact return PC.
+The gate starts at zero and remains closed before complete ABI admission.
+An unknown caller tail-branches to the same image's two-level spdlog import.
+It preserves its arguments and LR. It never reads `log_msg` or payload.
+Apple dyld's `InterposeTupleSpecific.onlyImage` excludes that import from
+its own replacement, which allows the interposer to call the prior function.
+The source contract is `DyldRuntimeState.h` lines 2344-2353.
+The independent dyld fixture must verify the host's actual call-through.
+
+Only the exact `0x6a4e20` return PC enters the dispatcher.
+The dispatcher calls the same direct import for the original function.
+It copies the reviewed `0x60`-byte message view and changes only payload
+pointer and byte length. The original runs once; exceptions propagate.
+No constructor-published original pointer gates unknown calls.
+
+The projected payload buffer lives through the original `log_it_` call.
+This scope is pinned to the reviewed spdlog 1.13.0 source.
+Its synchronous path consumes the message inside `log_it_`.
+Its async and backtrace paths copy the payload into `log_msg_buffer`.
+Do not reuse this lifetime proof for another spdlog version.
+Sources: [logger-inl.h](https://github.com/gabime/spdlog/blob/v1.13.0/include/spdlog/logger-inl.h#L764-L781), [thread_pool.h](https://github.com/gabime/spdlog/blob/v1.13.0/include/spdlog/details/thread_pool.h#L458-L513), [log_msg_buffer-inl.h](https://github.com/gabime/spdlog/blob/v1.13.0/include/spdlog/details/log_msg_buffer-inl.h#L314-L324), [backtracer-inl.h](https://github.com/gabime/spdlog/blob/v1.13.0/include/spdlog/details/backtracer-inl.h#L384-L390).
+
+The policy accepts only `Welcome to Cavalry.`, that source plus the exact
+` Happy New Year!` suffix, or that source plus ` Happy Holidays!`.
+It retains each approved suffix byte-for-byte.
+It uses the existing `gLocale` snapshot. It adds no locale getter or timer.
+The source translations are the approved rows in `tools/zh-Hans.ts:6300`,
+`tools/zh-Hant.ts:6549`, and `tools/ja_JP.ts:7774`.
+No MessageBar consumer or RolloverLabel prefix hook participates.
+
+The pure policy test checks three locales, all three complete payloads,
+unknown and same-prefix callers, unapproved suffixes, one original call, and
+exception propagation. The arm64 veneer fixture checks unknown-caller tail
+transparency and exact-LR dispatch.
+The separate dyld fixture loads a fake spdlog and an early-caller dependency.
+Its dependency constructor logs before the inserted interposer constructor.
+The closed gate must tail-call the old import once with an unreadable message,
+original registers, return PC, and `errno` intact. The dispatcher stays unused.
+Run the fixture with the frozen unsafe veneer in `red` mode, then the candidate
+veneer in `green` mode. Neither run loads Qt or Cavalry.
+A passing fixture does not prove a live product hook or Welcome display.
+
 ## Migration regression rule
 
 Freeze the successful source and artifact before moving this code.
@@ -259,11 +370,15 @@ The prefix must contain `include/QtCore/qconfig.h`; the build verifies its
 
 The build creates a fresh temporary dylib.
 It checks vendor arm64 identities, required exports, two-level Api/Skia/fmt/UI/QtCore fixups, and the exact three-instruction GetPath veneer.
+It also checks the Extension/spdlog UUID, `log_it_` export and import/fixup
+before linking the selected bundle's spdlog library.
 It generates separate 384-main and 17-def help tables plus a 401-root layout
 table from official MetaData.
 It generates the 20-label Easing display table outside the repository.
-It compiles and runs the pure getter/GOT/FPS-owner, Guide body, Easing, Fast C1 policy,
-help shadow, and hidden Qt layout tests.
+It compiles and runs the pure getter/GOT/FPS-owner, Guide body, Easing,
+Save Scene caption, Welcome,
+Fast C1 policy, help shadow, and hidden Qt layout tests.
+It also runs the vendor-free dyld constructor-order fixture against the new veneer.
 It links the real help veneer to a vendor-free register probe.
 That probe checks unknown-caller argument, return and indirect-result transparency,
 plus exact main/def LR dispatch.
@@ -273,9 +388,45 @@ with the exact caller and fmt entry bytes in `title-format-abi-proof.json`.
 It rejects a UUID that belongs to another FAT slice, using the actual checker.
 It never loads the candidate or starts Cavalry.
 
-x86_64 has no verified ABI contract.
-Do not create an x86 candidate by guessing offsets or bytes.
-Do not add this command to `npm run build:injector` or a release workflow.
+The arm64 command above remains arm64-specific. The x86_64 ABI, source build, and production package path are documented in the architecture section below. Keep the 2.7 release path separate.
+
+## x86_64 architecture addition
+
+The arm64 candidate details above remain the verified Apple Silicon record.
+The x86_64 path adds architecture-specific ABI contracts and does not replace
+the arm64 source or its acceptance evidence.
+
+The x86_64 candidate verifies the official Core, Extension, Skia, API, and Qt
+slices. It binds the locale getter, Skia factories, GetPath owners, Timeline
+observers, Viewport TextBlob, and popup layout through x86-specific contracts.
+Unknown callers retain the original call path. The font gate requires both the
+x86 locale contract and every font-lane contract.
+
+Before x86 ABI checks, the builder snapshots the native source closure into
+its new output directory. The closure covers `injector/`, `languages/native/`,
+the four locale metadata directories, and the transitive native table
+producers. The Timeline checker consumes this generated manifest explicitly;
+it does not require private `evidence/` files. A vendor-free fixture verifies
+source additions, deletions, byte changes, and mode changes are rejected.
+
+M61 run21 compiled and linked the complete x86_64 native source set. M61
+run03 built the production-2.8 Tauri x86_64 App and DMG. M61 run04 passed the
+packaged-app gate. These receipts prove build and packaging, not Intel live
+display. No Intel hardware runtime or display matrix has been accepted.
+
+Build the native x86_64 artifact with the official Cavalry 2.8 Frameworks
+directory and Qt 6.9.2 public headers:
+
+```sh
+CAVALRY_QT_PREFIX=/path/to/qt-6.9.2-header-prefix \
+  bash injector/native/build_x86_64_candidate.sh \
+  /path/to/Cavalry.app/Contents/Frameworks /path/to/new-output
+```
+
+This command builds the native dylib only. The existing production-2.8 Tauri
+pipeline selects the matching architecture and packages its resource. It does
+not launch Cavalry or prove live font admission. Keep the arm64 and x86_64
+results bound to their own source and artifact identities.
 
 ## Acceptance boundary
 

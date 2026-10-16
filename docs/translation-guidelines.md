@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 Cavalry 运行时 source、行业软件既有术语、cavalry-glossary.md 与各语言 UI 书写惯例
-[OUTPUT]: 提供三语功能语境/保留词、空区域提示标点、caption准入与行为证据分离、厂商日语有限源绑定纠错、字体/模型/API身份保护与Add Layer显示/检索分离契约
+[OUTPUT]: 提供三语功能语境/保留词、空区域提示标点、caption准入与行为证据分离、厂商日语有限源绑定纠错、demo DNT显示例外、字体/模型/API身份保护与Add Layer显示/检索分离契约
 [POS]: docs 的翻译政策入口，被 TS/JSON 资源、生成表、质量门与人工审校共同消费
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -126,6 +126,12 @@ Cavalry 同时包含图像合成、矢量几何、动画时序、数值运算、
 - **约定俗成不翻的**：Alpha（Alpha 通道）、UV
 
 `Forge Dynamics` 在 UI 显示层统一使用本地化术语：简中 `Forge 动力学`、繁中 `Forge 動力學`、日文 `フォージダイナミクス`；但模型数据里的 `niceName` 保持英文，避免 Time Editor 自绘层出现 CJK 渲染问题。
+
+### 原厂 DNT 与 demo 菜单显示例外
+
+构建器默认保留所有 `dontTranslate` 行。显示例外必须显式选择，且必须命中固定的100个官方 demo 叶身份。身份摘要绑定 catalog、键、source、notes、DNT 与厂商日语值。类别键、`demoScene.audio.audioSolver` 和其他 DNT 键不在登记内。
+
+例外必须带三语精确审定值。三种语言都必须选择 `translate`。例外不得携带 `vendorCorrection`。纯投影API默认关闭例外；asset-root生产入口只选择 `languages/native/official_demo_menus.js` 中已批准的100个叶项。例外只投影菜单显示文字，不改官方 DNT、preset 路径、模型名或触发动作。其他 DNT 继续保留。
 
 ## 3. 参考资源
 

@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖native GetPath owner、locale标签、共享UTF-8策略与固定文本lane。
- * [OUTPUT]: 提供owner枚举、75项lane、512字节边界与FPS前缀门。
+ * [INPUT]: 依赖native GetPath owner、locale标签、共享UTF-8策略与固定文本表。
+ * [OUTPUT]: 提供owner枚举、75项lane、Graph精确文本门与FPS前缀门。
  * [POS]: GetPath静态匹配策略；不保存locale状态或字体descriptor。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -13,7 +13,9 @@
 #include <cstring>
 
 namespace native_getpath_font {
-enum class Owner : std::uint8_t { Unknown, ToolHelp, ViewportStatus, ViewportFps };
+enum class Owner : std::uint8_t {
+    Unknown, ToolHelp, ViewportStatus, ViewportFps, GraphEditorEmptyState
+};
 struct TextEntry { Owner owner; const char *text; };
 inline constexpr std::size_t kEntriesPerLocale = 75;
 inline constexpr std::size_t kMaxTextBytes = 512;
@@ -39,6 +41,27 @@ inline int exactText(const void *text, std::size_t size, int encoding, Owner own
             std::memcmp(text, entries[i].text, size) == 0) return static_cast<int>(i);
     }
     return -1;
+}
+
+inline bool exactGraphEditorEmptyText(const void *text, std::size_t size,
+                                      int encoding, Owner owner,
+                                      const TextEntry *entry) noexcept {
+    if (!text || !size || size > kMaxTextBytes || encoding != 0 ||
+        owner != Owner::GraphEditorEmptyState || entry == nullptr ||
+        entry->owner != Owner::GraphEditorEmptyState || entry->text == nullptr)
+        return false;
+    return size == std::strlen(entry->text) &&
+        std::memcmp(text, entry->text, size) == 0;
+}
+
+template <class Forward>
+bool forwardUnapprovedGraphEditorEmptyText(
+    const void *text, std::size_t size, int encoding, Owner owner,
+    const TextEntry *entry, Forward forward)
+{
+    if (exactGraphEditorEmptyText(text, size, encoding, owner, entry)) return false;
+    forward();
+    return true;
 }
 
 inline const char *viewportFpsPrefix(cavalry_native_font::Locale locale) noexcept {

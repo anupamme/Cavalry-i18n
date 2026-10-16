@@ -2,10 +2,10 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-build.yml: 主 CI/CD 工作流，固定 `ubuntu-24.04`/`windows-2022`/`macos-14` label 并记录 runner 身份；tag preflight只准2.7 p12只读回读，2.7 p13+拒绝；2.8生产tag在profile验证和任何原生构建前以`implementation-not-ready`拒绝，避免旧2.7 runtime换名。2.8双feed只保留纯合同，不连接release workflow。PR/main不接触updater私钥；其余平台门、provenance与Actions pin保持原约束。
+build.yml: 主CI/CD工作流；手动默认`none`，显式`macos-2.8-preflight`才在固定macos-26 ARM与macos-26-intel矩阵构建2.8 ad-hoc App/DMG，不运行Windows、不签updater、不创建Release；ci_gate只聚合PR/main，避免手动预验因Windows跳过而失败。2.7所有tag拒绝重打包；公开2.8 tag按release-2.8 endpoint选profile但在任何平台构建前由implementation-not-ready拒绝。macOS矩阵target只传一次；production输入helper从固定字节的官方Cavalry 2.8与Qt6.9.2头包生成同架构dylib。
 
 依赖边界:
-workflow 只调用仓库里已经存在的脚本与构建入口；默认 build 变更时这里必须同构更新。唯一当前发布私钥是 Tauri updater key，只通过受保护 Actions secrets 引用且禁止打印；平台身份签名未来独立接入。
+workflow 只调用仓库里已经存在的脚本与构建入口；默认 build 变更时这里必须同构更新。`ci_gate`只聚合PR/main必需检查；手动macOS预验跳过Windows与聚合门。Updater密钥只供tag生产流程使用；2.8预验没有no-tag签名smoke。平台身份签名未来独立接入。
 
 法则: 脚本唯一·产物可追踪·release 不漂移·tag fail-closed
 
@@ -61,5 +61,11 @@ workflow 只调用仓库里已经存在的脚本与构建入口；默认 build �
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 
 2026-10-14: 2.8双feed/profile元数据保留纯合同；生产tag在profile验证与任一平台构建前以`implementation-not-ready`拒绝。等待macOS、Intel与Windows runtime资源接线完成后再接workflow，禁止用2.7制品换名。
+2026-10-16: 2.8 macOS-only预验显式选择`macos-2.8-preflight`；同一矩阵以macos-26/macOS-26 Intel runner和arm64/x86_64目标、无硬编码target Tauri入口分别构建ARM/Intel。固定官方Cavalry/Qt字节锁驱动匹配架构native builder；仅上传ad-hoc包，不签updater、不建Release。默认手动`none`，公开2.8 tag仍由三平台implementation-not-ready阻断。p12与所有旧2.7 tag只保留历史下载，拒绝重打包。
+2026-10-16: `ci_gate`只聚合PR/main；手动预验跳过Windows和聚合门。tag macOS构建按release preflight传入的endpoint overlay，再叠tag-only updater签名配置；手动预验不读updater密钥，当前不提供no-tag签名smoke。
 
 2026-09-08: 移除发布后的 badge JSON/PR 同步与不再需要的 pull-requests 写权限；四语 README 直接读取最新正式 Release tag。
+
+2026-10-16: macOS输入准备先在锁定venv运行Qt归档映射三项合同；显式import py7zr，归档子项不得因缺依赖跳过。PR源合同保留无依赖路径映射。
+
+2026-10-16: 显式macOS手动预验先checkout源码并准备固定Node，再读取profile脚本；普通检查不扩大前置，tag ancestry与三平台guard不变。

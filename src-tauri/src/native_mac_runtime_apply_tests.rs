@@ -1189,7 +1189,7 @@ fn stock_official_copy_installs_native_runtime_with_real_signing_smoke() {
         // -- 编译期候选先准入，避免错误构建模式下复制与验整包。
         let compiled = include_bytes!(concat!(
             std::env!("OUT_DIR"),
-            "/native_preview_injector.dylib"
+            "/native_runtime_injector.dylib"
         ));
         assert!(
             compiled.as_slice() == injector_bytes.as_slice(),

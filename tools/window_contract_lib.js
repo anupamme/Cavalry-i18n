@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 macOS osascript/screencapture 与 packaged Tauri binary
- * [OUTPUT]: 对外提供用直接 tell 保持精确 PID 绑定的 AX 窗口枚举/操作、交通灯几何读取、About 菜单回归与 400×561 内容截图辅助函数
+ * [INPUT]: 依赖 macOS osascript/screencapture/plutil、选定 Tauri bundle Info.plist 与 packaged binary
+ * [OUTPUT]: 对外提供用直接 tell 保持精确 PID 绑定的 AX 窗口枚举/操作、读取选定 bundle 名称供 About 菜单精确匹配、交通灯几何与 400×504 截图辅助函数
  * [POS]: tools 的 Tauri 窗口回归公共层
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -11,7 +11,7 @@ const path = require('node:path');
 const { spawn, spawnSync } = require('node:child_process');
 
 const repoRoot = path.resolve(__dirname, '..');
-const expectedContentSize = { width: 400, height: 561 };
+const expectedContentSize = { width: 400, height: 504 };
 
 function fail(message) {
   throw new Error(message);
@@ -241,8 +241,8 @@ function captureContentRegion(bounds, outputPath) {
   };
 }
 
-function tauriBundleBinary() {
-  const bundlePath = process.env.CAVALRY_I18N_TAURI_APP_BUNDLE
+function selectedTauriBundlePath() {
+  return process.env.CAVALRY_I18N_TAURI_APP_BUNDLE
     ? path.resolve(process.env.CAVALRY_I18N_TAURI_APP_BUNDLE)
     : path.join(
         repoRoot,
@@ -253,6 +253,20 @@ function tauriBundleBinary() {
         'macos',
         'Cavalry Language Switcher.app'
       );
+}
+
+function readTauriBundleName() {
+  const infoPlist = path.join(selectedTauriBundlePath(), 'Contents', 'Info.plist');
+  const rawName = run('plutil', ['-extract', 'CFBundleName', 'raw', '-o', '-', infoPlist]);
+  const bundleName = rawName.replace(/(?:\r?\n)+$/, '');
+  if (!bundleName) {
+    fail(`CFBundleName is empty in ${infoPlist}.`);
+  }
+  return bundleName;
+}
+
+function tauriBundleBinary() {
+  const bundlePath = selectedTauriBundlePath();
   const appPath = path.join(bundlePath, 'Contents', 'MacOS', 'cavalry-i18n-tauri');
   if (!fs.existsSync(appPath)) {
     fail(`Packaged Tauri binary missing at ${appPath}. Run npm run tauri:build first.`);
@@ -320,6 +334,7 @@ module.exports = {
   makeTempDir,
   openAboutMenu,
   readTrafficLightGeometry,
+  readTauriBundleName,
   resizeWindow,
   repoRoot,
   stopChild,

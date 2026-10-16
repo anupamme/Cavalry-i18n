@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖独审的 Cavalry 2.8 arm64 GetPath 与固定 owner 字节窗。
- * [OUTPUT]: 锁定映像 UUID、GetPath ABI、FPS调用窗及字体 factory 导出。
+ * [INPUT]: 依赖独审的 Cavalry 2.8 arm64 GetPath 与固定owner字节窗；x86 Graph合同见专用头。
+ * [OUTPUT]: 锁定arm64映像UUID、GetPath ABI、FPS/Graph调用窗及字体factory导出。
  * [POS]: 只保存已审二进制合同；运行路径由主映像推导。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -63,6 +63,16 @@ inline constexpr std::uintptr_t kToolHelpProducerReturnA = 0x2374bc;
 inline constexpr std::uintptr_t kToolHelpProducerReturnB = 0x2374d4;
 inline constexpr std::uintptr_t kViewportStatusProducerReturn = 0x23ce80;
 inline constexpr std::uintptr_t kViewportFpsProducerReturn = 0x23c7bc;
+inline constexpr std::uintptr_t kGraphEditorEmptyStateCallWindowOffset = 0x59afc8;
+inline constexpr std::array<std::uint8_t, 16> kGraphEditorEmptyStateCallWindowBytes = {
+    0x00, 0x00, 0x62, 0x1e, 0xe8, 0x83, 0x01, 0x91,
+    0xe0, 0xc3, 0x02, 0x91, 0x28, 0x94, 0x20, 0x94
+};
+inline constexpr std::uintptr_t kGraphEditorEmptyStateMakePathCallOffset = 0x59afd4;
+inline constexpr std::uintptr_t kGraphEditorEmptyStateProducerReturn = 0x59afd8;
+inline constexpr char kMakePathFromTextSymbol[] =
+    "__ZN7cavalry16MakePathFromTextERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEEd";
+inline constexpr std::uintptr_t kMakePathFromTextImportStubOffset = 0xdc0074;
 inline constexpr std::uintptr_t kNodeDataCaptureOffset = 0x18;
 inline constexpr std::uintptr_t kStringFieldOffset = 0x08;
 inline constexpr std::size_t kStringObjectBytes = 0x18;

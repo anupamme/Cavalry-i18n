@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖Cavalry 2.8 arm64 DocumentationPopup、QtWidgets导出与同bundle Mach-O证据。
- * [OUTPUT]: 锁定setContent内唯一QLayout::activate返回地址和原始调用窗。
+ * [INPUT]: 依赖Cavalry 2.8各架构DocumentationPopup与QtWidgets Mach-O证据。
+ * [OUTPUT]: 分架构锁定setContent内QLayout::activate返回地址与调用窗。
  * [POS]: 帮助布局adapter的窄准入合同；未知调用只透传原函数。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -41,5 +41,40 @@ constexpr bool isExactActivationCaller(std::uintptr_t caller,
 {
     return expected != 0 && caller == expected;
 }
+
+namespace x86_64 {
+inline constexpr char kCavalryUiUuid[] =
+    "2E9322B5-C7A3-3891-9B33-D0DED802D37D";
+inline constexpr char kQtWidgetsUuid[] =
+    "0C194E6E-1E76-3FD4-83A3-9263616E2F3F";
+inline constexpr char kDocumentationSetContentSymbol[] =
+    "__ZN18DocumentationPopup10setContentERK7QStringS2_S2_S2_S2_";
+inline constexpr char kQtLayoutActivateSymbol[] = "__ZN7QLayout8activateEv";
+
+inline constexpr std::uintptr_t kDocumentationSetContentOffset = 0x9af20;
+inline constexpr std::uintptr_t kActivateCallWindowOffset = 0x9b072;
+inline constexpr std::uintptr_t kActivateCallOffset = 0x9b07a;
+inline constexpr std::uintptr_t kActivateReturnOffset = 0x9b07f;
+inline constexpr std::uintptr_t kActivateImportStubOffset = 0xb76cd;
+inline constexpr std::uintptr_t kActivateGotOffset = 0xce248;
+inline constexpr std::uintptr_t kQtLayoutActivateOffset = 0x42fb0;
+
+inline constexpr std::array<std::uint8_t, 21> kActivateCallWindowBytes = {
+    0xe8, 0x7c, 0xd3, 0x01, 0x00, 0x48, 0x89, 0xc7,
+    0xe8, 0x4e, 0xc6, 0x01, 0x00, 0x48, 0x89, 0xdf,
+    0xe8, 0x78, 0xc7, 0x01, 0x00,
+};
+inline constexpr std::array<std::uint8_t, 6> kActivateImportStubBytes = {
+    0xff, 0x25, 0x75, 0x6b, 0x01, 0x00,
+};
+
+static_assert(kActivateCallOffset == kActivateCallWindowOffset + 8U,
+              "QLayout::activate must remain the middle call in the approved window");
+static_assert(kActivateReturnOffset == kActivateCallOffset + 5U,
+              "approved x86 return PC must follow the five-byte call instruction");
+static_assert(kActivateImportStubOffset + kActivateImportStubBytes.size() +
+              static_cast<std::int32_t>(0x16b75) == kActivateGotOffset,
+              "the approved import stub must jump to the QtWidgets GOT slot");
+}  // namespace x86_64
 
 }  // namespace native_help_popup_layout::abi

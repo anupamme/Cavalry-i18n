@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 packaged Tauri binary 与 macOS 截图/窗口探测能力
- * [OUTPUT]: 对外提供 Tauri 主窗口回归测试，验证精确子进程的原生交通灯垂直中心与水平位置、resize/restore、About 窗口、400×561主窗、420×581 resize 尺寸、内容区截图与 backing scale
+ * [INPUT]: 依赖 packaged Tauri binary、选定 bundle CFBundleName 与 macOS 截图/窗口探测能力
+ * [OUTPUT]: 对外提供 Tauri 主窗口回归测试，验证精确子进程的原生交通灯几何、resize/restore、固定 About 窗口标题与按 bundle 名精确点击菜单、400×504主窗和内容截图
  * [POS]: tools 的 Phase 6 UI 回归守门；通过同名对照进程验证所有 AX 查询、截图和关闭动作绑定 launchTauri 子进程，拒绝同名已安装 App 污染证据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -20,6 +20,7 @@ const {
   makeTempDir,
   openAboutMenu,
   readTrafficLightGeometry,
+  readTauriBundleName,
   resizeWindow,
   stopChild,
   tauriBundleBinary,
@@ -31,7 +32,7 @@ const FROZEN_WINDOW = {
   title: 'Cavalry Language Switcher',
   processName: 'cavalry-i18n-tauri',
   outerWidth: 400,
-  outerHeight: 561,
+  outerHeight: 504,
   chromeHeight: 0,
 };
 const ABOUT_WINDOW = {
@@ -76,6 +77,7 @@ test('tauri window regression stays within the frozen Tauri contract', async (t)
     return;
   }
   tauriBundleBinary();
+  const aboutMenuTitle = `About ${readTauriBundleName()}`;
   const stateDir = makeTempDir('cavalry-i18n-tauri-window-state-');
   const outputDir = makeTempDir('cavalry-i18n-tauri-window-shot-');
   const actualPngPath = path.join(outputDir, 'tauri-window.png');
@@ -118,7 +120,7 @@ test('tauri window regression stays within the frozen Tauri contract', async (t)
     openAboutMenu({
       processName: ABOUT_WINDOW.processName,
       pid: child.pid,
-      menuTitle: ABOUT_WINDOW.title,
+      menuTitle: aboutMenuTitle,
     });
     const aboutSelector = { ...ABOUT_WINDOW, pid: child.pid };
     await waitForWindow(aboutSelector);

@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖精确调用点、线程栈容器和已核 TextBlob 原函数。
+ * [INPUT]: 依赖架构专属Viewport caller、线程栈容器和TextBlob原函数。
  * [OUTPUT]: 为已证完整显示名称共用系统字体回退。
- * [POS]: 证明getNiceName临时容器，不改模型或variant表面。
+ * [POS]: ARM读getNiceName帧；x86只读首个TextBlob完整名称路径。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 bool verifyViewportProbe(const LoadedImage &extension) noexcept {
@@ -30,6 +30,33 @@ auto dispatchViewportFont(const void *font, const void *text, std::size_t length
 {
     if (gInsideRuntime || !gAdmitted.load(std::memory_order_acquire))
         return original(font);
+#if defined(__x86_64__)
+    (void)ownFrame;
+    if (caller != Caller::Draw || encoding != 0) return original(font);
+    const auto extensionBase = reinterpret_cast<std::uintptr_t>(
+        imageAddress(gExtensionImage, 0));
+    if (extensionBase == 0 || callerPc < extensionBase ||
+        !native_viewport_blob_x86_64::contract::exactViewportNameBlobCaller(
+            callerPc - extensionBase)) return original(font);
+
+    const auto stack = currentThreadStack();
+    const auto read = [](std::uintptr_t address, std::size_t size,
+                         void *destination) noexcept {
+        return readSelf(reinterpret_cast<const void *>(address), size, destination);
+    };
+    TextSnapshot snapshot{};
+    std::size_t snapshotSize = 0;
+    const native_viewport_blob_x86_64::StackRange x86Stack{stack.low, stack.high};
+    if (!native_viewport_blob_x86_64::snapshot(
+            callerPc - extensionBase, encoding, callerFrame, x86Stack,
+            reinterpret_cast<std::uintptr_t>(text), length, read,
+            snapshot.bytes.data(), snapshot.bytes.size(), &snapshotSize))
+        return original(font);
+    snapshot.size = snapshotSize;
+    RuntimeScope scope;
+    return dispatchVerifiedText(font, snapshot, encoding, caller, original,
+        [](DecisionReason) noexcept {});
+#else
     const auto extensionBase = reinterpret_cast<std::uintptr_t>(
         imageAddress(gExtensionImage, 0));
     if (callerPc < extensionBase) return original(font);
@@ -56,4 +83,5 @@ auto dispatchViewportFont(const void *font, const void *text, std::size_t length
         return original(font);
     return dispatchVerifiedText(font, snapshot, encoding, caller, original,
         [](DecisionReason) noexcept {});
+#endif
 }

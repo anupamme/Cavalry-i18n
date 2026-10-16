@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 patch_receipt 的只读回执/源身份验证、context 路径/语言源、detect/install/state、Windows QPA只读检查、本地diagnostics及macOS固定厂商requirement只读验签。
- * [OUTPUT]: 提供卸载到blocking worker的启动期只读安装观察；显式macOS native预览另独立投影厂商Official来源、typed profile/receipt语言、脱敏nativeLocaleState（Absent按已锁2.8原厂fallback为en+unset；Known为explicit；Unknown/错误输入为unknown+unrecognized）、资源可用性及强Current-owned postimage限定的nativeEnglishRestoreAvailable；厂商来源要求可显示bundle身份及固定OS验签，最终Official还须native_user证明内置语言且无Switcher覆盖；资源/兼容性/恢复许可独立，不由徽章授权，其余默认2.7路径不变；四态版本兼容、补丁状态、当前语言、安装选择及Windows残留提示仍各守自身证明边界。status不探测journal、英文快照、进程或写权限，事务证明和收敛留给用户触发的Switch/Restore。
+ * [OUTPUT]: 提供卸载到blocking worker的启动期只读安装观察；显式macOS native runtime另独立投影厂商Official来源、typed profile/receipt语言、脱敏nativeLocaleState（Absent按已锁2.8原厂fallback为en+unset；Known为explicit；Unknown/错误输入为unknown+unrecognized）、资源可用性及强Current-owned postimage限定的nativeEnglishRestoreAvailable；厂商来源要求可显示bundle身份及固定OS验签，最终Official还须native_user证明内置语言且无Switcher覆盖；资源/兼容性/恢复许可独立，不由徽章授权，其余默认2.7路径不变；四态版本兼容、补丁状态、当前语言、安装选择及Windows残留提示仍各守自身证明边界。status不探测journal、英文快照、进程或写权限，事务证明和收敛留给用户触发的Switch/Restore。
  * [POS]: commands 的只读状态层；native签名验签有5秒子进程期限并由Tauri blocking worker承载，失败只把安装来源留为unknown，不阻断原有语言/profile/resource投影；人工忽略的组合烟测只读取明确选择的真实App/profile，不启动GUI。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -389,9 +389,9 @@ pub(crate) async fn get_status_for_app(app: &tauri::AppHandle) -> Result<StatusP
 fn get_status_for_paths(paths: AppPaths) -> Result<StatusPayload, String> {
     let candidates = detect::default_app_candidates();
     #[cfg(target_os = "macos")]
-    let native_preview = super::native_resources::preview_enabled();
+    let native_runtime = super::native_resources::native_runtime_enabled();
     #[cfg(not(target_os = "macos"))]
-    let native_preview = false;
+    let native_runtime = false;
     let legacy_status = || {
         status_for_paths(
             &paths.repo_root,
@@ -401,14 +401,14 @@ fn get_status_for_paths(paths: AppPaths) -> Result<StatusPayload, String> {
         )
     };
     #[cfg(target_os = "macos")]
-    let result = if native_preview {
+    let result = if native_runtime {
         native_status_for_paths(&paths, candidates.clone())
     } else {
         legacy_status()
     };
     #[cfg(not(target_os = "macos"))]
     let result = {
-        let _ = native_preview;
+        let _ = native_runtime;
         legacy_status()
     };
     record_status_diagnostics(&paths, &result);
@@ -452,7 +452,7 @@ pub(crate) fn browse_for_app(app: &tauri::AppHandle) -> Result<BrowsePayload, St
     let state_dir = super::context::state_dir_for_app(app);
     let _guard = crate::operation_lock::try_begin_bundle_operation(&state_dir)?;
     #[cfg(target_os = "macos")]
-    if super::native_resources::preview_enabled() {
+    if super::native_resources::native_runtime_enabled() {
         let (path, version) = super::native_resources::observe_install(&selection)?;
         read_state_for_mutation(&state_dir)?;
         persist_selected_state(

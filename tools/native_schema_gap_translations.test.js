@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖固定365条历史源、隐藏Background Rendering源行、两个缺源caption模块和显式registry。
- * [OUTPUT]: 守住366行当前投影、旧364摘要与两个caption追加决定；producer完整及单键撤批分开验证。
+ * [OUTPUT]: 守住366行当前投影、旧364摘要、两项caption追加与82模块/10753审批总表；producer完整及单键撤批分开验证。
  * [POS]: schema缺源准入的离线合同；不读取私账/App/profile，不以静态caption审批代替实屏验收。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -23,14 +23,14 @@ const sha = value => createHash('sha256').update(JSON.stringify(value)).digest('
 const modules = () => PARTS.map(name => require(`../languages/native/${name}`));
 
 test('schema gap approvals enter only the explicit registry and close the fixed source denominator', () => {
-  assert.equal(APPROVED_MODULES.length, 81);
+  assert.equal(APPROVED_MODULES.length, 82);
   for (const name of PARTS) assert.equal(APPROVED_MODULES.filter(value => value === name).length, 1);
   const rows = modules().flatMap(part => part.entries);
   assert.equal(rows.length, 366);
   assert.equal(new Set(rows.map(row => row.key)).size, 366);
   assert.equal(rows.filter(row => row.key === WORLD_SCALE_KEY).length, 1);
   assert.equal(rows.filter(row => row.key === BACKGROUND_RENDERING_KEY).length, 1);
-  assert.equal(approvedEntries().length, 10653);
+  assert.equal(approvedEntries().length, 10753);
   assert.equal(FIXED_GAP_SOURCE_ROWS.length, 365);
   assert.equal(CURRENT_GAP_SOURCE_ROWS.length, 366);
   const sourceByKey = new Map(CURRENT_GAP_SOURCE_ROWS.map(row => [row.key, row]));
