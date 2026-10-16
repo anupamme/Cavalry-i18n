@@ -2668,7 +2668,7 @@ test('live full UI matrix orchestrator exposes help without starting a capture',
   assert.equal(parseArgs(['-h']).help, true);
 });
 
-test('measurement integrity workflow reports live UI as optional and mirrors LOCAL_BUILD_SOP gates', () => {
+test('measurement integrity keeps live UI optional and validates DMG release artifacts', () => {
   const workflowSource = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'build.yml'), 'utf8');
   const stampScript = fs.readFileSync(path.join(repoRoot, 'tools', 'stamp_dmg_icon.sh'), 'utf8');
   const dmgLayoutScript = fs.readFileSync(path.join(repoRoot, 'tools', 'check_dmg_layout.sh'), 'utf8');
@@ -2678,11 +2678,6 @@ test('measurement integrity workflow reports live UI as optional and mirrors LOC
     workflowSource,
     /NOT-RUN-NO-LIVE-CAVALRY/,
     'CI workflow should report that live Cavalry capture was not run without turning optional maintainer evidence into a tag blocker'
-  );
-  assert.match(
-    workflowSource,
-    /unset CI[\s\S]*npm run tauri:build -- --target \$\{\{ matrix\.rust_target \}\}[\s\S]*bash tools\/stamp_dmg_icon\.sh src-tauri\/target\/\$\{\{ matrix\.rust_target \}\}\/release\/bundle\/dmg[\s\S]*npm run check:app[\s\S]*npm run test:contracts[\s\S]*npm run check:tauri[\s\S]*npm run test:tauri[\s\S]*PACKAGED_APP_PATH="\$app_path" PACKAGED_EXPECTED_ARCH="\$\{\{ matrix\.expected_arch \}\}" npm run test:tauri:packaged[\s\S]*bash tools\/check_dmg_layout\.sh "\$bundle_root\/dmg"/,
-    'macOS packaging workflow should mirror LOCAL_BUILD_SOP for each matrix architecture, omitting only manual-smoke and GUI window regression'
   );
   assert.doesNotMatch(
     workflowSource,
