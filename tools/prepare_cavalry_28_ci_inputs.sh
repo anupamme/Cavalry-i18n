@@ -90,7 +90,7 @@ else
 fi
 candidate="$(sed -n 's/^ARTIFACT: //p' "$candidate_log" | tail -n 1)"
 [[ -n "$candidate" && -f "$candidate" && ! -L "$candidate" ]] || fail 'candidate builder did not return one regular dylib artifact'
-lipo -verify_arch "$candidate_arch" "$candidate"
+lipo "$candidate" -verify_arch "$candidate_arch"
 candidate_sha256="$(shasum -a 256 "$candidate" | awk '{print $1}')"
 candidate_bytes="$(stat -f '%z' "$candidate")"
 printf 'CAVALRY_I18N_NATIVE_INJECTOR_FILE=%s\n' "$candidate" >> "$GITHUB_ENV"

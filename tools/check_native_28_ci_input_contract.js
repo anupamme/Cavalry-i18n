@@ -185,7 +185,7 @@ assert.match(inputPreparer, /CFBundleShortVersionString/);
 assert.match(inputPreparer, /CFBundleVersion/);
 assert.match(inputPreparer, /build:native-resources -- --assets-root .*--profile production-2\.8/);
 assert.match(inputPreparer, /CAVALRY_I18N_NATIVE_INJECTOR_FILE=/);
-assert.match(inputPreparer, /lipo -verify_arch "\$candidate_arch"/);
+assert.match(inputPreparer, /lipo "\$candidate" -verify_arch "\$candidate_arch"/);
 assert.doesNotMatch(inputPreparer, /TAURI_SIGNING_PRIVATE_KEY|npm run prepare:qt-sdk|build:injector/);
 assert.match(qtPreparer, /EXPECTED_BYTES = 34_027_496/);
 assert.match(qtPreparer, /d2a2a80de2e049dab5521318cc359ce2a02d1f3bc5235804de158b7342201e11/);
@@ -314,7 +314,10 @@ function scenario(options = {}) {
   esac
   `);
   writeExecutable(path.join(bin, 'lipo'), `
-  [ "$1" = '-verify_arch' ] && [ "$2" = '$arch' ] && [ -f "$3" ]
+  if [ ! -f "$1" ] || [ "$2" != '-verify_arch' ] || [ "$3" != '${arch}' ]; then
+    echo "unexpected lipo invocation: $*" >&2
+    exit 1
+  fi
   printf '%s\\n' "$*" >> "$MOCK_LOG_ROOT/lipo.args"
   `);
 
@@ -411,7 +414,17 @@ for (const arch of ['arm64', 'x86_64']) {
   assert.match(run.content('npm.args'), /build:native-resources .*--assets-root .*Cavalry\.app\/Contents\/assets .*--profile production-2\.8/);
   assert.match(run.content('qt-preparer.args'), /qtbase-6\.9\.2\.7z .*qt-6\.9\.2-headers/);
   assert.match(run.content('candidate-frameworks.txt'), /Cavalry\.app\/Contents\/Frameworks/);
-  assert.match(run.content('lipo.args'), new RegExp(`-verify_arch ${arch}`));
+  const candidatePath = path.join(
+    run.runnerTemp,
+    arch === 'arm64'
+      ? 'mock-native-arm64.dylib'
+      : 'cavalry-2.8-x86_64-inputs/native-candidate-output/libCavalryNativeFontCandidate.x86_64.dylib'
+  );
+  assert.equal(
+    run.content('lipo.args').trim(),
+    `${candidatePath} -verify_arch ${arch}`,
+    'lipo must receive the candidate input before its architecture verification command'
+  );
   assert.match(run.envOutput, new RegExp(`^CAVALRY_I18N_NATIVE_INJECTOR_FILE=.*${arch === 'arm64' ? 'mock-native-arm64\\.dylib' : 'libCavalryNativeFontCandidate\\.x86_64\\.dylib'}$`, 'm'));
   assert.match(run.summary, /official latest alias/);
   assert.match(run.summary, /all-platform public release guard remains authoritative/);
