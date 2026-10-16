@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # [INPUT]: 依赖只读2.8 Frameworks、Qt 6.9.2头、批准源及Demo/Welcome ABI。
-# [OUTPUT]: 编译完整arm64候选并核vendor-free、Demo源、ABI与dyld合同。
+# [OUTPUT]: 失败时报告ABI实值与工具链；通过后编译并核vendor-free、Demo源、ABI及dyld合同。
 # [POS]: 显式候选入口；不连接默认npm build，不签名、安装或启动App。
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 set -euo pipefail
@@ -68,6 +68,48 @@ EXTENSION_FIXUP="$(dyld_info -arch arm64 -fixups "$EXTENSION" | grep -F "$LOG_IT
 TEXT_FROM_FILE_OFFSET="$(nm -arch arm64 -gU "$FRAMEWORKS_DIR/libCore.dylib" | awk -v symbol="$TEXT_FROM_FILE_SYMBOL" '$NF == symbol {print $1}')"
 TEXT_FROM_FILE_IMPORT="$(dyld_info -arch arm64 -imports "$EXTENSION" | grep -F "$TEXT_FROM_FILE_SYMBOL" || true)"
 TEXT_FROM_FILE_FIXUP="$(dyld_info -arch arm64 -fixups "$EXTENSION" | grep -F "$TEXT_FROM_FILE_SYMBOL" || true)"
+
+report_abi_gate_diagnostics() {
+  local dwarfdump_path
+  local nm_path
+  local dyld_info_path
+  dwarfdump_path="$(xcrun --find dwarfdump 2>/dev/null || true)"
+  nm_path="$(command -v nm 2>/dev/null || true)"
+  dyld_info_path="$(command -v dyld_info 2>/dev/null || true)"
+
+  printf 'ABI gate diagnostics (guard predicates unchanged):\n' >&2
+  printf '  extension.uuid expected=%s actual=%q\n' "$EXPECTED_EXTENSION_UUID" "$EXTENSION_UUID" >&2
+  printf '  core.uuid expected=%s actual=%q\n' "$EXPECTED_CORE_UUID" "$CORE_UUID" >&2
+  printf '  spdlog.uuid expected=%s actual=%q\n' "$EXPECTED_SPDLOG_UUID" "$SPDLOG_UUID" >&2
+  printf '  spdlog.log_it.offset expected=000000000000992c actual=%q\n' "$LOG_IT_OFFSET" >&2
+  printf '  extension.log_it.import expected=%s actual=%q\n' 'contains (from libspdlog.1.13)' "${EXTENSION_IMPORT:-<empty>}" >&2
+  printf '  extension.log_it.fixup expected=%q actual=%q\n' "libspdlog.1.13/$LOG_IT_SYMBOL" "${EXTENSION_FIXUP:-<empty>}" >&2
+  printf '  core.text_from_file.offset expected=000000000049c7d0 actual=%q\n' "$TEXT_FROM_FILE_OFFSET" >&2
+  printf '  extension.text_from_file.import expected=%s actual=%q\n' 'contains (from libCore)' "${TEXT_FROM_FILE_IMPORT:-<empty>}" >&2
+  printf '  extension.text_from_file.fixup expected=%q actual=%q\n' "libCore/$TEXT_FROM_FILE_SYMBOL" "${TEXT_FROM_FILE_FIXUP:-<empty>}" >&2
+
+  printf '  tool.xcrun.path=%s\n' "$(command -v xcrun 2>/dev/null || printf '<not-found>')" >&2
+  printf '  tool.dwarfdump.path=%s\n' "${dwarfdump_path:-<not-found>}" >&2
+  printf '  tool.nm.path=%s\n' "${nm_path:-<not-found>}" >&2
+  printf '  tool.dyld_info.path=%s\n' "${dyld_info_path:-<not-found>}" >&2
+  printf '  toolchain.developer_dir:\n' >&2
+  xcode-select -p >&2 || true
+  printf '  toolchain.xcodebuild_version:\n' >&2
+  xcodebuild -version >&2 || true
+  printf '  toolchain.macos_sdk_version:\n' >&2
+  xcrun --sdk macosx --show-sdk-version >&2 || true
+  printf '  tool.dwarfdump.version:\n' >&2
+  xcrun dwarfdump --version >&2 || true
+  printf '  tool.nm.version:\n' >&2
+  nm --version >&2 || true
+  printf '  tool.dyld_info.build_identity:\n' >&2
+  if [[ -n "$dyld_info_path" ]]; then
+    what "$dyld_info_path" >&2 || true
+  else
+    printf '    <unavailable: path not found>\n' >&2
+  fi
+}
+
 if [[ "$EXTENSION_UUID" != "$EXPECTED_EXTENSION_UUID" ||
       "$CORE_UUID" != "$EXPECTED_CORE_UUID" ||
       "$SPDLOG_UUID" != "$EXPECTED_SPDLOG_UUID" ||
@@ -78,6 +120,7 @@ if [[ "$EXTENSION_UUID" != "$EXPECTED_EXTENSION_UUID" ||
       "$TEXT_FROM_FILE_IMPORT" != *"(from libCore)"* ||
       "$TEXT_FROM_FILE_FIXUP" != *"libCore/$TEXT_FROM_FILE_SYMBOL"* ]]; then
   echo "拒绝：Demo/Welcome Core、Extension、导出或two-level导入合同偏离。" >&2
+  report_abi_gate_diagnostics
   exit 1
 fi
 if [[ ! -f "$FRAMEWORKS_DIR/QtCore.framework/Versions/A/QtCore" ]]; then

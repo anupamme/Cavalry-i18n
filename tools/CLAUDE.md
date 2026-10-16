@@ -4,7 +4,7 @@
 成员清单
 generate_demo_reader_tables.js: 构建期将批准的示例文字与源位置投影为有限native表，不复制厂商脚本。
 native_demo_scene_dnt_identities.js: 官方100项示例菜单源身份表，只限定DNT显示例外，不含译文。
-native_demo_menu_approval.test.js: 合成catalog验证100菜单三语批准值和完整身份，拒绝越界DNT例外。
+native_demo_menu_approval.test.js: 合成catalog验证100菜单三语批准值、完整身份与production profile透传，拒绝越界DNT例外。
 native_demo_scene_dnt_exceptions.test.js: 验证DNT默认关闭、逐语审批和身份漂移拒绝，不运行Cavalry。
 native_demo_script_translations.test.js: 验证100示例文件的批准文字与位置，保留脚本身份和DNT符号。
 native-display-tests/: 项目显示技能的四份标准库离线维护测试；依赖技能脚本与场景，不运行App，不自动加入test:contracts。

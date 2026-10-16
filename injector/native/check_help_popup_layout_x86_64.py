@@ -1,6 +1,6 @@
 """
 [INPUT]: 依赖官方2.8 x86 CavalryUI/QtWidgets、候选导入与窄布局适配器。
-[OUTPUT]: 核验DocumentationPopup唯一调用窗、return PC和two-level导入。
+[OUTPUT]: 核验DocumentationPopup唯一调用窗、return PC和two-level导入；失败时输出实测UUID、偏移及import/fixup行。
 [POS]: 构建后静态ABI门；不启动Cavalry或授予实屏信用。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 """
@@ -28,6 +28,15 @@ def namespace_body(source: str, namespace: str) -> str:
     return source[start:end]
 
 
+def show_lines(lines: list[str]) -> str:
+    return "\n".join(lines) if lines else "<no matching output lines>"
+
+
+def matching_lines(output: str, *needles: str) -> list[str]:
+    return [line for line in output.splitlines()
+            if any(needle in line for needle in needles)]
+
+
 def main() -> None:
     require(len(sys.argv) == 4,
             "用法: check_help_popup_layout_x86_64.py FRAMEWORKS CANDIDATE OUT.json")
@@ -49,7 +58,9 @@ def main() -> None:
     ui_uuid = uuid_for_arch(ui, "x86_64")
     widgets_uuid = uuid_for_arch(widgets, "x86_64")
     require(ui_uuid == expected_ui_uuid and widgets_uuid == expected_widgets_uuid,
-            "官方x86 UI/QtWidgets UUID与合同不一致")
+            "官方x86 UI/QtWidgets UUID与合同不一致: "
+            f"UI expected={expected_ui_uuid}, actual={ui_uuid}; "
+            f"QtWidgets expected={expected_widgets_uuid}, actual={widgets_uuid}")
 
     symbols = {
         "documentationSetContent": symbol_address(
@@ -63,33 +74,50 @@ def main() -> None:
         "qLayoutActivate": cpp_hex(x86, "kQtLayoutActivateOffset"),
     }
     require(symbols == expected_symbols,
-            f"Popup/Qt导出符号偏移与合同不一致：{symbols}")
+            f"Popup/Qt导出符号偏移与合同不一致: expected={expected_symbols}, actual={symbols}")
 
     call_offset = cpp_hex(x86, "kActivateCallWindowOffset")
     call_bytes = cpp_byte_array(x86, "kActivateCallWindowBytes")
     actual_call = macho_bytes_at(ui, call_offset, len(call_bytes), output.parent)
-    require(actual_call == call_bytes, "DocumentationPopup::setContent调用窗字节不匹配")
+    require(actual_call == call_bytes,
+            "DocumentationPopup::setContent调用窗字节不匹配: "
+            f"UI UUID={ui_uuid}, offset=0x{call_offset:X}, "
+            f"expected={call_bytes.hex()}, actual={actual_call.hex()}")
     stub_offset = cpp_hex(x86, "kActivateImportStubOffset")
     stub_bytes = cpp_byte_array(x86, "kActivateImportStubBytes")
     actual_stub = macho_bytes_at(ui, stub_offset, len(stub_bytes), output.parent)
-    require(actual_stub == stub_bytes, "QLayout::activate import stub字节不匹配")
+    require(actual_stub == stub_bytes,
+            "QLayout::activate import stub字节不匹配: "
+            f"UI UUID={ui_uuid}, offset=0x{stub_offset:X}, "
+            f"expected={stub_bytes.hex()}, actual={actual_stub.hex()}")
     got = cpp_hex(x86, "kActivateGotOffset")
     displacement = int.from_bytes(actual_stub[2:6], "little", signed=True)
-    require(actual_stub[:2] == b"\xff\x25" and
-            stub_offset + len(actual_stub) + displacement == got,
-            "x86 QLayout stub没有指向固定QtWidgets GOT槽")
+    actual_got = stub_offset + len(actual_stub) + displacement
+    require(actual_stub[:2] == b"\xff\x25" and actual_got == got,
+            "x86 QLayout stub没有指向固定QtWidgets GOT槽: "
+            f"UI UUID={ui_uuid}, stub offset=0x{stub_offset:X}, "
+            f"bytes={actual_stub.hex()}, computed GOT=0x{actual_got:X}, expected GOT=0x{got:X}")
 
+    layout_symbol = cpp_string(x86, "kQtLayoutActivateSymbol")
     imports = run("dyld_info", "-arch", "x86_64", "-imports", str(ui))
     import_line = next((line for line in imports.splitlines()
-                        if cpp_string(x86, "kQtLayoutActivateSymbol") in line), "")
+                        if layout_symbol in line), "")
+    relevant_import_lines = matching_lines(imports, layout_symbol, "(from QtWidgets)")
     require("(from QtWidgets)" in import_line,
-            "官方UI没有从同bundle QtWidgets导入QLayout::activate")
+            "官方UI没有从同bundle QtWidgets导入QLayout::activate: "
+            f"expected symbol={layout_symbol} from QtWidgets; "
+            f"selected line={import_line or '<none>'}; 相关imports:\n"
+            f"{show_lines(relevant_import_lines)}")
     fixups = run("dyld_info", "-arch", "x86_64", "-fixups", str(ui))
+    expected_fixup_slot = f"0x{got:08X}"
+    relevant_fixup_lines = matching_lines(fixups, layout_symbol, expected_fixup_slot)
     require(re.search(
-        rf"__got\s+0x{got:08X}\s+bind\s+QtWidgets/"
-        rf"{re.escape(cpp_string(x86, 'kQtLayoutActivateSymbol'))}\b",
+        rf"__got\s+{expected_fixup_slot}\s+bind\s+QtWidgets/"
+        rf"{re.escape(layout_symbol)}\b",
         fixups) is not None,
-            "UI QLayout::activate GOT fixup与固定槽不一致")
+            "UI QLayout::activate GOT fixup与固定槽不一致: "
+            f"expected __got {expected_fixup_slot} bind QtWidgets/{layout_symbol}; "
+            f"相关fixups:\n{show_lines(relevant_fixup_lines)}")
 
     adapter_check = (
         "namespace popup_abi = native_help_popup_layout::abi::x86_64;" in adapter and
@@ -101,9 +129,13 @@ def main() -> None:
     require(adapter_check, "adapter未使用x86合同或原函数不是单次透传")
 
     exports = run("xcrun", "nm", "-arch", "x86_64", "-gU", str(candidate))
+    interpose_symbol = "_nativeHelpLayoutActivateInterpose"
+    matching_exports = matching_lines(exports, interpose_symbol)
     require(any(line.split() and line.split()[-1] ==
-                "_nativeHelpLayoutActivateInterpose"
-                for line in exports.splitlines()), "候选缺少布局interpose入口")
+                interpose_symbol
+                for line in exports.splitlines()),
+            f"候选缺少布局interpose入口: symbol={interpose_symbol}; "
+            f"相关nm行:\n{show_lines(matching_exports)}")
     candidate_fixups = run("dyld_info", "-arch", "x86_64", "-fixups",
                            str(candidate))
     popup_fixup_lines = [
@@ -115,7 +147,9 @@ def main() -> None:
             "<flat-namespace>/" not in line for line in popup_fixup_lines) and
         any("__got" in line and "QtWidgets/" in line and
             "<flat-namespace>/" not in line for line in popup_fixup_lines),
-            "候选缺少QtWidgets two-level QLayout导入或保持flat namespace")
+            "候选缺少QtWidgets two-level QLayout导入或保持flat namespace: "
+            f"candidate={candidate}; 相关fixups:\n"
+            f"{show_lines(popup_fixup_lines)}")
 
     receipt = {
         "status": "PASS_OFFICIAL_X86_DOCUMENTATION_POPUP_ABI",

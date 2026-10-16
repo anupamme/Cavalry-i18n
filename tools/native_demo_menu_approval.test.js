@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖批准模块、官方100项DNT身份表与原生资源producer的纯投影接口
- * [OUTPUT]: 锁定300个三语审定值、完整官方身份及生产入口的有限DNT选择
+ * [OUTPUT]: 锁定300个三语值、完整官方身份、精确DNT例外与production profile透传
  * [POS]: tools 的源绑定数据合同；合成官方catalog，不生成磁盘包或启动Cavalry
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -114,6 +114,6 @@ test('asset-root production path opts in only through the approved demo module',
 
   const producer = fs.readFileSync(path.join(__dirname, 'native_resource_bundle.js'), 'utf8');
   assert.match(producer,
-    /buildNativeResourceBundle\(pairs, approvedEntries\(\), undefined, supplements, DEMO_MENU_DNT_KEYS\)/,
+    /buildNativeResourceBundle\(pairs, approvedEntries\(\), undefined, supplements, DEMO_MENU_DNT_KEYS, profile\)/,
     'buildFromAssetRoot must use the narrowly approved producer');
 });

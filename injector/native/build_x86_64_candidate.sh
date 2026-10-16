@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # [INPUT]: 依赖只读Cavalry 2.8 Frameworks、Qt 6.9.2公开头和当前源码树。
-# [OUTPUT]: 核x86身份与owner合同，生成源码manifest并链接隔离native dylib。
+# [OUTPUT]: 核x86身份与owner合同，生成源码manifest并链接隔离native dylib；失败时回显Popup runner原文。
 # [POS]: Intel native编译入口；不构建Tauri，不启动或部署Cavalry。
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 set -euo pipefail
@@ -465,7 +465,8 @@ RESULT=$?
 set -e
 printf '%s\n' "$RESULT" >"$OUT_DIR/help-popup-layout-x86_64-abi-contract-runner.exit"
 if [[ "$RESULT" -ne 0 ]]; then
-  echo "FAIL: candidate x86 DocumentationPopup ABI contract ($RESULT)" >&2
+  echo "FAIL: candidate x86 DocumentationPopup ABI contract ($RESULT); checker log: $OUT_DIR/help-popup-layout-x86_64-abi-contract-runner.log" >&2
+  cat "$OUT_DIR/help-popup-layout-x86_64-abi-contract-runner.log" >&2
   exit "$RESULT"
 fi
 printf 'PASS_X86_64_FULL_NATIVE_SOURCE_COMPILE_LINK_NOT_LIVE\n' \
