@@ -31,6 +31,7 @@ save_scene_caption_policy.h: 仅按精确caller及Save Scene/Save as .cv原文�
 save_scene_caption_runtime.inc: 绑定同bundle QtWidgets；其它caller原参单次转发。
 save_scene_caption_contract_test.cpp: QtCore-only合同验证两种原文、三语映射、QString返回、引用寿命与透传。
 candidate_static_contract_test.py: 用合成反汇编锁定目标符号边界，并拒绝混合FAT UUID。
+native_uuid_slice_selector_contract_test.py: 用双slice双路径顺序fixture验证两构建器按dwarfdump第三字段选UUID；不调用vendor。
 check_candidate_contract.py: 核GetPath来源与Mesh前缀、FPS调用字节、ABI、QtCore 6.9.2及two-level fixup。
 build_candidate.sh: 核Core/Extension/spdlog ABI；拒绝时打印实值与工具链身份；通过后生成Demo表、编译arm64候选并运行ABI合同。
 demo_reader_abi_contract.h: 锁定Core optional<string>结果槽、Extension Preset caller、GOT与返回点。
@@ -125,7 +126,7 @@ native_source_manifest_x86_64.py: 从仓库现行native编译闭包生成外部�
 native_source_manifest_x86_64_contract_test.py: 临时源码树行为合同；验证生成/消费、文件闭包与字节/模式漂移拒绝，不调用vendor或编译器。
 check_font_abi_x86_64.py: 逐字节核官方x86字体、Viewport、FPS机器码并输出回执。
 check_getpath_cache_x86_64.py: 从官方Core/Extension切片核UUID、调用窗和two-level导入。
-check_help_popup_layout_x86_64.py: 核官方UI/QtWidgets x86窗口、GOT槽和候选two-level导入；失败输出实际身份与导入行。
+check_help_popup_layout_x86_64.py: 核官方UI/QtWidgets x86窗口、GOT槽和候选two-level导入；失败输出实际身份、导入行与interpose槽。
 check_timeline_owner_observer_x86_64.py: 核官方x86 Timeline字节与builder传入的当前源码manifest，再编译寄存器合同；不回退私档路径。
 getpath_cache_x86_64_abi_contract.h: 锁定Core→缓存→ToolHelp/Viewport质量生产者的x86返回点与字节窗。
 getpath_cache_x86_64_contract_test.cpp: Rosetta验证双帧owner、错误链拒绝和原函数单次透传。

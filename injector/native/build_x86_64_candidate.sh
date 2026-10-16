@@ -54,8 +54,8 @@ done
 # -- 锁定x86_64 Welcome链接身份；不推断调用者ABI ------------------------
 EXTENSION="$FRAMEWORKS_DIR/libExtensionLayer.dylib"
 SPDLOG="$FRAMEWORKS_DIR/libspdlog.1.13.dylib"
-EXTENSION_UUID="$(xcrun dwarfdump --uuid "$EXTENSION" | awk '/x86_64/ {print $2; exit}')"
-SPDLOG_UUID="$(xcrun dwarfdump --uuid "$SPDLOG" | awk '/x86_64/ {print $2; exit}')"
+EXTENSION_UUID="$(xcrun dwarfdump --uuid "$EXTENSION" | awk '$3 == "(x86_64)" {print $2; exit}')"
+SPDLOG_UUID="$(xcrun dwarfdump --uuid "$SPDLOG" | awk '$3 == "(x86_64)" {print $2; exit}')"
 LOG_IT_SYMBOL="__ZN6spdlog6logger7log_it_ERKNS_7details7log_msgEbb"
 LOG_IT_OFFSET="$(nm -arch x86_64 -gU "$SPDLOG" | awk -v symbol="$LOG_IT_SYMBOL" '$NF == symbol {print $1}')"
 EXTENSION_IMPORT="$(dyld_info -arch x86_64 -imports "$EXTENSION" | grep -F "$LOG_IT_SYMBOL" || true)"

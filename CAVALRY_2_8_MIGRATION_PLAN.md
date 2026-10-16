@@ -6020,3 +6020,16 @@ Intel已编译链接，在DocumentationPopup静态门停止。
 不把本地通过或工具版本差异当线上通过证据。
 新源码须新run；不以重跑旧SHA代替修复。
 主账仍40/44，G-3线上预验未通过。
+
+
+诊断候选072d6b8的Actions 38883161589源码检查通过。
+ARM实值显示三个UUID误选了x86切片。
+根因是awk对整行匹配arm64；CI路径也含arm64。
+x86行末路径触发匹配，脚本提前取第一行UUID。
+符号偏移、导入和fixup均正确，不是官方ABI漂移。
+修复只将架构选择限定到dwarfdump第三字段。
+双架构与两种slice顺序使用路径干扰回归。
+
+Intel诊断已证官方输入门通过，候选QLayout绑定缺少interpose行。
+现有日志仅见QtWidgets的GOT与lazy绑定，不能据此放行。
+下一轮展开实际tuple与section fixup，保持原失败判据。

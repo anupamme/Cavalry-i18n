@@ -1,5 +1,5 @@
 """
-[INPUT]: 依赖官方2.8 x86 CavalryUI/QtWidgets、候选导入与窄布局适配器。
+[INPUT]: 依赖官方2.8 x86映像、候选、窄适配器与dyld_info/otool静态投影。
 [OUTPUT]: 核验DocumentationPopup唯一调用窗、return PC和two-level导入；失败时输出实测UUID、偏移及import/fixup行。
 [POS]: 构建后静态ABI门；不启动Cavalry或授予实屏信用。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -142,14 +142,24 @@ def main() -> None:
         line for line in candidate_fixups.splitlines()
         if "__ZN7QLayout8activateEv" in line
     ]
-    require(
+    candidate_import_ok = (
         any("__interpose" in line and "QtWidgets/" in line and
             "<flat-namespace>/" not in line for line in popup_fixup_lines) and
         any("__got" in line and "QtWidgets/" in line and
-            "<flat-namespace>/" not in line for line in popup_fixup_lines),
-            "候选缺少QtWidgets two-level QLayout导入或保持flat namespace: "
-            f"candidate={candidate}; 相关fixups:\n"
-            f"{show_lines(popup_fixup_lines)}")
+            "<flat-namespace>/" not in line for line in popup_fixup_lines))
+    if not candidate_import_ok:
+        # -- 失败只展开tuple实值，不把lazy绑定当作interpose证明 ---------
+        sections = run("dyld_info", "-arch", "x86_64",
+                       "-section", "__DATA", "__interpose",
+                       "-section", "__DATA_CONST", "__interpose", str(candidate))
+        indirect = run("otool", "-Iv", str(candidate))
+        require(False,
+                "候选缺少QtWidgets two-level QLayout导入或保持flat namespace: "
+                f"candidate={candidate}; QLayout fixups:\n"
+                f"{show_lines(popup_fixup_lines)}\n全部interpose fixups:\n"
+                f"{show_lines(matching_lines(candidate_fixups, '__interpose'))}\n"
+                f"interpose sections:\n{sections}\nQLayout indirect symbols:\n"
+                f"{show_lines(matching_lines(indirect, layout_symbol))}")
 
     receipt = {
         "status": "PASS_OFFICIAL_X86_DOCUMENTATION_POPUP_ABI",
