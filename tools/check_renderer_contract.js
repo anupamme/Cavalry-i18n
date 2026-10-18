@@ -22,6 +22,7 @@ const {
   feedbackCatalogHtml,
   iconCatalogHtml,
 } = require('./ui_review_catalogs');
+const { APP_SYNTAX_FILES } = require('./check_app_syntax.js');
 
 const repoRoot = path.resolve(__dirname, '..');
 const read = (relative) => fs.readFileSync(path.join(repoRoot, relative), 'utf8');
@@ -97,8 +98,9 @@ test('renderer copy extraction stays in the renderer map and both pages load it 
   assert.ok(artifactManifest.requiredPaths.includes('renderer/user-profile-text.js'));
   assert.ok(artifactManifest.requiredPaths.includes('renderer/support-footer.css'));
   assert.ok(artifactManifest.requiredPaths.includes('renderer/support-footer.js'));
-  assert.match(packageJson.scripts['check:app'], /node --check renderer\/user-profile-text\.js && node --check renderer\/ui-text\.js/);
-  assert.match(packageJson.scripts['check:app'], /node --check renderer\/support-footer\.js/);
+  assert.equal(packageJson.scripts['check:app'], 'node tools/check_app_syntax.js');
+  assert.ok(APP_SYNTAX_FILES.indexOf('renderer/user-profile-text.js') < APP_SYNTAX_FILES.indexOf('renderer/ui-text.js'));
+  assert.ok(APP_SYNTAX_FILES.includes('renderer/support-footer.js'));
 });
 
 test('UI Review renders the exact production shell and replaces only the data bridge', () => {

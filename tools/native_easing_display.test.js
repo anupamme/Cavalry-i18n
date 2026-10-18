@@ -134,6 +134,27 @@ test('accepts only an absolute output path outside the checkout', () => {
   assert.throws(() => generator.parseArguments(['--out', path.join(REPO_ROOT, 'easing-display-table.inc')]), /outside the repository/);
 });
 
+test('classifies Windows output paths with native cross-volume relative semantics', () => {
+  const winPath = path.win32;
+  const windowsRepo = 'D:\\work\\Cavalry-i18n';
+  const parseWindowsOutput = output => generator.parseArguments(
+    ['--out', output],
+    winPath,
+    windowsRepo,
+  );
+
+  assert.deepEqual(parseWindowsOutput('D:\\temp\\easing-display-table.inc'), {
+    outputFile: 'D:\\temp\\easing-display-table.inc',
+  });
+  assert.deepEqual(parseWindowsOutput('C:\\temp\\easing-display-table.inc'), {
+    outputFile: 'C:\\temp\\easing-display-table.inc',
+  });
+  assert.deepEqual(parseWindowsOutput('D:\\work\\Cavalry-i18n-output\\easing-display-table.inc'), {
+    outputFile: 'D:\\work\\Cavalry-i18n-output\\easing-display-table.inc',
+  });
+  assert.throws(() => parseWindowsOutput('D:\\work\\Cavalry-i18n\\easing-display-table.inc'), /outside the repository/);
+});
+
 test('writes only the requested external table', () => {
   const outputDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-easing-table-test.'));
   const outputFile = path.join(outputDirectory, 'easing-display-table.inc');

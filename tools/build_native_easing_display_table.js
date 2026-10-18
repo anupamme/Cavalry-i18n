@@ -201,23 +201,24 @@ function renderTable(rows) {
   ].join('\n');
 }
 
-function validateOutputPath(outputInput) {
-  if (typeof outputInput !== 'string' || !path.isAbsolute(outputInput)) {
+function validateOutputPath(outputInput, pathModel = path, repoRoot = REPO_ROOT) {
+  if (typeof outputInput !== 'string' || !pathModel.isAbsolute(outputInput)) {
     throw new Error('output file must be an absolute path');
   }
-  const outputFile = path.resolve(outputInput);
-  const relativeOutput = path.relative(REPO_ROOT, outputFile);
-  if (relativeOutput === '' || (!relativeOutput.startsWith(`..${path.sep}`) && relativeOutput !== '..')) {
+  const outputFile = pathModel.resolve(outputInput);
+  const relativeOutput = pathModel.relative(pathModel.resolve(repoRoot), outputFile);
+  if (relativeOutput === '' || (!relativeOutput.startsWith(`..${pathModel.sep}`) &&
+      relativeOutput !== '..' && !pathModel.isAbsolute(relativeOutput))) {
     throw new Error('output must remain outside the repository');
   }
   return outputFile;
 }
 
-function parseArguments(argv) {
+function parseArguments(argv, pathModel = path, repoRoot = REPO_ROOT) {
   if (argv.length !== 2 || argv[0] !== '--out' || !argv[1] || argv[1].startsWith('--')) {
     throw new Error('usage: build_native_easing_display_table.js --out <absolute-file-outside-repository>');
   }
-  return { outputFile: validateOutputPath(argv[1]) };
+  return { outputFile: validateOutputPath(argv[1], pathModel, repoRoot) };
 }
 
 function generate({ outputFile }) {

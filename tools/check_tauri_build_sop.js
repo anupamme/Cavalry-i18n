@@ -16,6 +16,7 @@ const { installGitHooks } = require('./install_git_hooks.js');
 const { runPowerShellScript } = require('./powershell_command.js');
 const { resolvePythonCommand } = require('./python_command.js');
 const { cleanupTempDirs, makeTempDir } = require('./test_temp_dir.js');
+const { APP_SYNTAX_FILES } = require('./check_app_syntax.js');
 const {
   createDmgVolumeName,
   resolveDmgArchitecture,
@@ -567,8 +568,9 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   assert.equal(pkg.scripts['build:electron:dir'], undefined);
   assert.equal(pkg.scripts['build:dir'], undefined);
   assert.equal(pkg.build, undefined);
-  assert.match(pkg.scripts['check:app'], /node --check tools\/windows_nsis_provenance\.js/);
-  assert.match(pkg.scripts['check:app'], /node --check tools\/windows_nsis_provenance_contract\.js/);
+  assert.equal(pkg.scripts['check:app'], 'node tools/check_app_syntax.js');
+  assert.ok(APP_SYNTAX_FILES.includes('tools/windows_nsis_provenance.js'));
+  assert.ok(APP_SYNTAX_FILES.includes('tools/windows_nsis_provenance_contract.js'));
   assert.match(pkg.scripts['test:contracts'], /tools\/generate_quick_add_descriptions\.test\.js/);
   assert.equal(pkg.devDependencies.electron, undefined);
   assert.equal(pkg.devDependencies['electron-builder'], undefined);
@@ -921,7 +923,7 @@ test('project version workflow exposes one synchronizer and a pre-commit hook in
   assert.equal(pkg.scripts['check:version'], 'node tools/sync_project_version.js --check');
   assert.equal(pkg.scripts['release:metadata'], 'node tools/release_metadata.js');
   assert.equal(pkg.scripts['check:release'], 'node tools/release_metadata.js --check');
-  assert.match(pkg.scripts['check:app'], /node --check tools\/extract_release_changelog\.js/);
+  assert.ok(APP_SYNTAX_FILES.includes('tools/extract_release_changelog.js'));
   assert.equal(pkg.scripts['hooks:install'], 'node tools/install_git_hooks.js');
   assert.equal(pkg.scripts.postinstall, 'npm run hooks:install');
   assert.doesNotMatch(pkg.scripts['hooks:install'], /\/dev\/null|&&|\|\||\btrue\b/);

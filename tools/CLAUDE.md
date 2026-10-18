@@ -2,6 +2,8 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+check_app_syntax.js: Node短入口按固定清单逐文件执行--check；保留原顺序，不经shell拼接，首个失败返回非零。
+check_app_syntax.test.js: 短入口与原218项顺序摘要合同；实际语法错/缺文件验证非零退出和停止后续检查。
 cavalry_native_windows_target.json: Windows 2.8官方MSI及x64运行时摘要锁；仅宿主准入，译文沿共享native catalog。
 acceptance/: 44主项整轮单表；schema2分离源键库存与实屏项，显式迁移保留历史；Python按平台编排，离线自测不启动产品。
 generate_demo_reader_tables.js: 构建期将批准示例投影为有限native表；Windows显式CRLF须还原完整批准LF身份后映射实际SHA/偏移，不修改厂商文件。
@@ -56,8 +58,8 @@ native_metadata_reuse.test.js: Node 的纯复用/帮助表合同；锁哈希、�
 build_native_help_description_table.js: 从SHA锁定的四份2.8 MetaData与source-bound审定仓外生成跨平台384/17说明表、独立401根排版表及回执；说明字节不变，ABI由消费者承担。
 build_native_help_description_table.test.js: Node生成器合同；锁UTF-8转义、仓外输出、384/17说明与401根排版分表，不授live信用。
 native_easing_display_data.js: 构建期内置缓动显示源；15项root批准译文仅作显示，五项复用既有native键，不进官方catalog或包统计。
-build_native_easing_display_table.js: 校验20项内置身份与现有源键，并在仓外生成自包含C++ constexpr表；不接runtime。
-native_easing_display.test.js: Node纯合同；锁20项身份/源唯一、五项native复用、三语闭合、C++转义与仓外输出，不授live信用。
+build_native_easing_display_table.js: 校验20项内置身份与现有源键；接受Windows跨卷仓外输出，生成同源C++表，不接runtime。
+native_easing_display.test.js: Node纯合同；锁20项身份/源唯一、五项native复用、三语闭合、C++转义与仓外输出，不授live信用。 Windows path.win32合同区分仓内、同卷仓外与跨卷临时目录。
 native_help_popup_rows.js: 构建期纯投影；复用稳定根键，保留main/def同名项，按原厂格式输出type/name/参数/返回文字，不含说明或像素宽。
 native_help_popup_rows.test.js: Node纯合同；锁可选参数富文本、默认值不显示、返回顶层键排序和根范围；不读App或私档。
 native_translation_inventory.js: Node 的全量纯队列编排器；组合官方 source/日语 catalog 与旧 JSON/TS 候选，按 registry key 排序，dontTranslate 与厂商日语优先，候选分类不代表审定或完成。
