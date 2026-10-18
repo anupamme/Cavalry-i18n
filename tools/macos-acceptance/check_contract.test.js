@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 macos-acceptance 的 tracked 源码闭包、host 身份原语、冻结媒体 fixture、构建脚本与 Node harness
+ * [INPUT]: 依赖 macos-acceptance 的 tracked 源码闭包、host 身份原语、冻结媒体 fixture、构建脚本、共享语法清单与 Node harness
  * [OUTPUT]: 对外提供跨平台可运行的静态合同，阻断冻结快照编译输入遗漏、缺失/篡改 host 身份、临时 Cache 依赖、源码树内构建物、弱窗口绑定与 live 命令假通过
  * [POS]: macos-acceptance 的 CI 边界；只验证可复现输入和 fail-closed 协议，不启动 Cavalry、不冒充真机 PASS
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -10,6 +10,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { APP_SYNTAX_FILES } = require('../check_app_syntax.js');
 const { spawnSync } = require('node:child_process');
 const test = require('node:test');
 const {
@@ -330,9 +331,9 @@ test('package scripts expose contracts, explicit build, live matrix, and review 
     'node tools/macos-acceptance/acceptance_harness.js --seal-review',
   );
   assert.match(scripts['test:contracts'], /tools\/macos-acceptance\/check_contract\.test\.js/);
-  assert.match(scripts['check:app'], /tools\/macos-acceptance\/acceptance_harness\.js/);
-  assert.match(scripts['check:app'], /tools\/macos-acceptance\/path_safety\.js/);
-  assert.match(scripts['check:app'], /tools\/macos-acceptance\/artifact_identity\.js/);
+  assert.ok(APP_SYNTAX_FILES.includes('tools/macos-acceptance/acceptance_harness.js'));
+  assert.ok(APP_SYNTAX_FILES.includes('tools/macos-acceptance/path_safety.js'));
+  assert.ok(APP_SYNTAX_FILES.includes('tools/macos-acceptance/artifact_identity.js'));
 });
 
 test('PR macOS CI compiles the producer without a vendor app and does not claim live PASS', () => {
