@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖精确 `--uninstall-restore-english` 参数、共享 state/runtime_paths/operation_lock、commands English 事务与真实 CommandRunner。
- * [OUTPUT]: 提供 NSIS 卸载前无 WebView English 恢复分流；Cavalry 已被卸载或刷新已证明无需修复时幂等成功，typed reconciliationRequired 必须继续完成 English 事务才返回 0，缺失状态、UAC 取消、未知运行时或回滚均返回失败。
+ * [OUTPUT]: NSIS显式English恢复；native先恢复Current-owned用户profile，再经原固定runtime事务恢复厂商QPA；要求写者关闭，legacy路径独立。
  * [POS]: src-tauri/src 的 Windows 控制面卸载边界；“保留翻译”由 NSIS 不调用本入口表达，本入口只承担用户明确选择的“恢复英文并移除自有运行时”。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -37,6 +37,9 @@ fn restore_requested(args: &[OsString]) -> bool {
 }
 
 fn restore_current_saved_cavalry() -> Result<(), String> {
+    if commands::windows_native_enabled() {
+        return commands::restore_native_windows_for_uninstall();
+    }
     let current_exe = env::current_exe()
         .map_err(|error| format!("Could not locate Cavalry Language Switcher: {error}"))?;
     let resource_dir = current_exe.parent().ok_or_else(|| {

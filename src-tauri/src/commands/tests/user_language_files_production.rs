@@ -3,7 +3,7 @@
  * [OUTPUT]: 验证固定路径/只读 projection、合法资源、writer guard与typed拒权；macOS ignored探针核实真实拒权和pending重试恢复。
  * [POS]: commands/tests 的 production-path合同。
  * 拒权探针只调用临时profile的生产事务。
- * 独立macOS子模块核真实进程中断与恢复。
+ * 独立跨平台子模块核真实进程中断与恢复，Windows绑定独立Local/Roaming根。
  * 不触碰真实profile、Cavalry、IPC或app bundle。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -109,9 +109,11 @@ fn production_paths_reject_symlink_and_missing_roots_without_creating_them() {
     let missing_state = temp.path().join("not-created");
     assert!(user_language_files::UserLanguagePaths::for_user_dirs(&home, &missing_state).is_err());
     assert!(!missing_state.exists());
-    assert!(
-        user_language_files::UserLanguagePaths::for_user_dirs(&home.join(".."), &state).is_err()
-    );
+    assert!(user_language_files::UserLanguagePaths::for_user_dirs(
+        &std::path::PathBuf::from(format!("{}{}..", home.display(), std::path::MAIN_SEPARATOR)),
+        &state,
+    )
+    .is_err());
 }
 
 #[test]
@@ -603,6 +605,6 @@ fn same_language_reapplication_keeps_the_first_locale_preimage_and_owned_generat
     assert_eq!(fixture.strings(), None);
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 #[path = "user_language_files_process_recovery.rs"]
 mod process_recovery;

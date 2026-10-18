@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖显式官方四份 MetaData、SHA 审批、旧四语数据和 source-bound 补译。
- * [OUTPUT]: 在仓外生成独立384/17说明表、401根排版表及回执。
+ * [OUTPUT]: 在仓外生成不依赖文档ABI的384/17说明表、401根排版表及回执。
  * [POS]: tools构建期投影；不改仓库资源，不接入UI-text或默认发布链。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -165,7 +165,7 @@ function renderCppTable(entries, defEntries) {
     ' */',
     '// 本文件由 tools/build_native_help_description_table.js 生成。',
     '#pragma once',
-    '#include "help_description_policy.h"',
+    '#include "help_description_lookup.h"',
     '',
     'namespace native_help_description {',
     ...renderCppEntries('kApprovedRuntimeRootHelp', entries),

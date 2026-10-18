@@ -2,7 +2,10 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-generate_demo_reader_tables.js: 构建期将批准的示例文字与源位置投影为有限native表，不复制厂商脚本。
+cavalry_native_windows_target.json: Windows 2.8官方MSI及x64运行时摘要锁；仅宿主准入，译文沿共享native catalog。
+acceptance/: 44主项整轮单表；schema2分离源键库存与实屏项，显式迁移保留历史；Python按平台编排，离线自测不启动产品。
+generate_demo_reader_tables.js: 构建期将批准示例投影为有限native表；Windows显式CRLF须还原完整批准LF身份后映射实际SHA/偏移，不修改厂商文件。
+generate_demo_reader_tables.test.js: 合成UTF-8源验证默认精确准入、显式CRLF偏移映射及BOM/未知字节漂移拒绝，不授官方运行信用。
 native_demo_scene_dnt_identities.js: 官方100项示例菜单源身份表，只限定DNT显示例外，不含译文。
 native_demo_menu_approval.test.js: 合成catalog验证100菜单三语批准值、完整身份与production profile透传，拒绝越界DNT例外。
 native_demo_scene_dnt_exceptions.test.js: 验证DNT默认关闭、逐语审批和身份漂移拒绝，不运行Cavalry。
@@ -50,7 +53,7 @@ native_array_distribution_translations.test.js: Node 的 Array完整4键/12值�
 native_auto_animate_translations.test.js: Node 离线 autoAnimate 128 叶入库合同；锁定 owner/source/notes 与稳定键摘要、三语格式、当前进度模式/层级标签引用、相机变焦/几何缩放与可逆进退场、显示投影不写模型身份和厂商日语优先，先RED后入库，不调用服务或App。
 native_metadata_reuse.js: Node 的已审帮助复用与表装配器；复用478条SHA审批和34条source-bound补译，拒绝缺项/源漂移，输出384 main与17 def根表。
 native_metadata_reuse.test.js: Node 的纯复用/帮助表合同；锁哈希、补译闭合、分表输出与synthetic边界，环境指定时校验384/17/111分账。
-build_native_help_description_table.js: 从SHA锁定的四份2.8 MetaData与source-bound审定仓外生成384/17说明表、独立401根排版表及回执；说明字节不变，不接默认runtime。
+build_native_help_description_table.js: 从SHA锁定的四份2.8 MetaData与source-bound审定仓外生成跨平台384/17说明表、独立401根排版表及回执；说明字节不变，ABI由消费者承担。
 build_native_help_description_table.test.js: Node生成器合同；锁UTF-8转义、仓外输出、384/17说明与401根排版分表，不授live信用。
 native_easing_display_data.js: 构建期内置缓动显示源；15项root批准译文仅作显示，五项复用既有native键，不进官方catalog或包统计。
 build_native_easing_display_table.js: 校验20项内置身份与现有源键，并在仓外生成自包含C++ constexpr表；不接runtime。
@@ -276,3 +279,5 @@ dependency_vulnerability_gate.json: 固定审计工具、RustSec快照和Python�
 2026-10-16: Qt头包真实输入使用framework Versions/A/Headers；抽取器归一为include/Qt*。PR跑纯路径合同，macOS锁定venv再跑合成7z合同；真实官方归档已独立抽取通过。
 
 手动预验合同逐事件验证checkout/Node前置，防止显式打包在空runner读取缺失脚本。
+
+验收场景范围：scene-scope显式归档195个未填展开项；Timeline保留180观察索引与15父场景。macOS当前表2630项，不新增GUI或产品门。

@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖调用方解析出的 Cavalry home 与 Switcher state_dir；fixture 根仅由测试构造。
- * [OUTPUT]: 绑定固定 Preferences、Third-Party/Plugins/Cavalry-i18n/strings.json 与 receipt 路径，并区分只读/可写路径计划。
+ * [INPUT]: 依赖调用方解析出的 Cavalry home、Windows独立Local/Roaming AppData根与Switcher state_dir；fixture根仅由测试构造。
+ * [OUTPUT]: 绑定固定Preferences、Third-Party/Plugins/Cavalry-i18n/strings.json与receipt；Windows偏好根和资源根独立，不从安装路径或同一环境变量推导。
  * [POS]: user_language_files 的窄路径身份边界；不创建目录、不证明 writer closed，也不提供任意路径事务能力。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -17,11 +17,13 @@ pub(super) const RECEIPT_FILE_NAME: &str = "native-user-language.json";
 pub(super) enum PathLayout {
     Fixture,
     UserProfile,
+    WindowsProfile,
 }
 
 #[derive(Debug, Clone)]
 pub(crate) struct UserLanguagePaths {
     pub(super) profile_root: PathBuf,
+    pub(super) preferences_root: PathBuf,
     pub(super) state_root: PathBuf,
     pub(super) preferences: PathBuf,
     pub(super) strings: PathBuf,
@@ -62,9 +64,39 @@ impl UserLanguagePaths {
                 "Library/Application Support/Cavalry/Third-Party/Plugins/Cavalry-i18n/strings.json",
             ),
             receipt: state_root.join(RECEIPT_FILE_NAME),
+            preferences_root: profile_root.clone(),
             profile_root,
             state_root,
             layout: PathLayout::UserProfile,
+            writable,
+        };
+        validate_paths(&paths)?;
+        Ok(paths)
+    }
+
+    /// OS根由平台解析；构造仍只验证，允许只读status面对尚不存在的state。
+    #[cfg(windows)]
+    pub(crate) fn for_windows_dirs(
+        local_data: &Path,
+        roaming_data: &Path,
+        state_dir: &Path,
+        writable: bool,
+    ) -> Result<Self, String> {
+        let preferences_root = canonical_directory_root(local_data, "Local AppData")?;
+        let profile_root = canonical_directory_root(roaming_data, "Roaming AppData")?;
+        let state_root = if writable {
+            canonical_directory_root(state_dir, "Switcher state directory")?
+        } else {
+            planned_directory_root(state_dir, "Switcher state directory")?
+        };
+        let paths = Self {
+            preferences: preferences_root.join("Cavalry/preferences.json"),
+            strings: profile_root.join("Cavalry/Third-Party/Plugins/Cavalry-i18n/strings.json"),
+            receipt: state_root.join(RECEIPT_FILE_NAME),
+            preferences_root,
+            profile_root,
+            state_root,
+            layout: PathLayout::WindowsProfile,
             writable,
         };
         validate_paths(&paths)?;
@@ -95,7 +127,7 @@ pub(crate) fn fixture_paths(root: &Path) -> Result<UserLanguagePaths, String> {
             error,
         )
     })?;
-    if metadata.file_type().is_symlink() || !metadata.is_dir() {
+    if is_link(&metadata) || !metadata.is_dir() {
         return Err(format!(
             "fixture root is not a real directory: {}",
             root.display()
@@ -108,6 +140,7 @@ pub(crate) fn fixture_paths(root: &Path) -> Result<UserLanguagePaths, String> {
         preferences: profile_root.join("profile/preferences.json"),
         strings: profile_root.join("profile/Plugins/Cavalry-i18n/strings.json"),
         receipt: state_root.join(RECEIPT_FILE_NAME),
+        preferences_root: profile_root.clone(),
         profile_root,
         state_root,
         layout: PathLayout::Fixture,
@@ -119,6 +152,7 @@ pub(crate) fn fixture_paths(root: &Path) -> Result<UserLanguagePaths, String> {
 
 pub(super) fn validate_paths(paths: &UserLanguagePaths) -> Result<(), String> {
     canonical_directory_root(&paths.profile_root, "Cavalry user home/fixture root")?;
+    canonical_directory_root(&paths.preferences_root, "Cavalry preferences root")?;
     if paths.writable {
         canonical_directory_root(&paths.state_root, "Switcher state directory")?;
     } else {
@@ -139,10 +173,18 @@ pub(super) fn validate_paths(paths: &UserLanguagePaths) -> Result<(), String> {
                 "Library/Application Support/Cavalry/Third-Party/Plugins/Cavalry-i18n/strings.json",
             ),
         ),
+        PathLayout::WindowsProfile => (
+            paths.preferences_root.join("Cavalry/preferences.json"),
+            paths
+                .profile_root
+                .join("Cavalry/Third-Party/Plugins/Cavalry-i18n/strings.json"),
+        ),
     };
     if paths.preferences != expected_preferences
         || paths.strings != expected_strings
         || paths.receipt != paths.state_root.join(RECEIPT_FILE_NAME)
+        || (paths.layout != PathLayout::WindowsProfile
+            && paths.preferences_root != paths.profile_root)
         || (paths.layout == PathLayout::Fixture
             && paths.state_root != paths.profile_root.join("state"))
     {
@@ -184,7 +226,12 @@ pub(super) fn validate_path(paths: &UserLanguagePaths, path: &Path) -> Result<()
         })?;
         return validate_path_components(&paths.state_root, relative);
     }
-    let relative = path.strip_prefix(&paths.profile_root).map_err(|_| {
+    let root = if paths.preferences.strip_prefix(path).is_ok() {
+        &paths.preferences_root
+    } else {
+        &paths.profile_root
+    };
+    let relative = path.strip_prefix(root).map_err(|_| {
         format!(
             "user-language path is outside its profile/state roots: {}",
             path.display()
@@ -198,7 +245,20 @@ pub(super) fn validate_path(paths: &UserLanguagePaths, path: &Path) -> Result<()
             path.display()
         ));
     }
-    validate_path_components(&paths.profile_root, relative)
+    validate_path_components(root, relative)
+}
+
+pub(super) fn is_link(metadata: &fs::Metadata) -> bool {
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        use windows::Win32::Storage::FileSystem::FILE_ATTRIBUTE_REPARSE_POINT;
+        metadata.file_attributes() & FILE_ATTRIBUTE_REPARSE_POINT.0 != 0
+    }
+    #[cfg(not(windows))]
+    {
+        metadata.file_type().is_symlink()
+    }
 }
 
 fn validate_path_components(root: &Path, relative: &Path) -> Result<(), String> {
@@ -219,7 +279,7 @@ fn validate_path_components(root: &Path, relative: &Path) -> Result<(), String> 
         };
         current.push(name);
         match fs::symlink_metadata(&current) {
-            Ok(metadata) if metadata.file_type().is_symlink() => {
+            Ok(metadata) if is_link(&metadata) => {
                 return Err(format!(
                     "refusing symlink user-language path {}",
                     current.display()
@@ -250,7 +310,7 @@ pub(super) fn reject_non_regular_destination(
 ) -> Result<(), String> {
     validate_path(paths, path)?;
     match fs::symlink_metadata(path) {
-        Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_file() => Err(format!(
+        Ok(metadata) if is_link(&metadata) || !metadata.is_file() => Err(format!(
             "refusing symlink or non-regular user-language destination {}",
             path.display()
         )),
@@ -279,6 +339,9 @@ pub(super) fn validate_relative_directory(relative: &str) -> Result<(), String> 
 
 pub(super) fn canonical_directory_root(path: &Path, role: &str) -> Result<PathBuf, String> {
     if !path.is_absolute()
+        || path.components().any(
+            |component| matches!(component, Component::Normal(name) if name == ".." || name == "."),
+        )
         || path.parent().is_none()
         || path.components().any(|component| {
             !matches!(
@@ -300,7 +363,7 @@ pub(super) fn canonical_directory_root(path: &Path, role: &str) -> Result<PathBu
             error,
         )
     })?;
-    if metadata.file_type().is_symlink() || !metadata.is_dir() {
+    if is_link(&metadata) || !metadata.is_dir() {
         return Err(format!(
             "{role} is not a real directory: {}",
             path.display()
@@ -320,6 +383,9 @@ pub(super) fn canonical_directory_root(path: &Path, role: &str) -> Result<PathBu
 
 pub(super) fn planned_directory_root(path: &Path, role: &str) -> Result<PathBuf, String> {
     if !path.is_absolute()
+        || path.components().any(
+            |component| matches!(component, Component::Normal(name) if name == ".." || name == "."),
+        )
         || path.parent().is_none()
         || path.components().any(|component| {
             !matches!(
@@ -338,7 +404,7 @@ pub(super) fn planned_directory_root(path: &Path, role: &str) -> Result<PathBuf,
     let mut current = path;
     loop {
         match fs::symlink_metadata(current) {
-            Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_dir() => {
+            Ok(metadata) if is_link(&metadata) || !metadata.is_dir() => {
                 return Err(format!(
                     "{role} has a symlink or non-directory ancestor: {}",
                     current.display()

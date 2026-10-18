@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 commands 领域子模块、共享 operation_lock、Tauri command runtime/IPC Channel 与 privilege facade；编译期native BuildMode消费2.8资源/用户事务，default仍走现行2.7.2路径。
+ * [INPUT]: 依赖共享2.8资源/profile事务、operation_lock及平台facade；Windows production使用native_windows，Mac使用native_runtime，九命令保持。
  * [OUTPUT]: 保持九条稳定 Tauri command；native runtime在同一九命令API内将只读状态/signature探测卸载到blocking worker，独立投影厂商Official来源、userProfile范围与脱敏 nativeLocaleState（unset/explicit/unrecognized），并提交自有strings/typed locale；receipt证明的English restore-only成功不尝试启动不兼容宿主，耐久warning不启动Cavalry；native runtime成功apply只复用同一operation guard并用writer guard后直接launch，独立Restart仍保留完整native准入；macOS Switch/Restore 直接进入安全事务，仅将真实 typed PermissionDenied 投影为 App Management handoff，保护写事务 commit 后只清理交接层而不反向飞回已失效动作；其余 apply 四阶段、真实 commit oracle、Windows residue、Updater、固定项目链接与 About 保持既有 owner。
  * [POS]: renderer API facade；Official仅是编译期native runtime的厂商来源展示，不代表版本支持、资源可用、profile状态、恢复能力或写入许可；具体状态、快照、写入和平台运行时下沉至领域模块。native runtime自动apply提交后走专用launch leaf，独立Restart继续承担启动时准入，不扩IPC。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -9,13 +9,20 @@ mod context;
 mod contract;
 #[cfg(target_os = "macos")]
 mod native_official;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 mod native_resources;
 #[cfg(target_os = "macos")]
 mod native_runtime;
 #[cfg(target_os = "macos")]
 mod native_runtime_source;
-#[cfg(target_os = "macos")]
+#[cfg(target_os = "windows")]
+mod native_windows;
+#[cfg(target_os = "windows")]
+pub(crate) use native_windows::{
+    enabled as windows_native_enabled,
+    restore_for_uninstall as restore_native_windows_for_uninstall,
+};
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 mod native_user;
 #[cfg(all(test, target_os = "macos"))]
 pub(crate) use native_runtime::apply_disposable_profile;
@@ -27,9 +34,9 @@ mod status;
 #[path = "commands/tests.rs"]
 mod tests;
 mod update;
-#[cfg(any(test, target_os = "macos"))]
+#[cfg(any(test, target_os = "macos", target_os = "windows"))]
 mod user_language;
-#[cfg(any(test, target_os = "macos"))]
+#[cfg(any(test, target_os = "macos", target_os = "windows"))]
 mod user_language_files;
 
 use chrono::{SecondsFormat, Utc};
@@ -141,9 +148,9 @@ pub async fn apply_language(
         match tauri::async_runtime::spawn_blocking(move || -> Result<ActionPayload, String> {
             let _guard = guard;
             let mut runner = privilege::RealCommandRunner;
-            #[cfg(target_os = "macos")]
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             let native_runtime_enabled = native_resources::native_runtime_enabled();
-            #[cfg(not(target_os = "macos"))]
+            #[cfg(not(any(target_os = "macos", target_os = "windows")))]
             let native_runtime_enabled = false;
             let mut legacy_apply = || {
                 apply::apply_language_inner_with_reporter(
@@ -172,7 +179,22 @@ pub async fn apply_language(
             } else {
                 legacy_apply()
             };
-            #[cfg(not(target_os = "macos"))]
+            #[cfg(target_os = "windows")]
+            let applied_result = if native_runtime_enabled {
+                Ok(native_windows::apply(
+                    &_guard,
+                    &paths.repo_root,
+                    &paths.state_dir,
+                    &paths.resource_dir,
+                    &app_path,
+                    &lang,
+                    &worker_progress,
+                    &mut runner,
+                ))
+            } else {
+                legacy_apply()
+            };
+            #[cfg(not(any(target_os = "macos", target_os = "windows")))]
             let applied_result = legacy_apply();
             let applied = match applied_result {
                 Ok(payload) => payload.into_renderer_contract(),

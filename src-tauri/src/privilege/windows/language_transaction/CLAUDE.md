@@ -2,6 +2,9 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+native2.8编译profile：parent只接受空legacy assets；普通可写根与Program Files worker共用原journal/QPA执行器，后者仍只接受OS Known Folder授权。所有同用户Cavalry写者关闭，source provenance按编译期runtime摘要，不引入旧JSON前置。pending、厂商备份、postimage、marker最后提交和未知文件保护保留。
+native_runtime_tests.rs: 显式官方vendor输入的ignored Windows集成合同；实际temp根激活/未知generic拒删/撤销自注漂移后English恢复，核vendor原像和外来同级文件保全；不写用户profile、不启动Cavalry。
+目录同步：journal_manifest复用src/windows_fs.rs，与用户语言事务共享同一目录句柄与FlushFileBuffers原语；授权与journal schema不变。
 mod.rs: Windows Program Files 语言事务模块根；组织共享合同、父进程、same-EXE launcher、编译期来源证明、提权 worker 与 durable journal，不暴露任意复制目标。
 contract.rs: 提权 plan v1 与固定退出码真相源；分别绑定 apply 的 plan/nonce 摘要与 recovery 的已验证安装根，两者都绑定 worker EXE hash，并拒绝未知字段、非规范路径与错误 marker 连续 preimage。
 contract_tests.rs: plan/transport 纯合同测试；覆盖四语言 wire value、payload/QPA 绑定、apply/recovery reserved argv、有界输入与 fail-closed。
@@ -11,7 +14,7 @@ parent.rs: 非提权父进程编排；在旧 close/copy 前识别 OS-known Progr
 parent_mapping.rs: 父进程 JSON 目标授权；只接受 CORE_MAP、当前存在的 PLUGIN_DEFINITION_MAP 与实时普通 plugin strings 对应的 assets-relative ID。
 parent_storage.rs: 父进程 staging/哈希与保守清理；来源以独占句柄复制并同步摘要，UAC 后只删除固定 plan、数字 payload、已绑定 overlay 与已知空目录。
 parent_tests.rs: 父进程隔离合同；覆盖 NotApplicable、English manifest source 绑定、取消、无 journal 的零 UAC Noop、pending journal 强制 worker、启动前清理、启动后 staging 保留、0/42/43/44/45/未知、严格映射与连续 marker preimage。
-source_provenance.rs: worker 写入前的只读来源证明；从当前 EXE 有界上溯近邻包根，以编译期四语/runtime 摘要验证普通文件，非 English 重建 current→anchored English→target canonical overlay，English 则要求快照原字节解析值等于同一 anchored English postimage，并验证 QPA action。
+source_provenance.rs: worker写前来源证明及编译runtime摘要只读端口；native按同包DLL锚，legacy按四语overlay锚；有界上溯近邻包根、核普通文件和QPA action，状态比较不认领磁盘新来源。
 source_provenance_tests.rs: 来源证明对抗合同；覆盖自洽恶意 x64 DLL、字符串/marker 篡改、正确 overlay、四语 catalog 与缺失/重解析 package root。
 source_provenance_parent_tests.rs: commands 生产 pair 选择/parent/verifier 端到端合同；覆盖 zh-Hans→ja canonical overlay、Windows 非规范格式 English 快照原字节逐字节 staging、pair 选择后同语义改写拒绝与 prepare 后篡改拒绝。
 path_validation.rs: live apply 与 recovery 共用的路径/摘要准入；将 install root containment、root/self 与 dot traversal 拒绝、逐组件 reparse 检查及 lowercase SHA-256 格式收敛为单一 fail-closed 合同。
@@ -23,7 +26,7 @@ destination_io.rs: 正向写入与回滚共用的 handle-bound I/O 原语；普�
 journal_cleanup.rs: durable journal 清理与 preparation-root 收敛内核；精确枚举双代 manifest、有界数字 preimage 及 `.payload-{apply|rollback|displaced}-{entry}.tmp` 成员，验证 preparation-root 后仅对自有普通文件句柄清 readonly 再删除并同步目录；未知成员、目录、重解析点或越界路径全部保留。
 storage_tests.rs: durable recovery tempfile 合同；覆盖 prepare、apply-N、marker commit、rollback、cleanup、缺失 existing target 不创建空文件、双代 manifest 的已发布代选择与路径/摘要/目录篡改阻断，且不接触真实安装。
 qpa_journal_tests.rs: QPA 崩溃窗口回归合同；证明写前 postimage、原始 recovery 目录重建与未知写入不被事后认领。
-worker.rs: 同一 EXE 的 apply/recovery 提权 headless worker；重解 Known Folder/固定目标，QPA 首写前落盘全部精确中间态，并在下一次用户语言动作中复用 durable recovery，绝不写 state、重启或获取外层 operation lock。
+worker.rs: 同EXE apply/recovery提升与普通native根共用执行器；native两种恢复入口均要求全部同用户写者关闭且不替用户关进程。重验Known Folder/来源/固定目标，QPA首写前落盘中间态，复用durable recovery，不写state、不重启。
 worker_tests.rs: worker 纯合同测试；覆盖固定 core surface、执行顺序、退出码、Stock Noop、路径规范化与无 restart/state/lock 副作用。
 
 法则: UAC 只授予固定 Program Files 语言事务；父进程不关闭/写安装根，worker 不接受 CopyPair/任意 destination，不启动提升态 Cavalry；只有 0/42 可由父进程验证后提交应用 state。

@@ -16,11 +16,22 @@ pub const VENDOR_QWINDOWS_FILE_NAME: &str = "vendor-qwindows.dll";
 pub const QWINDOWS_FILE_NAME: &str = "qwindows.dll";
 pub const QT_CORE_FILE_NAME: &str = "Qt6Core.dll";
 pub const GENERIC_PLUGIN_RELATIVE_PATH: &str = "generic/cavalryi18n.dll";
-pub const SUPPORTED_CAVALRY_VERSION: &str = "2.7.2";
-pub const SUPPORTED_QT_VERSION: &str = "6.6.3";
+pub const SUPPORTED_CAVALRY_VERSION: &str = if cfg!(cavalry_native_windows) {
+    "2.8.0"
+} else {
+    "2.7.2"
+};
+pub const SUPPORTED_QT_VERSION: &str = if cfg!(cavalry_native_windows) {
+    "6.9.2"
+} else {
+    "6.6.3"
+};
 pub const SUPPORTED_ARCHITECTURE: &str = "x86_64";
-pub const VENDOR_QWINDOWS_SHA256: &str =
-    "e039d39a6b99a26a358a85660147941112a4c9df3a62b5e19a8ae9ed75be3f01";
+pub const VENDOR_QWINDOWS_SHA256: &str = if cfg!(cavalry_native_windows) {
+    "f80153ee381ad1437148f785aa4f952b29d285729185e952866e141f96b13b86"
+} else {
+    "e039d39a6b99a26a358a85660147941112a4c9df3a62b5e19a8ae9ed75be3f01"
+};
 
 pub(super) const PLAN_SCHEMA_VERSION: u32 = 1;
 pub(super) const MANIFEST_SCHEMA_VERSION: u32 = 1;
@@ -210,7 +221,7 @@ pub enum PreparedRestore {
 
 pub struct ActivationRequest<'a> {
     pub layout: &'a InstallLayout,
-    /// 该值必须来自现有 Windows 安装发现证据；QPA 层拒绝除 2.7.2 外的任何值。
+    /// 该值来自安装发现；QPA层只接受当前编译profile固定的版本。
     pub cavalry_version: &'a str,
     pub proxy_source: &'a Path,
 }

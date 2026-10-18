@@ -1,12 +1,12 @@
 /**
  * [INPUT]: 依赖固定 UserLanguagePaths、完整 bytes+mode 前像、调用方 writer guard 与平台原子替换原语。
- * [OUTPUT]: 提供 symlink/non-file 拒绝、暂存发布和真实 PermissionDenied 标签、receipt bytes+mode 精确读取/发布、Unix 文件/目录同步及 receipt-owned 空目录清理；cfg(test) 计 receipt image 读取并按指定目录注入一次同步失败；Windows 目录耐久未知时 fail closed。
+ * [OUTPUT]: 提供 symlink/non-file 拒绝、暂存发布和真实 PermissionDenied 标签、receipt bytes+mode 精确读取/发布、平台文件/目录同步及 receipt-owned 空目录清理；Windows复用安装journal的目录句柄同步，失败仍保留pending；cfg(test)计读取并注入同步失败。
  * 普通与guarded pending回执均使用紧凑JSON；reader仍接受旧prettyJSON。
  * [POS]: user_language_files 的固定布局文件适配器；hostless pending receipt复用初次解析的原始FileImage作预发布期望，guard在stage与publish边界复查，但比对到rename仍有TOCTOU，不能宣称OS CAS/跨进程安全，也不是通用事务API。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
-    fs::{self, File, OpenOptions},
+    fs::{self, OpenOptions},
     io::Write,
     path::{Component, Path},
     sync::atomic::{AtomicU64, Ordering},
@@ -15,6 +15,8 @@ use std::{
 #[cfg(test)]
 use std::path::PathBuf;
 
+#[cfg(unix)]
+use std::fs::File;
 #[cfg(unix)]
 use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt, PermissionsExt};
 
@@ -91,7 +93,7 @@ pub(crate) fn read_optional_image(
 ) -> Result<Option<FileImage>, String> {
     validate_path(paths, path)?;
     match fs::symlink_metadata(path) {
-        Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_file() => Err(format!(
+        Ok(metadata) if super::paths::is_link(&metadata) || !metadata.is_file() => Err(format!(
             "refusing symlink or non-regular user-language file {}",
             path.display()
         )),
@@ -222,7 +224,7 @@ fn stage_file(
             error,
         )
     })?;
-    if parent_metadata.file_type().is_symlink() || !parent_metadata.is_dir() {
+    if super::paths::is_link(&parent_metadata) || !parent_metadata.is_dir() {
         return Err(format!(
             "refusing unsafe user-language parent {}",
             parent.display()
@@ -297,7 +299,7 @@ fn publish_staged_file(
                 error,
             )
         })?;
-        if parent_metadata.file_type().is_symlink() || !parent_metadata.is_dir() {
+        if super::paths::is_link(&parent_metadata) || !parent_metadata.is_dir() {
             return Err(format!(
                 "refusing unsafe user-language parent {}",
                 parent.display()
@@ -465,7 +467,7 @@ pub(super) fn plan_strings_directories(paths: &UserLanguagePaths) -> Result<Vec<
         };
         current.push(name);
         match fs::symlink_metadata(&current) {
-            Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_dir() => {
+            Ok(metadata) if super::paths::is_link(&metadata) || !metadata.is_dir() => {
                 return Err(format!(
                     "refusing unsafe Switcher plugin directory {}",
                     current.display()
@@ -513,7 +515,7 @@ pub(super) fn ensure_strings_parent(
         let identity = relative_prefix(&paths.profile_root, &current)?;
         let is_owned = owned_directories.iter().any(|owned| owned == &identity);
         match fs::symlink_metadata(&current) {
-            Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_dir() => {
+            Ok(metadata) if super::paths::is_link(&metadata) || !metadata.is_dir() => {
                 return Err(format!(
                     "refusing unsafe Switcher plugin directory {}",
                     current.display()
@@ -566,7 +568,7 @@ pub(super) fn ensure_strings_parent(
                     error,
                 )
             })?;
-            if metadata.file_type().is_symlink() || !metadata.is_dir() {
+            if super::paths::is_link(&metadata) || !metadata.is_dir() {
                 return Err(format!(
                     "refusing changed transaction-owned directory {}",
                     path.display()
@@ -754,10 +756,7 @@ fn sync_directory(path: &Path) -> std::io::Result<()> {
     }
     #[cfg(windows)]
     {
-        let _ = path;
-        Err(std::io::Error::other(
-            "Windows directory durability is unproven in the fixture adapter",
-        ))
+        crate::windows_fs::sync_directory(path)
     }
     #[cfg(all(not(unix), not(windows)))]
     {

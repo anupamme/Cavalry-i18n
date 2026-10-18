@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 classify_ci_changes.js 的纯路径分类接口
- * [OUTPUT]: 证明技能 Markdown 文档轻门与脚本未知路径边界、合同门、共享翻译/输入/Quick Add context/display/顶部标签/搜索/Classic 评分/Quick Add 描述策略双平台门、依赖门及未知路径 fail-closed 的离线回归测试
+ * [OUTPUT]: 证明离线验收工具合同门与未知驱动边界、技能 Markdown 文档轻门与脚本未知路径边界、合同门、共享翻译/输入/Quick Add context/display/顶部标签/搜索/Classic 评分/Quick Add 描述策略双平台门、依赖门及未知路径 fail-closed 的离线回归测试
  * [POS]: CI 风险调度器的单元测试，防止节省 Runner 时误跳产品或发布证据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -194,4 +194,20 @@ test('an empty unresolved push diff fails closed', () => {
   assert.equal(scope.windows, true);
   assert.equal(scope.macosInjector, true);
   assert.equal(scope.reason, 'empty-diff-fail-closed');
+});
+
+test('offline acceptance forms use source contracts without native runners', () => {
+  for (const file of ['checklist.js','catalog.js','migration.js','scene-scope.js','scene-scope.test.js','run_flow.py',
+    'test_run_flow.py','plugin-actions.json','plugin-acceptance-scope.json']) {
+    const scope=classifyPaths([`tools/acceptance/${file}`]);
+    assert.equal(scope.source,true,file);
+    assert.equal(scope.vulnerability,false,file);
+    assert.equal(scope.windows,false,file);
+    assert.equal(scope.macosInjector,false,file);
+  }
+  for (const file of ['new-native-driver.mm','unknown.js','unknown.json']) {
+    const unknown=classifyPaths([`tools/acceptance/${file}`]);
+    assert.equal(unknown.windows,true,file);
+    assert.equal(unknown.macosInjector,true,file);
+  }
 });

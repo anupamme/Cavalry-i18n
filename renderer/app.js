@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖冻结 bridge 的 installation/userProfile 状态投影、有序阶段事件、language-scope/version-guidance 策略、project-link-control固定外链适配、Permission handoff、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、按 scope 呈现当前语言或 userProfile 英文默认状态与确认/恢复策略、结构化默认安装候选显示、用户级Switch直达事务与跨副本退出提示、资源不可用时仅禁 Switch、用户级英文恢复的宿主无关验证阶段、严格 nativeRestoreOnly 结果的未启动终态、失败回执触发的只读 reconciliation 刷新、精确版本门控的 legacyRelease 下载入口，以及既有安装级 Switch/Restore、权限分流、Updater、固定外链适配和不入 Activity 的支持 footer。
+ * [OUTPUT]: 对外提供跨平台单任务流、按 scope 呈现当前语言或 userProfile 英文默认状态与确认/恢复策略、两平台原生profile的后端Official投影、结构化默认安装候选显示、用户级Switch直达事务与跨副本退出提示、资源不可用时仅禁 Switch、用户级英文恢复的宿主无关验证阶段、严格 nativeRestoreOnly 结果的未启动终态、失败回执触发的只读 reconciliation 刷新、精确版本门控的 legacyRelease 下载入口，以及既有安装级 Switch/Restore、权限分流、Updater、固定外链适配和不入 Activity 的支持 footer。
  * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不扫描、推断或展示 Switcher 内部 journal/签名清理；启动只消费后端只读 scope/版本/语言/回执投影，appPath 始终是重启目标；固定 userProfile 预览提示逐批资源边界，事务错误只映射本地固定文案，Windows 与 installation 文案/路径保持原样。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -43,7 +43,6 @@ const modalTitle = document.querySelector('#modalTitle');
 const modalBody = document.querySelector('#modalBody');
 const modalPrimaryButton = document.querySelector('#modalPrimaryButton');
 const modalSecondaryButton = document.querySelector('#modalSecondaryButton');
-
 const languageSelectControl = window.createSelectControl({
   root: languageSelectRoot,
   select: languageSelect,
@@ -357,7 +356,7 @@ function syncInstallationBadges() {
   const language = languageScope.currentLanguagePresentation(state.currentLang, state.languages, state.nativeLocaleState);
   const installation = installationModeText.textContent;
   const showInstallation =
-    state.platform === 'macos' &&
+    (state.platform === 'macos' || languageScope.isUserProfile()) &&
     Boolean(state.appPath) &&
     visualState === 'official';
   currentLanguage.textContent = language.label;
@@ -579,10 +578,11 @@ async function bootstrap({ renderActivity = true } = {}) {
   languageSelectControl.setValue('');
   setPermissionWait(false);
 
-  const showMacInstallationMode =
-    state.platform === 'macos' && Boolean(state.appPath) && state.installationMode === 'official';
-  installationModeText.hidden = !showMacInstallationMode;
-  installationModeText.textContent = showMacInstallationMode ? t('officialMode') : '';
+  const showInstallationMode =
+    (state.platform === 'macos' || languageScope.isUserProfile()) &&
+    Boolean(state.appPath) && state.installationMode === 'official';
+  installationModeText.hidden = !showInstallationMode;
+  installationModeText.textContent = showInstallationMode ? t('officialMode') : '';
   syncInstallationBadges();
   syncInstallationSelection();
   state.ready = true;

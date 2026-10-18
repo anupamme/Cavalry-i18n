@@ -1,16 +1,17 @@
 /**
  * [INPUT]: 依赖父级 typed-locale/pack helper、production native_user apply 与 tempfile 根目录。
  * [OUTPUT]: 通过真实子进程 kill 验证 pending profile 在全新生产子进程中恢复。
- * [POS]: production profile 合同的 macOS OS-interruption 子模块；只写 tempfile，不伪造 pending 或接触真实 home。
+ * [POS]: production profile 合同的跨平台 OS-interruption 子模块；Windows使用独立Local/Roaming根，只写tempfile，不伪造pending或接触真实home。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::{synthetic_pack, typed_locale};
 use crate::commands::{contract::NoopReporter, native_user, user_language_files};
 use serde_json::{json, Value};
+#[cfg(target_os = "macos")]
+use std::os::unix::process::ExitStatusExt;
 use std::{
     fs::{self, OpenOptions},
     io::{self, Write},
-    os::unix::process::ExitStatusExt,
     path::{Path, PathBuf},
     process::{Child, Command, Stdio},
     thread,
@@ -75,7 +76,16 @@ fn paths_at(root: &Path) -> user_language_files::UserLanguagePaths {
     let state = root.join("state");
     assert_eq!(fs::canonicalize(&home).unwrap(), home);
     assert_eq!(fs::canonicalize(&state).unwrap(), state);
+    #[cfg(target_os = "macos")]
     let paths = user_language_files::UserLanguagePaths::for_user_dirs(&home, &state).unwrap();
+    #[cfg(target_os = "windows")]
+    let paths = user_language_files::UserLanguagePaths::for_windows_dirs(
+        &home.join("Local"),
+        &home.join("Roaming"),
+        &state,
+        true,
+    )
+    .unwrap();
     assert!(paths.preferences().starts_with(&root));
     assert!(paths.strings().starts_with(&root));
     assert!(paths.receipt().starts_with(&root));
@@ -150,7 +160,7 @@ fn spawn_self(root: &Path, mode: &str) -> ChildGuard {
     let module = module_path!();
     let prefix = format!("{}::", env!("CARGO_CRATE_NAME"));
     let module = module.strip_prefix(&prefix).unwrap_or(module);
-    let test = format!("{module}::macos_process_recovery_after_real_child_kill");
+    let test = format!("{module}::process_recovery_after_real_child_kill");
     let child = Command::new(std::env::current_exe().unwrap())
         .arg(test)
         .arg("--exact")
@@ -167,15 +177,20 @@ fn spawn_self(root: &Path, mode: &str) -> ChildGuard {
 }
 
 #[test]
-#[ignore = "requires an explicit macOS subprocess kill/recovery run"]
-fn macos_process_recovery_after_real_child_kill() {
+#[ignore = "requires an explicit owned subprocess kill/recovery run"]
+fn process_recovery_after_real_child_kill() {
     if let Some((root, mode)) = child_context() {
         child_apply(&root, &mode);
         return;
     }
     let temporary = tempfile::tempdir().unwrap();
     let root = fs::canonicalize(temporary.path()).unwrap();
+    #[cfg(target_os = "macos")]
     let preferences = root.join("home/Library/Preferences/Cavalry/preferences.json");
+    #[cfg(target_os = "windows")]
+    let preferences = root.join("home/Local/Cavalry/preferences.json");
+    #[cfg(target_os = "windows")]
+    fs::create_dir_all(root.join("home/Roaming")).unwrap();
     fs::create_dir_all(preferences.parent().unwrap()).unwrap();
     fs::create_dir_all(root.join("state")).unwrap();
     let original =
@@ -212,8 +227,17 @@ fn macos_process_recovery_after_real_child_kill() {
     let status = interrupted
         .kill_wait()
         .expect("kill and reap only the owned child");
+    #[cfg(target_os = "macos")]
     assert_eq!(status.signal(), Some(libc::SIGKILL));
-    eprintln!("owned park child {pid}: SIGKILL observed; pending and old locale checked next");
+    #[cfg(target_os = "windows")]
+    assert_eq!(
+        status.code(),
+        Some(1),
+        "owned Rust child.kill TerminateProcess exit code"
+    );
+    eprintln!(
+        "owned park child {pid}: interrupted ({status}); pending and old locale checked next"
+    );
 
     assert_eq!(fs::read(&preferences).unwrap(), original_bytes);
     assert_eq!(fs::read(paths.strings()).unwrap(), pack);

@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖固定 Cavalry user-home/state 路径、Preferences 与 Switcher 专属 strings、typed locale 投影及调用方提供的 closed-writer guard。
+ * [INPUT]: 依赖固定 Cavalry profile/state 路径（Windows偏好/资源根独立）、Preferences 与 Switcher 专属 strings、typed locale 投影及调用方提供的 closed-writer guard。
  * [OUTPUT]: 事务化应用合法 native UI-text pack、固定 en-GB restore、严格Current-owned hostless restore-only入口、pending 恢复与只读 profile projection；测试 fixture 仅用于隔离验证。
  * [POS]: commands/user_language 的受限 profile 文件 owner；apply复用首次验证且无pending的receipt，只有pending恢复路径再读回磁盘。
  * 新动作回调只在receipt与前像校验、writer guard通过后且首次receipt写入前运行；回调不访问文件。

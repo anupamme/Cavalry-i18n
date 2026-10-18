@@ -1,10 +1,10 @@
 /**
- * [INPUT]: 依赖Qt6.9.2、401根官方布局表、384/17批准说明表与布局策略。
+ * [INPUT]: 依赖Qt6.9.2、401根布局表、跨平台384/17说明查询与布局策略，不依赖文档对象ABI。
  * [OUTPUT]: 验证三语自然上限、长短切换、正文行界与未知结构透传。
  * [POS]: 仓外构建时运行的隐藏Qt fixture；不启动Cavalry或改产品控件。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
-#include "help_description_policy.h"
+#include "help_description_lookup.h"
 #include "help_popup_layout_abi_contract.h"
 #include "help_popup_layout_policy.h"
 #include NATIVE_HELP_LAYOUT_ROWS

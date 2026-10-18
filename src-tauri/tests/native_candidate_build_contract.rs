@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖native_candidate_build_contract的纯构建模式裁决。
- * [OUTPUT]: 验证默认2.7、ARM preview候选与2.8 arm64/x86_64生产模式隔离。
+ * [OUTPUT]: 验证Mac preview、Mac双架构和Windows x64显式2.8 production构建模式。
  * [POS]: 构建入口的无副作用合同；不运行App或读用户状态。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -47,7 +47,18 @@ fn existing_debug_preview_and_other_platforms_are_unchanged() {
 }
 
 #[test]
-fn production_requires_exact_profile_supported_macos_release_and_no_preview_flags() {
+fn production_requires_exact_profile_supported_platform_release_and_no_preview_flags() {
+    assert_eq!(
+        select(
+            "windows",
+            "x86_64",
+            "release",
+            None,
+            None,
+            Some("production-2.8")
+        ),
+        Ok(Mode::Production)
+    );
     assert_eq!(
         select(
             "macos",
@@ -73,7 +84,7 @@ fn production_requires_exact_profile_supported_macos_release_and_no_preview_flag
     for (os, arch, profile, preview, candidate, production) in [
         (
             "windows",
-            "x86_64",
+            "aarch64",
             "release",
             None,
             None,

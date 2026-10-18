@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 std fs/path 解析用户选择的 Cavalry.app、Cavalry.exe 或安装目录
- * [OUTPUT]: 对外提供 InstallLayout、InstallPlatform、LANG_MARKER_NAME、规范化路径与拒绝 symlink 的 verified 安装根入口，以及逐组件 lstat 的相对路径安全门
+ * [OUTPUT]: 安装结构/规范根与逐组件安全门；Windows native结构只要求EXE/QtCore，官方身份另由冻结摘要证明，不要求旧JSON。
  * [POS]: src-tauri/src 的跨平台安装模型；兼容发现路径保持宽松，写入/身份验证调用方消费 canonical verified layout 与 component-boundary helper，避免伪造 app、symlink 目标或中间目录外逃进入后续事务
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -80,6 +80,17 @@ impl InstallLayout {
                 "Cavalry executable was not found: {}",
                 self.executable.display()
             ));
+        }
+
+        if cfg!(cavalry_native_windows) && self.platform == InstallPlatform::Windows {
+            let qt = self.root.join("Qt6Core.dll");
+            if !qt.is_file() {
+                return Err(format!(
+                    "Selected native installation is missing {}",
+                    qt.display()
+                ));
+            }
+            return Ok(());
         }
 
         for required in [

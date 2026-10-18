@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖root批准的official_demo_scripts.js及其中100源、489位置。
- * [OUTPUT]: 生成有限文本表与源SHA/位置表，不复制vendor脚本。
+ * [INPUT]: 依赖root批准的official_demo_scripts.js及100源/489位置；Windows显式CRLF源须逐字节还原批准LF身份。
+ * [OUTPUT]: 生成有限文本表与实际源SHA/位置表；CRLF仅映射偏移，不修改文件或扩大译文范围。
  * [POS]: Demo读取候选的构建期投影器；不接运行时文件IO。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -17,7 +17,7 @@ function readArguments(argv) {
   for (let i = 2; i < argv.length; i += 2) {
     const key = argv[i];
     const value = argv[i + 1];
-    if (!['--source', '--presets-root', '--texts-out', '--files-out'].includes(key) || !value || values[key]) {
+    if (!['--source', '--presets-root', '--texts-out', '--files-out', '--source-line-endings'].includes(key) || !value || values[key]) {
       fail('用法: node generate_demo_reader_tables.js --source FILE --presets-root DIR --texts-out FILE --files-out FILE');
     }
     values[key] = value;
@@ -25,7 +25,31 @@ function readArguments(argv) {
   for (const key of ['--source', '--presets-root', '--texts-out', '--files-out']) {
     if (!values[key]) fail(`缺少参数: ${key}`);
   }
+  if (values['--source-line-endings'] && values['--source-line-endings'] !== 'crlf') fail('只允许显式crlf源映射');
   return values;
+}
+
+// -- 仅当去除CRLF中的CR后完全等于批准源，才映射其文字位置到实际字节 ----
+function bindOfficialSource(bytes, file, lineEndings) {
+  const digest = value => crypto.createHash('sha256').update(value).digest('hex');
+  const rawSha = digest(bytes);
+  if (bytes.length === file.bytes && rawSha === file.sha256) {
+    return { approved: bytes, actualSha256: rawSha, actualBytes: bytes.length, offset: value => value };
+  }
+  if (lineEndings !== 'crlf') fail(`原厂示例身份不匹配: ${file.file}`);
+  const normalized = Buffer.alloc(bytes.length);
+  const offsets = [];
+  let size = 0;
+  for (let index = 0; index < bytes.length; ++index) {
+    const rawBegin = index;
+    if (bytes[index] === 13 && bytes[index + 1] === 10) ++index;
+    offsets.push(rawBegin);
+    normalized[size++] = bytes[index];
+  }
+  offsets.push(bytes.length);
+  const approved = normalized.subarray(0, size);
+  if (size !== file.bytes || digest(approved) !== file.sha256) fail(`CRLF源不能还原批准身份: ${file.file}`);
+  return { approved, actualSha256: rawSha, actualBytes: bytes.length, offset: value => offsets[value] };
 }
 
 function cppString(value) {
@@ -176,10 +200,7 @@ function main() {
     const canonicalSource = fs.realpathSync(sourcePath);
     if (!canonicalSource.startsWith(`${presetsRoot}${path.sep}`)) fail('源文件符号链接越出官方Presets根目录');
     const bytes = fs.readFileSync(canonicalSource);
-    if (bytes.length !== file.bytes ||
-        crypto.createHash('sha256').update(bytes).digest('hex') !== file.sha256) {
-      fail(`原厂示例身份不匹配: ${file.file}`);
-    }
+    const bound = bindOfficialSource(bytes, file, args['--source-line-endings']);
     const fileSlots = [...file.slots].sort((left, right) => left.startUtf8 - right.startUtf8);
     let previousEnd = 0;
     for (const slot of fileSlots) {
@@ -188,7 +209,7 @@ function main() {
       const literal = Number.isInteger(slot.startUtf8) && Number.isInteger(slot.endUtf8) &&
         slot.startUtf8 >= 0 && slot.endUtf8 > slot.startUtf8 &&
         slot.endUtf8 <= file.bytes
-        ? bytes.toString('utf8', slot.startUtf8, slot.endUtf8) : '';
+        ? bound.approved.toString('utf8', slot.startUtf8, slot.endUtf8) : '';
       let decoded = null;
       if (literal) {
         try { decoded = decodeStringLiteral(literal); } catch { decoded = null; }
@@ -200,11 +221,15 @@ function main() {
           typeof slot.role !== 'string' || slot.role.length === 0) {
         fail(`源文件${file.file}含越界、重叠或长度不匹配的位置`);
       }
-      slots.push({ start: slot.startUtf8, end: slot.endUtf8, textIndex,
+      const actualLiteral = bytes.subarray(bound.offset(slot.startUtf8), bound.offset(slot.endUtf8));
+      if (actualLiteral[0] !== literal.charCodeAt(0) || actualLiteral.at(-1) !== literal.charCodeAt(literal.length - 1)) {
+        fail(`源文件${file.file}实际位置丢失字面量边界`);
+      }
+      slots.push({ start: bound.offset(slot.startUtf8), end: bound.offset(slot.endUtf8), textIndex,
         quote: literal[0] });
       previousEnd = slot.endUtf8;
     }
-    files.push({ file: file.file, sha256: file.sha256, bytes: file.bytes,
+    files.push({ file: file.file, sha256: bound.actualSha256, bytes: bound.actualBytes,
       slotBegin: slots.length - fileSlots.length, slotCount: fileSlots.length });
   }
   if (slots.length !== 489 || seenPaths.size !== 100) fail('源位置或路径总数偏离批准值');
@@ -232,7 +257,8 @@ function main() {
     fileCount: files.length, slotCount: slots.length }, null, 2) + '\n');
 }
 
-try { main(); } catch (error) {
+module.exports = { bindOfficialSource };
+if (require.main === module) try { main(); } catch (error) {
   process.stderr.write(`${error.message}\n`);
   process.exitCode = 1;
 }

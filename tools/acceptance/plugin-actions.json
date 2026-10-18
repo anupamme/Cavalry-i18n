@@ -1,0 +1,293 @@
+{
+  "_l3": {"input": "依赖2.8官方插件字段静态核对结果；原清单摘要绑定来源。", "output": "提供既有文本目标的字段、条件、枚举索引及页签接续信息。", "pos": "稳定验收动作元数据，不依赖私档，不授予运行时通过。", "protocol": "[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md"},
+  "schemaVersion": 1,
+  "sourceSha256": "a871affab43fc6112ac7f28ea09fa735031b7c47c2f0e683e21fdfa88b237a74",
+  "scope": {"target": "Cavalry 2.8.0 default Create > Effects plugin consumer set", "visibleDefaultMenuTypes": ["bilateralBlurFilter", "boxBlurFilter", "bulgeFilter", "chromaKeyFilter", "directionalBlurFilter", "gaussianBlurFilter", "grainFilter", "lightSweepFilter", "rippleFilter", "spheriseFilter", "twistFilter", "zoomBlurFilter"], "excludedDefaultHiddenTypes": ["erosionFilter", "rectToPolarFilter"]},
+  "sharedOwner": {"owner": "thirdPartyFilter", "module": "languages/native/nodes_third_party_filter.js", "applyWhenPluginUiFieldPresent": true, "keys": {"labels": [{"key": "nodeAttr:thirdPartyFilter.blendMode", "fieldPath": "attributes.blendMode"}, {"key": "nodeAttr:thirdPartyFilter.renderPassesOffscreen", "fieldPath": "attributes.renderPassesOffscreen"}, {"key": "nodeAttr:thirdPartyFilter.samplingQuality", "fieldPath": "attributes.samplingQuality.name"}], "help": [{"key": "attrInfo:thirdPartyFilter.samplingQuality", "fieldPath": "attributes.samplingQuality.tooltip"}], "options": [{"key": "nodeAttrEnum:thirdPartyFilter.blendMode.1", "fieldPath": "enums.blendMode.1", "enumIndex": 1}, {"key": "nodeAttrEnum:thirdPartyFilter.blendMode.12", "fieldPath": "enums.blendMode.12", "enumIndex": 12}, {"key": "nodeAttrEnum:thirdPartyFilter.blendMode.14", "fieldPath": "enums.blendMode.14", "enumIndex": 14}, {"key": "nodeAttrEnum:thirdPartyFilter.blendMode.15", "fieldPath": "enums.blendMode.15", "enumIndex": 15}, {"key": "nodeAttrEnum:thirdPartyFilter.blendMode.16", "fieldPath": "enums.blendMode.16", "enumIndex": 16}, {"key": "nodeAttrEnum:thirdPartyFilter.blendMode.17", "fieldPath": "enums.blendMode.17", "enumIndex": 17}, {"key": "nodeAttrEnum:thirdPartyFilter.blendMode.18", "fieldPath": "enums.blendMode.18", "enumIndex": 18}, {"key": "nodeAttrEnum:thirdPartyFilter.blendMode.19", "fieldPath": "enums.blendMode.19", "enumIndex": 19}, {"key": "nodeAttrEnum:thirdPartyFilter.blendMode.20", "fieldPath": "enums.blendMode.20", "enumIndex": 20}, {"key": "nodeAttrEnum:thirdPartyFilter.blendMode.21", "fieldPath": "enums.blendMode.21", "enumIndex": 21}, {"key": "nodeAttrEnum:thirdPartyFilter.blendMode.22", "fieldPath": "enums.blendMode.22", "enumIndex": 22}, {"key": "nodeAttrEnum:thirdPartyFilter.blendMode.23", "fieldPath": "enums.blendMode.23", "enumIndex": 23}, {"key": "nodeAttrEnum:thirdPartyFilter.blendMode.24", "fieldPath": "enums.blendMode.24", "enumIndex": 24}, {"key": "nodeAttrEnum:thirdPartyFilter.blendMode.25", "fieldPath": "enums.blendMode.25", "enumIndex": 25}, {"key": "nodeAttrEnum:thirdPartyFilter.blendMode.26", "fieldPath": "enums.blendMode.26", "enumIndex": 26}, {"key": "nodeAttrEnum:thirdPartyFilter.blendMode.27", "fieldPath": "enums.blendMode.27", "enumIndex": 27}, {"key": "nodeAttrEnum:thirdPartyFilter.blendMode.28", "fieldPath": "enums.blendMode.28", "enumIndex": 28}, {"key": "nodeAttrEnum:thirdPartyFilter.blendMode.3", "fieldPath": "enums.blendMode.3", "enumIndex": 3}, {"key": "nodeAttrEnum:thirdPartyFilter.samplingQuality.0", "fieldPath": "enums.samplingQuality.0", "enumIndex": 0}, {"key": "nodeAttrEnum:thirdPartyFilter.samplingQuality.1", "fieldPath": "enums.samplingQuality.1", "enumIndex": 1}, {"key": "nodeAttrEnum:thirdPartyFilter.samplingQuality.2", "fieldPath": "enums.samplingQuality.2", "enumIndex": 2}, {"key": "nodeAttrEnum:thirdPartyFilter.samplingQuality.3", "fieldPath": "enums.samplingQuality.3", "enumIndex": 3}]}},
+  "plugins": [
+    {
+      "type": "bilateralBlurFilter",
+      "owner": "sceneGroup::bilateralBlurFilter",
+      "module": "languages/native/plugins_bilateral_blur.js",
+      "definitionSuperType": "thirdPartyFilter",
+      "nameKey": "nodeName:sceneGroup::bilateralBlurFilter",
+      "uiAttributeOrder": ["amount", "edgeThreshold", "colorSigma"],
+      "tabs": [],
+      "uiHide": [],
+      "attributes": [
+        {"id": "amount", "type": "double", "default": 10.0, "labelKey": "nodeAttr:sceneGroup::bilateralBlurFilter.amount", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::bilateralBlurFilter.amount", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 0}], "listedInUiHide": false},
+        {"id": "edgeThreshold", "type": "double", "default": 0.1, "labelKey": "nodeAttr:sceneGroup::bilateralBlurFilter.edgeThreshold", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::bilateralBlurFilter.edgeThreshold", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 1}], "listedInUiHide": false},
+        {"id": "colorSigma", "type": "double", "default": 0.15, "labelKey": "nodeAttr:sceneGroup::bilateralBlurFilter.colorSigma", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::bilateralBlurFilter.colorSigma", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 2}], "listedInUiHide": false},
+        {"id": "autoPadding", "default": true, "listedInUiHide": false},
+        {"id": "matteApplyMode", "default": 1, "listedInUiHide": false}
+      ]
+    },
+    {
+      "type": "boxBlurFilter",
+      "owner": "sceneGroup::boxBlurFilter",
+      "module": "languages/native/plugins_box_blur.js",
+      "definitionSuperType": "thirdPartyFilter",
+      "nameKey": "nodeName:sceneGroup::boxBlurFilter",
+      "uiAttributeOrder": ["amount"],
+      "tabs": [],
+      "uiHide": [],
+      "attributes": [
+        {"id": "amount", "type": "double2", "default": {"x": 10.0, "y": 10.0}, "labelKey": "nodeAttr:sceneGroup::boxBlurFilter.amount", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::boxBlurFilter.amount", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 0}], "listedInUiHide": false},
+        {"id": "autoPadding", "default": true, "listedInUiHide": false},
+        {"id": "filterInputCompositing", "default": 1, "listedInUiHide": false}
+      ]
+    },
+    {
+      "type": "bulgeFilter",
+      "owner": "sceneGroup::bulgeFilter",
+      "module": "languages/native/plugins_bulge.js",
+      "definitionSuperType": "thirdPartyFilter",
+      "nameKey": "nodeName:sceneGroup::bulgeFilter",
+      "uiAttributeOrder": ["samplingQuality", "passthroughBackground", "amount", "centre", "radius", "enableRefraction", "refractiveIndex", "chromaticAberration"],
+      "tabs": [],
+      "uiHide": ["matteApplyMode"],
+      "attributes": [
+        {"id": "blendMode", "default": 1, "labelKey": "nodeAttr:thirdPartyFilter.blendMode", "labelOwner": "thirdPartyFilter", "optionOwner": "thirdPartyFilter", "optionKeys": ["nodeAttrEnum:thirdPartyFilter.blendMode.1", "nodeAttrEnum:thirdPartyFilter.blendMode.12", "nodeAttrEnum:thirdPartyFilter.blendMode.14", "nodeAttrEnum:thirdPartyFilter.blendMode.15", "nodeAttrEnum:thirdPartyFilter.blendMode.16", "nodeAttrEnum:thirdPartyFilter.blendMode.17", "nodeAttrEnum:thirdPartyFilter.blendMode.18", "nodeAttrEnum:thirdPartyFilter.blendMode.19", "nodeAttrEnum:thirdPartyFilter.blendMode.20", "nodeAttrEnum:thirdPartyFilter.blendMode.21", "nodeAttrEnum:thirdPartyFilter.blendMode.22", "nodeAttrEnum:thirdPartyFilter.blendMode.23", "nodeAttrEnum:thirdPartyFilter.blendMode.24", "nodeAttrEnum:thirdPartyFilter.blendMode.25", "nodeAttrEnum:thirdPartyFilter.blendMode.26", "nodeAttrEnum:thirdPartyFilter.blendMode.27", "nodeAttrEnum:thirdPartyFilter.blendMode.28", "nodeAttrEnum:thirdPartyFilter.blendMode.3"], "listedInUiHide": false},
+        {"id": "passthroughBackground", "type": "bool", "default": true, "labelKey": "nodeAttr:sceneGroup::bulgeFilter.passthroughBackground", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::bulgeFilter.passthroughBackground", "helpOwner": "plugin-source", "conditions": {"dimming": "blendMode != 1"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 1}], "listedInUiHide": false},
+        {"id": "amount", "type": "double", "default": 0.5, "labelKey": "nodeAttr:sceneGroup::bulgeFilter.amount", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::bulgeFilter.amount", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 2}], "listedInUiHide": false},
+        {"id": "centre", "type": "double2", "default": {"x": 0.0, "y": 0.0}, "labelKey": "nodeAttr:sceneGroup::bulgeFilter.centre", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::bulgeFilter.centre", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 3}], "listedInUiHide": false},
+        {"id": "radius", "type": "double", "default": 50, "labelKey": "nodeAttr:sceneGroup::bulgeFilter.radius", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::bulgeFilter.radius", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 4}], "listedInUiHide": false},
+        {"id": "enableRefraction", "type": "bool", "default": true, "labelKey": "nodeAttr:sceneGroup::bulgeFilter.enableRefraction", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::bulgeFilter.enableRefraction", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 5}], "listedInUiHide": false},
+        {"id": "chromaticAberration", "type": "double", "default": 2.0, "labelKey": "nodeAttr:sceneGroup::bulgeFilter.chromaticAberration", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::bulgeFilter.chromaticAberration", "helpOwner": "plugin-source", "conditions": {"dimming": "enableRefraction == false"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 7}], "listedInUiHide": false},
+        {"id": "refractiveIndex", "type": "double", "default": 1.5, "labelKey": "nodeAttr:sceneGroup::bulgeFilter.refractiveIndex", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::bulgeFilter.refractiveIndex", "helpOwner": "plugin-source", "conditions": {"dimming": "enableRefraction == false"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 6}], "listedInUiHide": false},
+        {"id": "matteApplyMode", "default": 1, "listedInUiHide": true}
+      ],
+      "inheritedUiFields": [
+        {"id": "samplingQuality", "owner": "thirdPartyFilter", "labelKey": "nodeAttr:thirdPartyFilter.samplingQuality", "helpKey": "attrInfo:thirdPartyFilter.samplingQuality", "optionKeys": ["nodeAttrEnum:thirdPartyFilter.samplingQuality.0", "nodeAttrEnum:thirdPartyFilter.samplingQuality.1", "nodeAttrEnum:thirdPartyFilter.samplingQuality.2", "nodeAttrEnum:thirdPartyFilter.samplingQuality.3"], "location": {"surface": "UI.attributeOrder", "index": 0}}
+      ]
+    },
+    {
+      "type": "chromaKeyFilter",
+      "owner": "sceneGroup::chromaKeyFilter",
+      "module": "languages/native/plugins_chroma_key.js",
+      "definitionSuperType": "thirdPartyFilter",
+      "nameKey": "nodeName:sceneGroup::chromaKeyFilter",
+      "uiAttributeOrder": ["viewMode", "screenColor", "screenGain", "screenBalance", "---A", "shadowTolerance", "shadowSoftness", "---B", "alphaBias", "useAlphaBiasForDespill", "despillBias", "despillStrength", "screenReplaceMethod", "screenReplaceColor", "---C", "preBlur", "detailPreservation", "edgeSoftness", "---D", "clipBlack", "clipWhite", "clipRollback", "screenDilate", "screenSoftness", "---E", "screenDespotBlack", "screenDespotWhite", "---G", "shadowGain", "midtonesGain", "highlightsGain"],
+      "tabs": [],
+      "uiHide": ["matteApplyMode"],
+      "attributes": [
+        {"id": "screenColor", "type": "color", "default": {"r": 0, "g": 0, "b": 0, "a": 255}, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.screenColor", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.screenColor", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 1}], "listedInUiHide": false},
+        {"id": "screenGain", "type": "double", "default": 1.0, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.screenGain", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.screenGain", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 2}], "listedInUiHide": false},
+        {"id": "screenBalance", "type": "double", "default": 0.5, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.screenBalance", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.screenBalance", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 3}], "listedInUiHide": false},
+        {"id": "shadowTolerance", "type": "double", "default": 0.0, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.shadowTolerance", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.shadowTolerance", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 5}], "listedInUiHide": false},
+        {"id": "shadowSoftness", "type": "double", "default": 0.5, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.shadowSoftness", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.shadowSoftness", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 6}], "listedInUiHide": false},
+        {"id": "alphaBias", "type": "color", "default": {"r": 127, "g": 127, "b": 127, "a": 255}, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.alphaBias", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.alphaBias", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 8}], "listedInUiHide": false},
+        {"id": "despillBias", "type": "color", "default": {"r": 127, "g": 127, "b": 127, "a": 255}, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.despillBias", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.despillBias", "helpOwner": "plugin-source", "conditions": {"dimming": "useAlphaBiasForDespill == true"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 10}], "listedInUiHide": false},
+        {"id": "useAlphaBiasForDespill", "type": "bool", "default": true, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.useAlphaBiasForDespill", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.useAlphaBiasForDespill", "helpOwner": "plugin-source", "optionOwner": "plugin-source", "optionKeys": ["nodeAttrEnum:sceneGroup::chromaKeyFilter.useAlphaBiasForDespill.0", "nodeAttrEnum:sceneGroup::chromaKeyFilter.useAlphaBiasForDespill.1"], "uiLocations": [{"surface": "UI.attributeOrder", "index": 9}], "listedInUiHide": false},
+        {"id": "despillStrength", "type": "double", "default": 1.0, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.despillStrength", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.despillStrength", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 11}], "listedInUiHide": false},
+        {"id": "clipBlack", "type": "double", "default": 0.0, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.clipBlack", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.clipBlack", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 19}], "listedInUiHide": false},
+        {"id": "clipWhite", "type": "double", "default": 1.0, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.clipWhite", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.clipWhite", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 20}], "listedInUiHide": false},
+        {"id": "clipRollback", "type": "double", "default": 0.0, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.clipRollback", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.clipRollback", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 21}], "listedInUiHide": false},
+        {"id": "screenDilate", "type": "double", "default": 0.0, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.screenDilate", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.screenDilate", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 22}], "listedInUiHide": false},
+        {"id": "screenSoftness", "type": "double", "default": 0.0, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.screenSoftness", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.screenSoftness", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 23}], "listedInUiHide": false},
+        {"id": "screenDespotBlack", "type": "double", "default": 0.0, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.screenDespotBlack", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.screenDespotBlack", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 25}], "listedInUiHide": false},
+        {"id": "screenDespotWhite", "type": "double", "default": 0.0, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.screenDespotWhite", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.screenDespotWhite", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 26}], "listedInUiHide": false},
+        {"id": "screenReplaceMethod", "type": "enum", "default": 3, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.screenReplaceMethod", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.screenReplaceMethod", "helpOwner": "plugin-source", "optionOwner": "plugin-source", "enumIndices": [0, 1, 2, 3], "optionKeys": ["nodeAttrEnum:sceneGroup::chromaKeyFilter.screenReplaceMethod.0", "nodeAttrEnum:sceneGroup::chromaKeyFilter.screenReplaceMethod.1", "nodeAttrEnum:sceneGroup::chromaKeyFilter.screenReplaceMethod.2", "nodeAttrEnum:sceneGroup::chromaKeyFilter.screenReplaceMethod.3"], "uiLocations": [{"surface": "UI.attributeOrder", "index": 12}], "listedInUiHide": false},
+        {"id": "screenReplaceColor", "type": "color", "default": {"r": 127, "g": 127, "b": 127, "a": 255}, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.screenReplaceColor", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.screenReplaceColor", "helpOwner": "plugin-source", "conditions": {"dimming": "screenReplaceMethod == 0"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 13}], "listedInUiHide": false},
+        {"id": "shadowGain", "type": "double", "default": 1.0, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.shadowGain", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.shadowGain", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 28}], "listedInUiHide": false},
+        {"id": "midtonesGain", "type": "double", "default": 1.0, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.midtonesGain", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.midtonesGain", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 29}], "listedInUiHide": false},
+        {"id": "highlightsGain", "type": "double", "default": 1.0, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.highlightsGain", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.highlightsGain", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 30}], "listedInUiHide": false},
+        {"id": "preBlur", "type": "double", "default": 0.0, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.preBlur", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.preBlur", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 15}], "listedInUiHide": false},
+        {"id": "detailPreservation", "type": "double", "default": 0.0, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.detailPreservation", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.detailPreservation", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 16}], "listedInUiHide": false},
+        {"id": "edgeSoftness", "type": "double", "default": 0.5, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.edgeSoftness", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.edgeSoftness", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 17}], "listedInUiHide": false},
+        {"id": "viewMode", "type": "enum", "default": 0, "labelKey": "nodeAttr:sceneGroup::chromaKeyFilter.viewMode", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::chromaKeyFilter.viewMode", "helpOwner": "plugin-source", "optionOwner": "plugin-source", "enumIndices": [0, 1, 2, 4], "optionKeys": ["nodeAttrEnum:sceneGroup::chromaKeyFilter.viewMode.0", "nodeAttrEnum:sceneGroup::chromaKeyFilter.viewMode.1", "nodeAttrEnum:sceneGroup::chromaKeyFilter.viewMode.2", "nodeAttrEnum:sceneGroup::chromaKeyFilter.viewMode.4"], "uiLocations": [{"surface": "UI.attributeOrder", "index": 0}], "listedInUiHide": false},
+        {"id": "matteApplyMode", "default": 1, "listedInUiHide": true}
+      ]
+    },
+    {
+      "type": "directionalBlurFilter",
+      "owner": "sceneGroup::directionalBlurFilter",
+      "module": "languages/native/plugins_directional_blur.js",
+      "definitionSuperType": "thirdPartyFilter",
+      "nameKey": "nodeName:sceneGroup::directionalBlurFilter",
+      "uiAttributeOrder": ["angle", "amount"],
+      "tabs": [],
+      "uiHide": [],
+      "attributes": [
+        {"id": "angle", "type": "double", "default": 0.0, "labelKey": "nodeAttr:sceneGroup::directionalBlurFilter.angle", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::directionalBlurFilter.angle", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 0}], "listedInUiHide": false},
+        {"id": "amount", "type": "double", "default": 10.0, "labelKey": "nodeAttr:sceneGroup::directionalBlurFilter.amount", "labelOwner": "caption-supplement", "uiLocations": [{"surface": "UI.attributeOrder", "index": 1}], "listedInUiHide": false},
+        {"id": "autoPadding", "default": true, "listedInUiHide": false},
+        {"id": "filterInputCompositing", "default": 1, "listedInUiHide": false}
+      ]
+    },
+    {
+      "type": "gaussianBlurFilter",
+      "owner": "sceneGroup::gaussianBlurFilter",
+      "module": "languages/native/plugins_gaussian_blur.js",
+      "definitionSuperType": "thirdPartyFilter",
+      "nameKey": "nodeName:sceneGroup::gaussianBlurFilter",
+      "uiAttributeOrder": ["amount"],
+      "tabs": [],
+      "uiHide": [],
+      "attributes": [
+        {"id": "amount", "type": "double2", "default": {"x": 10.0, "y": 10.0}, "labelKey": "nodeAttr:sceneGroup::gaussianBlurFilter.amount", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::gaussianBlurFilter.amount", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 0}], "listedInUiHide": false},
+        {"id": "autoPadding", "default": true, "listedInUiHide": false},
+        {"id": "filterInputCompositing", "default": 1, "listedInUiHide": false}
+      ]
+    },
+    {
+      "type": "grainFilter",
+      "owner": "sceneGroup::grainFilter",
+      "module": "languages/native/plugins_grain.js",
+      "definitionSuperType": "thirdPartyFilter",
+      "nameKey": "nodeName:sceneGroup::grainFilter",
+      "uiAttributeOrder": ["monochromeGrain", "grainAmount", "grainSize", "redAmount", "greenAmount", "blueAmount", "redSize", "greenSize", "blueSize", "---D", "logGrain", "grainTexture", "---A", "sharpen", "sharpenEdgesOnly", "---B", "highlight", "midtone", "shadow", "---C", "time"],
+      "tabs": [],
+      "uiHide": ["matteApplyMode"],
+      "attributes": [
+        {"id": "time", "type": "double", "default": 0.0, "labelKey": "nodeAttr:sceneGroup::grainFilter.time", "labelOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 20}], "listedInUiHide": false},
+        {"id": "sharpen", "type": "double", "default": 0.0, "labelKey": "nodeAttr:sceneGroup::grainFilter.sharpen", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::grainFilter.sharpen", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 13}], "listedInUiHide": false},
+        {"id": "sharpenEdgesOnly", "type": "bool", "default": false, "labelKey": "nodeAttr:sceneGroup::grainFilter.sharpenEdgesOnly", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::grainFilter.sharpenEdgesOnly", "helpOwner": "plugin-source", "optionOwner": "plugin-source", "optionKeys": ["nodeAttrEnum:sceneGroup::grainFilter.sharpenEdgesOnly.0", "nodeAttrEnum:sceneGroup::grainFilter.sharpenEdgesOnly.1"], "uiLocations": [{"surface": "UI.attributeOrder", "index": 14}], "listedInUiHide": false},
+        {"id": "grainAmount", "type": "double", "default": 0.5, "labelKey": "nodeAttr:sceneGroup::grainFilter.grainAmount", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::grainFilter.grainAmount", "helpOwner": "plugin-source", "conditions": {"hiding": "monochromeGrain != 1"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 1}], "listedInUiHide": false},
+        {"id": "grainSize", "type": "double", "default": 1.0, "labelKey": "nodeAttr:sceneGroup::grainFilter.grainSize", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::grainFilter.grainSize", "helpOwner": "plugin-source", "conditions": {"hiding": "monochromeGrain != 1"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 2}], "listedInUiHide": false},
+        {"id": "grainTexture", "type": "double", "default": 1.0, "labelKey": "nodeAttr:sceneGroup::grainFilter.grainTexture", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::grainFilter.grainTexture", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 11}], "listedInUiHide": false},
+        {"id": "logGrain", "type": "enum", "default": 1, "labelKey": "nodeAttr:sceneGroup::grainFilter.logGrain", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::grainFilter.logGrain", "helpOwner": "plugin-source", "optionOwner": "plugin-source", "enumIndices": [0, 1], "optionKeys": ["nodeAttrEnum:sceneGroup::grainFilter.logGrain.0", "nodeAttrEnum:sceneGroup::grainFilter.logGrain.1"], "uiLocations": [{"surface": "UI.attributeOrder", "index": 10}], "listedInUiHide": false},
+        {"id": "monochromeGrain", "type": "enum", "default": 0, "labelKey": "nodeAttr:sceneGroup::grainFilter.monochromeGrain", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::grainFilter.monochromeGrain", "helpOwner": "plugin-source", "optionOwner": "plugin-source", "enumIndices": [0, 1], "optionKeys": ["nodeAttrEnum:sceneGroup::grainFilter.monochromeGrain.0", "nodeAttrEnum:sceneGroup::grainFilter.monochromeGrain.1"], "uiLocations": [{"surface": "UI.attributeOrder", "index": 0}], "listedInUiHide": false},
+        {"id": "redAmount", "type": "double", "default": 0.5, "labelKey": "nodeAttr:sceneGroup::grainFilter.redAmount", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::grainFilter.redAmount", "helpOwner": "plugin-source", "conditions": {"hiding": "monochromeGrain != 0"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 3}], "listedInUiHide": false},
+        {"id": "greenAmount", "type": "double", "default": 0.5, "labelKey": "nodeAttr:sceneGroup::grainFilter.greenAmount", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::grainFilter.greenAmount", "helpOwner": "plugin-source", "conditions": {"hiding": "monochromeGrain != 0"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 4}], "listedInUiHide": false},
+        {"id": "blueAmount", "type": "double", "default": 0.5, "labelKey": "nodeAttr:sceneGroup::grainFilter.blueAmount", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::grainFilter.blueAmount", "helpOwner": "plugin-source", "conditions": {"hiding": "monochromeGrain != 0"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 5}], "listedInUiHide": false},
+        {"id": "redSize", "type": "double", "default": 0.2, "labelKey": "nodeAttr:sceneGroup::grainFilter.redSize", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::grainFilter.redSize", "helpOwner": "plugin-source", "conditions": {"hiding": "monochromeGrain != 0"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 6}], "listedInUiHide": false},
+        {"id": "greenSize", "type": "double", "default": 0.4, "labelKey": "nodeAttr:sceneGroup::grainFilter.greenSize", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::grainFilter.greenSize", "helpOwner": "plugin-source", "conditions": {"hiding": "monochromeGrain != 0"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 7}], "listedInUiHide": false},
+        {"id": "blueSize", "type": "double", "default": 0.6, "labelKey": "nodeAttr:sceneGroup::grainFilter.blueSize", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::grainFilter.blueSize", "helpOwner": "plugin-source", "conditions": {"hiding": "monochromeGrain != 0"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 8}], "listedInUiHide": false},
+        {"id": "highlight", "type": "double", "default": 1.0, "labelKey": "nodeAttr:sceneGroup::grainFilter.highlight", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::grainFilter.highlight", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 16}], "listedInUiHide": false},
+        {"id": "midtone", "type": "double", "default": 1.0, "labelKey": "nodeAttr:sceneGroup::grainFilter.midtone", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::grainFilter.midtone", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 17}], "listedInUiHide": false},
+        {"id": "shadow", "type": "double", "default": 1.0, "labelKey": "nodeAttr:sceneGroup::grainFilter.shadow", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::grainFilter.shadow", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 18}], "listedInUiHide": false},
+        {"id": "matteApplyMode", "default": 1, "listedInUiHide": true}
+      ]
+    },
+    {
+      "type": "lightSweepFilter",
+      "owner": "sceneGroup::lightSweepFilter",
+      "module": "languages/native/plugins_light_sweep.js",
+      "definitionSuperType": "thirdPartyFilter",
+      "nameKey": "nodeName:sceneGroup::lightSweepFilter",
+      "uiAttributeOrder": ["sweepIntensity", "direction", "shape", "centre", "coneWidth", "conePercentage", "useFalloff", "falloffDistance", "edgeIntensity", "edgeThickness", "lightColor"],
+      "tabs": [],
+      "uiHide": ["matteApplyMode"],
+      "attributes": [
+        {"id": "sweepIntensity", "type": "double", "default": 0.65, "labelKey": "nodeAttr:sceneGroup::lightSweepFilter.sweepIntensity", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::lightSweepFilter.sweepIntensity", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 0}], "listedInUiHide": false},
+        {"id": "blendMode", "default": 12, "labelKey": "nodeAttr:thirdPartyFilter.blendMode", "labelOwner": "thirdPartyFilter", "optionOwner": "thirdPartyFilter", "optionKeys": ["nodeAttrEnum:thirdPartyFilter.blendMode.1", "nodeAttrEnum:thirdPartyFilter.blendMode.12", "nodeAttrEnum:thirdPartyFilter.blendMode.14", "nodeAttrEnum:thirdPartyFilter.blendMode.15", "nodeAttrEnum:thirdPartyFilter.blendMode.16", "nodeAttrEnum:thirdPartyFilter.blendMode.17", "nodeAttrEnum:thirdPartyFilter.blendMode.18", "nodeAttrEnum:thirdPartyFilter.blendMode.19", "nodeAttrEnum:thirdPartyFilter.blendMode.20", "nodeAttrEnum:thirdPartyFilter.blendMode.21", "nodeAttrEnum:thirdPartyFilter.blendMode.22", "nodeAttrEnum:thirdPartyFilter.blendMode.23", "nodeAttrEnum:thirdPartyFilter.blendMode.24", "nodeAttrEnum:thirdPartyFilter.blendMode.25", "nodeAttrEnum:thirdPartyFilter.blendMode.26", "nodeAttrEnum:thirdPartyFilter.blendMode.27", "nodeAttrEnum:thirdPartyFilter.blendMode.28", "nodeAttrEnum:thirdPartyFilter.blendMode.3"], "listedInUiHide": false},
+        {"id": "direction", "type": "double", "default": 45.0, "labelKey": "nodeAttr:sceneGroup::lightSweepFilter.direction", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::lightSweepFilter.direction", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 1}], "listedInUiHide": false},
+        {"id": "shape", "type": "enum", "labelKey": "nodeAttr:sceneGroup::lightSweepFilter.shape", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::lightSweepFilter.shape", "helpOwner": "plugin-source", "optionOwner": "plugin-source", "enumIndices": [0, 1], "optionKeys": ["nodeAttrEnum:sceneGroup::lightSweepFilter.shape.0", "nodeAttrEnum:sceneGroup::lightSweepFilter.shape.1"], "uiLocations": [{"surface": "UI.attributeOrder", "index": 2}], "listedInUiHide": false},
+        {"id": "edgeIntensity", "type": "double", "default": 0.0, "labelKey": "nodeAttr:sceneGroup::lightSweepFilter.edgeIntensity", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::lightSweepFilter.edgeIntensity", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 8}], "listedInUiHide": false},
+        {"id": "edgeThickness", "type": "double", "default": 10.0, "labelKey": "nodeAttr:sceneGroup::lightSweepFilter.edgeThickness", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::lightSweepFilter.edgeThickness", "helpOwner": "plugin-source", "conditions": {"dimming": "edgeIntensity == 0"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 9}], "listedInUiHide": false},
+        {"id": "centre", "type": "double2", "default": {"type": "double2", "x": 0.0, "y": 0.0}, "labelKey": "nodeAttr:sceneGroup::lightSweepFilter.centre", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::lightSweepFilter.centre", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 3}], "listedInUiHide": false},
+        {"id": "useFalloff", "type": "bool", "default": false, "labelKey": "nodeAttr:sceneGroup::lightSweepFilter.useFalloff", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::lightSweepFilter.useFalloff", "helpOwner": "plugin-source", "conditions": {"dimming": "shape == 1"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 6}], "listedInUiHide": false},
+        {"id": "falloffDistance", "type": "double", "default": 500.0, "labelKey": "nodeAttr:sceneGroup::lightSweepFilter.falloffDistance", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::lightSweepFilter.falloffDistance", "helpOwner": "plugin-source", "conditions": {"dimming": "shape == 1 || useFalloff == 0"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 7}], "listedInUiHide": false},
+        {"id": "coneWidth", "type": "double", "default": 400.0, "labelKey": "nodeAttr:sceneGroup::lightSweepFilter.coneWidth", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::lightSweepFilter.coneWidth", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 4}], "listedInUiHide": false},
+        {"id": "conePercentage", "type": "double", "default": 10, "labelKey": "nodeAttr:sceneGroup::lightSweepFilter.conePercentage", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::lightSweepFilter.conePercentage", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 5}], "listedInUiHide": false},
+        {"id": "lightColor", "type": "color", "default": {"r": 255, "g": 255, "b": 255, "a": 255}, "labelKey": "nodeAttr:sceneGroup::lightSweepFilter.lightColor", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::lightSweepFilter.lightColor", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 10}], "listedInUiHide": false},
+        {"id": "matteApplyMode", "default": 1, "listedInUiHide": true}
+      ]
+    },
+    {
+      "type": "rippleFilter",
+      "owner": "sceneGroup::rippleFilter",
+      "module": "languages/native/plugins_ripple.js",
+      "definitionSuperType": "thirdPartyFilter",
+      "nameKey": "nodeName:sceneGroup::rippleFilter",
+      "uiAttributeOrder": ["samplingQuality", "mode", "centre", "direction", "displacementAxis", "amount", "wavelength", "phase", "waveform", "arms", "decay", "decayLength"],
+      "tabs": [],
+      "uiHide": ["matteApplyMode"],
+      "attributes": [
+        {"id": "mode", "type": "enum", "default": 1, "labelKey": "nodeAttr:sceneGroup::rippleFilter.mode", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::rippleFilter.mode", "helpOwner": "plugin-source", "optionOwner": "plugin-source", "enumIndices": [0, 1, 2], "optionKeys": ["nodeAttrEnum:sceneGroup::rippleFilter.mode.0", "nodeAttrEnum:sceneGroup::rippleFilter.mode.1", "nodeAttrEnum:sceneGroup::rippleFilter.mode.2"], "uiLocations": [{"surface": "UI.attributeOrder", "index": 1}], "listedInUiHide": false},
+        {"id": "centre", "type": "double2", "default": {"x": 0.0, "y": 0.0}, "labelKey": "nodeAttr:sceneGroup::rippleFilter.centre", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::rippleFilter.centre", "helpOwner": "plugin-source", "conditions": {"hiding": "mode == 0"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 2}], "listedInUiHide": false},
+        {"id": "direction", "type": "double", "default": 0.0, "labelKey": "nodeAttr:sceneGroup::rippleFilter.direction", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::rippleFilter.direction", "helpOwner": "plugin-source", "conditions": {"hiding": "mode != 0"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 3}], "listedInUiHide": false},
+        {"id": "displacementAxis", "type": "enum", "default": 0, "labelKey": "nodeAttr:sceneGroup::rippleFilter.displacementAxis", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::rippleFilter.displacementAxis", "helpOwner": "plugin-source", "optionOwner": "plugin-source", "enumIndices": [0, 1], "optionKeys": ["nodeAttrEnum:sceneGroup::rippleFilter.displacementAxis.0", "nodeAttrEnum:sceneGroup::rippleFilter.displacementAxis.1"], "conditions": {"hiding": "mode != 0"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 4}], "listedInUiHide": false},
+        {"id": "amount", "type": "double", "default": 10.0, "labelKey": "nodeAttr:sceneGroup::rippleFilter.amount", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::rippleFilter.amount", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 5}], "listedInUiHide": false},
+        {"id": "wavelength", "type": "double", "default": 50.0, "labelKey": "nodeAttr:sceneGroup::rippleFilter.wavelength", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::rippleFilter.wavelength", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 6}], "listedInUiHide": false},
+        {"id": "phase", "type": "double", "default": 0.0, "labelKey": "nodeAttr:sceneGroup::rippleFilter.phase", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::rippleFilter.phase", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 7}], "listedInUiHide": false},
+        {"id": "waveform", "type": "enum", "default": 0, "labelKey": "nodeAttr:sceneGroup::rippleFilter.waveform", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::rippleFilter.waveform", "helpOwner": "plugin-source", "optionOwner": "plugin-source", "enumIndices": [0, 1, 2], "optionKeys": ["nodeAttrEnum:sceneGroup::rippleFilter.waveform.0", "nodeAttrEnum:sceneGroup::rippleFilter.waveform.1", "nodeAttrEnum:sceneGroup::rippleFilter.waveform.2"], "uiLocations": [{"surface": "UI.attributeOrder", "index": 8}], "listedInUiHide": false},
+        {"id": "arms", "type": "int", "default": 3, "labelKey": "nodeAttr:sceneGroup::rippleFilter.arms", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::rippleFilter.arms", "helpOwner": "plugin-source", "conditions": {"hiding": "mode != 2"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 9}], "listedInUiHide": false},
+        {"id": "decay", "type": "double", "default": 1.0, "labelKey": "nodeAttr:sceneGroup::rippleFilter.decay", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::rippleFilter.decay", "helpOwner": "plugin-source", "conditions": {"hiding": "mode == 0"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 10}], "listedInUiHide": false},
+        {"id": "decayLength", "type": "double", "default": 200.0, "labelKey": "nodeAttr:sceneGroup::rippleFilter.decayLength", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::rippleFilter.decayLength", "helpOwner": "plugin-source", "conditions": {"hiding": "mode == 0"}, "uiLocations": [{"surface": "UI.attributeOrder", "index": 11}], "listedInUiHide": false},
+        {"id": "autoPadding", "default": true, "listedInUiHide": false},
+        {"id": "allowViewportClipping", "default": false, "listedInUiHide": false},
+        {"id": "matteApplyMode", "default": 1, "listedInUiHide": true}
+      ],
+      "inheritedUiFields": [
+        {"id": "samplingQuality", "owner": "thirdPartyFilter", "labelKey": "nodeAttr:thirdPartyFilter.samplingQuality", "helpKey": "attrInfo:thirdPartyFilter.samplingQuality", "optionKeys": ["nodeAttrEnum:thirdPartyFilter.samplingQuality.0", "nodeAttrEnum:thirdPartyFilter.samplingQuality.1", "nodeAttrEnum:thirdPartyFilter.samplingQuality.2", "nodeAttrEnum:thirdPartyFilter.samplingQuality.3"], "location": {"surface": "UI.attributeOrder", "index": 0}}
+      ]
+    },
+    {
+      "type": "spheriseFilter",
+      "owner": "sceneGroup::spheriseFilter",
+      "module": "languages/native/plugins_spherise.js",
+      "definitionSuperType": "thirdPartyFilter",
+      "nameKey": "nodeName:sceneGroup::spheriseFilter",
+      "uiAttributeOrder": null,
+      "tabs": [{"id": "filter", "attributeOrder": ["samplingQuality", "---A", "centre", "radius", "visibility", "rotation"]}, {"id": "lighting", "attributeOrder": ["enableLighting", "lightPosition", "lightIntensity", "lightColor", "ambientStrength", "ambientColor", "specularStrength", "specularColor", "shininess", "useAsBumpMap", "bumpMapStrength", "enableSelfShadowing", "shadowIntensity", "shadowSoftness", "backExposure"]}],
+      "uiHide": [],
+      "attributes": [
+        {"id": "centre", "type": "double2", "default": {"x": 0.0, "y": 0.0}, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.centre", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.centre", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.tabs", "index": 2, "tabId": "filter"}], "listedInUiHide": false},
+        {"id": "radius", "type": "double", "default": 50, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.radius", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.radius", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.tabs", "index": 3, "tabId": "filter"}], "listedInUiHide": false},
+        {"id": "visibility", "type": "enum", "default": 0, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.visibility", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.visibility", "helpOwner": "plugin-source", "optionOwner": "plugin-source", "enumIndices": [0, 1, 2], "optionKeys": ["nodeAttrEnum:sceneGroup::spheriseFilter.visibility.0", "nodeAttrEnum:sceneGroup::spheriseFilter.visibility.1", "nodeAttrEnum:sceneGroup::spheriseFilter.visibility.2"], "uiLocations": [{"surface": "UI.tabs", "index": 4, "tabId": "filter"}], "listedInUiHide": false},
+        {"id": "rotation", "type": "double3", "default": 0.0, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.rotation", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.rotation", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.tabs", "index": 5, "tabId": "filter"}], "listedInUiHide": false},
+        {"id": "enableLighting", "type": "bool", "default": false, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.enableLighting", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.enableLighting", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.tabs", "index": 0, "tabId": "lighting"}], "listedInUiHide": false},
+        {"id": "lightPosition", "type": "double3", "default": {"x": 200.0, "y": 200.0, "z": 300.0}, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.lightPosition", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.lightPosition", "helpOwner": "plugin-source", "conditions": {"dimming": "enableLighting == false"}, "uiLocations": [{"surface": "UI.tabs", "index": 1, "tabId": "lighting"}], "listedInUiHide": false},
+        {"id": "lightIntensity", "type": "double", "default": 1.0, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.lightIntensity", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.lightIntensity", "helpOwner": "plugin-source", "conditions": {"dimming": "enableLighting == false"}, "uiLocations": [{"surface": "UI.tabs", "index": 2, "tabId": "lighting"}], "listedInUiHide": false},
+        {"id": "lightColor", "type": "color", "default": {"r": 255, "g": 255, "b": 255, "a": 255}, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.lightColor", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.lightColor", "helpOwner": "plugin-source", "conditions": {"dimming": "enableLighting == false"}, "uiLocations": [{"surface": "UI.tabs", "index": 3, "tabId": "lighting"}], "listedInUiHide": false},
+        {"id": "ambientStrength", "type": "double", "default": 0.2, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.ambientStrength", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.ambientStrength", "helpOwner": "plugin-source", "conditions": {"dimming": "enableLighting == false"}, "uiLocations": [{"surface": "UI.tabs", "index": 4, "tabId": "lighting"}], "listedInUiHide": false},
+        {"id": "ambientColor", "type": "color", "default": {"r": 255, "g": 255, "b": 255, "a": 255}, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.ambientColor", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.ambientColor", "helpOwner": "plugin-source", "conditions": {"dimming": "enableLighting == false"}, "uiLocations": [{"surface": "UI.tabs", "index": 5, "tabId": "lighting"}], "listedInUiHide": false},
+        {"id": "specularStrength", "type": "double", "default": 0.5, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.specularStrength", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.specularStrength", "helpOwner": "plugin-source", "conditions": {"dimming": "enableLighting == false"}, "uiLocations": [{"surface": "UI.tabs", "index": 6, "tabId": "lighting"}], "listedInUiHide": false},
+        {"id": "specularColor", "type": "color", "default": {"r": 255, "g": 255, "b": 255, "a": 255}, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.specularColor", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.specularColor", "helpOwner": "plugin-source", "conditions": {"dimming": "enableLighting == false"}, "uiLocations": [{"surface": "UI.tabs", "index": 7, "tabId": "lighting"}], "listedInUiHide": false},
+        {"id": "shininess", "type": "double", "default": 32.0, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.shininess", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.shininess", "helpOwner": "plugin-source", "conditions": {"dimming": "enableLighting == false"}, "uiLocations": [{"surface": "UI.tabs", "index": 8, "tabId": "lighting"}], "listedInUiHide": false},
+        {"id": "useAsBumpMap", "type": "bool", "default": false, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.useAsBumpMap", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.useAsBumpMap", "helpOwner": "plugin-source", "conditions": {"dimming": "enableLighting == false"}, "uiLocations": [{"surface": "UI.tabs", "index": 9, "tabId": "lighting"}], "listedInUiHide": false},
+        {"id": "bumpMapStrength", "type": "double", "default": 0.1, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.bumpMapStrength", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.bumpMapStrength", "helpOwner": "plugin-source", "conditions": {"dimming": "enableLighting == false || useAsBumpMap == false"}, "uiLocations": [{"surface": "UI.tabs", "index": 10, "tabId": "lighting"}], "listedInUiHide": false},
+        {"id": "invertBumpY", "type": "bool", "default": false, "conditions": {"dimming": "enableLighting == false || useAsBumpMap == false"}, "listedInUiHide": false},
+        {"id": "enableSelfShadowing", "type": "bool", "default": true, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.enableSelfShadowing", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.enableSelfShadowing", "helpOwner": "plugin-source", "conditions": {"dimming": "enableLighting == false || visibility == 1"}, "uiLocations": [{"surface": "UI.tabs", "index": 11, "tabId": "lighting"}], "listedInUiHide": false},
+        {"id": "shadowIntensity", "type": "double", "default": 0.8, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.shadowIntensity", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.shadowIntensity", "helpOwner": "plugin-source", "conditions": {"dimming": "enableLighting == false || enableSelfShadowing == false || visibility == 1"}, "uiLocations": [{"surface": "UI.tabs", "index": 12, "tabId": "lighting"}], "listedInUiHide": false},
+        {"id": "shadowSoftness", "type": "double", "default": 0.5, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.shadowSoftness", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.shadowSoftness", "helpOwner": "plugin-source", "conditions": {"dimming": "enableLighting == false || enableSelfShadowing == false || visibility == 1"}, "uiLocations": [{"surface": "UI.tabs", "index": 13, "tabId": "lighting"}], "listedInUiHide": false},
+        {"id": "backExposure", "type": "double", "default": 1.0, "labelKey": "nodeAttr:sceneGroup::spheriseFilter.backExposure", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::spheriseFilter.backExposure", "helpOwner": "plugin-source", "conditions": {"dimming": "enableLighting == false || visibility == 1"}, "uiLocations": [{"surface": "UI.tabs", "index": 14, "tabId": "lighting"}], "listedInUiHide": false},
+        {"id": "allowViewportClipping", "default": false, "listedInUiHide": false}
+      ],
+      "inheritedUiFields": [
+        {"id": "samplingQuality", "owner": "thirdPartyFilter", "labelKey": "nodeAttr:thirdPartyFilter.samplingQuality", "helpKey": "attrInfo:thirdPartyFilter.samplingQuality", "optionKeys": ["nodeAttrEnum:thirdPartyFilter.samplingQuality.0", "nodeAttrEnum:thirdPartyFilter.samplingQuality.1", "nodeAttrEnum:thirdPartyFilter.samplingQuality.2", "nodeAttrEnum:thirdPartyFilter.samplingQuality.3"], "location": {"surface": "UI.tabs", "index": 0, "tabId": "filter"}}
+      ]
+    },
+    {
+      "type": "twistFilter",
+      "owner": "sceneGroup::twistFilter",
+      "module": "languages/native/plugins_twist.js",
+      "definitionSuperType": "thirdPartyFilter",
+      "nameKey": "nodeName:sceneGroup::twistFilter",
+      "uiAttributeOrder": ["samplingQuality", "centre", "angle", "radius", "falloff"],
+      "tabs": [],
+      "uiHide": ["matteApplyMode"],
+      "attributes": [
+        {"id": "centre", "type": "double2", "default": {"x": 0.0, "y": 0.0}, "labelKey": "nodeAttr:sceneGroup::twistFilter.centre", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::twistFilter.centre", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 1}], "listedInUiHide": false},
+        {"id": "angle", "type": "double", "default": 90.0, "labelKey": "nodeAttr:sceneGroup::twistFilter.angle", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::twistFilter.angle", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 2}], "listedInUiHide": false},
+        {"id": "radius", "type": "double", "default": 200.0, "labelKey": "nodeAttr:sceneGroup::twistFilter.radius", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::twistFilter.radius", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 3}], "listedInUiHide": false},
+        {"id": "falloff", "type": "enum", "default": 1, "labelKey": "nodeAttr:sceneGroup::twistFilter.falloff", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::twistFilter.falloff", "helpOwner": "plugin-source", "optionOwner": "plugin-source", "enumIndices": [0, 1, 2], "optionKeys": ["nodeAttrEnum:sceneGroup::twistFilter.falloff.0", "nodeAttrEnum:sceneGroup::twistFilter.falloff.1", "nodeAttrEnum:sceneGroup::twistFilter.falloff.2"], "uiLocations": [{"surface": "UI.attributeOrder", "index": 4}], "listedInUiHide": false},
+        {"id": "autoPadding", "default": true, "listedInUiHide": false},
+        {"id": "allowViewportClipping", "default": false, "listedInUiHide": false},
+        {"id": "matteApplyMode", "default": 1, "listedInUiHide": true}
+      ],
+      "inheritedUiFields": [
+        {"id": "samplingQuality", "owner": "thirdPartyFilter", "labelKey": "nodeAttr:thirdPartyFilter.samplingQuality", "helpKey": "attrInfo:thirdPartyFilter.samplingQuality", "optionKeys": ["nodeAttrEnum:thirdPartyFilter.samplingQuality.0", "nodeAttrEnum:thirdPartyFilter.samplingQuality.1", "nodeAttrEnum:thirdPartyFilter.samplingQuality.2", "nodeAttrEnum:thirdPartyFilter.samplingQuality.3"], "location": {"surface": "UI.attributeOrder", "index": 0}}
+      ]
+    },
+    {
+      "type": "zoomBlurFilter",
+      "owner": "sceneGroup::zoomBlurFilter",
+      "module": "languages/native/plugins_zoom_blur.js",
+      "definitionSuperType": "thirdPartyFilter",
+      "nameKey": "nodeName:sceneGroup::zoomBlurFilter",
+      "uiAttributeOrder": ["origin", "amount", "attenuationMultiplier"],
+      "tabs": [],
+      "uiHide": [],
+      "attributes": [
+        {"id": "filterInputCompositing", "default": 1, "listedInUiHide": false},
+        {"id": "origin", "type": "double2", "default": {"type": "double2", "x": 0.0, "y": 0.0}, "labelKey": "nodeAttr:sceneGroup::zoomBlurFilter.origin", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::zoomBlurFilter.origin", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 0}], "listedInUiHide": false},
+        {"id": "amount", "type": "double", "default": 50.0, "labelKey": "nodeAttr:sceneGroup::zoomBlurFilter.amount", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::zoomBlurFilter.amount", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 1}], "listedInUiHide": false},
+        {"id": "attenuationMultiplier", "type": "double", "default": 0.25, "labelKey": "nodeAttr:sceneGroup::zoomBlurFilter.attenuationMultiplier", "labelOwner": "plugin-source", "helpKey": "attrInfo:sceneGroup::zoomBlurFilter.attenuationMultiplier", "helpOwner": "plugin-source", "uiLocations": [{"surface": "UI.attributeOrder", "index": 2}], "listedInUiHide": false},
+        {"id": "autoPadding", "default": true, "listedInUiHide": false}
+      ]
+    }
+  ]
+}

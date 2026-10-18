@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 user_language_files 的临时 profile fixture、typed locale 投影与耐久回执。
- * [OUTPUT]: 验证回执事务/恢复与drift拒绝；计数合同锁定新pending验证一次及ready回调写前只调用一次。
+ * [OUTPUT]: 验证回执事务/恢复与drift拒绝；计数合同锁定新pending验证一次及ready回调写前只调用一次；Windows子模块验证分离Local/Roaming布局的生产事务。
  * [POS]: commands/tests 的 transaction recovery 合同；real tempfile staging 只做预发布乐观比较，不证明 OS 原子 CAS；不访问真实 Cavalry、IPC、安装 bundle 或 profile。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -656,16 +656,20 @@ fn non_file_receipt_target_or_parent_fails_before_fixture_mutation() {
 
 #[cfg(windows)]
 #[test]
-fn windows_fixture_fails_closed_when_directory_durability_is_unproven() {
+fn windows_fixture_fails_closed_when_directory_sync_fails() {
     let original = json!({"locale": typed_locale("en-GB")});
     let fixture = Fixture::new(original.clone(), None);
+
+    user_language_files::storage::fail_next_directory_sync_for(
+        fixture.paths.receipt().parent().unwrap(),
+    );
 
     let error = user_language_files::apply(
         &fixture.paths,
         "zh-Hans",
         &synthetic_pack("zh-Hans", "owned pack"),
     )
-    .expect_err("Windows directory durability is not claimed by this fixture adapter");
+    .expect_err("A real directory sync failure must retain pending state");
 
     assert!(error.contains("durability is unproven"), "{error}");
     assert_eq!(fixture.preferences(), original);
@@ -883,3 +887,7 @@ mod production_api;
 
 #[path = "user_language_files_receipt_reuse.rs"]
 mod receipt_reuse;
+
+#[cfg(windows)]
+#[path = "user_language_files_windows.rs"]
+mod windows_profile;

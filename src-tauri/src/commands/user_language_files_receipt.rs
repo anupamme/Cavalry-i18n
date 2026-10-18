@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖固定 UserLanguagePaths、typed locale 映像及受限 native UI-text pack。
+ * [INPUT]: 依赖固定 UserLanguagePaths、typed locale 映像、跨平台symlink/reparse拒绝及受限 native UI-text pack。
  * [OUTPUT]: 验证回执路径/目录所有权/动作、非空事务状态、语言到 typed locale/postimage 与 pack 的关系；投影 locale 和 owned current/drift/pending/none，并为 current 提供 active strings SHA-256。
  * [POS]: 文件事务的语义验证边界；不执行文件写入、不解析通用路径、不把未知 locale 推断为 English，也不暴露前像/路径/原始未知值。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -82,7 +82,7 @@ pub(crate) fn read_profile_projection(
 
 fn read_projection_receipt(paths: &UserLanguagePaths) -> Result<Option<Receipt>, String> {
     match fs::symlink_metadata(&paths.state_root) {
-        Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_dir() => Err(format!(
+        Ok(metadata) if super::paths::is_link(&metadata) || !metadata.is_dir() => Err(format!(
             "Switcher state root is not a real directory: {}",
             paths.state_root.display()
         )),

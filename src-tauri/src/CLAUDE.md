@@ -2,6 +2,9 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+native Windows编译profile复用windows_qpa与language_transaction的runtime-only能力：普通可写根和Program Files沿同一固定payload journal，profile与安装root的恢复职责分开；显式卸载先恢复profile再恢复厂商QPA，不自动启动。
+Windows native安装结构门只要求EXE/QtCore，不继承旧JSON；结构发现不授予Official或runtime写权，冻结PE摘要与QPA版本/所有权仍由各自准入验证。
+windows_fs.rs: Windows目录句柄耐久同步；由既有安装journal提取并与用户语言事务共用，拒绝reparse，真实OS错误不降级成功。
 main.rs: 二进制入口；Windows 依次消费 same-EXE 提升事务、`--uninstall-restore-english` 与 `--launch-cavalry` 精确参数并返回明确退出码，其余进入 Tauri runtime。
 lib.rs: Tauri Builder 装配层，注册官方 updater plugin、Updater State 与 9 个 command；macOS 主窗口原生交通灯由窗口创建配置定位，不在 resize 回调中改写 AppKit 几何，各 WebView 接收平台标记但只有 `main` 可在首个 animation frame 执行 show/focus，`PageLoadEvent::Finished` 只作 main 隐藏态兜底，同时以固定 menu id 将 macOS 默认 About 替换为独立窗口入口；启动不探测或恢复语言事务 journal；中性runtime计划器接stock首次安装owner；bundle清单和原厂baseline接入NRT终态；显式preview command消费中性runtime与用户语言双owner；公开 Windows 提升事务/uninstall restore/headless launch/QPA/runtime 早期分流与跨平台纯模块。
 about_window.rs: 独立 About WebviewWindow 的唯一 Rust owner；按固定 `about` label 隐藏创建 288×314px 内容区的本地 `about.html`；macOS 复用主窗口 Overlay/hidden-title，含 40px 标题栏后为 288×354px，并在创建时定位系统原生交通灯、监听 main close 同步关闭 About；Windows 改用无系统装饰的 transparent compositor 表面，每侧 10px 阴影留白后为 308×374px，同时挂到 main 的原生 owner 链以随主窗口销毁；创建或重复打开时都按主窗口实时 physical outer rect 居中并钳制到同一 monitor，几何不可用才回退屏幕中心，再 show+focus；窗口不可 resize/maximize/minimize，供系统菜单和 `show_about` command 共用。
