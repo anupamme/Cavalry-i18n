@@ -1,6 +1,6 @@
 /*
  * [INPUT]: 依赖现有安装发现、冻结Windows 2.8宿主摘要、共享资源loader/profile事务和Windows系统适配器。
- * [OUTPUT]: 正常九命令下的Windows原生profile与2.8窄runtime事务及候选源只读状态；复用QPA/vendor备份及固定payload journal，不安装旧generic翻译器。
+ * [OUTPUT]: 原生profile/runtime事务在写入前持久化已验安装选择；卸载先解析必要目标，再恢复profile及runtime；复用现有State/QPA/journal。
  * [POS]: Windows 2.8窄facade；共享翻译/事务仍由Mac主干承担，Windows只绑定宿主、OS路径与写者准入。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -207,10 +207,18 @@ pub(super) fn apply<R: OperationReporter, C: CommandRunner>(
         Err(error) => return native_user::transaction_error(&error),
     };
     let mut closed_writer = || privilege::guard_windows_native_writers(runner);
+    let verified_host = verify_host(app);
+    if let Ok(root) = &verified_host {
+        if let Err(error) =
+            super::status::persist_native_selection(state, root, native_resources::NATIVE_VERSION)
+        {
+            return native_user::transaction_error(&error);
+        }
+    }
     if language == "en" {
         let payload = native_user::apply_english_with_host_probe(
             &paths,
-            || verify_host(app).map(|_| ()),
+            || verified_host.map(|_| ()),
             &mut closed_writer,
             reporter,
             &mut verify,
@@ -225,7 +233,7 @@ pub(super) fn apply<R: OperationReporter, C: CommandRunner>(
         }
         return payload;
     }
-    if let Err(error) = verify_host(app) {
+    if let Err(error) = verified_host {
         return ActionPayload::error_with_code(&error, "installationVerificationFailed");
     }
     let pack = match native_resources::load_language_resource(repo, resources, language) {
@@ -315,46 +323,69 @@ pub(crate) fn enabled() -> bool {
 }
 
 pub(crate) fn restore_for_uninstall() -> Result<(), String> {
-    use super::user_language_files::{self, ReceiptObservation, RestoreOutcome};
-    let state = crate::runtime_paths::current_windows_state_dir().join("native-2.8");
+    let state = super::context::windows_state_dir();
     let _guard = crate::operation_lock::try_begin_bundle_operation(&state)?;
-    let paths = profile_paths(&state, true)?;
-    let profile = user_language_files::read_profile_projection(&paths)?;
-    let restore_profile =
-        !(matches!(profile.ownership, ReceiptObservation::None) && !paths.strings().exists());
     let mut runner = privilege::RealCommandRunner;
-    if restore_profile {
-        match user_language_files::restore_owned_english_with_writer_guard(&paths, &mut || {
-            privilege::guard_windows_native_writers(&mut runner)
-        })? {
-            RestoreOutcome::Restored | RestoreOutcome::NothingToRestore => {}
-            RestoreOutcome::RestoredWithWarning(_) => {
-                return Err("Native English restore durability is unproven".into())
-            }
-        }
-    }
+    restore_from_saved_state(
+        &state,
+        || restore_profile_for_uninstall(&state),
+        |root| {
+            privilege::guard_windows_native_writers(&mut runner)?;
+            let executable = std::env::current_exe().map_err(|e| e.to_string())?;
+            let resources = executable
+                .parent()
+                .ok_or("Switcher directory unavailable")?;
+            runtime_transaction(
+                &crate::runtime_paths::repo_root(),
+                resources,
+                &state,
+                root,
+                "en",
+            )
+        },
+    )
+}
+
+fn restore_from_saved_state(
+    state: &Path,
+    restore_profile: impl FnOnce() -> Result<(), String>,
+    restore_runtime: impl FnOnce(&Path) -> Result<(), String>,
+) -> Result<(), String> {
+    // -- 缺少必需目标时零profile写入；已移除宿主仍恢复自有profile -----
     let saved = crate::state::read_state_strict(&state).map_err(|e| e.to_string())?;
     if saved.app_path.trim().is_empty() {
         return Err("No saved native Cavalry installation".into());
     }
     let root = Path::new(&saved.app_path);
-    match fs::symlink_metadata(root.join("Cavalry.exe")) {
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+    let host_present = match fs::symlink_metadata(root.join("Cavalry.exe")) {
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => false,
         Err(e) => return Err(e.to_string()),
-        Ok(_) => {}
+        Ok(_) => true,
+    };
+    restore_profile()?;
+    if host_present {
+        restore_runtime(root)
+    } else {
+        Ok(())
     }
-    privilege::guard_windows_native_writers(&mut runner)?;
-    let executable = std::env::current_exe().map_err(|e| e.to_string())?;
-    let resources = executable
-        .parent()
-        .ok_or("Switcher directory unavailable")?;
-    runtime_transaction(
-        &crate::runtime_paths::repo_root(),
-        resources,
-        &state,
-        root,
-        "en",
-    )
+}
+
+fn restore_profile_for_uninstall(state: &Path) -> Result<(), String> {
+    use super::user_language_files::{self, ReceiptObservation, RestoreOutcome};
+    let paths = profile_paths(state, true)?;
+    let profile = user_language_files::read_profile_projection(&paths)?;
+    if matches!(profile.ownership, ReceiptObservation::None) && !paths.strings().exists() {
+        return Ok(());
+    }
+    let mut runner = privilege::RealCommandRunner;
+    match user_language_files::restore_owned_english_with_writer_guard(&paths, &mut || {
+        privilege::guard_windows_native_writers(&mut runner)
+    })? {
+        RestoreOutcome::Restored | RestoreOutcome::NothingToRestore => Ok(()),
+        RestoreOutcome::RestoredWithWarning(_) => {
+            Err("Native English restore durability is unproven".into())
+        }
+    }
 }
 
 #[cfg(test)]

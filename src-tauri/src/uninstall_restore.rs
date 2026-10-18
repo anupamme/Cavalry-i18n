@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖精确 `--uninstall-restore-english` 参数、共享 state/runtime_paths/operation_lock、commands English 事务与真实 CommandRunner。
- * [OUTPUT]: NSIS显式English恢复；native先恢复Current-owned用户profile，再经原固定runtime事务恢复厂商QPA；要求写者关闭，legacy路径独立。
+ * [OUTPUT]: NSIS显式English恢复；native先解析保存目标，再恢复Current-owned profile及原厂QPA；宿主已移除仍幂等恢复profile，legacy独立。
  * [POS]: src-tauri/src 的 Windows 控制面卸载边界；“保留翻译”由 NSIS 不调用本入口表达，本入口只承担用户明确选择的“恢复英文并移除自有运行时”。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */

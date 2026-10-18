@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖共享 runtime_paths/operation_lock、保存的 State、Cavalry 安装布局、Windows runtime ready marker 与 CommandRunner。
- * [OUTPUT]: 提供 --launch-cavalry 无 WebView 分流，以及带 revision/语言 marker/QPA ACTIVE/plugin/PID 就绪门的可测试启动编排。
- * [POS]: src-tauri/src 的 Windows 原生启动入口；复用 Switcher 二进制读取当前选择，仅给 Cavalry 子进程注入诊断 marker，不修改 vendor EXE 或全局环境。
+ * [INPUT]: 依赖commands的共享状态目录/原生Restart、operation_lock和严格State；legacy另用Windows runtime ready marker与CommandRunner。
+ * [OUTPUT]: --launch-cavalry复用GUI的原生状态/锁/Restart准入；原生模式关闭时保留旧revision/marker/QPA/PID就绪合同。
+ * [POS]: Windows无WebView入口；native正常启动，legacy仅给子进程注入诊断marker；不改vendor EXE或全局环境。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -48,7 +48,7 @@ fn launch_current_saved_cavalry() -> Result<(), String> {
             current_exe.display()
         )
     })?;
-    let state_dir = runtime_paths::current_windows_state_dir();
+    let state_dir = crate::commands::windows_state_dir();
     let repo_root = runtime_paths::repo_root();
     let mut runner = RealCommandRunner;
     launch_from_paths(&repo_root, &state_dir, resource_dir, &mut runner)
@@ -60,6 +60,11 @@ fn launch_from_paths<R: CommandRunner>(
     resource_dir: &Path,
     runner: &mut R,
 ) -> Result<(), String> {
+    if crate::commands::windows_native_enabled() {
+        return launch_native_from_state(state_dir, |app| {
+            crate::commands::restart_cavalry_inner(repo_root, state_dir, resource_dir, app, runner)
+        });
+    }
     launch_from_paths_with_qpa_inspector(
         repo_root,
         state_dir,
@@ -67,6 +72,20 @@ fn launch_from_paths<R: CommandRunner>(
         runner,
         crate::windows_qpa::inspect,
     )
+}
+
+fn launch_native_from_state(
+    state_dir: &Path,
+    restart: impl FnOnce(&Path) -> Result<(), String>,
+) -> Result<(), String> {
+    let _guard = operation_lock::try_begin_bundle_operation(state_dir)?;
+    let saved = state::read_state_strict(state_dir).map_err(|e| e.to_string())?;
+    if saved.app_path.trim().is_empty() {
+        return Err(
+            "Open Cavalry Language Switcher and select a Cavalry installation first.".into(),
+        );
+    }
+    restart(Path::new(&saved.app_path))
 }
 
 fn launch_from_paths_with_qpa_inspector<R, F>(
@@ -280,6 +299,54 @@ mod tests {
     }
 
     #[test]
+    fn native_cli_uses_saved_selection_and_same_lock_without_legacy_proofs() {
+        let temp = tempfile::tempdir().unwrap();
+        let state = temp.path().join("native-2.8");
+        let host = temp.path().join("native host with spaces");
+        state::write_state(
+            &state,
+            &State {
+                app_path: host.to_string_lossy().into_owned(),
+                cavalry_version: "2.8.0".into(),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        // 没有旧revision/marker/Qt6.6诊断；实际准入交给GUI同一个Restart。
+        super::launch_native_from_state(&state, |selected| {
+            assert_eq!(selected, host);
+            assert_eq!(
+                operation_lock::try_begin_bundle_operation(&state)
+                    .err()
+                    .unwrap(),
+                operation_lock::BUSY_ERROR
+            );
+            Ok(())
+        })
+        .unwrap();
+        let refusal =
+            super::launch_native_from_state(&state, |_| Err("native admission refused".into()))
+                .unwrap_err();
+        assert_eq!(refusal, "native admission refused");
+        let _guard = operation_lock::try_begin_bundle_operation(&state).unwrap();
+        assert_eq!(
+            super::launch_native_from_state(&state, |_| panic!("busy must not restart"))
+                .unwrap_err(),
+            operation_lock::BUSY_ERROR
+        );
+    }
+
+    #[test]
+    fn native_cli_missing_or_corrupt_selection_does_not_restart() {
+        let temp = tempfile::tempdir().unwrap();
+        let state = temp.path().join("native-2.8");
+        assert!(super::launch_native_from_state(&state, |_| panic!("missing target")).is_err());
+        fs::write(state.join("state.json"), b"corrupt").unwrap();
+        assert!(super::launch_native_from_state(&state, |_| panic!("corrupt target")).is_err());
+    }
+
+    #[test]
+    #[cfg(not(cavalry_native_windows))]
     fn translated_launch_uses_saved_arbitrary_root_and_child_only_environment() {
         let _serial = LAUNCH_TEST_LOCK.lock().unwrap();
         let temp = tempfile::tempdir().unwrap();
@@ -323,6 +390,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(cavalry_native_windows))]
     fn english_launch_has_no_translation_environment_or_plugin_dependency() {
         let _serial = LAUNCH_TEST_LOCK.lock().unwrap();
         let temp = tempfile::tempdir().unwrap();
@@ -343,6 +411,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(cavalry_native_windows))]
     fn translated_launch_requires_pid_bound_ready_marker() {
         let _serial = LAUNCH_TEST_LOCK.lock().unwrap();
         let temp = tempfile::tempdir().unwrap();
@@ -382,6 +451,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(cavalry_native_windows))]
     fn active_language_transaction_blocks_headless_spawn() {
         let _serial = LAUNCH_TEST_LOCK.lock().unwrap();
         let temp = tempfile::tempdir().unwrap();
@@ -404,6 +474,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(cavalry_native_windows))]
     fn stale_marker_or_changed_binary_fails_before_spawn() {
         let _serial = LAUNCH_TEST_LOCK.lock().unwrap();
         let temp = tempfile::tempdir().unwrap();

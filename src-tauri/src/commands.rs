@@ -6,6 +6,8 @@
  */
 mod apply;
 mod context;
+#[cfg(target_os = "windows")]
+pub(crate) use context::windows_state_dir;
 mod contract;
 #[cfg(target_os = "macos")]
 mod native_official;

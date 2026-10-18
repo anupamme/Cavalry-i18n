@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-native_windows.rs: Windows2.8宿主/OS根/写者准入，native profile与runtime-only协调；QPA受管态核原厂备份，源/漂移未知即拒绝，English先还profile再还原厂QPA；正常启动不终止进程。
+native_windows.rs: Windows2.8宿主/OS根/写者准入；Apply写入前共用State持久化已验选择。卸载先解析目标，再恢复profile及原厂QPA；缺状态零profile写入，宿主已移除仍幂等恢复profile。
 native_resources.rs: 按编译期BuildMode绑定manifest kind；production-2.8要求三语完整10848键。status核文件长度，apply只校验所选payload摘要；不扫描定义或写profile。
 native_resources_tests.rs: 显式模式的资源读取合同；生产完整包正例、错误kind/缺译反例与原preview合同共用真实loader，不依赖测试二进制的编译模式。
 native_runtime.rs: 显式native动作协调runtime与profile；NRT恢复先于路由，profile错误code不变；非English同源候选先读bounded owner hint与approved SHA，再用observe_install核canonical 2.8.0身份；匹配时只走canonical profile事务，不读baseline/槽/签名、不写App、不授App写恢复权；同源路由由native_user报告receipt恢复检查并在新receipt写前启动Apply；English、缺hint、坏hint、源不匹配与非2.8候选保留原完整owner准入；独立restart不变。
@@ -14,7 +14,7 @@ patch_receipt.rs: 已应用补丁的历史源身份；随包语言、平台 runt
 patch_receipt_storage.rs: 私有补丁 generation 存储；按规范相对路径逐文件验证摘要/模式及闭合集合，拒绝 symlink 与内容漂移，发布新目录而不覆盖旧历史源。
 patch_receipt_tests.rs: generation 发布/旧版本重读与源变化合同；与 status/真实 clone 升级测试分层，不将孤立 generation 当作成功回执。
 apply.rs: 语言写入事务编排；macOS 受管态先判定是否存在完整 vendor/English baseline，旧 JSON-only provenance 即使沿用历史 revision 格式也返回稳定 `reinstallRequired`；只有基线完整时才比较 state/path/revision 与 marker，绑定、受管 runtime postimage 或 marker drift 均安全拒绝而不误报重装；旧 wrapper/injector 仅作为普通 0755 安全替换槽，不要求历史版本身份，非 English 每次从当前 package 重建 runtime，Official Restore 从 baseline 精确还原/删除；Windows legacy provenance 迁移不受该 macOS 门影响；候选源冻结后才写安装，成功完成时才原子提交补丁回执，原厂恢复清除回执；保持 `apply_language_inner` 公开测试 seam；Switch/Restore 在共享 operation lock 内按当前选择静默收敛本工具 journal，再执行完整身份、English 基线与写入证明；macOS 共用只读 exact-PID admission，不替用户关闭 Cavalry，并在首个 mutation 前复核；Windows 生产/测试共用 pair 构造，Program Files 恢复继续走 same-EXE RunAs；stock runtime 外置签名组件按自有路径进入 durable cleanup；已由 official baseline 验证的 managed vendor postimage 即使 strict codesign 漂移也可进入正常事务重签；App Management 只由事务层 typed PermissionDenied 进入 renderer。
-context.rs: 统一repo/state/resource；两平台production使用native-2.8子域，宿主共享profile独立解析。
+context.rs: 统一repo/state/resource；Windows GUI/CLI/卸载同用编译模式与无AppHandle路径投影，production/preview状态域分离，宿主profile独立解析。
 contract.rs: 含languageScope/nativeResourceAvailable、可选nativeLocaleState三态、receipt证明的nativeEnglishRestoreAvailable与patchStatus版本状态的renderer DTO、九命令及operation event合同；installationMode在legacy默认unknown，显式macOS预览须固定厂商requirement验签及内置语言/无Switcher覆盖同时成立才标`official`且不代表版本/资源/应用许可；内部签名凭据/baseline/journal不进入renderer；集中camelCase JSON、稳定错误码、App Management handoff与Channel post-commit语义。
 restart.rs: 按BuildMode选择原生或legacy；Windows native核profile及2.8宿主，Mac保留NRT/owner准入。
 user_language.rs: 产品语言码到 Cavalry native locale 的纯投影；生产文件事务复用同一映射并保留 typed locale 元数据，纯 JSON apply helper 协作；CAS rollback 与 English helper 仅 cfg(test)，不触及文件、安装 marker、baseline、QPA 或 IPC。

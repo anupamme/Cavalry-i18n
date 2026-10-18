@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Tauri AppHandle、detect 的语言目录扫描与共享 runtime_paths。
- * [OUTPUT]: 统一repo/state/resource；两平台production使用native-2.8状态子域，Mac preview使用native-2.8-preview；Cavalry共享profile独立解析。
+ * [OUTPUT]: 统一repo/state/resource；Windows GUI/CLI/卸载共用不依赖AppHandle的模式解析；production和preview状态域分离。
  * [POS]: commands 的运行环境解析层；业务动作只接收已经归一化的 repo/state/resource 路径。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -11,7 +11,7 @@ use std::{
 
 use tauri::Manager;
 
-use crate::runtime_paths;
+use crate::runtime_paths::{self, state_dir_for_native_mode};
 
 use super::contract::LanguageChoice;
 
@@ -56,11 +56,7 @@ pub(crate) fn state_dir_for_app(app: &tauri::AppHandle) -> PathBuf {
     #[cfg(target_os = "windows")]
     {
         let _ = app;
-        return state_dir_for_native_mode(
-            &runtime_paths::current_windows_state_dir(),
-            super::native_resources::preview_enabled(),
-            super::native_resources::production_enabled(),
-        );
+        return windows_state_dir();
     }
     #[cfg(not(target_os = "windows"))]
     {
@@ -78,15 +74,13 @@ pub(crate) fn state_dir_for_app(app: &tauri::AppHandle) -> PathBuf {
     }
 }
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-fn state_dir_for_native_mode(base: &Path, preview: bool, production: bool) -> PathBuf {
-    if preview {
-        base.join("native-2.8-preview")
-    } else if production {
-        base.join("native-2.8")
-    } else {
-        base.to_path_buf()
-    }
+#[cfg(target_os = "windows")]
+pub(crate) fn windows_state_dir() -> PathBuf {
+    state_dir_for_native_mode(
+        &runtime_paths::current_windows_state_dir(),
+        super::native_resources::preview_enabled(),
+        super::native_resources::production_enabled(),
+    )
 }
 
 pub(crate) fn resource_dir_for_app(app: &tauri::AppHandle) -> PathBuf {
