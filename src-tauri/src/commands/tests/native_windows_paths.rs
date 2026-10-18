@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖Windows原生路径facade与临时任意安装根。
- * [OUTPUT]: 任意根发现与零写入状态规划；定向验证选择持久化、写失败、缺目标卸载零profile写入和宿主缺失幂等恢复。
+ * [OUTPUT]: 任意根发现/零写规划；选择持久化、同选择重试耐久写及写失败；缺目标卸载零profile写入与宿主缺失幂等恢复。
  * [POS]: Windows接线差异合同；只用临时目录，不接真实profile或宿主进程。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -54,9 +54,19 @@ fn verified_auto_selection_is_durable_without_legacy_revision() {
     assert_eq!(Path::new(&saved.app_path), host);
     assert_eq!(saved.cavalry_version, "2.8.0");
     assert!(saved.cavalry_revision.is_empty());
+    let first_generation = crate::state::read_state_document(&state)
+        .unwrap()
+        .generation;
     assert_eq!(
         super::super::status::persist_native_selection(&state, &host, "2.8.0").unwrap(),
         saved
+    );
+    assert!(
+        crate::state::read_state_document(&state)
+            .unwrap()
+            .generation
+            > first_generation,
+        "同路径重试必须再次走耐久写入，不能跳过先前可能失败的目录同步"
     );
 }
 

@@ -100,10 +100,8 @@ pub(super) fn persist_native_selection(
     app_path: &Path,
     version: &str,
 ) -> Result<State, String> {
-    let previous = read_state_for_mutation(state_dir)?;
-    if previous.app_path == app_path.to_string_lossy() && previous.cavalry_version == version {
-        return Ok(previous);
-    }
+    // 同一选择重试也须完成既有耐久写，不能把上次post-rename warning当作成功。
+    read_state_for_mutation(state_dir)?;
     persist_selected_state(
         state_dir,
         &State {

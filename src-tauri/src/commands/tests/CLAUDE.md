@@ -3,7 +3,7 @@
 
 成员清单
 native_windows_runtime_reconciliation.rs: Windows native English复用marker/QPA残留检查，隔离验证Restore协调、拒Official及hostless许可不扩张，不读真实profile。
-native_windows_paths.rs: 任意根发现与零写入规划；验证已验选择持久化/保存失败、缺状态卸载保持有效owned profile原字节、宿主移除幂等恢复，以及Current/drift/pending/未知namespace原生Restart准入。
+native_windows_paths.rs: 任意根发现/零写规划；已验选择持久化、同路径重试耐久写/保存失败、缺状态卸载保持owned profile原字节、宿主移除幂等恢复，以及Current/drift/pending/未知namespace原生Restart准入。
 user_language_files_windows.rs: Windows临时Local/Roaming分离根合同；复用共享事务验证三语commit、English恢复、资源发布后中断恢复与未知strings保护，不触碰真实profile。
 native_status_readonly_smoke.rs: status的人工ignored子模块；明确App/repo与native编译后组合真实原厂验签、pack和OS profile，manifest绑定target原字节SHA；source总量为target官方10473+补充373及独立插件caption1，approvedUIKeys限于源范围；先解析三语missing再推导complete以接受诚实partial；人工烟测只读默认profile，不启动WK/Cavalry或验证Apply。
 native_user_profile_apply_smoke.rs: tempfile合同证明旧owned pack升级及陈旧strings拒绝；人工ignored单动作校验target原字节SHA、schema补充373、插件caption1与三语missing；full NativeResources只作烟测前置，status投影用approved digest map；保留真实App/profile/operation lock动作边界，不启动Cavalry。
