@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-native_candidate_build_contract.rs: 无副作用模式合同；锁定预览、ARM候选、production-2.8支持架构/profile/开关组合及编译期标签，不运行GUI。
+native_candidate_build_contract.rs: 验证Mac双架构与Windows x64 release生产门，拒绝未知平台/架构与preview混用。
 tauri_version_contract.rs: 断言 npm 与 Cargo Tauri 依赖 exact pin 到同一个 v2 minor。
 tauri_config_contract.rs: 宿主无关断言 renderer/共享 400×504主窗（40px标题栏+434px内容+30px单行footer）、360px 内容宽度与双动作轨道、主窗口隐藏创建后以受限 show/focus 在 DOM/CSS 首帧显露且 PageLoad Finished 仅作隐藏态兜底、macOS 主窗/About 创建时原生交通灯 Overlay 位置且无 resize/scale 手工 frame 重放及 main-close About 生命周期、Windows 仅为阴影扩展到 420×524 的 transparent compositor 画布、10px 自绘留白及原生 About owner、local CSP/禁用 global Tauri/最小 `main`/`about` capability、精确四语 runtime 目录映射（排除 native 构建期数据）、平台资源隔离与双 DLL；NSIS 固定四语、保留翻译/恢复 English 双语义、更新保留与失败中止合同。
 updater_signature_contract.rs: 解析共享配置内嵌的 updater minisign 公钥；ignored 真实产物门接收显式 artifact/`.sig` 路径，解开 Tauri 外层 Base64 后流式验签，不读取私钥且不创建 tag/Release。

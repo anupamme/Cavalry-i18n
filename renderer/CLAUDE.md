@@ -1,6 +1,8 @@
 # renderer/
 > L2 | 父级: ../CLAUDE.md
 
+原生userProfile的Official徽章跨平台消费后端来源与无覆盖双门；legacy Windows仍不显示厂商来源徽章。
+
 成员清单
 index.html: 跨平台语义 DOM 骨架，承载原生标题区、默认隐藏手动选择入口的安装 Item、Trigger 与空值 popup 均保留占位投影的全宽 Select、scope-aware Switch/Restore English、仅精确 2.8 预览+2.7.2 目标显露的固定旧版发行 CTA、三轨 Activity 与按需权限/Issue 表单动作，footer 独立占30px轨道且不压缩原内容；按 bridge→user-profile静态copy→UI_TEXT聚合→language/version policy→状态机→app加载，并保留 Windows/About 独立窗口边界。
 app-icon.png: About 的 128px 本地应用标识投影，字节级复用 Tauri 图标集同尺寸产物，不形成第二套品牌源图或远程依赖。

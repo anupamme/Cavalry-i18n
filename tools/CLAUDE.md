@@ -2,7 +2,10 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-generate_demo_reader_tables.js: 构建期将批准的示例文字与源位置投影为有限native表，不复制厂商脚本。
+cavalry_native_windows_target.json: Windows 2.8官方MSI及x64运行时摘要锁；仅宿主准入，译文沿共享native catalog。
+acceptance/: 44主项整轮单表；schema2分离源键库存与实屏项，显式迁移保留历史；Python按平台编排，离线自测不启动产品。
+generate_demo_reader_tables.js: 构建期将批准示例投影为有限native表；Windows显式CRLF须还原完整批准LF身份后映射实际SHA/偏移，不修改厂商文件。
+generate_demo_reader_tables.test.js: 合成UTF-8源验证默认精确准入、显式CRLF偏移映射及BOM/未知字节漂移拒绝，不授官方运行信用。
 native_demo_scene_dnt_identities.js: 官方100项示例菜单源身份表，只限定DNT显示例外，不含译文。
 native_demo_menu_approval.test.js: 合成catalog验证100菜单三语批准值、完整身份与production profile透传，拒绝越界DNT例外。
 native_demo_scene_dnt_exceptions.test.js: 验证DNT默认关闭、逐语审批和身份漂移拒绝，不运行Cavalry。
@@ -50,7 +53,7 @@ native_array_distribution_translations.test.js: Node 的 Array完整4键/12值�
 native_auto_animate_translations.test.js: Node 离线 autoAnimate 128 叶入库合同；锁定 owner/source/notes 与稳定键摘要、三语格式、当前进度模式/层级标签引用、相机变焦/几何缩放与可逆进退场、显示投影不写模型身份和厂商日语优先，先RED后入库，不调用服务或App。
 native_metadata_reuse.js: Node 的已审帮助复用与表装配器；复用478条SHA审批和34条source-bound补译，拒绝缺项/源漂移，输出384 main与17 def根表。
 native_metadata_reuse.test.js: Node 的纯复用/帮助表合同；锁哈希、补译闭合、分表输出与synthetic边界，环境指定时校验384/17/111分账。
-build_native_help_description_table.js: 从SHA锁定的四份2.8 MetaData与source-bound审定仓外生成384/17说明表、独立401根排版表及回执；说明字节不变，不接默认runtime。
+build_native_help_description_table.js: 从SHA锁定的四份2.8 MetaData与source-bound审定仓外生成跨平台384/17说明表、独立401根排版表及回执；说明字节不变，ABI由消费者承担。
 build_native_help_description_table.test.js: Node生成器合同；锁UTF-8转义、仓外输出、384/17说明与401根排版分表，不授live信用。
 native_easing_display_data.js: 构建期内置缓动显示源；15项root批准译文仅作显示，五项复用既有native键，不进官方catalog或包统计。
 build_native_easing_display_table.js: 校验20项内置身份与现有源键，并在仓外生成自包含C++ constexpr表；不接runtime。
@@ -107,7 +110,7 @@ ui_review_server.js: 补丁 fixture 明确区分 current/updateAvailable/unknown
 ui_review_catalogs.js: UI Review 三类动态总览；从生产 tokens/styles 与 user-profile-text→ui-text 字典加载顺序读取四语反馈文案、语义图标和 Badge 状态，不维护第二套产品视觉资产。
 classify_ci_changes.js: GitHub Actions 变更风险分类器；项目技能Markdown只走文档门，技能脚本仍按未知源码全门；以 PR merge-base、push before/head 或事件强制策略投影 documentation/source/vulnerability/windows/macOS-injector 门，未知源码路径和不可解析 diff 均 fail-closed，tag/workflow_dispatch 永远跑完整闭环；共享 Quick Add 顶部标签与显示适配器、Classic 评分、描述输入/策略与生成表进入双平台 native 门。
 classify_ci_changes.test.js: CI 风险分类器离线合同；覆盖技能Markdown/脚本/混合原生/tag边界、纯文档、合同/SOP、Windows、macOS、共享翻译表及翻译/输入/Quick Add 顶部标签/显示/搜索/Classic 搜索与评分策略的逐文件双平台门、macOS-only 原生源码、依赖/workflow、定时漏洞复审、空 diff 与未知源码/自动化路径边界。
-check_tauri_build_sop.js: 当前2.8 ARM/Intel共用无target Tauri生产入口，架构alias各传一次target；旧2.7 SDK/验收仅历史参考；Tauri打包、README与CI配置合同；验证显式手动预验仅跳过漏洞扫描、等待同SHA源码合同成功、只跑目标Rust测试与packaged检查；保留2.7 p12历史资产、双feed隔离、production tag阻断、CI聚合及updater边界；另核source artifact、窗口合同、Rust工具链与release provenance。
+check_tauri_build_sop.js: 2.8 ARM/Intel与Windows native生产入口合同；核共同production及Windows资源overlay，拒过期未实现声明；保留独立双feed、p12冻结、三平台发布guard及既有配置/provenance合同。
 check_tauri_packaged_app.js: 最终App资源验收；production-2.8按显式arm64/x86_64目标核App架构、架构中立manifest/三payload、同架构runtime内嵌与renderer字节闭包。默认仍选arm64；不把SKIP当生产通过。
 packaged_native_resources.js: 纯文件校验production包与构建输入一致；按显式目标架构将runtime Mach-O切片绑定可执行文件，manifest保持架构中立；不启动App。
 packaged_native_resources.test.js: 临时fixture验证资源manifest中立性、arm64/x86_64 runtime正反例、错误profile/缺译/字节漂移与错误目标架构。
@@ -276,3 +279,5 @@ dependency_vulnerability_gate.json: 固定审计工具、RustSec快照和Python�
 2026-10-16: Qt头包真实输入使用framework Versions/A/Headers；抽取器归一为include/Qt*。PR跑纯路径合同，macOS锁定venv再跑合成7z合同；真实官方归档已独立抽取通过。
 
 手动预验合同逐事件验证checkout/Node前置，防止显式打包在空runner读取缺失脚本。
+
+验收场景范围：scene-scope显式归档195个未填展开项；Timeline保留180观察索引与15父场景。macOS当前表2630项，不新增GUI或产品门。

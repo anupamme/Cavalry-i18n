@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 patch_receipt 的只读回执/源身份验证、context 路径/语言源、detect/install/state、Windows QPA只读检查、本地diagnostics及macOS固定厂商requirement只读验签。
+ * [INPUT]: 依赖共享2.8 profile/resource状态与平台只读发现；Windows native沿现有发现链，不依赖旧QPA ACTIVE；Mac来源验签独立。
  * [OUTPUT]: 提供卸载到blocking worker的启动期只读安装观察；显式macOS native runtime另独立投影厂商Official来源、typed profile/receipt语言、脱敏nativeLocaleState（Absent按已锁2.8原厂fallback为en+unset；Known为explicit；Unknown/错误输入为unknown+unrecognized）、资源可用性及强Current-owned postimage限定的nativeEnglishRestoreAvailable；厂商来源要求可显示bundle身份及固定OS验签，最终Official还须native_user证明内置语言且无Switcher覆盖；资源/兼容性/恢复许可独立，不由徽章授权，其余默认2.7路径不变；四态版本兼容、补丁状态、当前语言、安装选择及Windows残留提示仍各守自身证明边界。status不探测journal、英文快照、进程或写权限，事务证明和收敛留给用户触发的Switch/Restore。
- * [POS]: commands 的只读状态层；native签名验签有5秒子进程期限并由Tauri blocking worker承载，失败只把安装来源留为unknown，不阻断原有语言/profile/resource投影；人工忽略的组合烟测只读取明确选择的真实App/profile，不启动GUI。
+ * [POS]: commands 的状态与安装选择owner；启动投影只读，Browse保留原保存语义，Windows Apply持锁复用同一持久化owner；人工烟测不启动GUI。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::path::{Path, PathBuf};
@@ -91,6 +91,25 @@ fn persist_selected_state(state_dir: &Path, next: &State) -> Result<State, Strin
         ));
     }
     Ok(outcome.into_state())
+}
+
+/// 用户动作持锁且验证宿主后保存选择；只读自动发现不制造控制状态。
+#[cfg(target_os = "windows")]
+pub(super) fn persist_native_selection(
+    state_dir: &Path,
+    app_path: &Path,
+    version: &str,
+) -> Result<State, String> {
+    // 同一选择重试也须完成既有耐久写，不能把上次post-rename warning当作成功。
+    read_state_for_mutation(state_dir)?;
+    persist_selected_state(
+        state_dir,
+        &State {
+            app_path: app_path.to_string_lossy().into_owned(),
+            cavalry_version: version.into(),
+            ..State::default()
+        },
+    )
 }
 
 /// Mutation callers must not silently continue after control-state recovery.  The typed state
@@ -197,7 +216,7 @@ fn read_state_projection(state_dir: &Path) -> State {
     }
 }
 
-fn marker_reconciliation_required(app_path: &Path, current_lang: &str) -> bool {
+pub(super) fn marker_reconciliation_required(app_path: &Path, current_lang: &str) -> bool {
     if app_path.as_os_str().is_empty() || current_lang != "en" {
         return false;
     }
@@ -213,7 +232,7 @@ fn marker_reconciliation_required(app_path: &Path, current_lang: &str) -> bool {
 }
 
 #[cfg(target_os = "windows")]
-fn windows_runtime_reconciliation_required(app_path: &Path, current_lang: &str) -> bool {
+pub(super) fn windows_runtime_reconciliation_required(app_path: &Path, current_lang: &str) -> bool {
     windows_runtime_reconciliation_required_with_inspector(
         app_path,
         current_lang,
@@ -354,7 +373,7 @@ pub(super) fn status_shell(
         version_compatibility: "unknownUnsupported".into(),
     }
 }
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 fn native_status_for_paths(
     paths: &AppPaths,
     candidates: Vec<PathBuf>,
@@ -367,7 +386,14 @@ fn native_status_for_paths(
         .find_map(|path| super::native_resources::observe_install(&path).ok());
     let mut status = status_shell(&paths.repo_root, &paths.resource_dir, candidates);
     if let Some((app, version)) = installation {
-        status.installation_mode = super::native_official::vendor_origin(&app).into();
+        #[cfg(target_os = "macos")]
+        {
+            status.installation_mode = super::native_official::vendor_origin(&app).into();
+        }
+        #[cfg(target_os = "windows")]
+        {
+            status.installation_mode = super::native_windows::vendor_origin(&app).into();
+        }
         status.app_path = app.to_string_lossy().to_string();
         status.version = version;
     }
@@ -388,9 +414,9 @@ pub(crate) async fn get_status_for_app(app: &tauri::AppHandle) -> Result<StatusP
 
 fn get_status_for_paths(paths: AppPaths) -> Result<StatusPayload, String> {
     let candidates = detect::default_app_candidates();
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     let native_runtime = super::native_resources::native_runtime_enabled();
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     let native_runtime = false;
     let legacy_status = || {
         status_for_paths(
@@ -400,13 +426,13 @@ fn get_status_for_paths(paths: AppPaths) -> Result<StatusPayload, String> {
             candidates.clone(),
         )
     };
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     let result = if native_runtime {
         native_status_for_paths(&paths, candidates.clone())
     } else {
         legacy_status()
     };
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     let result = {
         let _ = native_runtime;
         legacy_status()
@@ -451,7 +477,7 @@ pub(crate) fn browse_for_app(app: &tauri::AppHandle) -> Result<BrowsePayload, St
     };
     let state_dir = super::context::state_dir_for_app(app);
     let _guard = crate::operation_lock::try_begin_bundle_operation(&state_dir)?;
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     if super::native_resources::native_runtime_enabled() {
         let (path, version) = super::native_resources::observe_install(&selection)?;
         read_state_for_mutation(&state_dir)?;

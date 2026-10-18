@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 Qt 6.6.3 私有 QPA 插件协议与 cavalry_i18n_qpa_contract 的安装根激活判定
+ * [INPUT]: 依赖构建器锁定的Qt私有QPA协议（native2.8为6.9.2）与严格安装根激活合同。
  * [OUTPUT]: 对外提供 metadata key 为 windows、完整委托原厂 QPA 并可显式启动 generic 翻译的代理
- * [POS]: injector/windows 的原生入口汇合层；ABI 锁定 Qt 6.6.3，翻译失败不剥夺原厂窗口系统
+ * [POS]: injector/windows 的原生入口汇合层；Qt版本由各构建入口锁定，补充失败不剥夺原厂窗口系统。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #pragma once

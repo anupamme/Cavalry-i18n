@@ -38,8 +38,8 @@ native_uuid_slice_selector_contract_test.py: 用双slice双路径顺序fixture�
 check_candidate_contract.py: 核GetPath/FPS来源、ABI与候选LLVM two-level绑定；一次汇总所有必需槽错误。
 build_candidate.sh: 核Core/Extension/spdlog ABI；拒绝时打印实值与工具链身份；通过后生成Demo表、编译arm64候选并运行ABI合同。
 demo_reader_abi_contract.h: 锁定Core optional<string>结果槽、Extension Preset caller、GOT与返回点。
-demo_reader_policy.h: 只替换审批位置的JS字面量；未知locale与源结果保持不变。
-demo_reader_source_identity.h: 验证原厂脚本SHA；不读路径或语言状态。
+demo_reader_policy.h: 跨平台纯策略只替换审批位置的JS字面量，optional单次转发不依赖Mach-O ABI；未知locale与源结果保持不变。
+demo_reader_source_identity.h: 验证实际原厂脚本SHA，macOS用CommonCrypto、Windows复用宿主Qt摘要；不读路径或语言状态。
 demo_reader_runtime.inc: 绑定同bundle Core/Extension与Presets路径；只为唯一菜单caller发布翻译门。
 demo_reader_contract_test.cpp: vendor-free验证optional ABI、单次原调用、源门、未知caller与异常边界。
 README.md: 说明字体/FPS/Graph/Demo/标题/双保存caption/帮助/Guide/Fast/Easing/Welcome与225槽边界；实机状态见总账。
@@ -64,7 +64,8 @@ native_locale_abi_contract.h: 锁定 activeLocale 入口、Extension 调用窗�
 native_locale_adapter.inc: 直接绑定原 getter并核对Extension GOT目标；同bundle路径由共享路径helper提供。
 native_locale_snapshot.h: 保存唯一 native locale 快照；原 getter 只调用一次且异常向上传播。
 help_description_abi_contract.h: 锁Cavalry 2.8 arm64 main/def caller条件与call字节、同一callee及四string/vector布局；仅+0x00语义已证。
-help_description_policy.h: 将裸name、精确英文源和三语locale映射到独立main/def表视图。
+help_description_lookup.h: Mac/Windows共享裸name、精确英文源及三语main/def表选择；不依赖文档对象ABI。
+help_description_policy.h: 复用共享查询并保留Mac文档对象逐成员shadow；libc++布局不授Windows准入。
 help_description_adapter.inc: 按精确LR选表；source匹配时只复制description并单次转发。
 help_description_runtime.inc: 验证双caller机器码并发布两返回PC；复用同一gLocale与原导入。
 help_description_veneer.S: 仅比较LR；main/def进入dispatcher，其它caller保寄存器与返回槽尾跳原UI导入。
@@ -78,7 +79,7 @@ help_popup_layout_adapter.mm: 仅在精确setContent caller前改布局；未知
 help_popup_layout_contract_test.cpp: 用同bundleQt离线测401项上限、QLabel绘制行界、枚举词完整性与未知结构。
 help_popup_layout_sequence_test.inc: 三语核长短参数/返回切换、fresh行几何及隐藏行恢复。
 check_help_popup_layout_contract.py: 核精确arm caller、401表、arm popup_abi与候选LLVM Qt绑定；保留全局no-flat门。
-title_format_policy.h: 按原生目录键投影Project/Scene标签；同时要求24字节源对象为空及借用指针/文本精确。
+title_format_policy.h: 共享Project/Scene字节投影保留名称、分隔符和后缀；Mac兼容入口仍核24字节源对象/借用地址，Windows薄适配另证MSVC空值，不互借ABI。
 title_format_abi_contract.h: 锁定Gui::updateAppTitle到fmt10的调用、frame偏移、24字节源对象与libc++空tag。
 title_format_adapter.inc: 复用唯一gLocale与fmt原函数；fmt前快照源对象，原调用后只适配精确LR/format/descriptor。
 shared_verified_text_fallback.inc: CoreText首选；仅覆盖拒绝后用三语固定PostScript名创建候选；复用8槽与单次RAII锁。

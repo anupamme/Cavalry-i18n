@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖唯一native locale、借用视图、源std::string快照与格式化结果。
- * [OUTPUT]: 提供标题标签和真实空值的纯字节投影策略。
- * [POS]: 主标题格式边界的无状态策略；只按原源长度和fallback地址识别占位。
+ * [INPUT]: 依赖唯一native locale、借用视图、平台证明的空值及格式化结果；Mac保留源std::string快照适配。
+ * [OUTPUT]: 提供共享标题字节投影与兼容Mac入口；占位身份由平台ABI层证明。
+ * [POS]: 主标题无状态策略；分隔符与用户名称按长度保全，Windows不借用Mac对象布局。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #pragma once
@@ -83,10 +83,12 @@ inline bool isFallbackAt(std::uintptr_t valuesAddress, BorrowedText value,
     return reinterpret_cast<std::uintptr_t>(value.data) == valuesAddress - distance;
 }
 
-// -- 用原厂参数地址区分占位符和同名字的用户数据 ---------------------------
-inline bool project(std::string &formatted, cavalry_native_font::Locale locale,
-                    const Inputs &inputs)
+// -- 平台层证明占位身份；共享层只处理已核对的原厂标题字节 -----------------
+inline bool projectValues(std::string &formatted, cavalry_native_font::Locale locale,
+                          BorrowedText projectValue, BorrowedText sceneValue,
+                          bool projectFallback, bool sceneFallback)
 {
+    const Inputs inputs{0, projectValue, sceneValue, {}, {}};
     const Labels labels = labelsFor(locale);
     if (labels.project.empty() || labels.scene.empty() ||
         labels.noProject.empty() || labels.untitled.empty()) return false;
@@ -108,17 +110,9 @@ inline bool project(std::string &formatted, cavalry_native_font::Locale locale,
     if (!segmentEquals(source, sceneOffset, inputs.scene) || sceneEnd >= source.size() ||
         source[sceneEnd] != ' ') return false;
 
-    const bool noProject =
-        native_title_format_abi::isEmptyShortString(inputs.projectSource) &&
-        isFallbackAt(inputs.valuesAddress, inputs.project,
-                     native_title_format_abi::contract::kProjectFallbackDistance,
-                     native_title_format_abi::contract::kProjectFallbackLength) &&
+    const bool noProject = projectFallback &&
         segmentEquals(source, projectOffset, "None");
-    const bool untitled =
-        native_title_format_abi::isEmptyShortString(inputs.sceneSource) &&
-        isFallbackAt(inputs.valuesAddress, inputs.scene,
-                     native_title_format_abi::contract::kSceneFallbackDistance,
-                     native_title_format_abi::contract::kSceneFallbackLength) &&
+    const bool untitled = sceneFallback &&
         segmentEquals(source, sceneOffset, "Untitled");
 
     std::string projected;
@@ -141,6 +135,23 @@ inline bool project(std::string &formatted, cavalry_native_font::Locale locale,
     projected.append(source.data() + sceneEnd, source.size() - sceneEnd);
     formatted.swap(projected);
     return true;
+}
+
+// -- Mac既有ABI入口保持不变，地址和源对象共同证明真实空值 -----------------
+inline bool project(std::string &formatted, cavalry_native_font::Locale locale,
+                    const Inputs &inputs)
+{
+    const bool noProject =
+        native_title_format_abi::isEmptyShortString(inputs.projectSource) &&
+        isFallbackAt(inputs.valuesAddress, inputs.project,
+                     native_title_format_abi::contract::kProjectFallbackDistance,
+                     native_title_format_abi::contract::kProjectFallbackLength);
+    const bool untitled =
+        native_title_format_abi::isEmptyShortString(inputs.sceneSource) &&
+        isFallbackAt(inputs.valuesAddress, inputs.scene,
+                     native_title_format_abi::contract::kSceneFallbackDistance,
+                     native_title_format_abi::contract::kSceneFallbackLength);
+    return projectValues(formatted, locale, inputs.project, inputs.scene, noProject, untitled);
 }
 
 }  // namespace native_title_format

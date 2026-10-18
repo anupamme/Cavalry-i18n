@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖native locale、生成的有限文字/位置表和已验证源字节。
+ * [INPUT]: 依赖native locale、生成的有限文字/位置表和已验证源字节；平台ABI在调用者单独证明。
  * [OUTPUT]: 提供JS字面量投影与optional原函数单次透传策略。
  * [POS]: Demo菜单读回的纯策略；未知owner、路径或文本保留原optional。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -15,7 +15,6 @@
 
 #include "native_locale_snapshot.h"
 #include "demo_reader_source_identity.h"
-#include "demo_reader_abi_contract.h"
 
 namespace native_demo_reader {
 struct DemoReaderText {
@@ -136,11 +135,11 @@ bool projectVerifiedScript(
 
 // -- 原厂optional结果先产生；后续投影失败时保留原字节 ----------------------
 template<typename Original, typename LocaleGetter, typename Projector>
-contract::TextFromFileResult forwardOnce(
+std::optional<std::string> forwardOnce(
     Original &&original, bool exactCaller, bool exactPath,
     LocaleGetter &&locale, Projector &&project)
 {
-    contract::TextFromFileResult result = std::forward<Original>(original)();
+    std::optional<std::string> result = std::forward<Original>(original)();
     if (!result || !exactCaller || !exactPath) return result;
     try {
         std::string projected;

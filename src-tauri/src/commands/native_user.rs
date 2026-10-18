@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖native编译manifest/digest、受限owner source hint、fixed profile事务和privilege准入。
+ * [INPUT]: 依赖共享manifest/profile事务与平台准入；Mac另外绑定runtime owner source，Windows经独立Local/Roaming根投影。
  * [OUTPUT]: 提供typed用户语言状态、pack/runtime更新提示、English恢复、stock/managed启动与apply提交后的直接launch。
- * [POS]: status先比pack摘要；仅Current-owned非英语profile再比approved runtime source。
+ * [POS]: status先比pack摘要；Current-owned非英语再比runtime源；Windows English复用marker/QPA残留检查，保留协调入口并隐藏Official，不授hostless恢复许可。
  * Owner hint只验证schema/root；不读journal、App槽或签名，不授权App写或恢复。
  * English恢复能力仍只由Current-owned profile决定。
  * apply只读目标pack。file transaction负责pending恢复与写前像比较。
@@ -25,7 +25,9 @@ use super::{
         UserLanguagePaths,
     },
 };
+#[cfg(target_os = "macos")]
 use crate::privilege::NativeRuntimeOwnerHint;
+#[cfg(target_os = "macos")]
 use sha2::{Digest, Sha256};
 use std::{fs, path::Path};
 const WRITER_REFUSAL: &str = "nativeWriterStillRunning";
@@ -40,12 +42,53 @@ struct ProfileStatus {
     native_english_restore_available: bool,
 }
 
+#[cfg(target_os = "windows")]
+pub(crate) fn project_status(
+    status: StatusPayload,
+    state_dir: &Path,
+    repo: &Path,
+    resources_dir: &Path,
+) -> StatusPayload {
+    let resources = native_resources::load_status_resources(repo, resources_dir).ok();
+    let mut profile = super::native_windows::profile_paths(state_dir, false)
+        .map(|paths| profile_projection(&paths, resources.as_ref()))
+        .unwrap_or_else(|_| unknown_profile());
+    if should_compare_runtime_source(&profile) {
+        match super::native_windows::runtime_patch_status(
+            Path::new(&status.app_path),
+            &profile.current_lang,
+        ) {
+            Ok(value) => profile.patch_status = value.into(),
+            Err(_) => {
+                profile.patch_status = "unknown".into();
+                profile.reconciliation_required = true;
+            }
+        }
+    }
+    reconcile_windows_runtime(&mut profile, Path::new(&status.app_path));
+    project_profile_status(status, &profile, resources.is_some())
+}
+
+#[cfg(target_os = "windows")]
+fn reconcile_windows_runtime(profile: &mut ProfileStatus, app_path: &Path) {
+    if profile.current_lang != "en" {
+        return;
+    }
+    let retained = super::status::marker_reconciliation_required(app_path, "en")
+        || super::status::windows_runtime_reconciliation_required(app_path, "en");
+    if retained {
+        profile.reconciliation_required = true;
+        profile.official_language = false;
+    }
+}
+
 fn should_compare_runtime_source(profile: &ProfileStatus) -> bool {
     profile.patch_status == "current"
         && profile.current_lang != "en"
         && profile.native_english_restore_available
 }
 
+#[cfg(target_os = "macos")]
 fn runtime_aware_patch_status(
     pack_status: &'static str,
     owner_hint: Option<&NativeRuntimeOwnerHint>,
@@ -170,6 +213,7 @@ pub(crate) fn project_status(
     project_runtime_recovery_hint(projected, runtime_owned)
 }
 
+#[cfg(target_os = "macos")]
 fn project_runtime_recovery_hint(mut status: StatusPayload, runtime_owned: bool) -> StatusPayload {
     // profile先恢复而bundle未完成时保留Restore重试，不授予hostless写App许可。
     if status.current_lang == "en" && runtime_owned {
@@ -406,7 +450,6 @@ fn launch_after_committed_apply_with_guards<R: crate::privilege::CommandRunner>(
     crate::privilege::launch_cavalry_without_termination(app, runner)
 }
 
-#[cfg(target_os = "macos")]
 pub(super) fn restart_profile_admission(paths: &UserLanguagePaths) -> Result<(), String> {
     let projection = user_language_files::read_profile_projection(paths).map_err(|error| {
         format!("native user-language profile needs reconciliation before restart: {error}")
@@ -429,6 +472,7 @@ pub(super) fn restart_profile_admission(paths: &UserLanguagePaths) -> Result<(),
     }
 }
 
+#[cfg(target_os = "macos")]
 fn with_restart_profile_admission(
     paths: &UserLanguagePaths,
     after_admission: impl FnOnce() -> Result<(), String>,
@@ -436,7 +480,7 @@ fn with_restart_profile_admission(
     restart_profile_admission(paths)?;
     after_admission()
 }
-#[cfg(test)]
+#[cfg(all(test, target_os = "macos"))]
 fn apply_profile_only_inner<R: OperationReporter>(
     repo: &Path,
     state_dir: &Path,
@@ -511,11 +555,15 @@ pub(crate) fn restart<R: crate::privilege::CommandRunner>(
     })
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_os = "macos"))]
 #[path = "tests/native_user_restore_only.rs"]
 mod restore_only_tests;
 
-#[cfg(test)]
+#[cfg(all(test, target_os = "windows"))]
+#[path = "tests/native_windows_runtime_reconciliation.rs"]
+mod windows_runtime_reconciliation_tests;
+
+#[cfg(all(test, target_os = "macos"))]
 #[path = "tests/native_user_official_independence.rs"]
 mod official_independence_tests;
 
@@ -523,6 +571,6 @@ mod official_independence_tests;
 #[path = "tests/native_user_profile_apply_smoke.rs"]
 mod manual_profile_apply_smoke;
 
-#[cfg(test)]
+#[cfg(all(test, target_os = "macos"))]
 #[path = "tests/native_user_contracts.rs"]
 mod tests;

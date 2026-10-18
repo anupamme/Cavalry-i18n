@@ -614,8 +614,10 @@ test('installation badge follows backend Official projection across built-in loc
   ];
 
   for (const [locale, badge, modeCopy, defaultEnglishLabel] of uiLocales) {
-    for (const [scenario, projectedStatus, languageLabel] of builtInOfficialCases) {
+    for (const [platform, scenario, projectedStatus, languageLabel] of
+      ['macos', 'windows'].flatMap(platform => builtInOfficialCases.map(c => [platform, ...c]))) {
       const r = boot({ locale, status: {
+        platform,
         version: '2.8.0', supportedVersion: '2.8.0', versionCompatibility: 'supported',
         ...projectedStatus,
       } });

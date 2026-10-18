@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖构建目标、Cargo profile、preview/candidate开关及2.8生产profile。
  * [OUTPUT]: 裁决默认构建、开发预览、ARM候选或显式2.8生产模式。
- * [POS]: build.rs的纯构建模式边界；生产模式限定macOS arm64/x86_64 release，不触发发布或签名。
+ * [POS]: build.rs纯构建门；production接受Mac双架构及Windows x64 release，preview仍限原Mac范围。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -35,11 +35,12 @@ pub(crate) fn select_native_build_mode(
         if profile_name != "production-2.8" {
             return Err("unsupported native production profile");
         }
-        if target_os != "macos"
-            || !matches!(target_arch, "aarch64" | "x86_64")
-            || profile != "release"
-        {
-            return Err("native production profile requires macOS arm64 or x86_64 release");
+        let supported = (target_os == "macos" && matches!(target_arch, "aarch64" | "x86_64"))
+            || (target_os == "windows" && target_arch == "x86_64");
+        if !supported || profile != "release" {
+            return Err(
+                "native production profile requires macOS arm64/x86_64 or Windows x86_64 release",
+            );
         }
         if preview.is_some() || candidate.is_some() {
             return Err("native production profile cannot combine preview or candidate flags");

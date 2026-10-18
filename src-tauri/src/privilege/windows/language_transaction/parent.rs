@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 OS-known Program Files、固定 JSON 映射、已验证 English snapshot manifest entry SHA、Windows runtime 打包源、QPA transition 合同与 same-EXE RunAs launcher。
- * [OUTPUT]: 提供 Program Files 早分流、manifest-bound English 独占读取/staging、严格 payload staging、English cleanup 的当前 generic 所有权输入、仅在无 pending journal 时成立的 Noop 快路与单次 UAC typed 结果。
+ * [OUTPUT]: Program Files早分流、严格staging与单次UAC；native编译profile仅接受固定runtime payload，普通可写根复用同一journal执行器，拒绝legacy JSON。
  * [POS]: language_transaction 的非提权父进程；把内存中的快照 evidence 连续绑定到 hash-locked 计划并等待 worker，绝不关闭 Cavalry、写状态、重启或直接修改安装根。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -158,6 +158,90 @@ struct PreparedParentPlan {
 struct RuntimeSources {
     generic: PathBuf,
     proxy: PathBuf,
+}
+
+#[cfg(all(test, cavalry_native_windows))]
+#[path = "native_runtime_tests.rs"]
+mod native_runtime_tests;
+
+/// native只复用固定runtime事务；Program Files继续走原same-EXE worker。
+pub(crate) fn apply_native_runtime(
+    request: ParentApplyRequest<'_>,
+) -> Result<ParentApplyOutcome, ParentApplyError> {
+    if !cfg!(cavalry_native_windows) || !request.overlay_pairs.is_empty() {
+        return Err(rejected(
+            "Native runtime transaction profile/surface differs.",
+        ));
+    }
+    let elevated = apply_if_program_files(request)?;
+    if !matches!(elevated, ParentApplyOutcome::NotApplicable) {
+        return Ok(elevated);
+    }
+    let result = (|| {
+        windows_qpa::preflight_direct_writable(request.layout).map_err(rejected)?;
+        validate_staging_boundary(request.state_dir, request.staging_root, request.layout)?;
+        let language = parse_language(request.language)?;
+        let sources = RuntimeSources {
+            generic: windows_runtime::resolve_plugin_source(
+                request.resource_dir,
+                request.repo_root,
+            )
+            .map_err(rejected)?,
+            proxy: windows_runtime::resolve_qpa_proxy_source(
+                request.resource_dir,
+                request.repo_root,
+            )
+            .map_err(rejected)?,
+        };
+        let current_exe = std::env::current_exe().map_err(|e| rejected(e.to_string()))?;
+        let prepared = prepare_parent_plan(
+            &request,
+            language,
+            &current_exe,
+            &sources,
+            Vec::new(),
+            &mut build_qpa_transition,
+        )?;
+        let code = super::worker::run_native_direct_plan(&prepared.plan, &prepared.plan_path);
+        let outcome = match code {
+            WORKER_EXIT_COMMITTED_CLEAN | WORKER_EXIT_COMMITTED_WITH_CLEANUP_RESIDUAL => {
+                verify_payload_postconditions(&prepared.payloads).map_err(rejected)?;
+                verify_qpa_postcondition(request.layout, language, &prepared.plan.qpa_transition)
+                    .map_err(rejected)?;
+                Ok(ParentApplyOutcome::Applied {
+                    worker_cleanup_residual: code == WORKER_EXIT_COMMITTED_WITH_CLEANUP_RESIDUAL,
+                    staging_cleanup_warning: None,
+                })
+            }
+            WORKER_EXIT_CAVALRY_STILL_RUNNING => Err(ParentApplyError::CavalryStillRunning {
+                staging_cleanup_warning: None,
+            }),
+            WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN => {
+                Err(ParentApplyError::WorkerRolledBack {
+                    staging_cleanup_warning: None,
+                })
+            }
+            _ => Err(ParentApplyError::WorkerStateUncertain {
+                staging_cleanup_warning: None,
+            }),
+        };
+        // 未知状态保留staging，供相同writer journal恢复，不删除证明。
+        if code == WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN {
+            return outcome;
+        }
+        let cleanup = cleanup_directory(request.staging_root, &prepared.directory).err();
+        match outcome {
+            Ok(ParentApplyOutcome::Applied {
+                worker_cleanup_residual,
+                ..
+            }) => Ok(ParentApplyOutcome::Applied {
+                worker_cleanup_residual,
+                staging_cleanup_warning: cleanup,
+            }),
+            other => other,
+        }
+    })();
+    finalize_outer_cleanup(result, &request)
 }
 
 pub(crate) fn apply_if_program_files(
@@ -509,6 +593,14 @@ fn expected_english_source_hashes(
     language: Language,
     classified: &[ClassifiedPair],
 ) -> Result<Option<HashMap<String, String>>, ParentApplyError> {
+    if cfg!(cavalry_native_windows) {
+        if !classified.is_empty() || request.english_snapshot_manifest.is_some() {
+            return Err(rejected(
+                "Native runtime does not accept legacy asset/snapshot evidence.",
+            ));
+        }
+        return Ok(None);
+    }
     if language != Language::English {
         if request.english_snapshot_manifest.is_some() {
             return Err(rejected(

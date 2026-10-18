@@ -1,10 +1,12 @@
 /**
  * [INPUT]: 依赖 native_resources 的模式化manifest/payload准入与临时文件夹。
- * [OUTPUT]: 覆盖preview、production-2.8资源profile及runtime读取边界。
+ * [OUTPUT]: 覆盖共享preview/production资源准入与Windows文件/symlink差异；Mac宿主plist夹具仅在Mac编译。
  * [POS]: native_resources 的隔离合同；测试显式选择编译profile，不绕过资源摘要校验。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::*;
+#[cfg(unix)]
+use std::os::unix::fs::symlink;
 
 const PREVIEW_BUILD_MODE: &str = "debug-preview";
 
@@ -89,10 +91,11 @@ fn display_pack_rejects_metadata_wrong_locale_and_foreign_fields() {
     assert!(validate_pack(foreign, "ja", 1).is_err());
 }
 #[test]
+#[cfg(unix)]
 fn manifest_and_payload_symlinks_are_not_native_resources() {
     let root = tempfile::tempdir().unwrap();
     fs::write(root.path().join("real.json"), b"{}").unwrap();
-    std::os::unix::fs::symlink(
+    symlink(
         root.path().join("real.json"),
         root.path().join("manifest.json"),
     )
@@ -167,7 +170,11 @@ fn status_readiness_does_not_hash_an_unselected_same_size_payload() {
 }
 #[test]
 fn status_metadata_requires_three_regular_files_with_approved_sizes() {
-    for failure in ["missing", "wrong-size", "symlink"] {
+    #[cfg(unix)]
+    let failures = &["missing", "wrong-size", "symlink"][..];
+    #[cfg(windows)]
+    let failures = &["missing", "wrong-size"][..];
+    for &failure in failures {
         let (temp, compiled) = approved_fixture();
         let root = temp.path().canonicalize().unwrap();
         let path = root.join("zh-Hans.json");
@@ -180,7 +187,10 @@ fn status_metadata_requires_three_regular_files_with_approved_sizes() {
             }
             "symlink" => {
                 fs::remove_file(&path).unwrap();
-                std::os::unix::fs::symlink(root.join("ja_JP.json"), &path).unwrap();
+                #[cfg(unix)]
+                symlink(root.join("ja_JP.json"), &path).unwrap();
+                #[cfg(windows)]
+                unreachable!("Windows reparse coverage uses a privilege-free directory junction");
             }
             _ => unreachable!(),
         }
@@ -189,6 +199,23 @@ fn status_metadata_requires_three_regular_files_with_approved_sizes() {
             "status metadata must reject {failure} packs"
         );
     }
+}
+
+#[test]
+#[cfg(windows)]
+fn windows_parent_junction_cannot_supply_approved_resources() {
+    let (actual, compiled) = approved_fixture();
+    let alias = tempfile::tempdir().unwrap();
+    let junction = alias.path().join("linked-packs");
+    let output = std::process::Command::new("cmd.exe")
+        .args(["/d", "/c", "mklink", "/J"])
+        .arg(&junction)
+        .arg(actual.path())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "junction fixture creation failed");
+    assert!(load_preview_at(&junction, &compiled).is_err());
+    assert!(load_status_at(&junction, &compiled, PREVIEW_BUILD_MODE).is_err());
 }
 #[test]
 fn selected_language_load_does_not_require_an_unselected_pack() {
@@ -340,6 +367,7 @@ fn complete_claim_and_target_approval_cannot_drift_even_with_matching_manifest_b
         assert!(load_preview_at(&root, &changed).is_err());
     }
 }
+#[cfg(target_os = "macos")]
 fn host_identity_fixture() -> (tempfile::TempDir, PathBuf, Target) {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path().canonicalize().unwrap();
@@ -356,6 +384,7 @@ fn host_identity_fixture() -> (tempfile::TempDir, PathBuf, Target) {
 }
 
 #[test]
+#[cfg(target_os = "macos")]
 fn native_host_identity_does_not_read_build_catalogs_or_runtime_libraries() {
     let (_temp, root, lock) = host_identity_fixture();
     // 未创建库或catalog。构建锁不要求在每次动作重读这些文件。
@@ -365,6 +394,7 @@ fn native_host_identity_does_not_read_build_catalogs_or_runtime_libraries() {
 }
 
 #[test]
+#[cfg(target_os = "macos")]
 fn native_host_identity_still_rejects_a_changed_main_executable() {
     let (_temp, root, lock) = host_identity_fixture();
     verify_host_with_target(&root, &lock).unwrap();
@@ -385,6 +415,7 @@ fn explicit_compile_approval_loads_the_generated_runtime_packs() {
     assert_eq!(load_resources(repo, &resource).unwrap().packs.len(), 3);
 }
 #[test]
+#[cfg(target_os = "macos")]
 fn native_discovery_reads_version_without_requiring_legacy_json_assets() {
     let temp = tempfile::tempdir().unwrap();
     let app = temp.path().canonicalize().unwrap().join("Cavalry.app");

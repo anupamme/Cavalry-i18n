@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖编译期resource manifest、显式BuildMode参数、冻结target与两项补充常量。
+ * [INPUT]: 依赖编译期资源manifest、共享catalog冻结目标与平台宿主facade；Windows资源按实际盘符根验证reparse。
  * [OUTPUT]: 按preview/production-2.8模式验证资源kind和完整度；target基线仍锁补充373。
  * [POS]: commands的资源边界；不写App、profile或状态。
  * manifest自报digest不作审批；preview与production分别绑定kind；production拒绝不完整pack；target摘要供baseline source复用。
@@ -169,11 +169,16 @@ fn target() -> Result<Target, String> {
 
 // -- 资源读取不跟随任何路径链symlink；manifest固定于同一编译候选 -----
 fn regular_metadata(path: &Path) -> Result<fs::Metadata, String> {
-    let root = Path::new("/");
+    if !path.is_absolute() {
+        return Err("native paths must be absolute".into());
+    }
+    let root = path.ancestors().last().ok_or("native path has no root")?;
     let relative = path
         .strip_prefix(root)
         .map_err(|_| "native paths must be absolute")?;
     crate::install::validate_no_symlink_components(root, relative)?;
+    #[cfg(windows)]
+    crate::privilege::verify_windows_path_components(root, path)?;
     let metadata = fs::symlink_metadata(path).map_err(|e| e.to_string())?;
     if !metadata.is_file() || metadata.file_type().is_symlink() {
         return Err("native resource is not a regular file".into());
@@ -384,6 +389,12 @@ pub(crate) fn load_language_resource(
 }
 
 // -- 启动只看bundle显示身份，不用2.7旧JSON布局决定2.8是否存在 -----
+#[cfg(target_os = "windows")]
+pub(crate) fn observe_install(selection: &Path) -> Result<(PathBuf, String), String> {
+    super::native_windows::observe_install(selection)
+}
+
+#[cfg(target_os = "macos")]
 pub(crate) fn observe_install(selection: &Path) -> Result<(PathBuf, String), String> {
     let app = crate::install::canonical_root_for_selection(selection)?;
     let info = plist::Value::from_reader(std::io::Cursor::new(regular_bytes(
@@ -430,9 +441,11 @@ pub(crate) fn observe_install(selection: &Path) -> Result<(PathBuf, String), Str
 }
 
 // -- 写入前宿主证明：仅原厂2.8目标，拒绝旧wrapper/源漂移，不修补bundle --
+#[cfg(target_os = "macos")]
 pub(crate) fn verify_host(app: &Path) -> Result<(), String> {
     verify_host_with_target(app, &target()?)
 }
+#[cfg(target_os = "macos")]
 fn verify_host_with_target(app: &Path, target: &Target) -> Result<(), String> {
     let plist_bytes = regular_bytes(&app.join("Contents/Info.plist"))?;
     let info =

@@ -2,11 +2,20 @@
 HTML + Javascript + Rust (Tauri) + Objective-C++ / C++ (Qt Injector / Windows generic translator + QPA delegate)
 
 当前只推进Cavalry 2.8。2.7 p12是终版，只保留历史下载。
+Windows原生Apply在profile/runtime写入前持久化已验安装选择；GUI、--launch-cavalry和卸载共用native模式状态域及操作锁。卸载先解析必要目标，缺状态零profile写入，宿主已移除仍幂等恢复自有profile。
 ARM production-2.8已接编译期资源、命令与独立updater配置；本地包生命周期另验。预览状态与生产状态分离，旧2.7不作验收前置。
 macOS 2.8 NRT将Extension补丁纳入恢复事务。baseline schema 2保存原像，owner v3记录九槽后像。旧八槽owner保留读取与English恢复；新写入须先恢复原厂再捕获。
 Welcome、双Save caption、Graph空态与Demo reader源码已归位。9c冻结源码对应20个归位文件。新ARM候选已正常升级owned测试App；历史9973/b643制品保留。正常首帧与完整发行仍另验，不继承旧PASS。
 
 
+验收工具入口：`tools/acceptance/README.md`；整轮单表与失败复验规则见`docs/acceptance-workflow.md`。Windows接手包见`tools/acceptance/local/handoff_windows/README.md`，逐项任务见`HANDOFF-TASKS.md`；它核验源码与工具，不授予产品PASS。runs/local忽略；打包器只显式收Windows交接材料，不含Mac私档。
+验收schema2分开保存完整源键库存与批准实屏项。旧表显式迁移保留原件、全部历史及逐项映射；库存不授通过信用，未解决失败不转库存。
+插件324源键与ToolHelp三语198译值各保留库存；ToolHelp沿既有四工具组。Timeline180观察索引由15父场景负责；Null15误展开源项归库存。macOS表2630项不等于2630次操作。
+
+Windows 2.8生产入口复用native资源与用户事务；安装发现沿既有动态链，profile独立解析Local/Roaming系统根。ToolHelp确认零写者时不启动辅助进程；同名进程再核用户SID。安装journal与profile共享Windows目录同步，实际补充runtime与完整验收独立裁决。
+Windows2.8窄补充在`injector/windows/native/`：复用225项/固定状态及Graph目录/完整字形覆盖与标题、保存caption、Guide、内置Easing及Fast Unicode策略；384/17帮助说明及401根四行布局共用既有producer，Windows单独证明MSVC文档/调用布局。Demo沿共享297源/489位置，仅将完整源等价的Windows CRLF映射到实际SHA/位置，在动态官方Preset根与唯一reader caller投影。Welcome沿共享裸句/精确节日策略，Windows先核logger及启动producer才读取影子payload。Qt6.9.2构建且只用宿主Qt。runtime-only沿既有QPA/vendor备份/CAS和固定payload journal，普通根/Program Files共用执行器；状态同时比较编译期runtime来源。完整实屏与首帧验收独立，不继承Mac或私人helper信用。
+
+Windows固定工具帮助的Alt组合仅在字体准入时对应共享Option/Alt组合；原显示字节、75项共享lane及准确owner调用链不变，三语隔离合同与实屏复验分账。
 <directory>
 .agents/ - 项目技能发现入口；翻译偏好与macOS原生显示验收分别路由，显示按语言/场景合批，脚本自测留tools；不参与产品构建或运行 (1 子目录: skills)
 .baoyu-skills/ - 项目本地 Agent 技能扩展配置，约束翻译偏好与术语来源 (Markdown)
@@ -22,6 +31,7 @@ output/ - 只跟踪稳定地图与派生产物规则；实跑证据在仓外sess
 </directory>
 
 <config>
+src-tauri/tauri.native-windows-2.8.conf.json - Windows2.8窄runtime相对资源映射，叠加native-production覆盖；不带旧generic或Qt运行时
 .gitignore - 排除依赖、构建、实跑和output派生产物；output仅保留CLAUDE与README稳定规则
 CAVALRY_2_8_MIGRATION_PLAN.md - 单2.8迁移唯一44项主账，40完成/4待办；§5.2是待办导航，§66.149–151记录NRT Keychain、同源profile快路与真实恢复进度，§66.159–177记录四语footer、ARM内部包/恢复、5.367GiB清理、Save caption、验收复用纠偏、Intel隔离编译与Graph/官方示例新缺口；原动画不动。Intel实机不阻断，编译/反馈留XIA-187；Windows验收后置至合批流程稳定。完整225不变；普通GUI繁1.449秒、简4.309秒，不抵冷首装/恢复/完整性能/首帧。Guide79/79/79；本profile首启已完成，限定N/A各19、待验0，源分母各98。旧STOP§126限当次私档发布；新归档独立执行，公开产品未push/tag/release。私档不作为构建输入。
 AGENTS.md - 固定本轮单2.8安装范围，不加旧版/双安装必验门；根级 Agent 行动地图，按 Kumo knowledge base 结构固化查找入口、约定、反模式、命令、流水线、工具链与安全边界
@@ -129,3 +139,5 @@ M88手动预验失败候选仅保留1天，供读取真实Mach-O；不包含官�
 M88统一根因：同一CI候选在runner旧dyld_info中符号错位，LLVM绑定表与本机新版读值一致。候选绑定检查统一读取LLVM，不放宽库/符号/槽语义。Intel另补实际漏传的libCore链接；复用原.o隔离relink已证两槽从flat变为Core。ARM Popup旧abi文本断言与现popup_abi接线不同，修检查不改运行时。
 手动2.8预验去重复源码门及漏洞扫描等待；同SHA源码门只跑一次，包任务保留架构Rust与production制品检查。PR/main/tag/schedule扫描规则不变。主账仍40/44，线上新结果另记。
 候选binding与Popup源码回归接入check:native-2.8-ci-inputs；不新增依赖或运行时组件。
+
+2026-10-17 线上预验38932098058最终success，源码4263177。ARM/Intel production App/DMG、标准成品门与上传通过；不含Windows实机或公开发行。验收流程仅本地整合，单表与现场证据Git忽略。每批采图后立即结束自有exact PID，失败与中断同样收尾；强制清理不抵正常Quit。产品主账40/44不变，不重复已过产品验收。

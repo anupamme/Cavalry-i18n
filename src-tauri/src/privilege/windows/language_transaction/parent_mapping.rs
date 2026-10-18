@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖固定 CORE_MAP/PLUGIN_DEFINITION_MAP、实时插件目录与 Windows reparse 元数据。
- * [OUTPUT]: 提供 CopyPair 到目标 assets-relative PayloadKind/ID 的严格一一映射与完整 core 集合证明。
+ * [OUTPUT]: legacy提供严格CORE_MAP映射；native编译profile只接受空assets集合，防止把旧JSON写入2.8。
  * [POS]: language_transaction parent 的目标授权子层；只承认已知映射或当前存在的普通 plugin strings，不信任调用方 destination。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -30,6 +30,15 @@ pub(super) fn classify_overlay_pairs(
     layout: &InstallLayout,
     pairs: &[CopyPair],
 ) -> Result<Vec<ClassifiedPair>, ParentApplyError> {
+    if cfg!(cavalry_native_windows) {
+        return if pairs.is_empty() {
+            Ok(Vec::new())
+        } else {
+            Err(rejected(
+                "Native Windows runtime transaction cannot carry legacy JSON payloads.",
+            ))
+        };
+    }
     let mut allowed = HashMap::<String, (String, PayloadKind)>::new();
     let mut required_core = HashSet::<String>::new();
     for (_, asset_relative) in CORE_MAP {

@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 build.rs 编译期嵌入的四语/Windows runtime SHA-256、固定 payload schema、JSON keyed overlay 语义与 QPA transition planner。
- * [OUTPUT]: 提供 worker 写前 provenance 证明；非 English payload 必须等于当前发布的 canonical merge，English payload 保留快照原字节但其解析值必须等于 anchored English postimage，删除计划则从 ACL 保护的 live manifest 精确重建以兼容旧发行残留。
+ * [INPUT]: build.rs固定的Windows runtime SHA与封闭payload；legacy另用四语overlay，native只用同包runtime锚。
+ * [OUTPUT]: 提供编译期runtime摘要只读投影与worker写前provenance证明；非English payload核canonical merge，English核anchored postimage，删除以live manifest精确重建历史所有权。
  * [POS]: language_transaction 的只读信任边界；区分“当前包可写字节”与“历史 manifest 可删所有权”，在关闭 Cavalry 与安装根写入前 fail closed。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -31,6 +31,11 @@ use crate::{
 };
 
 include!(concat!(env!("OUT_DIR"), "/source_provenance_catalog.rs"));
+
+/// 状态只比较编译期候选锚；不从可变安装目录认领新的发布来源。
+pub(crate) fn native_runtime_source_hashes() -> Option<(&'static str, &'static str)> {
+    Some((EMBEDDED_GENERIC_SHA256?, EMBEDDED_QPA_SHA256?))
+}
 
 const MAX_PACKAGE_ANCESTORS: usize = 7;
 const MAX_JSON_BYTES: usize = 8 * 1024 * 1024;
@@ -110,6 +115,22 @@ fn derive_package_root(worker_executable: &Path, language: Language) -> Result<P
         .ok_or_else(|| "Elevated worker executable has no package directory.".to_string())?;
     for _ in 0..MAX_PACKAGE_ANCESTORS {
         let language_root = candidate.join("languages").join(language.as_str());
+        if cfg!(cavalry_native_windows) {
+            if [GENERIC_SOURCE_RELATIVE_PATH, QPA_SOURCE_RELATIVE_PATH]
+                .iter()
+                .all(|p| candidate.join(p).is_file())
+            {
+                require_ordinary_directory(candidate, candidate, "native package root")?;
+                for relative in [GENERIC_SOURCE_RELATIVE_PATH, QPA_SOURCE_RELATIVE_PATH] {
+                    require_ordinary_file(candidate, &candidate.join(relative), "native runtime")?;
+                }
+                return Ok(candidate.to_path_buf());
+            }
+            candidate = candidate
+                .parent()
+                .ok_or_else(|| "Native package root is unavailable.".to_string())?;
+            continue;
+        }
         match fs::symlink_metadata(&language_root) {
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
             Err(error) => {

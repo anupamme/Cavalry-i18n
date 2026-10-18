@@ -1389,7 +1389,10 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   assert.match(localSop, /p12终版只作历史下载/);
   assert.doesNotMatch(localSop, /当前发布器只读复核p12|当前2\.7只准p12只读回读/);
   assert.match(localSop, /workflow已按所选2\.8 profile向tag打包命令传独立endpoint overlay/);
-  assert.match(localSop, /Intel的2\.8 x86_64生产入口已接通[\s\S]*Windows生产runtime仍未接通/);
+  assert.match(localSop, /Intel的2\.8 x86_64及Windows native本地构建入口已接通/);
+  assert.doesNotMatch(localSop, /Windows生产runtime仍未接通/);
+  assert.match(localSop, /8\.1 Windows 2\.8 native本地构建/);
+  assert.match(localSop, /tauri\.native-production-2\.8\.conf\.json[\s\S]*tauri\.native-windows-2\.8\.conf\.json/);
   assert.match(localSop, /保留三平台production guard/);
   assert.match(localSop, /三种发布资产：/);
   assert.match(localSop, /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-p12_aarch64\.dmg/);

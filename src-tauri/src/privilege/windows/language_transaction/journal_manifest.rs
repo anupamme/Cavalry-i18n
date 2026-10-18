@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 DurableJournal 的路径、preimage/postimage、权限、phase 与固定成员，以及 Windows lstat、containment、FileShare 和目录句柄能力。
+ * [INPUT]: 依赖 DurableJournal 的路径、preimage/postimage、权限、phase 与固定成员，以及 Windows lstat、containment、FileShare 和共享windows_fs目录同步。
  * [OUTPUT]: 提供 schema v3 严格 manifest 的 handle-bound 持久化、读取、校验、文件/目录 fsync 与 startup/apply 前恢复；manifest 可先写隐藏 preparation root，恢复只发现已发布 state，并以双向 displaced intent 保留发布歧义证据。
  * [POS]: language_transaction/storage 的崩溃恢复语义边界；将内存所有权投影为可重建的磁盘真相，不采纳未提交 postimage，固定临时成员仍按路径协议 fail-closed。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -27,8 +27,6 @@ use super::storage::{
 
 const JOURNAL_SCHEMA_VERSION: u32 = 3;
 const MAX_JOURNAL_ENTRIES: usize = 8192;
-const FILE_SHARE_ALL: u32 = 0x0000_0007;
-const FILE_FLAG_BACKUP_SEMANTICS: u32 = 0x0200_0000;
 const FILE_FLAG_OPEN_REPARSE_POINT: u32 = 0x0020_0000;
 const MAX_MANIFEST_BYTES: u64 = 4 * 1024 * 1024;
 
@@ -586,23 +584,7 @@ fn ensure_optional_journal_file(journal_root: &Path, path: &Path) -> Result<(), 
 }
 
 pub(super) fn sync_directory(path: &Path) -> Result<(), String> {
-    let metadata = fs::symlink_metadata(path)
-        .map_err(|error| format!("Could not inspect directory for durable sync: {error}"))?;
-    if !metadata.is_dir() || metadata_is_reparse_point(&metadata) {
-        return Err(format!(
-            "Cannot fsync a non-directory transaction path: {}",
-            path.display()
-        ));
-    }
-    let directory = fs::OpenOptions::new()
-        .read(true)
-        .write(true)
-        .share_mode(FILE_SHARE_ALL)
-        .custom_flags(FILE_FLAG_BACKUP_SEMANTICS)
-        .open(path)
-        .map_err(|error| format!("Could not open directory for durable sync: {error}"))?;
-    directory
-        .sync_all()
+    crate::windows_fs::sync_directory(path)
         .map_err(|error| format!("Could not fsync transaction directory: {error}"))
 }
 

@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 cavalry_i18n_qpa_contract.h、QJsonDocument 与 Cavalry 2.7.2 / Qt 6.6.3 / x64 固定发布身份
+ * [INPUT]: 依赖同一严格QPA manifest合同；显式native构建绑定官方2.8/Qt6.9.2，默认历史构建身份独立。
  * [OUTPUT]: 对外实现 exact-key manifest v1、固定 vendor qwindows 身份、实际文件 hash 与精确四语言 marker 验证
  * [POS]: injector/windows 的 fail-closed 翻译激活判定；失败仅禁止 generic runtime，不影响原厂 QPA 委托
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -14,11 +14,18 @@
 
 namespace {
 
+#ifdef CAVALRY_I18N_NATIVE_28
+constexpr auto kExpectedCavalryVersion = "2.8.0";
+constexpr auto kExpectedQtVersion = "6.9.2";
+constexpr auto kExpectedVendorQwindowsSha256 =
+    "f80153ee381ad1437148f785aa4f952b29d285729185e952866e141f96b13b86";
+#else
 constexpr auto kExpectedCavalryVersion = "2.7.2";
 constexpr auto kExpectedQtVersion = "6.6.3";
-constexpr auto kExpectedArchitecture = "x86_64";
 constexpr auto kExpectedVendorQwindowsSha256 =
     "e039d39a6b99a26a358a85660147941112a4c9df3a62b5e19a8ae9ed75be3f01";
+#endif
+constexpr auto kExpectedArchitecture = "x86_64";
 
 const QSet<QString> &manifestKeys()
 {
@@ -252,7 +259,7 @@ bool cavalryParseQpaManifest(
         return fail(
             error,
             QStringLiteral(
-                "QPA manifest vendor qwindows identity is not the verified Cavalry 2.7.2 binary."));
+                "QPA manifest vendor qwindows identity differs from the verified target binary."));
     }
 
     parsed.phase = phase;
@@ -324,7 +331,7 @@ bool cavalryVerifyVendorQwindowsSha256(
         return fail(
             error,
             QStringLiteral(
-                "Vendor qwindows does not match the verified Cavalry 2.7.2 binary."));
+                "Vendor qwindows does not match the verified target binary."));
     }
     if (error != nullptr) {
         error->clear();

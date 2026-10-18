@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tauri_build、cc、sha2、macOS AppKit handoff 源、四语言 JSON 源与 Windows generic/QPA 发布 DLL；显式macOS native模式另读固定target工件manifest、官方域摘要及目标架构dylib，并将BuildMode写入OUT_DIR。
- * [OUTPUT]: preview或2.8生产模式按profile核对资源摘要与目标Mach-O架构；BuildMode作为编译期文件嵌入，运行时不读环境变量。
+ * [OUTPUT]: 按BuildMode固化原生资源；Windows x64 production复用资源manifest；Mac继续验证目标架构runtime。
  * [POS]: src-tauri 的构建钩子；在用户可写安装资源之外固定 Windows source provenance，不参与运行时路径发现。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -43,8 +43,14 @@ fn main() {
             .as_deref(),
     )
     .expect("native build mode rejected");
+    println!("cargo:rustc-check-cfg=cfg(cavalry_native_windows)");
+    if env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows")
+        && native_mode != NativeBuildMode::Disabled
+    {
+        println!("cargo:rustc-cfg=cavalry_native_windows");
+    }
     build_macos_permission_handoff();
-    generate_source_provenance_catalog();
+    generate_source_provenance_catalog(native_mode);
     embed_native_build_mode(native_mode);
     embed_native_resource_manifest(native_mode);
     embed_native_runtime_injector(native_mode);
@@ -108,6 +114,13 @@ fn embed_native_resource_manifest(mode: NativeBuildMode) {
 
 // -- 预览可选；候选与生产模式必须嵌入匹配目标架构的runtime -----------
 fn embed_native_runtime_injector(mode: NativeBuildMode) {
+    if env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows") {
+        // Windows原生资源单独打包，不把Mac dylib当作运行时输入。
+        let output = PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR is required"));
+        fs::write(output.join("native_runtime_injector.dylib"), [])
+            .expect("empty platform runtime boundary");
+        return;
+    }
     println!("cargo:rerun-if-env-changed=CAVALRY_I18N_NATIVE_INJECTOR_FILE");
     let bytes = if mode != NativeBuildMode::Disabled {
         load_native_runtime_injector()
@@ -208,7 +221,7 @@ fn build_macos_permission_handoff() {
     }
 }
 
-fn generate_source_provenance_catalog() {
+fn generate_source_provenance_catalog(mode: NativeBuildMode) {
     println!("cargo:rerun-if-env-changed=PROFILE");
     let manifest_dir =
         PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is required"));
@@ -218,7 +231,7 @@ fn generate_source_provenance_catalog() {
     let target_is_windows = env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows");
     let mut language_entries = Vec::<(String, String)>::new();
 
-    if target_is_windows {
+    if target_is_windows && mode == NativeBuildMode::Disabled {
         for language in LANGUAGES {
             let language_root = repository_root.join("languages").join(language);
             println!("cargo:rerun-if-changed={}", language_root.display());

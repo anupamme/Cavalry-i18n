@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖各平台权限复制、bundle/restart 适配器与 CommandRunner；接收 staged CopyPair、只读进程身份探针和受控启动请求。
+ * [INPUT]: 依赖平台权限/进程/启动适配器、Windows KnownFolders/profile写者准入、编译期runtime摘要及CommandRunner；消费受控路径与调用。
  * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，提供NRT恢复profile前回调端口、selected/all-Cavalry只读admission、macOS native runtime owner source hint、legacy restart graceful close、macOS native preview launch-only facade、固定厂商requirement限时只读验签、legacy签名验签与NRT延迟验签写端口、Windows apply/recovery提升worker早期分流，并让Program Files journal仅在用户动作锁内按当前选择经same-EXE RunAs边界收敛。
  * [POS]: src-tauri/src 的跨平台系统命令 facade；Official认证仅经此处转入macOS codesign owner并只消费受限deadline退出状态，不使用一般签名身份stdout；共享用户文件准入由macOS process owner按所有 Cavalry bundle identity 判定，平台安全、提升事务、journal 机制与辅助进程可见性下沉到职责模块，命令层不直接触碰 UAC/AppleScript，受保护安装根禁止回退为未提权写入。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -70,9 +70,19 @@ pub(crate) use macos::{
 #[cfg(target_os = "windows")]
 pub(crate) use runner::captured_command;
 #[cfg(target_os = "windows")]
+pub(crate) use windows::known_folders::ensure_no_reparse_points as verify_windows_path_components;
+#[cfg(target_os = "windows")]
 pub(crate) use windows::language_transaction::parent::{
-    apply_if_program_files as apply_windows_program_files_language, ParentApplyError,
-    ParentApplyOutcome, ParentApplyRequest,
+    apply_if_program_files as apply_windows_program_files_language,
+    apply_native_runtime as apply_windows_native_runtime, ParentApplyError, ParentApplyOutcome,
+    ParentApplyRequest,
+};
+#[cfg(target_os = "windows")]
+pub(crate) use windows::language_transaction::source_provenance::native_runtime_source_hashes;
+#[cfg(target_os = "windows")]
+pub(crate) use windows::native_profile::{
+    guard_writers as guard_windows_native_writers, launch as launch_windows_native_host,
+    user_roots as windows_native_user_roots,
 };
 
 #[cfg(target_os = "windows")]
