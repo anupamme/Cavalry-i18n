@@ -10,7 +10,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const os=require('node:os');
 const path=require('node:path');
-const {prepare,check,closeout,migrateV1Run,amendV2ToolHelpRun,amendScenes}=require('./checklist.js');
+const {prepare,check,closeout,migrateV1Run,amendV2ToolHelpRun,amendScenes,isWithin}=require('./checklist.js');
 const {buildCatalog,digest}=require('./catalog.js');
 const {V1_CATALOG_SHA256}=require('./migration.js');
 test('Python双平台编排离线自测',()=>{
@@ -34,6 +34,21 @@ test('44主项有映射；帮助分离384主域和17def域',()=>{
   assert.equal(c.cases.filter(x=>x.batch==='08-main-help').length,1152);
   assert.ok(c.cases.filter(x=>x.id.startsWith('help-')).every(x=>!x.expected.startsWith('批准译文SHA256=')));
   assert.ok(c.cases.find(x=>x.key==='api_function_metadata.json#/replaceAsset/description' && x.locale==='zh-Hans').expected);
+});
+test('目录包含判断按路径段处理同卷路径并接受跨卷仓外路径',()=>{
+  const pathModel=path.win32;
+  const repo='D:\\work\\Cavalry-i18n';
+  const runs=pathModel.join(repo,'tools','acceptance','runs');
+  const crossVolume='C:\\temp\\acceptance-run';
+  const crossVolumeRelative=pathModel.relative(repo,crossVolume);
+
+  assert.equal(pathModel.isAbsolute(crossVolumeRelative),true);
+  assert.equal(!crossVolumeRelative.startsWith('..'),true);
+  assert.equal(isWithin(repo,crossVolume,pathModel),false);
+  assert.equal(isWithin(repo,pathModel.join(repo,'src-tauri'),pathModel),true);
+  assert.equal(isWithin(repo,`${repo}-copy\\runs\\case`,pathModel),false);
+  assert.equal(isWithin(runs,pathModel.join(runs,'case-1'),pathModel),true);
+  assert.equal(isWithin(runs,`${runs}-copy\\case-1`,pathModel),false);
 });
 test('ToolHelp库存保持稳定ID；仅四个已批准动作引用93项，不新增实屏case',()=>{
   const current=buildCatalog(),legacy=buildCatalog({includeLegacyCases:true});

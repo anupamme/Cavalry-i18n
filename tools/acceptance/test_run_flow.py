@@ -136,7 +136,7 @@ class FlowTest(unittest.TestCase):
             self.assertFalse(result['captured'])
             self.assertEqual(result['executed'], 1)
             self.assertEqual(len(sleeps), 1)
-            self.assertEqual(json.loads((out/'events.jsonl').read_text())['status'], 'FAILED')
+            self.assertEqual(json.loads((out/'events.jsonl').read_text(encoding='utf-8'))['status'], 'FAILED')
 
     def test_windows_cannot_fall_back_to_mac_command(self):
         with self.assertRaisesRegex(ValueError, 'windows'):
@@ -158,7 +158,7 @@ class FlowTest(unittest.TestCase):
                          out, 'macos', invoke=invoke)
             self.assertTrue(result['completed'])
             self.assertFalse(result['captured'])
-            self.assertEqual(json.loads((out/'events.jsonl').read_text())['status'], 'READBACK_PENDING_REVIEW')
+            self.assertEqual(json.loads((out/'events.jsonl').read_text(encoding='utf-8'))['status'], 'READBACK_PENDING_REVIEW')
 
 
 if __name__ == '__main__':

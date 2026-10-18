@@ -11,11 +11,11 @@ README.md: 整轮单表、平台回交入口及存放规则；明确工具与实
 masters.js: 固定44主项与平台归属；不复制动态完成状态。
 scenarios.js: 可观察行为与场景顺序；Cavalry三语事务与Switcher四语分开，同语共享动作，故障及实验启动单列。
 catalog.js: 分离源库存、场景观察索引与实屏case；保留冻结v1及旧schema2视图。
-checklist.js: 生成schema2副本、记账并核验三段scope身份链；不启动产品。
+checklist.js: 按路径段区分仓内副本与Windows跨卷仓外输出；生成schema2副本、记账并核验三段scope身份链，不启动产品。
 migration.js: 验证冻结v1与ToolHelp父链；归档原件与逐项crosswalk。
 scene-scope.js: 显式修订195个未填展开项；保留观察索引，以15个父场景核Timeline。
 scene-scope.test.js: 临时表核父链、原件与全部历史；拒绝已填结果转库存。
-checklist.test.js: 临时目录验证两种库存边界、scope链、FAIL拒绝与归档篡改；不执行GUI。
+checklist.test.js: path.win32覆盖跨卷及runs边界；临时目录验证库存、scope链、FAIL拒绝与归档篡改，不执行GUI。
 local/handoff_windows/: Windows接手包、D-6/G-5/G-3/G-6任务单与源SHA打包器；只含安全文本差异、公开工具和离线平台夹具，不含Mac私档。
 
 本地忽略目录：runs/保存填写副本与证据；local/保存私人方案与驱动索引。

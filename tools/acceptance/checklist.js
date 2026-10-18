@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖schema2 case、source inventory与人工填写的整轮表单。
- * [OUTPUT]: 生成、记账、检查与收口整轮表；提供显式scope迁移与父场景修订入口。
+ * [OUTPUT]: 生成、记账、检查与收口整轮表；提供scope迁移、父场景修订和路径包含判定。
  * [POS]: 离线验收入口；不执行产品，不替人工授予显示PASS。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -14,11 +14,16 @@ const {amendScenes,verifySceneScope}=require('./scene-scope.js');
 const runsRoot = path.join(__dirname, 'runs');
 const repoRoot = path.resolve(__dirname, '../..');
 const escape = value => String(value).replaceAll('|', '&#124;').replace(/[\r\n]+/g, ' ');
+function isWithin(parent, child, pathModel = path) {
+  const relative = pathModel.relative(pathModel.resolve(parent), pathModel.resolve(child));
+  return relative === '' || (!pathModel.isAbsolute(relative) && relative !== '..' &&
+    !relative.startsWith(`..${pathModel.sep}`));
+}
 function prepare({out, platform, candidate}) {
   out = path.resolve(out || path.join(runsRoot, new Date().toISOString().replace(/[:.]/g,'-')));
-  const inRepo = !path.relative(repoRoot,out).startsWith('..');
+  const inRepo = isWithin(repoRoot,out);
   const inRuns = path.relative(runsRoot,out);
-  if (inRepo && (inRuns === '' || inRuns.startsWith('..') || path.isAbsolute(inRuns))) throw new Error('仓库内副本只能放tools/acceptance/runs/<本轮编号>');
+  if (inRepo && (inRuns === '' || !isWithin(runsRoot,out))) throw new Error('仓库内副本只能放tools/acceptance/runs/<本轮编号>');
   if (!['macos','windows','release'].includes(platform) || !candidate || !out) {
     throw new Error('需要out、platform(macos/windows/release)、candidate');
   }
@@ -142,4 +147,4 @@ if (require.main===module) {
     if (command==='check' && !result.complete) process.exitCode=1;
   } catch(error) { process.stderr.write(error.message+'\n'); process.exitCode=1; }
 }
-module.exports={prepare,check,record,closeout,migrateV1Run,amendV2ToolHelpRun,amendScenes};
+module.exports={prepare,check,record,closeout,migrateV1Run,amendV2ToolHelpRun,amendScenes,isWithin};
