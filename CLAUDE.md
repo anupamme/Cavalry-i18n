@@ -33,7 +33,7 @@ output/ - 只跟踪稳定地图与派生产物规则；实跑证据在仓外sess
 <config>
 src-tauri/tauri.native-windows-2.8.conf.json - Windows2.8窄runtime相对资源映射，叠加native-production覆盖；不带旧generic或Qt运行时
 .gitignore - 排除依赖、构建、实跑和output派生产物；output仅保留CLAUDE与README稳定规则
-CAVALRY_2_8_MIGRATION_PLAN.md - 单2.8迁移唯一44项主账，40完成/4待办；§5.2是待办导航，§66.149–151记录NRT Keychain、同源profile快路与真实恢复进度，§66.159–177记录四语footer、ARM内部包/恢复、5.367GiB清理、Save caption、验收复用纠偏、Intel隔离编译与Graph/官方示例新缺口；原动画不动。Intel实机不阻断，编译/反馈留XIA-187；Windows验收后置至合批流程稳定。完整225不变；普通GUI繁1.449秒、简4.309秒，不抵冷首装/恢复/完整性能/首帧。Guide79/79/79；本profile首启已完成，限定N/A各19、待验0，源分母各98。旧STOP§126限当次私档发布；新归档独立执行，公开产品未push/tag/release。私档不作为构建输入。
+CAVALRY_2_8_MIGRATION_PLAN.md - 单2.8迁移唯一44项主账，42完成/2待办；Windows D-6/G-5按§66.189收口；§5.2是待办导航，§66.149–151记录NRT Keychain、同源profile快路与真实恢复进度，§66.159–177记录四语footer、ARM内部包/恢复、5.367GiB清理、Save caption、验收复用纠偏、Intel隔离编译与Graph/官方示例新缺口；原动画不动。Intel实机不阻断，编译/反馈留XIA-187；Windows已在合批流程稳定后完成本机验收。完整225不变；普通GUI繁1.449秒、简4.309秒，不抵冷首装/恢复/完整性能/首帧。Guide79/79/79；本profile首启已完成，限定N/A各19、待验0，源分母各98。旧STOP§126限当次私档发布；新归档独立执行，功能分支已推送并合入PR54，未tag/release。私档不作为构建输入。
 AGENTS.md - 固定本轮单2.8安装范围，不加旧版/双安装必验门；根级 Agent 行动地图，按 Kumo knowledge base 结构固化查找入口、约定、反模式、命令、流水线、工具链与安全边界
 CHANGELOG.md - 新版本中文条目与英文分类语义分离的 SemVer 发布历史与 Unreleased 用户可见变更真相源；tag 正文由 workflow 按版本抽取，不保留会漂移的根目录 release body 快照
 LOCAL_BUILD_SOP.md - 当前默认2.8 ARM正式模式构建；旧2.7 p12仅历史下载，不作前置验收；三平台发布门保留；唯一桌面打包与发布操作合同，区分本地验证、ad-hoc tag、Tauri updater 签名和未具备的平台身份，并固定 macOS DMG 文件名与挂载卷标的不同职责
@@ -141,3 +141,5 @@ M88统一根因：同一CI候选在runner旧dyld_info中符号错位，LLVM绑�
 候选binding与Popup源码回归接入check:native-2.8-ci-inputs；不新增依赖或运行时组件。
 
 2026-10-17 线上预验38932098058最终success，源码4263177。ARM/Intel production App/DMG、标准成品门与上传通过；不含Windows实机或公开发行。验收流程仅本地整合，单表与现场证据Git忽略。每批采图后立即结束自有exact PID，失败与中断同样收尾；强制清理不抵正常Quit。产品主账40/44不变，不重复已过产品验收。
+
+2026-10-19 PR54@83aae3a已合入功能分支b7eec06；Windows验收和定向补证通过，主账42/44。未提交的异常加固草稿已撤销；余双feed实际回读及授权发行，不重跑既有验收。
