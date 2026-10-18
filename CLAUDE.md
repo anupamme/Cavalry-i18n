@@ -17,7 +17,7 @@ Windows2.8窄补充在`injector/windows/native/`：复用225项/固定状态及G
 
 Windows固定工具帮助的Alt组合仅在字体准入时对应共享Option/Alt组合；原显示字节、75项共享lane及准确owner调用链不变，三语隔离合同与实屏复验分账。
 <directory>
-.agents/ - 项目技能发现入口；翻译偏好与macOS原生显示验收分别路由，显示按语言/场景合批，脚本自测留tools；不参与产品构建或运行 (1 子目录: skills)
+.agents/ - 项目技能入口；翻译与macOS显示分别路由；显示沿统一验收表和SOP合批补验，脚本自测留tools；不参与产品构建或运行 (1 子目录: skills)
 .baoyu-skills/ - 项目本地 Agent 技能扩展配置，约束翻译偏好与术语来源 (Markdown)
 .github/ - GitHub Actions与Issue模板；手动macos-2.8-preflight在现有ARM/Intel矩阵打包，不发布；旧2.7 tag拒绝重打包，2.8公开tag仍受三平台guard约束 (YAML)
 desktop-patcher/ - 旧桌面补丁器产物镜像，仅保留 injector 生成物与预编译 dylib (C++, dylib)

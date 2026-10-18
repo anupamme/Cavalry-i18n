@@ -2,8 +2,8 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-SKILL.md: 任务入口与工具目录；先按语言和场景合批，再按需读取方法。
-references/: 资源单位与时钟分别记账，未选语禁用不判产品失败；复用成功驱动；超时后只续剩余动作。实际启动与载库分账；自绘文字按producer和字体分类，Save caption/Cancel保持单一职责。
+SKILL.md: 接入统一验收表与SOP；只路由macOS显示动作和现有工具。
+references/: 合批、动作与显示判据；按变更影响复验，采完收尾后离线审图。
 scripts/: 三个可执行工具；启动/清理helper或离线显示断言，不驱动GUI。
 assets/: Timeline、Erosion/Polar与Sound测试输入；expected只定义输入结构。
 
