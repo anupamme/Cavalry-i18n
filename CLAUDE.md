@@ -31,7 +31,7 @@ output/ - 只跟踪稳定地图与派生产物规则；实跑证据在仓外sess
 </directory>
 
 <config>
-src-tauri/tauri.native-windows-2.8.conf.json - Windows2.8窄runtime相对资源映射，叠加native-production覆盖；不带旧generic或Qt运行时
+src-tauri/tauri.native-windows-2.8.conf.json - Windows默认生产wrapper的runtime资源映射；与native-production共同装三语包和同版generic/QPA，不带旧translator或Qt运行时
 .gitignore - 排除依赖、构建、实跑和output派生产物；output仅保留CLAUDE与README稳定规则
 CAVALRY_2_8_MIGRATION_PLAN.md - 单2.8迁移唯一44项主账，42完成/2待办；Windows D-6/G-5按§66.189收口；§5.2是待办导航，§66.149–151记录NRT Keychain、同源profile快路与真实恢复进度，§66.159–177记录四语footer、ARM内部包/恢复、5.367GiB清理、Save caption、验收复用纠偏、Intel隔离编译与Graph/官方示例新缺口；原动画不动。Intel实机不阻断，编译/反馈留XIA-187；Windows已在合批流程稳定后完成本机验收。完整225不变；普通GUI繁1.449秒、简4.309秒，不抵冷首装/恢复/完整性能/首帧。Guide79/79/79；本profile首启已完成，限定N/A各19、待验0，源分母各98。旧STOP§126限当次私档发布；新归档独立执行，功能分支已推送并合入PR54，未tag/release。私档不作为构建输入。
 AGENTS.md - 固定本轮单2.8安装范围，不加旧版/双安装必验门；根级 Agent 行动地图，按 Kumo knowledge base 结构固化查找入口、约定、反模式、命令、流水线、工具链与安全边界
@@ -41,7 +41,7 @@ README.md - 英文主入口，四语发布徽章直接读取 GitHub 最新正式
 README.zh-Hans.md - 简体中文 README，与英文入口保持标题结构、用户事实、命令和导航同构，包括 macOS 官方基线恢复要求
 README.zh-Hant.md - 繁体中文 README，与英文入口保持标题结构、用户事实、命令和导航同构，包括 macOS 官方基線還原要求
 README.ja_JP.md - 日文 README，与英文入口保持标题结构、用户事实、命令和导航同构，包括 macOS 公式ベースライン復元要件
-package.json - tauri:build使用无硬编码target的2.8 production入口；ARM与Intel alias各传一次目标，复用盖章和目标架构资源检查；纯packaged helper加入合同/语法门。项目元数据与核心构建/测试指令；纳入20项Easing显示表合同和生成器语法门；默认合同与语法门纳入384/17帮助表及401根排版producer测试，生成表仍须显式官方MetaData输入，构建输出不入库；默认合同与语法门包含历史365加独立1条raw source adapter、366批准caption/旧364冻结与单键撤批missing反例及显式官方集合/合法数字开头vendor owner反例；默认合同与语法门覆盖native源身份/ICU、已审批次及88槽真实旧译回退、13厂商纠错/377原样闭合，历史批准摘要与现行译文摘要分别守门；新增38条空区域短提示类别合同，锁精确source及三语producer，并注册于test:contracts和check:app；p12旧feed、候选路径和四语userProfile copy保持独立；check:app语法门包含user-profile-text模块。build:tauri:native:candidate显式生成ARM优化预览App/DMG，保持独立状态并禁用updater；显式tauri:dev:native仅运行未发布2.8预览，build:native-resources必须传官方assets；FormatJS仅作构建期格式校验
+package.json - Windows默认构建经windows_native_build.js生成2.8生产NSIS及指纹；CI先准备官方2.8/Qt6.9.2，安装烟测核native三语包。tauri:build使用无硬编码target的2.8 production入口；ARM与Intel alias各传一次目标，复用盖章和目标架构资源检查；纯packaged helper加入合同/语法门。项目元数据与核心构建/测试指令；纳入20项Easing显示表合同和生成器语法门；默认合同与语法门纳入384/17帮助表及401根排版producer测试，生成表仍须显式官方MetaData输入，构建输出不入库；默认合同与语法门包含历史365加独立1条raw source adapter、366批准caption/旧364冻结与单键撤批missing反例及显式官方集合/合法数字开头vendor owner反例；默认合同与语法门覆盖native源身份/ICU、已审批次及88槽真实旧译回退、13厂商纠错/377原样闭合，历史批准摘要与现行译文摘要分别守门；新增38条空区域短提示类别合同，锁精确source及三语producer，并注册于test:contracts和check:app；p12旧feed、候选路径和四语userProfile copy保持独立；check:app语法门包含user-profile-text模块。build:tauri:native:candidate显式生成ARM优化预览App/DMG，保持独立状态并禁用updater；显式tauri:dev:native仅运行未发布2.8预览，build:native-resources必须传官方assets；FormatJS仅作构建期格式校验
 package-lock.json - npm 依赖锁定文件，冻结 Tauri CLI/API 与构建期 ICU parser，不增加产品运行时解释器
 release.config.json - 2.7默认GitHub Release协议真相源；tag/标题、安装资产与latest.json命名保持不变
 release-2.8.config.json - 2.8双feed纯准备profile；固定cavalry-2.8.0-pN、三平台资产、新manifest与tag-pinned archive URL，不代表生产runtime或发布授权

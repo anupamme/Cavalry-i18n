@@ -2,6 +2,13 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+windows_native_pack_contract.ps1: Windows合同driver加载真实native pack校验器；只消费临时fixture，不安装软件。
+windows_native_pack.ps1: NSIS烟测的production三语资源校验器；显式接收源根与安装根，复用调用方断言，核manifest与payload字节。
+windows_native_build.js: Windows默认2.8生产包装器；准备官方资源和native DLL，独立Tauri子进程启用production，固定四overlay与显式x64目标，复用provenance三阶段。
+windows_native_build.test.js: 注入进程与文件操作验证准备/打包阶段、MSVC与CTest、DLL发布、production隔离及tag参数；不运行原生编译器。
+prepare_cavalry_28_windows_ci_inputs.ps1: Windows CI官方输入；按现有target摘要提取MSI到RUNNER_TEMP，aqt准备Qt6.9.2后导出assets/SDK路径，不安装宿主。
+prepare_cavalry_28_windows_ci_inputs.test.js: Windows输入脚本的官方源、既有身份、隔离路径及BOM/CRLF合同；不替代实际提取。
+check_windows_native_nsis.test.js: 核PS接线与BOM；Windows临时三语包调用真实PS校验器，验证原样通过与manifest/payload漂移拒绝；不执行安装。
 check_app_syntax.js: Node短入口按固定清单逐文件执行--check；保留原顺序，不经shell拼接，首个失败返回非零。
 check_app_syntax.test.js: 短入口与原218项顺序摘要合同；实际语法错/缺文件验证非零退出和停止后续检查。
 cavalry_native_windows_target.json: Windows 2.8官方MSI及x64运行时摘要锁；仅宿主准入，译文沿共享native catalog。
@@ -86,7 +93,7 @@ check_quick_add_display_tags.h: Fast 显示 fixture 的独立标签片段，验�
 
 check_macos_selection_values.sh: 本地原生 fixture 构建入口，显式接收 Qt SDK/vendor Frameworks、链接 Classic 评分 ABI 适配器，只读链接 libskia 并强制 SDK 单套 Qt/offscreen plugin，保留测试退出码。
 check_macos_selection_values.mm: Qt 原生选择值 fixture，直调 macOS 生产翻译入口并验证三语普通 QLineEdit、只读切换、Combo/编辑器/自定义弹出列表；实际值、信号与 Paint 不污染业务值，placeholder 仍翻译；只读链接显式 vendor Frameworks，不启动或修改真实 Cavalry。
-check_selection_value_contract.test.js: 同时锁定共享 Quick Add context 的双平台源码闭包； CI-safe 选择值保护接线合同，冻结双平台共享输入策略的 Combo/编辑器/弹出列表覆盖与 QLineEdit placeholder-only/实际名称查询值原文边界（含只读、parentless/重挂接），与原生 fixture 分层验收。
+check_selection_value_contract.test.js: 按实际runtime核对Mac输入策略与Windows native字体源码指纹； 同时锁定共享 Quick Add context 的双平台源码闭包； CI-safe 选择值保护接线合同，冻结双平台共享输入策略的 Combo/编辑器/弹出列表覆盖与 QLineEdit placeholder-only/实际名称查询值原文边界（含只读、parentless/重挂接），与原生 fixture 分层验收。
 check_macos_quick_add_inputs.sh: 本地 macOS Quick Add 搜索输入合同 runner；只读链接 Qt 6.6.3/vendor Frameworks，链接 Classic 评分 ABI 适配器，绿色运行生产搜索 guard，红测仅在临时生产源码副本恢复 QLineEdit 实际值 `setText` 污染后预期失败。
 check_macos_quick_add_inputs.mm: 覆盖预填充 parentless 补全输入及 owner 建立前的回调； Qt 原生 Quick Add 搜索输入 fixture；以 moc 生成精确 `QuickAddWindow`/`cavalry::FastQuickAddWindow`、`CompleterLineEdit`/`SearchBar`/`Widget` 父系，直调生产显示、callback 与 Paint 路径并验证三语完整/部分/大小写/CJK/清空 query 与 placeholder 分层，不启动或修改真实 Cavalry。
 check_quick_add_search.cpp: Qt 6.6.3 vendor-free FastQuickAdd model/view 合同；以可控 owner/model fixture 证明精确 FastQuickAddModel 下三语 role 257 alias 投影与内侧 Unicode code-point subsequence filter 不污染 role 0/256 与其他角色，并保留 vendor role 0/257 fuzzy subsequence 命中（含 Behaviour Mixer），覆盖视频词条 Text/Shape/Box/Circle、任意新条目、多词别名、大小写/标点/组合字符/clear、分类多实例、动态插入删除、源替换、幂等挂接、原始搜索框接线、拒绝任意 Qt 列表及 view/filter 双向析构、旧 filter 复用与 QObject 生命周期，不冒充真实 Cavalry UI 证据；搜索上下文 guard 来自窄 `injector/cavalry_i18n_quick_add_context.h`。
@@ -112,13 +119,13 @@ ui_review_server.js: 补丁 fixture 明确区分 current/updateAvailable/unknown
 ui_review_catalogs.js: UI Review 三类动态总览；从生产 tokens/styles 与 user-profile-text→ui-text 字典加载顺序读取四语反馈文案、语义图标和 Badge 状态，不维护第二套产品视觉资产。
 classify_ci_changes.js: GitHub Actions 变更风险分类器；项目技能Markdown只走文档门，技能脚本仍按未知源码全门；以 PR merge-base、push before/head 或事件强制策略投影 documentation/source/vulnerability/windows/macOS-injector 门，未知源码路径和不可解析 diff 均 fail-closed，tag/workflow_dispatch 永远跑完整闭环；共享 Quick Add 顶部标签与显示适配器、Classic 评分、描述输入/策略与生成表进入双平台 native 门。
 classify_ci_changes.test.js: CI 风险分类器离线合同；覆盖技能Markdown/脚本/混合原生/tag边界、纯文档、合同/SOP、Windows、macOS、共享翻译表及翻译/输入/Quick Add 顶部标签/显示/搜索/Classic 搜索与评分策略的逐文件双平台门、macOS-only 原生源码、依赖/workflow、定时漏洞复审、空 diff 与未知源码/自动化路径边界。
-check_tauri_build_sop.js: 2.8 ARM/Intel与Windows native生产入口合同；核共同production及Windows资源overlay，拒过期未实现声明；保留独立双feed、p12冻结、三平台发布guard及既有配置/provenance合同。
+check_tauri_build_sop.js: NSIS夹具读取真实production overlay与安装语言配置，验证三语包、源变更、语言文件漂移及完整prepare/record/verify； 2.8 ARM/Intel与Windows native生产入口合同；核共同production及Windows资源overlay，拒过期未实现声明；保留独立双feed、p12冻结、三平台发布guard及既有配置/provenance合同。
 check_tauri_packaged_app.js: 最终App资源验收；production-2.8按显式arm64/x86_64目标核App架构、架构中立manifest/三payload、同架构runtime内嵌与renderer字节闭包。默认仍选arm64；不把SKIP当生产通过。
 packaged_native_resources.js: 纯文件校验production包与构建输入一致；按显式目标架构将runtime Mach-O切片绑定可执行文件，manifest保持架构中立；不启动App。
 packaged_native_resources.test.js: 临时fixture验证资源manifest中立性、arm64/x86_64 runtime正反例、错误profile/缺译/字节漂移与错误目标架构。
 windows_nsis_provenance_contract.js: Windows NSIS provenance 跨边界结构真相层；从 machine-readable schema 读取唯一版本、目标与 required keys，向 producer 提供文档构造器、向 producer/verifier 提供同一 fail-closed 结构校验，但不替代双方对真实文件与哈希的独立复验。
-windows_nsis_provenance.js: Windows x64 NSIS 当前输入自证器；通过共享 contract 生成 schema v2 sidecar，intent 区分普通构建与 tag updater 构建，前者拒绝任意 `.exe.sig`，后者要求并绑定 exact base64 signature；只清本版本受控 EXE/provenance/signature，拒绝外国输出，并对 renderer/languages/Tauri/updater overlay/Rust/native/shared translation+input+Quick Add context+tabs+display+search+Classic search/rank+Quick Add 描述 policy/JSON/generated table/generic/QPA 复算 fingerprint。
-check_windows_nsis_install.ps1: 带 UTF-8 BOM 的 Windows x64 NSIS 安装态守门器；先以 `windows_nsis_provenance.js` 复算显式 `x86_64-pc-windows-msvc` target 的唯一 EXE/sidecar，再在固定 HKCU/快捷方式冲突即失败的前提下于唯一随机 `%TEMP%` 根静默安装、以同一安装器执行 `/UPDATE`、仅通过包内卸载器静默卸载并观察零残留；三阶段都要求独立 TEMP 根中 `qwindows.dll`、vendor backup 与 manifest 的长度/SHA-256 哨兵不变，漂移时保留证据，禁止递归删除掩盖失败。
+windows_nsis_provenance.js: 与默认wrapper共用四份2.8配置；指纹绑定native三语包、原生源码、译文、两DLL及配置的NSIS语言文件；通过共享 contract 生成 schema v2 sidecar，intent 区分普通构建与 tag updater 构建，前者拒绝任意 `.exe.sig`，后者要求并绑定 exact base64 signature；只清本版本受控 EXE/provenance/signature，拒绝外国输出，并对 renderer/languages/Tauri/updater overlay/Rust/native/shared translation+input+Quick Add context+tabs+display+search+Classic search/rank+Quick Add 描述 policy/JSON/generated table/generic/QPA 复算 fingerprint。
+check_windows_nsis_install.ps1: 核对生成输入与已安装的2.8 production manifest/三语pack；带 UTF-8 BOM 的 Windows x64 NSIS 安装态守门器；先以 `windows_nsis_provenance.js` 复算显式 `x86_64-pc-windows-msvc` target 的唯一 EXE/sidecar，再在固定 HKCU/快捷方式冲突即失败的前提下于唯一随机 `%TEMP%` 根静默安装、以同一安装器执行 `/UPDATE`、仅通过包内卸载器静默卸载并观察零残留；三阶段都要求独立 TEMP 根中 `qwindows.dll`、vendor backup 与 manifest 的长度/SHA-256 哨兵不变，漂移时保留证据，禁止递归删除掩盖失败。
 capture_windows_pid_window.ps1: 带 UTF-8 BOM 的 Windows disposable live-smoke GUI 证据 helper；先验 `%TEMP%` sentinel clone/evidence、无 reparse 路径链与精确 PID，自动截取 Viewport Quality/Transform 且 Transform 必须同时命中 action 与三条长操作前缀的 64 位位图，并在有界 exact-HWND 前台获取重试中以 `VK_A` 触发 Edit Shape，键投递前由 helper 再复核 HWND/PID；Onboarding 只接受 runtime 发布的非零十进制 HWND，复核可见、未 cloaked 且属于 exact PID 后直接截图；Adjacent 正式 gate 由 producer-side Qt grab 封存瞬态 PNG，本 helper 的 exact-HWND screen-copy 只保留为诊断回退；Close 向 exact PID 全部顶层 HWND 投递 WM_CLOSE，ForceStop 只在超时且再次复核同 executable/PID 后用于 disposable child 清理，不参与 PASS；按键后的同 PID 子窗/模态窗焦点变化不再被误判为失败，禁止盲键确认、场景脚本、Qt UIA、坐标/鼠标自动化、固定 sleep 和覆盖证据。
 check_dmg_layout.sh: DMG 身份、布局与签名守门器；挂载真实镜像并从 `.DS_Store` 锁定 800×476 Finder frame、400px 左锚和非正 AppKit bottom-origin，确保首次打开由 Finder 约束到当前可见底边；同时验证卷标、背景、卷宗图标、Applications 链接及 DMG/安装态 bundle seal。
 window_contract_lib.js: 窗口回归公共库，封装 AX 权限探测、精确 PID 绑定的窗口枚举/聚焦/resize/关闭、选定bundle的CFBundleName读取、原生交通灯几何与About菜单精确操作，以及400×541 Overlay内容截图与`sips`尺寸归一；System Events直接tell PID，旧API保持兼容。

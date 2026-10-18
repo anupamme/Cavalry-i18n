@@ -1,4 +1,4 @@
-# [INPUT]: 依赖受控workflow_dispatch选择器、2.8 ARM/Intel生产输入、漏洞审计例外、tag-only updater、Windows闭包与GitHub环境
+# [INPUT]: 依赖受控workflow_dispatch选择器、2.8 ARM/Intel生产输入、漏洞审计例外、tag-only updater、Windows2.8官方输入/native生产包装器与GitHub环境
 # [OUTPUT]: 对外提供风险分流、同SHA源码门后的2.8 macOS双架构预验、隔离资源的Rust测试、PR/main聚合门、Windows闭环、2.8 tag阻断及Release闭环
 # [POS]: 唯一CI/CD编排器；手动2.8预验仅跳过漏洞审计，等待同SHA源码门后打包；公开tag仍受三平台guard约束
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -148,7 +148,7 @@ jobs:
       - name: Require ready production runtime for 2.8 tags
         if: ${{ startsWith(github.ref, 'refs/tags/cavalry-') && steps.release_profile.outputs.config == 'release-2.8.config.json' }}
         run: |
-          echo "implementation-not-ready: Cavalry 2.8 production runtime is not wired for all declared platforms; refusing to build or publish." >&2
+          echo "implementation-not-ready: Cavalry 2.8 public release closure is not approved; refusing to build or publish." >&2
           exit 1
 
       - name: Skip release ancestry gate for non-tag CI
@@ -493,10 +493,11 @@ jobs:
           $identity -join [Environment]::NewLine | Set-Content -LiteralPath $identityPath -Encoding utf8
           Write-Output "Pinned Windows CMake identity: $identityPath"
 
-      - name: Build Windows runtime trust anchors
-        run: |
-          npm run prepare:qt-sdk:windows
-          npm run build:injector:windows
+      - name: Prepare Cavalry 2.8 Windows production inputs
+        run: node tools/powershell_command.js tools/prepare_cavalry_28_windows_ci_inputs.ps1
+
+      - name: Build Windows 2.8 native runtime and language packs
+        run: npm run prepare:tauri:windows-bundle
 
       - name: Record Windows producer toolchain evidence
         shell: pwsh
@@ -534,7 +535,7 @@ jobs:
 
       - name: Build the Windows NSIS installer (PR/main)
         if: ${{ !startsWith(github.ref, 'refs/tags/cavalry-') }}
-        run: npm run build:tauri:windows
+        run: npm run build:tauri:windows -- --package-only
 
       - name: Build the Windows NSIS installer and updater signature (tag)
         if: startsWith(github.ref, 'refs/tags/cavalry-')
@@ -542,19 +543,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           CAVALRY_I18N_EXPECT_UPDATER_SIGNATURE: '1'
-        run: |
-          npm run prepare:qt-sdk:windows
-          $tauriArguments = @(
-            'build',
-            '--target', 'x86_64-pc-windows-msvc',
-            '--config', 'src-tauri/tauri.windows.conf.json',
-            '--config', 'src-tauri/tauri.updater-artifacts.conf.json'
-          )
-          if ($env:TAURI_UPDATER_ENDPOINT_CONFIG) {
-            $tauriArguments += @('--config', $env:TAURI_UPDATER_ENDPOINT_CONFIG)
-          }
-          npm run tauri -- @tauriArguments
-          node tools/windows_nsis_provenance.js --record
+        run: npm run build:tauri:windows -- --package-only --updater
 
       - name: Install, update, and uninstall the Windows NSIS package
         run: npm run test:tauri:windows-nsis

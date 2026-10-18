@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖2.8 ARM/Intel生产profile、Qt6.9.2与同源码native runtime、Tauri macOS/release overlays、production语言包、package/CHANGELOG、跨平台工具、CI变更分类器、Windows NSIS provenance、macOS资源readback、SOP/workflow、发布provenance、Actions pins与source artifact清单
+ * [INPUT]: 依赖2.8 ARM/Intel生产profile、Qt6.9.2与同源码native runtime、Tauri macOS/release overlays、production语言包、package/CHANGELOG、跨平台工具、CI变更分类器、Windows NSIS provenance与真实资源配置夹具、macOS资源readback、SOP/workflow、发布provenance、Actions pins与source artifact清单
  * [OUTPUT]: 校验双架构入口、packaged profile、手动预验唯一漏洞例外、源码前置与CI聚合边界；保留三平台tag guard、2.8双feed、p12历史下载、Windows NSIS与release provenance合同
  * [POS]: tools 的 Tauri打包守门；macOS预验与公开三平台发行分别裁决
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -17,6 +17,7 @@ const { runPowerShellScript } = require('./powershell_command.js');
 const { resolvePythonCommand } = require('./python_command.js');
 const { cleanupTempDirs, makeTempDir } = require('./test_temp_dir.js');
 const { APP_SYNTAX_FILES } = require('./check_app_syntax.js');
+const { WINDOWS_PRODUCTION_CONFIGS } = require('./windows_native_build.js');
 const {
   createDmgVolumeName,
   resolveDmgArchitecture,
@@ -344,88 +345,48 @@ function makeWindowsNsisProvenanceFixture() {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, content);
   };
-  fs.mkdirSync(path.join(tempRoot, 'tools'), { recursive: true });
-  fs.copyFileSync(
-    path.join(repoRoot, 'tools', 'windows_nsis_provenance.js'),
-    path.join(tempRoot, 'tools', 'windows_nsis_provenance.js')
-  );
-  fs.copyFileSync(
-    path.join(repoRoot, 'tools', 'windows_nsis_provenance_contract.js'),
-    path.join(tempRoot, 'tools', 'windows_nsis_provenance_contract.js')
-  );
-  fs.mkdirSync(path.join(tempRoot, 'tools', 'schemas'), { recursive: true });
-  fs.copyFileSync(
-    path.join(repoRoot, 'tools', 'schemas', 'windows_nsis_provenance.schema.json'),
-    path.join(tempRoot, 'tools', 'schemas', 'windows_nsis_provenance.schema.json')
-  );
-  writeJson(path.join(tempRoot, 'package.json'), { name: 'cavalry-i18n', version: '9.8.7' });
-  writeJson(path.join(tempRoot, 'package-lock.json'), {
-    name: 'cavalry-i18n',
-    version: '9.8.7',
-    lockfileVersion: 3,
-    packages: { '': { name: 'cavalry-i18n', version: '9.8.7' } },
-  });
-  writeJson(path.join(tempRoot, 'src-tauri', 'tauri.conf.json'), {
-    productName: 'Cavalry Language Switcher',
-    version: '9.8.7',
-    build: { frontendDist: '../renderer' },
-  });
-  writeJson(path.join(tempRoot, 'src-tauri', 'tauri.windows.conf.json'), {
-    bundle: {
-      targets: ['nsis'],
-      resources: {
-        '../languages': 'languages',
-        '../injector/windows/generic/cavalryi18n.dll': 'injector/windows/generic/cavalryi18n.dll',
-        '../injector/windows/qpa/qwindows.dll': 'injector/windows/qpa/qwindows.dll',
-      },
-      windows: {
-        nsis: {
-          installerHooks: 'nsis-hooks.nsh',
-        },
-      },
-    },
-  });
-  writeJson(path.join(tempRoot, 'src-tauri', 'tauri.updater-artifacts.conf.json'), {
-    bundle: { createUpdaterArtifacts: true },
-  });
-  writeJson(path.join(tempRoot, 'src-tauri', 'capabilities', 'default.json'), { permissions: [] });
-  write('renderer/index.html', '<!doctype html><title>fixture</title>');
-  write('languages/en/appStrings.json', '{"fixture":"English"}\n');
-  for (const language of ['en', 'zh-Hans', 'zh-Hant', 'ja_JP']) {
-    write(`languages/${language}/nodeStrings.json`, '[]\n');
-    write(`languages/${language}/plugins/boxBlurFilter.json`, '[]\n');
+  for (const file of ['windows_nsis_provenance.js', 'windows_nsis_provenance_contract.js', 'windows_native_build.js']) {
+    write(`tools/${file}`, fs.readFileSync(path.join(repoRoot, 'tools', file)));
   }
+  write('tools/schemas/windows_nsis_provenance.schema.json', readText('tools/schemas/windows_nsis_provenance.schema.json'));
+  const metadata = { name: 'cavalry-i18n', version: '9.8.7' };
+  writeJson(path.join(tempRoot, 'package.json'), metadata);
+  writeJson(path.join(tempRoot, 'package-lock.json'), {
+    ...metadata, lockfileVersion: 3, packages: { '': metadata },
+  });
+  writeJson(path.join(tempRoot, 'src-tauri/tauri.conf.json'), {
+    productName: 'Cavalry Language Switcher', version: '9.8.7', build: { frontendDist: '../renderer' },
+  });
+  for (const file of [...WINDOWS_PRODUCTION_CONFIGS, 'src-tauri/tauri.updater-artifacts.conf.json']) {
+    writeJson(path.join(tempRoot, file), readJson(file));
+  }
+  writeJson(path.join(tempRoot, 'src-tauri/capabilities/default.json'), { permissions: [] });
+  write('renderer/index.html', '<!doctype html><title>fixture</title>');
+  for (const language of ['zh-Hans', 'zh-Hant', 'ja_JP']) {
+    write(`src-tauri/target/native-language-packs/${language}.json`, '[]\n');
+  }
+  write('src-tauri/target/native-language-packs/manifest.json', '{"kind":"production-2.8","complete":true}\n');
   write('src-tauri/src/lib.rs', 'pub fn fixture() {}\n');
   write('src-tauri/Cargo.toml', '[package]\nname = "fixture"\nversion = "9.8.7"\n');
   write('src-tauri/Cargo.lock', 'version = 4\n');
   write('src-tauri/build.rs', 'fn main() {}\n');
   write('src-tauri/nsis-hooks.nsh', '!macro NSIS_HOOK_POSTUNINSTALL\n!macroend\n');
+  for (const file of Object.values(readJson('src-tauri/tauri.windows.conf.json').bundle.windows.nsis.customLanguageFiles)) {
+    write(`src-tauri/${file}`, '; installer language fixture\n');
+  }
   write('src-tauri/icons/icon.ico', Buffer.from([0, 0, 1, 0]));
-  write(
-    'injector/cavalry_i18n_translation_policy.h',
-    '// shared Windows/macOS translation policy fixture\n'
-  );
-  write('injector/cavalry_i18n_input_policy.h', '// shared input policy fixture\n');
-  write('injector/cavalry_i18n_quick_add_context.h', '// shared Quick Add context fixture\n');
-  write('injector/cavalry_i18n_quick_add_display.h', '// shared Quick Add display fixture\n');
-  write('injector/cavalry_i18n_quick_add_tabs.h', '// shared Quick Add tabs fixture\n');
-  write('injector/cavalry_i18n_search_policy.h', '// shared search policy fixture\n');
-  write('injector/cavalry_i18n_classic_search.h', '// shared classic search policy fixture\n');
-  write('injector/cavalry_i18n_classic_rank.h', '// shared classic rank policy fixture\n');
-  write('injector/cavalry_i18n_search_descriptions.h', '// shared Quick Add descriptions fixture\n');
-  write('injector/generated_translations.inc', '// generated translation fixture\n');
-  write('injector/generated_quick_add_descriptions.inc', '// generated Quick Add descriptions fixture\n');
-  write('tools/generate_quick_add_descriptions.js', '// Quick Add descriptions generator fixture\n');
-  write(
-    'injector/windows/CMakeLists.txt',
-    'cmake_minimum_required(VERSION 3.21)\nproject(cavalryi18n_fixture)\n'
-  );
-  write(
-    'injector/windows/cavalry_i18n_qpa_proxy.cpp',
-    '// Windows native source fixture\n'
-  );
-  write('injector/windows/generic/cavalryi18n.dll', Buffer.from('fixture-plugin'));
-  write('injector/windows/qpa/qwindows.dll', Buffer.from('fixture-qpa-proxy'));
+  write('injector/windows/native/CMakeLists.txt', 'cmake_minimum_required(VERSION 4.2)\n');
+  write('injector/windows/native/runtime.cpp', '// Windows 2.8 native source fixture\n');
+  write('injector/native/display_policy.h', '// shared native display policy\n');
+  write('injector/native/getpath_font_texts.inc', '// approved native fonts\n');
+  write('injector/native/getpath_graph_editor_empty_texts.inc', '// approved graph texts\n');
+  write('injector/cavalry_i18n_macos_timeline_font_policy.h', '// shared native font selection\n');
+  write('languages/native/approved_fixture.js', '// approved native translations\n');
+  write('tools/native_resource_bundle.js', '// native pack producer fixture\n');
+  write('tools/cavalry_native_target.json', '{}\n');
+  write('tools/cavalry_native_windows_target.json', '{}\n');
+  write('injector/windows/generic/cavalryi18n.dll', Buffer.from('fixture-native-plugin'));
+  write('injector/windows/qpa/qwindows.dll', Buffer.from('fixture-native-qpa-proxy'));
   return tempRoot;
 }
 
@@ -545,7 +506,7 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   assert.equal(pkg.scripts.build, 'npm run build:tauri');
   assert.equal(
     pkg.scripts['build:tauri:windows'],
-    'npm run prepare:qt-sdk:windows && tauri build --target x86_64-pc-windows-msvc --config src-tauri/tauri.windows.conf.json && node tools/windows_nsis_provenance.js --record'
+    'node tools/windows_native_build.js'
   );
   assert.equal(
     pkg.scripts['build:injector:windows'],
@@ -553,7 +514,7 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   );
   assert.equal(
     pkg.scripts['prepare:tauri:windows-bundle'],
-    'npm run build:injector:windows && node tools/windows_nsis_provenance.js --prepare'
+    'node tools/windows_native_build.js --prepare-only'
   );
   assert.equal(
     pkg.scripts['test:tauri:windows-nsis'],
@@ -634,198 +595,84 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   );
 });
 
-test('Windows NSIS provenance binds one new installer to current dirty packaging inputs', () => {
+test('Windows NSIS provenance follows production resources and installer languages', () => {
   const tempRoot = makeWindowsNsisProvenanceFixture();
-  const script = path.join(tempRoot, 'tools', 'windows_nsis_provenance.js');
-  const bundleRoot = path.join(
-    tempRoot,
-    'src-tauri',
-    'target',
-    'x86_64-pc-windows-msvc',
-    'release',
-    'bundle',
-    'nsis'
-  );
+  const producer = require(path.join(tempRoot, 'tools/windows_nsis_provenance.js'));
+  const fingerprint = producer.collectInputFingerprint(tempRoot);
+  const inputPaths = new Set(fingerprint.files.map(entry => entry.path));
+  for (const locale of ['zh-Hans', 'zh-Hant', 'ja_JP']) {
+    assert.ok(inputPaths.has(`src-tauri/target/native-language-packs/${locale}.json`));
+  }
+  for (const file of WINDOWS_PRODUCTION_CONFIGS) assert.ok(inputPaths.has(file));
+  const base = readJson(path.join(tempRoot, 'src-tauri/tauri.windows.conf.json'));
+  for (const file of Object.values(base.bundle.windows.nsis.customLanguageFiles)) {
+    assert.ok(inputPaths.has(`src-tauri/${file}`), `bind configured NSIS input ${file}`);
+  }
+  const oldJson = path.join(tempRoot, 'languages/en/unshipped.json');
+  fs.mkdirSync(path.dirname(oldJson), { recursive: true });
+  fs.writeFileSync(oldJson, '{"legacy":true}\n');
+  assert.deepEqual(producer.collectInputFingerprint(tempRoot), fingerprint,
+    'legacy language JSON is not a native production input');
+  const configPath = path.join(tempRoot, 'src-tauri/tauri.native-windows-2.8.conf.json');
+  const config = readJson(configPath);
+  const source = 'target/native-language-packs';
+  delete config.bundle.resources[source];
+  writeJson(configPath, config);
+  assert.throws(() => producer.collectInputFingerprint(tempRoot), /missing the required/);
+  config.bundle.resources[source] = 'wrong-target';
+  writeJson(configPath, config);
+  assert.throws(() => producer.collectInputFingerprint(tempRoot), /missing the required/);
+});
+
+test('Windows NSIS production prepare, record and verify bind current inputs', () => {
+  const tempRoot = makeWindowsNsisProvenanceFixture();
+  const script = path.join(tempRoot, 'tools/windows_nsis_provenance.js');
+  const bundleRoot = path.join(tempRoot, 'src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis');
   const installerName = 'Cavalry Language Switcher_9.8.7_x64-setup.exe';
   const installerPath = path.join(bundleRoot, installerName);
-  const provenanceModule = require(script);
-  const run = (...args) => spawnSync(process.execPath, [script, ...args], {
-    cwd: tempRoot,
-    encoding: 'utf8',
-  });
-
+  const run = (...args) => spawnSync(process.execPath, [script, ...args], { cwd: tempRoot, encoding: 'utf8' });
   fs.mkdirSync(bundleRoot, { recursive: true });
   fs.writeFileSync(installerPath, 'stale-current-version-installer');
   const prepared = run('--prepare');
   assert.equal(prepared.status, 0, prepared.stderr || prepared.stdout);
-  assert.equal(fs.existsSync(installerPath), false, 'prepare must remove only the expected old installer');
-  assert.equal(
-    fs.existsSync(path.join(bundleRoot, 'cavalry-i18n-windows-nsis-build-intent.json')),
-    true,
-    'prepare must leave a build intent for record'
-  );
-
+  assert.equal(fs.existsSync(installerPath), false);
   fs.writeFileSync(installerPath, 'fresh-installer-bytes');
   const recorded = run('--record');
   assert.equal(recorded.status, 0, recorded.stderr || recorded.stdout);
-  const provenancePath = `${installerPath}.provenance.json`;
-  const provenance = JSON.parse(fs.readFileSync(provenancePath, 'utf8'));
+  const provenance = readJson(`${installerPath}.provenance.json`);
   assert.equal(provenance.target, 'x86_64-pc-windows-msvc');
   assert.equal(provenance.version, '9.8.7');
   assert.equal(provenance.installer.fileName, installerName);
-  assert.equal(provenance.installer.bytes, Buffer.byteLength('fresh-installer-bytes'));
   assert.equal(provenance.updaterSignature, null);
-  assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'renderer/index.html'));
-  assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'languages/en/appStrings.json'));
-  assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'src-tauri/src/lib.rs'));
-  assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'injector/windows/generic/cavalryi18n.dll'));
-  assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'injector/windows/qpa/qwindows.dll'));
-  for (const requiredInput of [
-    'package.json',
-    'package-lock.json',
-    'src-tauri/Cargo.toml',
-    'src-tauri/Cargo.lock',
-    'src-tauri/build.rs',
-    'src-tauri/tauri.conf.json',
-    'src-tauri/tauri.windows.conf.json',
-    'src-tauri/tauri.updater-artifacts.conf.json',
+  assert.equal(run('--verify', installerPath).status, 0);
+  const module = require(script);
+  assert.doesNotThrow(() => module.verify(fs.realpathSync.native(tempRoot), installerPath));
+  for (const relative of [
+    'renderer/index.html', 'src-tauri/src/lib.rs', 'src-tauri/build.rs',
+    ...WINDOWS_PRODUCTION_CONFIGS,
     'src-tauri/nsis-hooks.nsh',
-    'src-tauri/capabilities/default.json',
-    'src-tauri/icons/icon.ico',
-    'injector/cavalry_i18n_translation_policy.h',
-    'injector/cavalry_i18n_input_policy.h',
-    'injector/cavalry_i18n_quick_add_context.h',
-    'injector/cavalry_i18n_quick_add_display.h',
-    'injector/cavalry_i18n_quick_add_tabs.h',
-    'injector/cavalry_i18n_search_policy.h',
-    'injector/cavalry_i18n_classic_search.h',
-    'injector/cavalry_i18n_classic_rank.h',
-    'injector/cavalry_i18n_search_descriptions.h',
-    'injector/generated_translations.inc',
-    'injector/generated_quick_add_descriptions.inc',
-    'tools/generate_quick_add_descriptions.js',
-    'languages/en/nodeStrings.json',
-    'languages/en/plugins/boxBlurFilter.json',
-    'languages/zh-Hans/nodeStrings.json',
-    'languages/zh-Hans/plugins/boxBlurFilter.json',
-    'languages/zh-Hant/nodeStrings.json',
-    'languages/zh-Hant/plugins/boxBlurFilter.json',
-    'languages/ja_JP/nodeStrings.json',
-    'languages/ja_JP/plugins/boxBlurFilter.json',
-    'injector/windows/CMakeLists.txt',
-    'injector/windows/cavalry_i18n_qpa_proxy.cpp',
+    ...Object.values(readJson('src-tauri/tauri.windows.conf.json').bundle.windows.nsis.customLanguageFiles)
+      .map(file => `src-tauri/${file}`),
+    'src-tauri/target/native-language-packs/manifest.json',
+    'src-tauri/target/native-language-packs/zh-Hans.json',
+    'src-tauri/target/native-language-packs/zh-Hant.json',
+    'src-tauri/target/native-language-packs/ja_JP.json',
+    'injector/windows/native/runtime.cpp', 'injector/native/display_policy.h',
+    'injector/native/getpath_font_texts.inc', 'injector/native/getpath_graph_editor_empty_texts.inc',
+    'injector/cavalry_i18n_macos_timeline_font_policy.h',
+    'languages/native/approved_fixture.js', 'tools/native_resource_bundle.js',
+    'tools/cavalry_native_windows_target.json',
+    'injector/windows/generic/cavalryi18n.dll', 'injector/windows/qpa/qwindows.dll',
   ]) {
-    assert.ok(
-      provenance.inputFingerprint.files.some((entry) => entry.path === requiredInput),
-      `provenance must bind ${requiredInput}`
-    );
+    assert.ok(provenance.inputFingerprint.files.some(entry => entry.path === relative), `bind ${relative}`);
+    const file = path.join(tempRoot, relative);
+    const original = fs.readFileSync(file);
+    fs.appendFileSync(file, ' ');
+    assert.notEqual(run('--verify', installerPath).status, 0, `reject changed input ${relative}`);
+    fs.writeFileSync(file, original);
   }
-
-  const verified = run('--verify', installerPath);
-  assert.equal(verified.status, 0, verified.stderr || verified.stdout);
-  assert.equal(provenanceModule.TARGET_TRIPLE, 'x86_64-pc-windows-msvc');
-  assert.doesNotThrow(() => provenanceModule.verify(fs.realpathSync.native(tempRoot), installerPath));
   fs.appendFileSync(installerPath, '-tampered');
-  assert.throws(
-    () => provenanceModule.verify(fs.realpathSync.native(tempRoot), installerPath),
-    /sidecar does not match the current installer bytes and packaging input fingerprint/
-  );
-  fs.writeFileSync(installerPath, 'fresh-installer-bytes');
-  fs.appendFileSync(
-    path.join(tempRoot, 'injector', 'windows', 'cavalry_i18n_qpa_proxy.cpp'),
-    '// dirty-after-package\n'
-  );
-  const staleNativeSource = run('--verify', installerPath);
-  assert.notEqual(
-    staleNativeSource.status,
-    0,
-    'a dirty native source input must invalidate the old installer sidecar'
-  );
-  assert.match(
-    staleNativeSource.stderr,
-    /sidecar does not match the current installer bytes and packaging input fingerprint/
-  );
-  fs.writeFileSync(
-    path.join(tempRoot, 'injector', 'windows', 'cavalry_i18n_qpa_proxy.cpp'),
-    '// Windows native source fixture\n'
-  );
-  fs.appendFileSync(
-    path.join(tempRoot, 'injector', 'cavalry_i18n_translation_policy.h'),
-    '// dirty-shared-policy-after-package\n'
-  );
-  const staleSharedTranslationPolicy = run('--verify', installerPath);
-  assert.notEqual(
-    staleSharedTranslationPolicy.status,
-    0,
-    'a dirty shared translation policy must invalidate the old installer sidecar'
-  );
-  assert.match(
-    staleSharedTranslationPolicy.stderr,
-    /sidecar does not match the current installer bytes and packaging input fingerprint/
-  );
-  fs.writeFileSync(
-    path.join(tempRoot, 'injector', 'cavalry_i18n_translation_policy.h'),
-    '// shared Windows/macOS translation policy fixture\n'
-  );
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_input_policy.h'), '// changed input policy\n');
-  const staleInputPolicy = run('--verify', installerPath);
-  assert.notEqual(staleInputPolicy.status, 0, 'input policy changes must invalidate old installer provenance');
-  assert.match(staleInputPolicy.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_input_policy.h'), '// shared input policy fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_quick_add_context.h'), '// changed Quick Add context\n');
-  const staleQuickAddContext = run('--verify', installerPath);
-  assert.notEqual(staleQuickAddContext.status, 0, 'Quick Add context changes must invalidate old installer provenance');
-  assert.match(staleQuickAddContext.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_quick_add_context.h'), '// shared Quick Add context fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_quick_add_display.h'), '// changed Quick Add display policy\n');
-  const staleQuickAddDisplay = run('--verify', installerPath);
-  assert.notEqual(staleQuickAddDisplay.status, 0, 'Quick Add display policy changes must invalidate old installer provenance');
-  assert.match(staleQuickAddDisplay.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_quick_add_display.h'), '// shared Quick Add display fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_quick_add_tabs.h'), '// changed Quick Add tabs policy\n');
-  const staleQuickAddTabs = run('--verify', installerPath);
-  assert.notEqual(staleQuickAddTabs.status, 0, 'Quick Add tabs policy changes must invalidate old installer provenance');
-  assert.match(staleQuickAddTabs.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_quick_add_tabs.h'), '// shared Quick Add tabs fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_search_policy.h'), '// changed search policy\n');
-  const staleSearchPolicy = run('--verify', installerPath);
-  assert.notEqual(staleSearchPolicy.status, 0, 'search policy changes must invalidate old installer provenance');
-  assert.match(staleSearchPolicy.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_search_policy.h'), '// shared search policy fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_classic_search.h'), '// changed classic search policy\n');
-  const staleClassicSearchPolicy = run('--verify', installerPath);
-  assert.notEqual(staleClassicSearchPolicy.status, 0, 'classic search policy changes must invalidate old installer provenance');
-  assert.match(staleClassicSearchPolicy.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_classic_search.h'), '// shared classic search policy fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_classic_rank.h'), '// changed classic rank policy\n');
-  const staleClassicRankPolicy = run('--verify', installerPath);
-  assert.notEqual(staleClassicRankPolicy.status, 0, 'classic rank policy changes must invalidate old installer provenance');
-  assert.match(staleClassicRankPolicy.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_classic_rank.h'), '// shared classic rank policy fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_search_descriptions.h'), '// changed descriptions policy\n');
-  const staleQuickAddDescriptionsPolicy = run('--verify', installerPath);
-  assert.notEqual(staleQuickAddDescriptionsPolicy.status, 0, 'Quick Add descriptions policy changes must invalidate old installer provenance');
-  assert.match(staleQuickAddDescriptionsPolicy.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_search_descriptions.h'), '// shared Quick Add descriptions fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'generated_quick_add_descriptions.inc'), '// changed descriptions table\n');
-  const staleQuickAddDescriptionsTable = run('--verify', installerPath);
-  assert.notEqual(staleQuickAddDescriptionsTable.status, 0, 'Quick Add descriptions table changes must invalidate old installer provenance');
-  assert.match(staleQuickAddDescriptionsTable.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'injector', 'generated_quick_add_descriptions.inc'), '// generated Quick Add descriptions fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'tools', 'generate_quick_add_descriptions.js'), '// changed descriptions generator\n');
-  const staleQuickAddDescriptionsGenerator = run('--verify', installerPath);
-  assert.notEqual(staleQuickAddDescriptionsGenerator.status, 0, 'Quick Add descriptions generator changes must invalidate old installer provenance');
-  assert.match(staleQuickAddDescriptionsGenerator.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'tools', 'generate_quick_add_descriptions.js'), '// Quick Add descriptions generator fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'languages', 'zh-Hans', 'plugins', 'boxBlurFilter.json'), '// changed localized description input\n');
-  const staleQuickAddDescriptionsJson = run('--verify', installerPath);
-  assert.notEqual(staleQuickAddDescriptionsJson.status, 0, 'localized Quick Add descriptions JSON changes must invalidate old installer provenance');
-  assert.match(staleQuickAddDescriptionsJson.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'languages', 'zh-Hans', 'plugins', 'boxBlurFilter.json'), '[]\n');
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'windows', 'qpa', 'qwindows.dll'), '-dirty-after-package');
-  const staleInputs = run('--verify', installerPath);
-  assert.notEqual(staleInputs.status, 0, 'a dirty packaging input must invalidate the old installer sidecar');
-  assert.match(staleInputs.stderr, /sidecar does not match the current installer bytes and packaging input fingerprint/);
+  assert.notEqual(run('--verify', installerPath).status, 0);
 });
 
 test('Windows NSIS provenance binds an updater signature only when tag intent requires it', () => {
@@ -1251,14 +1098,10 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   assert.match(windowsCmake, /cavalryi18n_quick_add_search_test[\s\S]*check_quick_add_search\.cpp/);
   assert.match(windowsCmake, /cavalryi18n_classic_quick_add_search_test[\s\S]*check_classic_quick_add_search\.cpp/);
   assert.match(windowsProvenance, /function assertNoReparsePathChain/);
-  assert.match(
-    windowsProvenance,
-    /path\.join\('injector', 'windows'\)[\s\S]*\(\?:cpp\|h\|json\|ps1\)[\s\S]*injector', 'generated_translations\.inc'/
-  );
-  assert.match(
-    windowsProvenance,
-    /cavalry_i18n_search_descriptions\.h[\s\S]*generated_quick_add_descriptions\.inc[\s\S]*generate_quick_add_descriptions\.js/
-  );
+  assert.match(windowsProvenance, /WINDOWS_PRODUCTION_CONFIGS/);
+  for (const input of ['injector/windows', 'injector/native', 'languages/native', 'target/native-language-packs']) {
+    assert.ok(windowsProvenance.includes(input), `native packaging fingerprints ${input}`);
+  }
   assert.match(
     windowsProvenance,
     /assertNoReparsePathChain\(bundleRoot, 'Windows NSIS bundle root'\)[\s\S]*fs\.mkdirSync\(bundleRoot[\s\S]*assertNoReparsePathChain\(bundleRoot, 'Windows NSIS bundle root after creation'\)/
@@ -1326,11 +1169,8 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
     packageMacosJob[1],
     /RELEASE_PROFILE_CONFIG: \$\{\{ needs\.release_tag_preflight\.outputs\.release_profile_config \}\}[\s\S]*TAURI_UPDATER_ENDPOINT_CONFIG: \$\{\{ needs\.release_tag_preflight\.outputs\.tauri_endpoint_config \}\}/
   );
-  assert.match(
-    windowsCheckJob[1],
-    /if \(\$env:TAURI_UPDATER_ENDPOINT_CONFIG\)[\s\S]*@\('--config', \$env:TAURI_UPDATER_ENDPOINT_CONFIG\)[\s\S]*npm run tauri -- @tauriArguments/,
-    'the Windows tag package must add only the selected endpoint overlay after platform/updater config'
-  );
+  assert.match(windowsCheckJob[1], /npm run build:tauri:windows -- --package-only --updater/);
+  assert.equal(WINDOWS_PRODUCTION_CONFIGS.at(-1), 'src-tauri/tauri.release-2.8.conf.json');
   assert.match(
     packageMacosJob[1],
     /if \[\[ -z "\$\{TAURI_UPDATER_ENDPOINT_CONFIG:-\}\" \]\][\s\S]*Tag packaging requires the endpoint overlay selected by release_tag_preflight[\s\S]*--config src-tauri\/tauri\.updater-artifacts\.conf\.json[\s\S]*--config "\$TAURI_UPDATER_ENDPOINT_CONFIG"/,
@@ -1393,8 +1233,11 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   assert.match(localSop, /workflow已按所选2\.8 profile向tag打包命令传独立endpoint overlay/);
   assert.match(localSop, /Intel的2\.8 x86_64及Windows native本地构建入口已接通/);
   assert.doesNotMatch(localSop, /Windows生产runtime仍未接通/);
-  assert.match(localSop, /8\.1 Windows 2\.8 native本地构建/);
-  assert.match(localSop, /tauri\.native-production-2\.8\.conf\.json[\s\S]*tauri\.native-windows-2\.8\.conf\.json/);
+  assert.match(localSop, /8\.1 Windows 2\.8默认本地构建/);
+  assert.match(localSop, /windows_native_build\.js/);
+  assert.deepEqual(WINDOWS_PRODUCTION_CONFIGS.slice(1, 3), [
+    'src-tauri/tauri.native-production-2.8.conf.json', 'src-tauri/tauri.native-windows-2.8.conf.json',
+  ]);
   assert.match(localSop, /保留三平台production guard/);
   assert.match(localSop, /三种发布资产：/);
   assert.match(localSop, /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-p12_aarch64\.dmg/);
@@ -1975,17 +1818,18 @@ test('Windows CI runs deterministic dependencies, contracts, Rust tests, and an 
   assert.ok(job, 'windows_check job missing');
   assert.match(job[1], /runs-on:\s*windows-2022/);
   assert.match(job[1], /actions\/setup-python@[0-9a-f]{40}/);
-  assert.match(job[1], /npm run prepare:qt-sdk:windows/);
+  assert.match(job[1], /prepare_cavalry_28_windows_ci_inputs\.ps1/);
+  assert.doesNotMatch(job[1], /prepare:qt-sdk:windows|build:injector:windows/);
   assert.doesNotMatch(job[1], /python -m aqt install-qt/);
   assert.match(job[1], /resolve_windows_cmake\.js --ensure --print-json/);
   assert.match(job[1], /record_windows_toolchain_evidence\.js/);
   assert.match(job[1], /toolchain-evidence-windows-x64\.json/);
   assert.match(job[1], /npm ci/);
   assert.match(job[1], /npm run test:contracts/);
-  assert.match(job[1], /npm run build:injector:windows/);
+  assert.match(job[1], /npm run prepare:tauri:windows-bundle/);
   assert.match(job[1], /npm run test:tauri/);
-  const prepareQtIndex = job[1].indexOf('npm run prepare:qt-sdk:windows');
-  const buildInjectorIndex = job[1].indexOf('npm run build:injector:windows');
+  const prepareQtIndex = job[1].indexOf('prepare_cavalry_28_windows_ci_inputs.ps1');
+  const buildInjectorIndex = job[1].indexOf('npm run prepare:tauri:windows-bundle');
   const rustCheckIndex = job[1].indexOf('npm run check:tauri');
   assert.ok(prepareQtIndex >= 0 && prepareQtIndex < buildInjectorIndex);
   assert.ok(buildInjectorIndex < rustCheckIndex);
@@ -2006,19 +1850,15 @@ test('Windows CI runs deterministic dependencies, contracts, Rust tests, and an 
     /src-tauri\/target\/x86_64-pc-windows-msvc\/release\/bundle\/nsis\/\*\.exe\.sig/
   );
   assert.match(job[1], /TAURI_SIGNING_PRIVATE_KEY_PASSWORD/);
-  assert.match(
-    job[1],
-    /\$tauriArguments = @\([\s\S]*'x86_64-pc-windows-msvc'[\s\S]*'src-tauri\/tauri\.windows\.conf\.json'[\s\S]*'src-tauri\/tauri\.updater-artifacts\.conf\.json'[\s\S]*npm run tauri -- @tauriArguments/,
-    'Windows tag packaging must assemble one PowerShell-safe argument vector before invoking Tauri'
-  );
+  assert.match(job[1], /npm run build:tauri:windows -- --package-only --updater/);
   assert.match(job[1], /if-no-files-found:\s*error/);
   // Windows Authenticode is intentionally not implemented here (external issue).
   assert.doesNotMatch(job[1], /signtool|Authenticode|osslsigncode/i);
   const pkg = readJson('package.json');
-  assert.match(pkg.scripts['build:tauri:windows'], /^npm run prepare:qt-sdk:windows/);
+  assert.equal(pkg.scripts['build:tauri:windows'], 'node tools/windows_native_build.js');
   assert.equal(
     pkg.scripts['prepare:tauri:windows-bundle'],
-    'npm run build:injector:windows && node tools/windows_nsis_provenance.js --prepare'
+    'node tools/windows_native_build.js --prepare-only'
   );
   assert.ok(sourceArtifact, 'source artifact upload step missing');
   assert.match(
@@ -2088,7 +1928,8 @@ test('Windows NSIS lifecycle preserves by default and restores English only thro
       `${relativePath}: Windows PowerShell 5.1 requires a UTF-8 BOM before parsing non-ASCII comments`
     );
   }
-  const script = readText('tools/check_windows_nsis_install.ps1');
+  const script = readText('tools/check_windows_nsis_install.ps1')
+    + readText('tools/windows_native_pack.ps1');
   const nsisHooks = readText('src-tauri/nsis-hooks.nsh');
   const executableNsisHooks = nsisHooks
     .split(/\r?\n/)
@@ -2211,8 +2052,10 @@ test('Windows NSIS lifecycle preserves by default and restores English only thro
   assert.match(script, /\.WaitForExit\(\$processTimeoutMilliseconds\)/);
   assert.match(script, /Assert-NoReparsePoints -Root \$InstallRoot/);
   assert.match(script, /0x8664/);
-  assert.match(script, /\$expectedLocales = @\('en', 'ja_JP', 'zh-Hans', 'zh-Hant'\)/);
-  assert.match(script, /\$expectedJsonCountPerLocale = 38/);
+  assert.match(script, /\$nativePackLocales = @\('zh-Hans', 'zh-Hant', 'ja_JP'\)/);
+  assert.match(script, /Assert-InstalledNativeResources/);
+  assert.match(script, /\$manifest\.kind -ceq 'production-2\.8'/);
+  assert.doesNotMatch(script, /expectedJsonCountPerLocale/);
   assert.match(script, /\$provenanceTool = Join-Path \$repoRoot 'tools\\windows_nsis_provenance\.js'/);
   assert.match(script, /function Assert-CurrentInstallerProvenance/);
   assert.match(script, /& \$node\.Source \$provenanceTool '--verify' \$Installer/);

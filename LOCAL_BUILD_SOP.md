@@ -1,5 +1,5 @@
 <!--
-[INPUT]: 依赖2.8三平台production profile、官方Qt6.9.2、同源码目标架构native runtime、production语言包和Tauri平台/release overlays
+[INPUT]: 依赖Windows唯一native wrapper与CI官方输入、2.8三平台production profile、官方Qt6.9.2、同源码目标架构native runtime、production语言包和Tauri平台/release overlays
 [OUTPUT]: 提供macOS双架构和Windows x64本地生产模式构建、隔离合同、资源检查及三平台发布边界
 [POS]: 仓库唯一桌面打包SOP；本地macOS生产包不代替公开发行验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -183,24 +183,16 @@ Rust检查与测试命令单独设置`TAURI_CONFIG='{"bundle":{"resources":[]}}'
 旧2.7 p12只作历史下载；所有旧2.7 tag都拒绝重打包。
 Windows 2.8的窄运行时构建入口见下节；macOS预验不能替代Windows实机验收。
 
-#### 4.1.0-W Windows 2.8 native生产候选
+#### 4.1.0-W Windows 2.8默认生产构建
 
-仅用官方2.8 MSI提取的assets与Qt6.9.2 `msvc2022_64`共享SDK。`CAVALRY_QT_PREFIX`指向已安装匹配SDK；CMake核版本/架构。不要执行第5节的旧2.7构建链。
+Windows默认安装包只构建2.8 native runtime。唯一入口是`npm run build:tauri:windows`，完整参数见8.1。
+它生成production三语包，编译同版generic/QPA并运行CTest，再准备provenance、构建NSIS和记录指纹。
+包装器固定Windows、native-production、native-windows和release-2.8四份配置。
+只有Tauri Release子进程设置`CAVALRY_I18N_NATIVE_BUILD_PROFILE=production-2.8`。
+Debug Rust检查不继承生产模式。生产配置关闭旧beforeBuild钩子；不编译2.7 translator。
 
-```powershell
-npm run build:native-resources -- --assets-root "<官方2.8 MSI提取根>\assets" --profile production-2.8
-cmake -S injector/windows/native -B build/windows-native-28 -A x64 "-DCMAKE_PREFIX_PATH=$env:CAVALRY_QT_PREFIX" "-DCAVALRY_NATIVE_METADATA_DIR=<官方2.8 MSI提取根>/assets/MetaData"
-cmake --build build/windows-native-28 --config Release --clean-first
-ctest --test-dir build/windows-native-28 -C Release --output-on-failure
-# 将本次构建的generic/cavalryi18n.dll和qpa/qwindows.dll放到对应ignored资源目录；替换旧产物前保留其身份。
-New-Item -ItemType Directory -Force -Path injector/windows/generic,injector/windows/qpa | Out-Null
-Copy-Item -LiteralPath build/windows-native-28/generic/cavalryi18n.dll -Destination injector/windows/generic/cavalryi18n.dll
-Copy-Item -LiteralPath build/windows-native-28/qpa/qwindows.dll -Destination injector/windows/qpa/qwindows.dll
-$env:CAVALRY_I18N_NATIVE_BUILD_PROFILE='production-2.8'
-npx tauri build --config src-tauri/tauri.native-production-2.8.conf.json --config src-tauri/tauri.native-windows-2.8.conf.json
-```
-
-该路径复用native三语包与用户文件事务，仅编译2.8窄generic和同版QPA委托，不编译旧全量translator、不带第二套Qt。runtime-only事务复用原Windows journal、厂商备份、未知文件保护、Program Files same-EXE授权与最后提交marker；共享profile仍按资源先写/locale最后提交。资源相对路径由Tauri映射，宿主根继续由系统发现/用户选择解析。build.rs固定双DLL摘要；发布授权、普通首帧、完整UI与性能必须另有真实证据。此候选实现仍在本地验收中，不授产品通过。
+Windows本机2.8功能证据按PR54复核复用。新默认构建和CI结果单独记录，不据脚本或静态合同宣称线上包通过。
+runtime-only事务、用户profile、Program Files授权、恢复与marker提交顺序均不变。发布仍需另行授权。
 
 帮助表由既有producer核官方四份MetaData SHA后在系统临时构建目录生成384/17说明及401根排版数据；同目录由既有producer生成20项缓动显示表，不读取私人文档。各平台共用说明、Guide、Easing、Fast及Qt四行布局策略，Windows单独绑定对象和调用ABI。`native-desktop`布局合同以不显示的Qt fixture使用本机Windows QPA字体及屏幕；offscreen虚拟平台不代Windows布局，未接桌面的环境不得冒称该项通过。
 
@@ -293,9 +285,21 @@ npm run test:tauri:windows-nsis
 npm run test:acceptance:windows:contract
 ```
 
-第一条命令是唯一 Windows 用户入口：先解析/准备 Qt 6.6.3 `msvc2019_64`，再由 `tauri.windows.conf.json` 的 build hook 通过 `injector/windows/build.ps1` 从当前翻译源重生成共享 C++ 表；build 脚本经 `tools/resolve_windows_cmake.js` 使用官方 CMake 4.4.3 pin，不读取 runner PATH，并完成 plugin configure/build/ctest，随后在真正 bundle 前执行 provenance prepare。CI 还会在双 DLL 构建成功后由 `tools/record_windows_toolchain_evidence.js` 记录 CMake 版本、release URL、archive SHA-256 和实际版本输出。prepare 只删除当前 `package.json` 版本推导出的预期 EXE、同名 sidecar 和受控 intent；任意其他 EXE 或 `.exe.provenance.json` 残留都会失败，不会泛删。随后按固定 `x86_64-pc-windows-msvc` target 生成 `src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe`，并立即写入同名 `.exe.provenance.json`：它绑定安装器 SHA-256/长度与当前 renderer、languages、Windows Tauri/Rust/config/Cargo/build 输入、package manifests、Windows native 源码、共享 `cavalry_i18n_translation_policy.h`、生成翻译表及已打包 generic/QPA 双 DLL 的内容 fingerprint，不取 Git HEAD 或 mtime 代替输入事实；安装包记录后单独修改共享 policy 也必须使 verify 失败。
+第一条命令通过`tools/windows_native_build.js`执行第8.1节的2.8生产链。
+它只使用Qt6.9.2 `msvc2022_64`和现有CMake4.4.3 resolver，生成native packs及两份DLL。
+资源输出是`target/native-language-packs`；不再打包旧四语38文件JSON树。
+NSIS仍写入显式`x86_64-pc-windows-msvc` target目录。
+provenance三阶段共用同一生产配置列表，绑定三语manifest/payload、DLL、renderer、Rust、原生源码、译文输入与四份配置。
+已配置的NSIS hooks和四份安装器语言表同样进入指纹。任何实际输入改动都会撤销旧记录。
 
-Windows Cargo build 还会由 `src-tauri/build.rs` 枚举四个 `languages/<lang>` 的全部 JSON，并读取已构建的 `cavalryi18n.dll` 与 QPA `qwindows.dll`，把 SHA-256 catalog 编译进 worker。release profile 缺任一 runtime DLL 立即失败；debug 可以编译，但缺失的 runtime 锚会让真实提权 worker fail closed。提权事务先验证近邻包内文件与编译期摘要，再从当前 Cavalry JSON 经 anchored English 和目标语言重建 exact pretty payload，不能信任 plan/staging 自报摘要。因此 CI 在任何 Windows Rust check/test 前必须先运行 `tools/resolve_windows_cmake.js --ensure --print-json`、`prepare:qt-sdk:windows` 与 `build:injector:windows`，并上传 `toolchain-evidence-windows-x64` 作为该 producer 的工具链来源记录。
+CI先运行`prepare_cavalry_28_windows_ci_inputs.ps1`。
+它用现有target摘要核官方2.8 MSI，行政提取到RUNNER_TEMP，不安装Cavalry。
+Qt由hash-locked aqt准备6.9.2 `win64_msvc2022_64`的qtbase。
+随后运行`prepare:tauri:windows-bundle`，生成production语言包与native DLL并执行CTest。
+Debug Rust仍验证共享合同。`--package-only`复用本轮DLL打包，不再次编译injector。
+工具链记录继续使用现有CMake identity；上传EXE和sidecar的路径不变。
+安装烟测核对native manifest和三份pack的源字节、长度与摘要，再完成安装、同版本更新和卸载。
+它不启动Cavalry，不抵扣实屏翻译验收。
 
 NSIS 内置 English、SimpChinese、TradChinese 与 Japanese 四套安装/卸载界面，默认直接跟随 Windows UI 语言；系统语言不在这四种内时回退 English，不额外弹出语言选择器。安装器复用 `src-tauri/icons/icon.ico` 品牌图标。当前不配置 `headerImage` 或 `sidebarImage`：这两项只负责装饰，现有 DMG 背景图的尺寸与格式不匹配，不能冒充 Windows 品牌资产。
 
@@ -428,21 +432,24 @@ full-surface 门必须把每次 Cavalry launch 的 `APPDATA`/`LOCALAPPDATA` 指�
 
 Tauri 是唯一默认壳与唯一发布路径；macOS 的 bridge、平台配置、资源声明、Rust contract tests、packaged 资源检查、窗口回归和真实三语冒烟都已具备可重跑守门。Windows 当前具备独立配置、Qt generic translator/QPA delegate、原子部署与显式 English 恢复状态机、Node/Rust 合同、NSIS 构建、随机 TEMP 安装/同版本更新/卸载及外部 QPA 哨兵 gate、只写显式 disposable clone/evidence 根的三语 PID 窗口截图门，以及真实 Program Files/UAC 下由安装版完成的简中、繁中、日文和 English 恢复主工作区闭环。尚未闭环的是两个不同公开 updater-enabled 版本之间的真实跨版本升级；首个 updater-enabled 版本必须先作为人工安装 bootstrap 发布，因此该证据从下一版本开始补齐，不阻塞本次 bootstrap。旧壳层脚本、handler、harness、builder 配置与 fallback 打包入口不得恢复。
 
-### 8.1 Windows 2.8 native本地构建
+### 8.1 Windows 2.8默认本地构建
 
-本节是Windows 2.8入口。上文标明历史参考的2.7命令不作为其前置。依赖现有Node/npm、Rust、MSVC2022 x64、CMake4.4.3及Qt6.9.2 `msvc2022_64` SDK；`$qtPrefix`和`$officialAssets`由维护者传入已核官方SDK与Cavalry 2.8 `assets`绝对目录，包含MetaData与Presets，不固定安装盘符。
+构建机需要Node/npm、Rust、MSVC2022 x64及Qt6.9.2 `msvc2022_64`。
+已核官方2.8 MSI提取目录必须包含`assets/MetaData`和`assets/Presets`。
+安装包用户不需要这些开发工具。不要把旧2.7 SDK或构建命令作为前置。
 
 ```powershell
-node tools/native_resource_bundle.js --assets-root $officialAssets --profile production-2.8
-cmake -S injector/windows/native -B build/windows-native-28 -G 'Visual Studio 17 2022' -A x64 "-DCMAKE_PREFIX_PATH=$qtPrefix" "-DCAVALRY_NATIVE_METADATA_DIR=$officialAssets/MetaData"
-cmake --build build/windows-native-28 --config Release
-ctest --test-dir build/windows-native-28 -C Release --output-on-failure
-Copy-Item -LiteralPath build/windows-native-28/generic/cavalryi18n.dll -Destination injector/windows/generic/cavalryi18n.dll
-Copy-Item -LiteralPath build/windows-native-28/qpa/qwindows.dll -Destination injector/windows/qpa/qwindows.dll
-$env:CAVALRY_I18N_NATIVE_BUILD_PROFILE = 'production-2.8'
-& .\node_modules\.bin\tauri.cmd build --config src-tauri/tauri.native-production-2.8.conf.json --config src-tauri/tauri.native-windows-2.8.conf.json --config src-tauri/tauri.release-2.8.conf.json --bundles nsis
+$env:CAVALRY_NATIVE_ASSETS_ROOT = '<官方2.8提取根>\assets'
+$env:CAVALRY_QT_PREFIX = '<Qt SDK根>\6.9.2\msvc2022_64'
+npm run build:tauri:windows
+npm run test:tauri:windows-nsis
 ```
 
-共享production overlay关闭历史beforeBuild/beforeDev钩子；Windows overlay再映射本次两个DLL与原生语言包，release overlay选择独立2.8 updater通道。缺少共享overlay会误走历史Windows injector构建，不能省略。构建产物在`src-tauri/target/release/bundle/nsis/`；发布包只使用宿主Qt，不部署SDK的Qt DLL。
+包装器按次序完成生产资源、native CMake/CTest、DLL发布、provenance prepare、Tauri生产构建和provenance record。
+产物在`src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/`。
+两阶段CI调用`--prepare-only`和`--package-only`共用同一包装器，不复制构建命令。
+`--updater`只供tag阶段生成签名附件；不会自行创建tag或Release。
+独立2.8 feed由固定release overlay选择；旧`latest.json`保持冻结。
 
-本地编译/NSIS与本机实屏验收分账。整轮沿`tools/acceptance/README.md`生成一份Windows表，运行记录与配置原像保持私有；Program Files权限测试、动态安装发现、正常English恢复及用户配置回交仍须真实执行。公开三平台tag guard不因本地构建自动开放，旧feed保持冻结。
+本地编译、NSIS烟测与Cavalry实屏验收分账。整轮填写表及配置原像保持私有。
+默认构建切到2.8不等于公开发行；三平台tag guard在发行收口前保持。

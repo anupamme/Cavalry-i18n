@@ -37,6 +37,10 @@ test('the runner retains every legacy syntax path in its original order', () => 
   assert.deepEqual(APP_SYNTAX_FILES.slice(218), [
     'tools/check_app_syntax.js',
     'tools/check_app_syntax.test.js',
+    'tools/windows_native_build.js',
+    'tools/windows_native_build.test.js',
+    'tools/check_windows_native_nsis.test.js',
+    'tools/prepare_cavalry_28_windows_ci_inputs.test.js',
   ]);
   assert.equal(new Set(APP_SYNTAX_FILES).size, APP_SYNTAX_FILES.length);
 });

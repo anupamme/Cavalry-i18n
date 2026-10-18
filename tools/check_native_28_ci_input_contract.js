@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖build.yml、双架构输入准备器、源码manifest producer/consumer、Qt头提取器与BuildMode合同。
- * [OUTPUT]: 对外提供双架构输入、源码闭包、手动预验同SHA前置、测试资源隔离、失败诊断制品、matrix分派与发布边界的离线合同。
- * [POS]: G-3 CI producer合同；mock网络/vendor构建边界，不运行产品或GitHub Actions。
+ * [INPUT]: 依赖build.yml、Mac双架构与Windows官方输入准备器、native构建包装器及BuildMode合同。
+ * [OUTPUT]: 验证2.8输入、生产配置、Rust测试隔离、CI分派和发布边界。
+ * [POS]: 原生生产CI离线合同；mock下载边界，不运行产品或GitHub Actions。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -20,8 +20,11 @@ const workflowL2 = read('.github/workflows/CLAUDE.md');
 const toolsMap = read('tools/CLAUDE.md');
 const packageJson = JSON.parse(read('package.json'));
 const inputPreparer = read('tools/prepare_cavalry_28_ci_inputs.sh');
+const windowsInputPreparer = read('tools/prepare_cavalry_28_windows_ci_inputs.ps1');
 const qtPreparer = read('tools/prepare_native_qt_headers.py');
 const resourceProducer = read('tools/native_resource_bundle.js');
+const windowsNativeBuildSource = read('tools/windows_native_build.js');
+const windowsNativeBuild = require('./windows_native_build.js');
 const buildScript = read('src-tauri/build.rs');
 const x86Builder = read('injector/native/build_x86_64_candidate.sh');
 const x86TimelineContract = read('injector/native/check_timeline_owner_observer_x86_64.py');
@@ -105,6 +108,43 @@ assert.match(dispatch, /default: 'none'/);
 assert.match(dispatch, /- macos-2\.8-preflight/);
 assert.match(workflow, /if: env\.RELEASE_PROFILE_CONFIG == 'release-2\.8\.config\.json'/);
 assert.doesNotMatch(packageJob, /npm run prepare:qt-sdk(?:\s|$)/, '2.8 package matrix must not build the legacy Qt 6.6.3 injector');
+
+// Windows CI stages official inputs, native runtime tests, then production NSIS packaging.
+const windowsInputStep = stepBlock(windowsJob, 'Prepare Cavalry 2.8 Windows production inputs');
+const windowsRuntimeStep = stepBlock(windowsJob, 'Build Windows 2.8 native runtime and language packs');
+const windowsRustStep = stepBlock(windowsJob, 'Check and test the Windows Rust target');
+const windowsPrBuildStep = stepBlock(windowsJob, 'Build the Windows NSIS installer (PR/main)');
+const windowsTagBuildStep = stepBlock(windowsJob, 'Build the Windows NSIS installer and updater signature (tag)');
+assert.match(windowsInputStep, /prepare_cavalry_28_windows_ci_inputs\.ps1/);
+assert.match(windowsInputPreparer, /CAVALRY_NATIVE_ASSETS_ROOT/);
+assert.match(windowsInputPreparer, /CAVALRY_QT_PREFIX/);
+assert.match(windowsInputPreparer, /GITHUB_ENV/);
+assert.doesNotMatch(windowsInputPreparer, /6\.6\.3|cavalry_qt_target\.json|prepare:qt-sdk:windows/,
+  'Windows 2.8 inputs must not reuse the frozen 2.7 Qt target');
+assert.match(windowsRuntimeStep, /npm run prepare:tauri:windows-bundle/);
+assert.equal(packageJson.scripts['prepare:tauri:windows-bundle'],
+  'node tools/windows_native_build.js --prepare-only');
+assert.equal(packageJson.scripts['build:tauri:windows'], 'node tools/windows_native_build.js');
+assert.deepEqual(windowsNativeBuild.WINDOWS_PRODUCTION_CONFIGS, [
+  'src-tauri/tauri.windows.conf.json',
+  'src-tauri/tauri.native-production-2.8.conf.json',
+  'src-tauri/tauri.native-windows-2.8.conf.json',
+  'src-tauri/tauri.release-2.8.conf.json',
+]);
+assert.match(windowsNativeBuildSource, /CAVALRY_I18N_NATIVE_BUILD_PROFILE/);
+assert.match(windowsNativeBuildSource, /production: true/);
+assert.doesNotMatch(windowsJob, /CAVALRY_I18N_NATIVE_BUILD_PROFILE\s*:/,
+  'native production mode must not leak into debug Rust checks');
+assert.doesNotMatch(windowsJob, /prepare:qt-sdk:windows|build:injector:windows/,
+  'Windows 2.8 CI must not build the legacy Qt 6.6.3 injector');
+assert.match(windowsRustStep, /npm run check:tauri[\s\S]*npm run test:tauri/);
+assert.ok(windowsJob.indexOf(windowsRuntimeStep) < windowsJob.indexOf(windowsRustStep),
+  'native resource DLLs must exist before Windows Rust check/test');
+assert.match(windowsPrBuildStep, /npm run build:tauri:windows -- --package-only/);
+assert.match(windowsTagBuildStep, /npm run build:tauri:windows -- --package-only --updater/);
+assert.match(windowsTagBuildStep, /TAURI_SIGNING_PRIVATE_KEY/);
+assert.doesNotMatch(windowsTagBuildStep, /prepare:qt-sdk:windows|tauri\.updater-artifacts\.conf\.json|tauri build/,
+  'the wrapper owns native config order and appends updater artifacts');
 
 // 失败候选只供诊断；不把官方库或失败字节混入产品制品。
 const failureArtifact = stepBlock(packageJob, 'Preserve failed native candidate for diagnosis');

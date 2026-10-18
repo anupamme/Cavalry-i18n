@@ -232,6 +232,10 @@ const APP_SYNTAX_FILES = Object.freeze([
   'tools/native_easing_display.test.js',
   'tools/check_app_syntax.js',
   'tools/check_app_syntax.test.js',
+  'tools/windows_native_build.js',
+  'tools/windows_native_build.test.js',
+  'tools/check_windows_native_nsis.test.js',
+  'tools/prepare_cavalry_28_windows_ci_inputs.test.js',
 ]);
 
 function runAppSyntaxCheck(files = APP_SYNTAX_FILES, options = {}) {

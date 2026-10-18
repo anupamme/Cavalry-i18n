@@ -1,7 +1,7 @@
 ﻿<#
-[INPUT]: 依赖 PowerShell 5.1+ 的 UTF-8 BOM 宿主边界、显式 x64 NSIS/current provenance、package 版本、仓库 generic/QPA 双 DLL、外部 Cavalry QPA 哨兵与当前用户安装命名空间
-[OUTPUT]: 对外提供随机 TEMP 安装/同根更新冒烟；复算输入后验证主程序与双 DLL x64/资源/hash/无第二 Qt runtime/注册表、外部 QPA 字节不变，再卸载且拒绝残留
-[POS]: tools 的 Windows packaged-install 守门器，只消费当前输入自证的 release NSIS；固定冲突即中止，更新/卸载不得触碰外部 Cavalry，也不以递归删除掩盖失败
+[INPUT]: 依赖 PowerShell 5.1+ UTF-8 BOM、当前 x64 NSIS provenance、production-2.8 manifest/三pack、仓库 generic/QPA DLL 与外部哨兵
+[OUTPUT]: 随机 TEMP 安装/更新/卸载；验证主程序、双 DLL、native pack、注册表与无第二 Qt runtime
+[POS]: tools 的 Windows packaged-install 守门器；输入必须匹配当前构建，卸载不得触碰外部 Cavalry
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 #>
 [CmdletBinding()]
@@ -18,8 +18,6 @@ $publisher = 'daftai'
 $mainBinaryName = 'cavalry-i18n-tauri.exe'
 $pluginRelativePath = 'injector\windows\generic\cavalryi18n.dll'
 $qpaProxyRelativePath = 'injector\windows\qpa\qwindows.dll'
-$expectedLocales = @('en', 'ja_JP', 'zh-Hans', 'zh-Hant')
-$expectedJsonCountPerLocale = 38
 $processTimeoutMilliseconds = 300000
 $cleanupObservationTimeoutMilliseconds = 30000
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -30,6 +28,7 @@ $bundleRoot = [System.IO.Path]::GetFullPath(
 )
 $sourcePlugin = Join-Path $repoRoot 'injector\windows\generic\cavalryi18n.dll'
 $sourceQpaProxy = Join-Path $repoRoot 'injector\windows\qpa\qwindows.dll'
+$sourceNativePackRoot = Join-Path $repoRoot 'src-tauri\target\native-language-packs'
 $packageJson = Join-Path $repoRoot 'package.json'
 $provenanceTool = Join-Path $repoRoot 'tools\windows_nsis_provenance.js'
 $uninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Cavalry Language Switcher'
@@ -53,6 +52,8 @@ function Assert-Condition {
         throw $Message
     }
 }
+
+. (Join-Path $scriptRoot 'windows_native_pack.ps1')
 
 function Normalize-ComparablePath {
     param(
@@ -425,42 +426,6 @@ function Assert-PeX64 {
         -Message ("Expected x64 PE machine 0x8664 for {0}, got 0x{1:X4}." -f $Path, $machine)
 }
 
-function Assert-InstalledLanguages {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$InstallRoot
-    )
-
-    $languagesRoot = Join-Path $InstallRoot 'languages'
-    Assert-Condition -Condition (Test-Path -LiteralPath $languagesRoot -PathType Container) `
-        -Message "Installed package is missing its languages directory: $languagesRoot"
-    $actualLocales = @(
-        Get-ChildItem -LiteralPath $languagesRoot -Directory |
-            Select-Object -ExpandProperty Name |
-            Sort-Object
-    )
-    $differences = @(
-        Compare-Object -ReferenceObject $expectedLocales -DifferenceObject $actualLocales
-    )
-    Assert-Condition -Condition ($differences.Count -eq 0) -Message (
-        "Installed locale directories differ from the four-language contract: " +
-        (($differences | ForEach-Object { "$($_.InputObject)$($_.SideIndicator)" }) -join ', ')
-    )
-
-    $totalJsonCount = 0
-    foreach ($locale in $expectedLocales) {
-        $localeRoot = Join-Path $languagesRoot $locale
-        $jsonFiles = @(
-            Get-ChildItem -LiteralPath $localeRoot -Recurse -File -Filter '*.json'
-        )
-        Assert-Condition -Condition ($jsonFiles.Count -eq $expectedJsonCountPerLocale) `
-            -Message "Expected $expectedJsonCountPerLocale JSON files for $locale, found $($jsonFiles.Count)."
-        $totalJsonCount += $jsonFiles.Count
-    }
-    Assert-Condition `
-        -Condition ($totalJsonCount -eq ($expectedLocales.Count * $expectedJsonCountPerLocale)) `
-        -Message "Installed language JSON total is incomplete: $totalJsonCount."
-}
 
 function Assert-NoForeignRuntime {
     param(
@@ -579,7 +544,9 @@ function Assert-InstalledPackage {
     Assert-PeX64 -Path $mainBinary
     Assert-PeX64 -Path $installedPlugin
     Assert-PeX64 -Path $installedQpaProxy
-    Assert-InstalledLanguages -InstallRoot $InstallRoot
+    Assert-InstalledNativeResources `
+        -SourceRoot $sourceNativePackRoot `
+        -InstallRoot $InstallRoot
     Assert-NoForeignRuntime -InstallRoot $InstallRoot
 
     Assert-Condition -Condition (Test-Path -LiteralPath $sourcePlugin -PathType Leaf) `
@@ -665,6 +632,8 @@ Assert-NoReparsePathChain -Path $sourcePlugin -Role 'Windows plugin source'
 Assert-Condition -Condition (Test-Path -LiteralPath $sourceQpaProxy -PathType Leaf) `
     -Message "Windows QPA proxy source does not exist: $sourceQpaProxy"
 Assert-NoReparsePathChain -Path $sourceQpaProxy -Role 'Windows QPA proxy source'
+Assert-Condition -Condition (Test-Path -LiteralPath $sourceNativePackRoot -PathType Container) `
+    -Message "Generated native resource input is missing: $sourceNativePackRoot"
 
 $resolvedInstaller = Resolve-Installer -RequestedPath $InstallerPath
 $package = Get-Content -LiteralPath $packageJson -Raw -Encoding UTF8 | ConvertFrom-Json

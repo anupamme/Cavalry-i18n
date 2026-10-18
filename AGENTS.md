@@ -71,6 +71,7 @@ Cavalry-i18n/
 
 - 2.7 p12 is the final 2.7 release. Do not develop, update, or rerun acceptance for 2.7. Historical downloads remain available.
 - Current macOS packaging targets 2.8 with `production-2.8`, complete native resources, and an explicitly approved arm64 runtime. Do not use the historical Qt 6.6.3 injector build as a 2.8 prerequisite.
+- Windows default packaging and CI use `tools/windows_native_build.js`: Qt 6.9.2 MSVC x64, production native packs/DLLs, four production overlays, and the independent 2.8 feed. The old Qt/injector build is not a prerequisite. Debug Rust contracts do not inherit the Release production environment.
 - Keep the frozen legacy feed isolated; this is not a 2.7 maintenance lane. Intel complete-app compilation and Windows 2.8 implementation remain separate acceptance items.
 
 - 2.8 migration targets one selected Cavalry 2.8 installation. Do not require a 2.7.2 installer, old-version coexistence, or two-installation acceptance. These are not release gates and no cross-version support is promised.
@@ -119,8 +120,8 @@ Cavalry-i18n/
 - Tauri is the only active desktop shell. Do not restore old Electron/fallback packaging paths.
 - PR/main CI classifies changed paths through `tools/classify_ci_changes.js`: documentation keeps a lightweight check, contract-only changes stay on Ubuntu, dependency/platform changes select their owning gates, unknown source paths fail closed to both native gates, and stable `ci_gate` aggregates every selected/skipped result for branch protection. Never add workflow-level `paths-ignore`; release tags and manual packaging always run the full closure.
 - Internal app version is SemVer in `CHANGELOG.md`, `package.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json`; sync with `npm run sync:version`.
-- Public release tags are `cavalry-2.7.2-pN`, generated against `release.config.json`.
-- The platform injector must be built against Qt 6.6.3 via `npm run build:injector` (macOS) or `npm run build:injector:windows` (Windows) before its Tauri build.
+- Current release tags are `cavalry-2.8.0-pN`, generated against `release-2.8.config.json`. The 2.7 p12 tag and legacy feed stay frozen.
+- Current production builds use the approved 2.8 native runtime with Qt 6.9.2. Windows default packaging builds it through the same wrapper as CI; historical Qt 6.6.3 build commands are not production prerequisites.
 
 ## ANTI-PATTERNS
 

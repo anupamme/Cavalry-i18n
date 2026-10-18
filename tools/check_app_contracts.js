@@ -1510,23 +1510,34 @@ test('Qt SDK contract preserves macOS builds and prepares the Windows x64 SDK fr
   );
   assert.equal(
     packageScripts['build:tauri:windows'],
-    'npm run prepare:qt-sdk:windows && tauri build --target x86_64-pc-windows-msvc --config src-tauri/tauri.windows.conf.json && node tools/windows_nsis_provenance.js --record',
-    'the public Windows build entry must prepare Qt, build the explicit x64 target, and record provenance'
+    'node tools/windows_native_build.js',
+    'the public Windows package entry must use the 2.8 native production wrapper'
   );
   assert.equal(
     windowsConfig.build.beforeBuildCommand,
     'npm run prepare:tauri:windows-bundle',
-    'the Tauri Windows hook must build the injector and prepare provenance before bundling'
+    'the Windows config must retain its explicit bundle preparation hook'
   );
   assert.equal(
     packageScripts['prepare:tauri:windows-bundle'],
-    'npm run build:injector:windows && node tools/windows_nsis_provenance.js --prepare',
-    'the bundle hook must publish the Windows injector before fingerprinting package inputs'
+    'node tools/windows_native_build.js --prepare-only',
+    'the Windows bundle preparation hook must build the 2.8 native inputs without packaging'
   );
+  const windowsNativeBuildPath = path.join(repoRoot, 'tools', 'windows_native_build.js');
+  const windowsNativeBuildSource = fs.readFileSync(windowsNativeBuildPath, 'utf8');
+  const windowsNativeBuild = require(windowsNativeBuildPath);
+  assert.deepEqual(windowsNativeBuild.WINDOWS_PRODUCTION_CONFIGS, [
+    'src-tauri/tauri.windows.conf.json',
+    'src-tauri/tauri.native-production-2.8.conf.json',
+    'src-tauri/tauri.native-windows-2.8.conf.json',
+    'src-tauri/tauri.release-2.8.conf.json',
+  ]);
+  assert.match(windowsNativeBuildSource, /CAVALRY_I18N_NATIVE_BUILD_PROFILE/);
+  assert.match(windowsNativeBuildSource, /production-2\.8/);
   assert.match(
     workflowSource,
-    /windows_check:[\s\S]*npm run build:tauri:windows/,
-    'Windows CI must use the same self-contained x64 build entry as local packaging'
+    /windows_check:[\s\S]*npm run build:tauri:windows -- --package-only/,
+    'Windows CI must package through the same production wrapper after its split preparation step'
   );
   assert.doesNotMatch(
     workflowSource,
@@ -5327,21 +5338,42 @@ test('runtime noise quarantine keeps unproven short tokens out of embedded trans
 
 test('release workflow prebuilds the injector and publishes Tauri macOS artifacts', () => {
   const workflow = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'build.yml'), 'utf8');
+  const packageMacosStart = workflow.indexOf('  package_macos:\n');
+  const packageMacosEnd = workflow.indexOf('\n  release:\n', packageMacosStart);
+  assert.ok(packageMacosStart >= 0 && packageMacosEnd > packageMacosStart,
+    'release workflow must retain its dedicated macOS package job');
+  const packageMacosJob = workflow.slice(packageMacosStart, packageMacosEnd);
+  const nativeMacInputPreparer = fs.readFileSync(
+    path.join(repoRoot, 'tools', 'prepare_cavalry_28_ci_inputs.sh'),
+    'utf8'
+  );
   const macConfig = JSON.parse(
     fs.readFileSync(path.join(repoRoot, 'src-tauri', 'tauri.macos.conf.json'), 'utf8')
   );
   const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
 
   assert.match(
-    workflow,
-    /runs-on:\s*macos-14/,
-    'release pipeline should use a fixed macOS runner label so end users do not need Qt locally'
+    packageMacosJob,
+    /runs-on:\s*\$\{\{\s*matrix\.runner_label\s*\}\}/,
+    'macOS package job should run on the explicit architecture matrix runners'
   );
   assert.match(
-    workflow,
-    /npm run prepare:qt-sdk/,
-    'release pipeline should prepare the Qt SDK through the same project target resolver used by local builds'
+    packageMacosJob,
+    /- name: Prepare official 2\.8 native production inputs[\s\S]*?CAVALRY_NATIVE_CI_TARGET:\s*\$\{\{\s*matrix\.rust_target\s*\}\}[\s\S]*?run:\s*bash tools\/prepare_cavalry_28_ci_inputs\.sh/,
+    'macOS release packaging should prepare official 2.8 inputs for the selected architecture'
   );
+  assert.match(
+    nativeMacInputPreparer,
+    /\[\[ "\$\{RELEASE_PROFILE_CONFIG:-\}" == 'release-2\.8\.config\.json' \]\]/,
+    'the macOS input helper should require the 2.8 release profile'
+  );
+  assert.match(
+    nativeMacInputPreparer,
+    /short_version" == '2\.8\.0' && "\$bundle_version" == '2\.8\.0'/,
+    'the macOS input helper should verify the official 2.8.0 target'
+  );
+  assert.match(nativeMacInputPreparer, /aarch64-apple-darwin/);
+  assert.match(nativeMacInputPreparer, /x86_64-apple-darwin/);
   assert.match(
     workflow,
     /node tools\/create_source_artifact\.js[\s\S]*cavalry-i18n-source[\s\S]*Re-verify downloaded source artifact/,
