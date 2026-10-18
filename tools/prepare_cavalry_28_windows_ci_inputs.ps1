@@ -27,9 +27,11 @@ try {
     Stop-CiInputPreparation 'the frozen Windows 2.8 target summary is missing.'
   }
   $target = Get-Content -LiteralPath $targetPath -Raw | ConvertFrom-Json
-  if ($target.schemaVersion -ne 1 -or $target.cavalryVersion -ne '2.8.0'
-      -or $target.qtVersion -ne '6.9.2' -or $target.architecture -ne 'x86_64'
-      -or $target.msiSha256 -notmatch '^[a-fA-F0-9]{64}$') {
+  if ($target.schemaVersion -ne 1 -or
+      $target.cavalryVersion -ne '2.8.0' -or
+      $target.qtVersion -ne '6.9.2' -or
+      $target.architecture -ne 'x86_64' -or
+      $target.msiSha256 -notmatch '^[a-fA-F0-9]{64}$') {
     Stop-CiInputPreparation 'the frozen Windows 2.8 target identity is invalid.'
   }
   $targetFiles = @($target.files.PSObject.Properties)
@@ -37,8 +39,8 @@ try {
     Stop-CiInputPreparation 'the frozen Windows host file identity set is incomplete.'
   }
   foreach ($entry in $targetFiles) {
-    if ([System.IO.Path]::GetFileName($entry.Name) -cne $entry.Name
-        -or $entry.Value -notmatch '^[a-fA-F0-9]{64}$') {
+    if ([System.IO.Path]::GetFileName($entry.Name) -cne $entry.Name -or
+        $entry.Value -notmatch '^[a-fA-F0-9]{64}$') {
       Stop-CiInputPreparation "invalid Windows host file identity: $($entry.Name)"
     }
   }
@@ -122,8 +124,8 @@ try {
   }
   $qconfigPath = Join-Path $qtPrefix 'mkspecs\qconfig.pri'
   $qtCoreConfig = Join-Path $qtPrefix 'lib\cmake\Qt6Core\Qt6CoreConfig.cmake'
-  if (-not (Test-Path -LiteralPath $qconfigPath -PathType Leaf)
-      -or -not (Test-Path -LiteralPath $qtCoreConfig -PathType Leaf)) {
+  if (-not (Test-Path -LiteralPath $qconfigPath -PathType Leaf) -or
+      -not (Test-Path -LiteralPath $qtCoreConfig -PathType Leaf)) {
     Stop-CiInputPreparation 'aqt output does not contain the expected Qt 6.9.2 MSVC SDK prefix.'
   }
   $qtVersionLines = @(Get-Content -LiteralPath $qconfigPath | Where-Object { $_ -match '^QT_VERSION\s*=' })

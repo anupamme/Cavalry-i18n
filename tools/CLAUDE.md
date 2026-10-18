@@ -2,12 +2,13 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+check_powershell_syntax.ps1: Parser.ParseFile单文件语法driver；只读源码并以退出码报告错误，不执行待验脚本。
 windows_native_pack_contract.ps1: Windows合同driver加载真实native pack校验器；只消费临时fixture，不安装软件。
 windows_native_pack.ps1: NSIS烟测的production三语资源校验器；显式接收源根与安装根，复用调用方断言，核manifest与payload字节。
 windows_native_build.js: Windows默认2.8生产包装器；准备官方资源和native DLL，独立Tauri子进程启用production，固定四overlay与显式x64目标，复用provenance三阶段。
 windows_native_build.test.js: 注入进程与文件操作验证准备/打包阶段、MSVC与CTest、DLL发布、production隔离及tag参数；不运行原生编译器。
 prepare_cavalry_28_windows_ci_inputs.ps1: Windows CI官方输入；按现有target摘要提取MSI到RUNNER_TEMP，aqt准备Qt6.9.2后导出assets/SDK路径，不安装宿主。
-prepare_cavalry_28_windows_ci_inputs.test.js: Windows输入脚本的官方源、既有身份、隔离路径及BOM/CRLF合同；不替代实际提取。
+prepare_cavalry_28_windows_ci_inputs.test.js: 官方源、既有身份、隔离路径及BOM/CRLF合同；Windows真实解析全部生产PS并拒绝坏续行，不替代实际提取。
 check_windows_native_nsis.test.js: 核PS接线与BOM；Windows临时三语包调用真实PS校验器，验证原样通过与manifest/payload漂移拒绝；不执行安装。
 check_app_syntax.js: Node短入口按固定清单逐文件执行--check；保留原顺序，不经shell拼接，首个失败返回非零。
 check_app_syntax.test.js: 短入口与原218项顺序摘要合同；实际语法错/缺文件验证非零退出和停止后续检查。
