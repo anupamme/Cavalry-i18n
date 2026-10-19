@@ -1,6 +1,6 @@
 # [INPUT]: 依赖受控workflow_dispatch选择器、2.8 ARM/Intel生产输入、漏洞审计例外、统一latest.json的tag-only updater、Windows2.8官方输入/native生产包装器与GitHub环境
-# [OUTPUT]: 对外提供风险分流、同SHA源码门后的2.8 macOS双架构预验、隔离资源的Rust测试、PR/main聚合门、Windows闭环、2.8 tag阻断及Release闭环
-# [POS]: 唯一CI/CD编排器；手动2.8预验仅跳过漏洞审计，等待同SHA源码门后打包；公开tag仍受三平台guard约束
+# [OUTPUT]: 对外提供风险分流、同SHA源码门后的2.8 macOS双架构预验、隔离资源的Rust测试、PR/main聚合门、Windows闭环与已授权2.8三平台Release闭环
+# [POS]: 唯一CI/CD编排器；手动2.8预验仅跳过漏洞审计，等待同SHA源码门后打包；公开tag复用三平台production构建与签名回读闭包
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
 
@@ -144,12 +144,6 @@ jobs:
           fi
           echo "config=$profile" >> "$GITHUB_OUTPUT"
           echo "tauri_endpoint_config=$tauri_endpoint_config" >> "$GITHUB_OUTPUT"
-
-      - name: Require ready production runtime for 2.8 tags
-        if: ${{ startsWith(github.ref, 'refs/tags/cavalry-') && steps.release_profile.outputs.config == 'release-2.8.config.json' }}
-        run: |
-          echo "implementation-not-ready: Cavalry 2.8 public release closure is not approved; refusing to build or publish." >&2
-          exit 1
 
       - name: Skip release ancestry gate for non-tag CI
         if: ${{ !startsWith(github.ref, 'refs/tags/cavalry-') }}
@@ -1114,7 +1108,7 @@ jobs:
           请从源码本地构建 Cavalry Language Switcher 的 macOS 版本：
 
           1. 打开仓库 <仓库路径>，使用 ${GITHUB_REF_NAME} 对应的源码。
-          2. 严格按照 LOCAL_BUILD_SOP.md 执行，包括匹配版本的 Qt SDK 和 injector 构建。
+          2. 严格按照 LOCAL_BUILD_SOP.md 执行，准备官方资源和对应架构的原生运行时。
           3. 运行标准 Tauri build、执行 DMG 卷宗图标盖章，并运行 SOP 中的 packaged checks。
           4. 完成后告诉我验证结果和最终 DMG 路径。
           \`\`\`

@@ -102,5 +102,5 @@ printf 'CAVALRY_I18N_NATIVE_INJECTOR_FILE=%s\n' "$candidate" >> "$GITHUB_ENV"
   echo "- Qt 6.9.2 bytes/SHA-256: $QT_ARCHIVE_BYTES / $actual_qt_sha256"
   echo "- Candidate $candidate_arch dylib bytes/SHA-256: $candidate_bytes / $candidate_sha256"
   echo '- Source URL: mutable official latest alias; any byte/version drift fails without changing pins.'
-  echo '- Scope: production resources and one architecture-bound macOS candidate; the all-platform public release guard remains authoritative.'
+  echo '- Scope: production resources and one architecture-bound macOS candidate; publication still requires the all-platform production build and signed updater closure.'
 } >> "$GITHUB_STEP_SUMMARY"

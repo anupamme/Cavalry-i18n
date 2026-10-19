@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖build.yml、Mac双架构与Windows官方输入准备器、native构建包装器及BuildMode合同。
- * [OUTPUT]: 验证2.8输入、生产配置、Rust测试隔离、CI分派和发布边界。
+ * [OUTPUT]: 验证2.8输入、生产配置、Rust测试隔离、CI分派与已授权2.8三平台发布闭包。
  * [POS]: 原生生产CI离线合同；mock下载边界，不运行产品或GitHub Actions。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -69,7 +69,6 @@ const windowsJob = blockBetween(workflow, '  windows_check:', '\n  macos_injecto
 const releaseJobStart = workflow.indexOf('\n  release:');
 assert.ok(releaseJobStart >= 0, 'release job must exist');
 const releaseJob = workflow.slice(releaseJobStart);
-const tagGuard = stepBlock(workflow, 'Require ready production runtime for 2.8 tags');
 const tagBuild = stepBlock(packageJob, 'Build packaged macOS app (tag = ad-hoc + signed updater)');
 const manualBuild = stepBlock(packageJob, 'Build packaged macOS app (workflow_dispatch = ad-hoc verification only)');
 const packagedGate = stepBlock(packageJob, 'Validate packaged app with LOCAL_BUILD_SOP gates');
@@ -92,13 +91,11 @@ for (const name of ['Checkout release tag history', 'Set up pinned Node.js for r
   ]) assert.equal(evaluate(ref, event, scope), expected, `${name}: ${event}/${scope}`);
 }
 
-// Profile boundary: 2.7 is historical, public 2.8 tags remain blocked before package jobs.
+// -- 发布边界：2.7仅历史，2.8复用三平台生产闭包 -------------------
 assert.match(preflight, /cavalry-2\.7\.2-p\[0-9\].*historical only; repackaging is forbidden/);
 assert.match(preflight, /cavalry-2\.8\.0-p\[0-9\].*release-2\.8\.config\.json/);
-assert.match(tagGuard, /startsWith\(github\.ref, 'refs\/tags\/cavalry-'\)/);
-assert.match(tagGuard, /implementation-not-ready/);
-assert.match(tagGuard, /exit 1/);
-assert.ok(workflow.indexOf('      - name: Require ready production runtime for 2.8 tags') < workflow.indexOf('  package_macos:'), 'public 2.8 tag guard must precede macOS packaging');
+assert.doesNotMatch(preflight, /implementation-not-ready/, 'approved 2.8 tags must reach the real production jobs');
+assert.match(preflight, /git merge-base --is-ancestor/, 'tag ancestry remains required');
 const packageCondition = require('yaml').parse(workflow).jobs.package_macos.if;
 assert.match(packageCondition, /startsWith\(github\.ref, 'refs\/tags\/cavalry-'\) \|\| \(github\.event_name == 'workflow_dispatch' && inputs\.package_scope == 'macos-2\.8-preflight'\)/);
 assert.match(packageCondition, /needs\.build\.result == 'success'/);
@@ -482,7 +479,7 @@ for (const arch of ['arm64', 'x86_64']) {
   );
   assert.match(run.envOutput, new RegExp(`^CAVALRY_I18N_NATIVE_INJECTOR_FILE=.*${arch === 'arm64' ? 'mock-native-arm64\\.dylib' : 'libCavalryNativeFontCandidate\\.x86_64\\.dylib'}$`, 'm'));
   assert.match(run.summary, /official latest alias/);
-  assert.match(run.summary, /all-platform public release guard remains authoritative/);
+  assert.match(run.summary, /all-platform production build and signed updater closure/);
   assert.ok(!run.summary.includes('mock-native-'), 'summary must not expose transient candidate path');
   if (arch === 'x86_64') assert.match(run.content('candidate-output.txt'), /native-candidate-output/);
   run.cleanup();

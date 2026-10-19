@@ -42,7 +42,7 @@ native_resource_bundle.test.js: 纯生成合同覆盖DNT、vendor优先与补充
 prepare_cavalry_28_ci_inputs.sh: 仅被显式2.8 macOS矩阵调用；按arm64/x86_64 runner与target下载并校验官方Cavalry/Qt字节，在runner隔离目录生成production包和同架构dylib；仅成功后写入GitHub环境。
 prepare_native_qt_headers.py: 验证官方Qt6.9.2 qtbase归档SHA与长度；兼容include与framework Versions/A/Headers布局，将三个模块归一到include前缀，只复制公开头文件。
 prepare_native_qt_headers.test.py: 标准库路径合同与可选锁定py7zr的合成7z输入；验证framework成员映射、私有版本目录排除及旧include兼容，不读取网络或Qt运行库。
-check_native_28_ci_input_contract.js: YAML解析同SHA源码前置条件，mock双架构下载/构建边界；验证Rust测试仅用TAURI_CONFIG清空打包资源、CI分派与发布边界，并调用native源码manifest临时树合同核生成/消费及漂移拒绝，不运行vendor或GitHub Actions。
+check_native_28_ci_input_contract.js: YAML解析同SHA源码前置条件，mock双架构下载/构建边界；验证Rust测试仅用TAURI_CONFIG清空打包资源、CI分派与已授权2.8三平台生产发布闭包，并调用native源码manifest临时树合同核生成/消费及漂移拒绝，不运行vendor或GitHub Actions。
 native_schema_supplement.js: 2.8 nodeDefinitions原始SHA、Forge owner父链、八字段完整schema及Inspector顺序的source-only投影；固定catalogId/source notes与dontTranslate=false、补充target字段及官方键碰撞门，不生成locale译文、不扩展任意ID。
 native_schema_supplement.test.js: 合成nodeDefinitions边界合同；验证8个owner/ID/fallback source及显式DNT=false、父链/schema/UI顺序/重复身份/官方碰撞和原始字节摘要拒绝，不依赖安装、App或profile。
 native_schema_gap_sources.js: SHA锁定的2.8 nodeDefinitions adapter；历史365源行摘要不变，额外输出隐藏Background Rendering行，当前投影366；固定行继续校验父链/schema/Inspector顺序，隐藏字段另校验hide=true、无UI自有字段、bool/default及碰撞；不装配审批或运行时。

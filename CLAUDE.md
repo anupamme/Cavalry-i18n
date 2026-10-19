@@ -33,14 +33,14 @@ output/ - 只跟踪稳定地图与派生产物规则；实跑证据在仓外sess
 <config>
 src-tauri/tauri.native-windows-2.8.conf.json - Windows默认生产wrapper的runtime资源映射；与native-production共同装三语包和同版generic/QPA，不带旧translator或Qt运行时
 .gitignore - 排除依赖、构建、实跑和output派生产物；output仅保留CLAUDE与README稳定规则
-CAVALRY_2_8_MIGRATION_PLAN.md - 单2.8迁移唯一44项主账，42完成/2待办；Windows D-6/G-5按§66.189收口；§5.2是待办导航，§66.149–151记录NRT Keychain、同源profile快路与真实恢复进度，§66.159–177记录四语footer、ARM内部包/恢复、5.367GiB清理、Save caption、验收复用纠偏、Intel隔离编译与Graph/官方示例新缺口；原动画不动。Intel实机不阻断，编译/反馈留XIA-187；Windows已在合批流程稳定后完成本机验收。完整225不变；普通GUI繁1.449秒、简4.309秒，不抵冷首装/恢复/完整性能/首帧。Guide79/79/79；本profile首启已完成，限定N/A各19、待验0，源分母各98。旧STOP§126限当次私档发布；新归档独立执行，功能分支已推送并合入PR54，未tag/release。私档不作为构建输入。
+CAVALRY_2_8_MIGRATION_PLAN.md - 单2.8迁移唯一44项主账，42完成/2待办；Windows D-6/G-5按§66.189收口；§66.191记录2.8首发授权、1.1.0及生产tag启用；§5.2是待办导航，§66.149–151记录NRT Keychain、同源profile快路与真实恢复进度，§66.159–177记录四语footer、ARM内部包/恢复、5.367GiB清理、Save caption、验收复用纠偏、Intel隔离编译与Graph/官方示例新缺口；原动画不动。Intel实机不阻断，编译/反馈留XIA-187；Windows已在合批流程稳定后完成本机验收。完整225不变；普通GUI繁1.449秒、简4.309秒，不抵冷首装/恢复/完整性能/首帧。Guide79/79/79；本profile首启已完成，限定N/A各19、待验0，源分母各98。旧STOP§126限当次私档发布；新归档独立执行，功能分支已推送并合入PR54，未tag/release。私档不作为构建输入。
 AGENTS.md - 固定本轮单2.8安装范围，不加旧版/双安装必验门；根级 Agent 行动地图，按 Kumo knowledge base 结构固化查找入口、约定、反模式、命令、流水线、工具链与安全边界
 CHANGELOG.md - 新版本中文条目与英文分类语义分离的 SemVer 发布历史与 Unreleased 用户可见变更真相源；tag 正文由 workflow 按版本抽取，不保留会漂移的根目录 release body 快照
 LOCAL_BUILD_SOP.md - 当前默认2.8 ARM正式模式构建；旧2.7 p12仅历史下载，不作前置验收；三平台发布门保留；唯一桌面打包与发布操作合同，区分本地验证、ad-hoc tag、Tauri updater 签名和未具备的平台身份，并固定 macOS DMG 文件名与挂载卷标的不同职责
-README.md - 英文主入口，四语发布徽章直接读取 GitHub 最新正式 Release tag，冻结头部/预览/支持/许可证节点，以用户任务为顺序压缩功能、安全、安装、运行、固定缺陷反馈模板与开发说明；明确 macOS 受管旧安装只有完整可验证官方基线才可更新/恢复，缺失时需重装 Cavalry，并说明当前补丁重应用与右侧 Add Layer 排序限制
-README.zh-Hans.md - 简体中文 README，与英文入口保持标题结构、用户事实、命令和导航同构，包括 macOS 官方基线恢复要求
-README.zh-Hant.md - 繁体中文 README，与英文入口保持标题结构、用户事实、命令和导航同构，包括 macOS 官方基線還原要求
-README.ja_JP.md - 日文 README，与英文入口保持标题结构、用户事实、命令和导航同构，包括 macOS 公式ベースライン復元要件
+README.md - 英文主入口，四语发布徽章直接读取 GitHub 最新正式 Release tag，冻结头部/预览/支持/许可证节点，以用户任务为顺序压缩功能、安全、安装、运行、固定缺陷反馈模板与开发说明；明确2.8用户profile语言包与归属恢复、平台权限、原生运行时事务和2.7.2 p12历史入口
+README.zh-Hans.md - 简体中文 README，与英文入口保持标题结构、用户事实、命令和导航同构，包括2.8用户profile与归属恢复
+README.zh-Hant.md - 繁体中文 README，与英文入口保持标题结构、用户事实、命令和导航同构，包括2.8使用者profile與歸屬還原
+README.ja_JP.md - 日文 README，与英文入口保持标题结构、用户事实、命令和导航同构，包括2.8ユーザープロファイルと所有状態の復元
 package.json - Windows默认构建经windows_native_build.js生成2.8生产NSIS及指纹；CI先准备官方2.8/Qt6.9.2，安装烟测核native三语包。tauri:build使用无硬编码target的2.8 production入口；ARM与Intel alias各传一次目标，复用盖章和目标架构资源检查；纯packaged helper加入合同/语法门。项目元数据与核心构建/测试指令；纳入20项Easing显示表合同和生成器语法门；默认合同与语法门纳入384/17帮助表及401根排版producer测试，生成表仍须显式官方MetaData输入，构建输出不入库；默认合同与语法门包含历史365加独立1条raw source adapter、366批准caption/旧364冻结与单键撤批missing反例及显式官方集合/合法数字开头vendor owner反例；默认合同与语法门覆盖native源身份/ICU、已审批次及88槽真实旧译回退、13厂商纠错/377原样闭合，历史批准摘要与现行译文摘要分别守门；新增38条空区域短提示类别合同，锁精确source及三语producer，并注册于test:contracts和check:app；p12旧feed、候选路径和四语userProfile copy保持独立；check:app语法门包含user-profile-text模块。build:tauri:native:candidate显式生成ARM优化预览App/DMG，保持独立状态并禁用updater；显式tauri:dev:native仅运行未发布2.8预览，build:native-resources必须传官方assets；FormatJS仅作构建期格式校验
 package-lock.json - npm 依赖锁定文件，冻结 Tauri CLI/API 与构建期 ICU parser，不增加产品运行时解释器
 release.config.json - 2.7默认GitHub Release协议真相源；tag/标题、安装资产与latest.json命名保持不变
@@ -54,7 +54,7 @@ src-tauri/Cargo.lock - Rust 依赖锁定文件，保证本地与 CI 构建同构
 src-tauri/tauri.conf.json - Tauri 共享运行配置，固定本地 CSP/updater 信任根、`main`/`about` capability 与 400×504 无滚动 macOS Overlay 主窗口边界；30px单行footer位于434px内容轨道下方，内部404px控件布局不变；创建时由 Tauri 定位原生交通灯而非应用层 resize 回调
 src-tauri/tauri.macos.conf.json - macOS 覆盖配置，声明 DMG/bundle、dylib、四语 runtime 语言目录（排除 native 构建期数据）与四语 App Management 用途说明资源，并把 800×476 Finder 安装窗首次打开原点锁定为实测参考位置 400×655
 src-tauri/tauri.windows.conf.json - Windows 覆盖配置，以隐藏创建的完整窗口 override 关闭系统 caption/native shadow，启用带 10px alpha 留白的 transparent compositor 外壳，再声明 NSIS/x64、四语 runtime 语言目录（排除 native 构建期数据）与 generic translator/QPA delegate 资源
-src-tauri/tauri.release-2.8.conf.json - 2.8 endpoint覆盖；tag命令按已选profile追加，生产runtime guard仍阻断构建与发布
+src-tauri/tauri.release-2.8.conf.json - 2.8 endpoint覆盖；tag命令按已选profile追加，已授权tag复用三平台production构建及签名回读闭包
 tools/cavalry_native_target.json - macOS 2.8预览的main/Api/Core/QtCore与17对catalog锁；官方10473及schema补充373（Forge8+缺源365）分账，nodeDefinitions单独锁源，不含厂商内容，不证明profile实际路径
 src-tauri/tauri.native-preview.conf.json - 未发布2.8开发预览覆盖，只装native包、隔离identifier/state、关闭旧injector前置，后端禁用updater并拒绝release profile
 src-tauri/tauri.updater-artifacts.conf.json - updater 产物覆盖，仅启用签名 archive/sidecar 生成；与共享配置中已固定的最终公钥/endpoint 合并，仅由tag生产流程使用；手动macOS预验不读取updater私钥
@@ -145,3 +145,5 @@ M88统一根因：同一CI候选在runner旧dyld_info中符号错位，LLVM绑�
 2026-10-19 PR54@83aae3a已合入功能分支b7eec06；Windows验收和定向补证通过，主账42/44。未提交的异常加固草稿已撤销；余双feed实际回读及授权发行，不重跑既有验收。
 
 2026-10-19 新裁决：Switcher统一latest.json更新，撤销旧feed冻结/按宿主拆通道。2.7.2沿现有短提示与p12按钮；p12历史资产不变。G-3改核统一feed发布回读，42/44不变；不得据此打tag或发布。
+
+2026-10-19: 维护者批准2.8首发。移除过期迁移tag拦截，保留main ancestry及三平台production、updater签名与七资产回读；准备cavalry-2.8.0-p1 / app1.1.0。未获发行实证前，G-3/G-6仍待。

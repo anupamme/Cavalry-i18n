@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖2.8 ARM/Intel生产profile、Qt6.9.2与同源码native runtime、Tauri macOS/release overlays、production语言包、package/CHANGELOG、跨平台工具、CI变更分类器、Windows NSIS provenance与真实资源配置夹具、macOS资源readback、SOP/workflow、发布provenance、Actions pins与source artifact清单
- * [OUTPUT]: 校验双架构入口、packaged profile、手动预验唯一漏洞例外、源码前置与CI聚合边界；保留三平台tag guard、统一latest.json、p12历史下载、Windows NSIS与release provenance合同
+ * [OUTPUT]: 校验双架构入口、packaged profile、手动预验唯一漏洞例外、源码前置与CI聚合边界；保留三平台生产构建闭包、统一latest.json、p12历史下载、Windows NSIS与release provenance合同
  * [POS]: tools 的 Tauri打包守门；macOS预验与公开三平台发行分别裁决
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -483,8 +483,8 @@ test('2.8 macOS production aliases share a target-neutral producer and keep nati
   assert.match(localSop, /build:native-resources -- --assets-root[\s\S]*--profile production-2\.8/);
   assert.match(localSop, /CAVALRY_I18N_NATIVE_INJECTOR_FILE=.*arm64.*绝对路径/);
   assert.match(localSop, /p12终版只作历史下载/);
-  assert.match(localSop, /保留三平台production guard/);
-  assert.match(workflow, /implementation-not-ready:[\s\S]*refusing to build or publish/);
+  assert.match(localSop, /保留三平台production构建与发布闭包/);
+  assert.doesNotMatch(workflow, /implementation-not-ready:/);
 });
 
 test('tauri build scripts and configs isolate the macOS and Windows injectors', () => {
@@ -1134,15 +1134,14 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   assert.match(preflightJob[1], /else[\s\S]*tauri_endpoint_config=''/,
     'the default and frozen p12 profile must not select a 2.8 endpoint overlay');
   assert.match(preflightJob[1], /echo "tauri_endpoint_config=\$tauri_endpoint_config" >> "\$GITHUB_OUTPUT"/);
-  const implementationNotReadyIndex = preflightJob[1].indexOf('implementation-not-ready:');
   const profileValidationIndex = preflightJob[1].indexOf('node tools/release_metadata.js');
   const endpointOutputIndex = preflightJob[1].indexOf('tauri_endpoint_config=$tauri_endpoint_config');
-  assert.ok(
-    profileValidationIndex >= 0 && endpointOutputIndex > profileValidationIndex && endpointOutputIndex < implementationNotReadyIndex,
-    '2.8 profile and endpoint selection must be validated before the retained runtime-readiness guard'
-  );
-  assert.ok(implementationNotReadyIndex >= 0, '2.8 must remain blocked before every native build job');
-  assert.match(preflightJob[1], /if:\s*\$\{\{ startsWith\(github\.ref, 'refs\/tags\/cavalry-'\) && steps\.release_profile\.outputs\.config == 'release-2\.8\.config\.json' \}\}[\s\S]*implementation-not-ready:[\s\S]*refusing to build or publish/);
+  assert.ok(profileValidationIndex >= 0 && endpointOutputIndex > profileValidationIndex,
+    'validate the 2.8 profile before exporting its production endpoint');
+  assert.doesNotMatch(preflightJob[1], /implementation-not-ready:/,
+    'approved 2.8 tags must reach the existing three-platform production closure');
+  assert.match(preflightJob[1], /git merge-base --is-ancestor/,
+    'release tags must still belong to main');
   assert.match(
     preflightJob[1],
     /outputs:[\s\S]*release_profile_config: \$\{\{ steps\.release_profile\.outputs\.config \}\}[\s\S]*tauri_endpoint_config: \$\{\{ steps\.release_profile\.outputs\.tauri_endpoint_config \}\}/,
@@ -1238,7 +1237,7 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   assert.deepEqual(WINDOWS_PRODUCTION_CONFIGS.slice(1, 3), [
     'src-tauri/tauri.native-production-2.8.conf.json', 'src-tauri/tauri.native-windows-2.8.conf.json',
   ]);
-  assert.match(localSop, /保留三平台production guard/);
+  assert.match(localSop, /保留三平台production构建与发布闭包/);
   assert.match(localSop, /三种发布资产：/);
   assert.match(localSop, /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-p12_aarch64\.dmg/);
   assert.match(localSop, /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-p12_x64\.dmg/);

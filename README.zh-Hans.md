@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 GitHub 最新正式 Release、当前发布配置、平台运行时边界与 LOCAL_BUILD_SOP
-[OUTPUT]: 对外提供 macOS / Windows 用户安装、当前补丁更新、macOS 受管安装恢复基线要求、已发布排序限制与开发分支行为、缺陷反馈入口、开发与安全说明的简体中文版本
+[OUTPUT]: 对外提供 Cavalry 2.8.0 用户配置语言切换与归属恢复、2.7.2 p12 历史链接、平台权限及翻译边界
 [POS]: 仓库简体中文用户入口；与英文及其他本地化 README 同步发布真相，不替代平台真机验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -8,13 +8,15 @@
 <div align="center">
   <img src="./src-tauri/icons/icon.png" width="120" />
   <h1>Cavalry-i18n</h1>
-  <p>直接在 macOS 或 Windows 原始应用中，将 <a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.7.2 切换为 English、简体中文、繁體中文或日本語。</p>
+  <p>直接在 macOS 或 Windows 原始应用中，将 <a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.8.0 切换为 English、简体中文、繁體中文或日本語。</p>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/stargazers"><img src="https://img.shields.io/github/stars/daftAI2026/Cavalry-i18n?style=flat-square" alt="Stars" /></a>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/releases/latest"><img src="https://img.shields.io/github/v/release/daftAI2026/Cavalry-i18n?sort=date&display_name=tag&style=flat-square" alt="Release" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License" /></a>
 
   <p>Languages: <a href="README.md">English</a> | 简体中文 | <a href="README.zh-Hant.md">繁體中文</a> | <a href="README.ja_JP.md">日本語</a></p>
 </div>
+
+Cavalry 2.7.2 用户请使用历史版本 [p12 Release](https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.7.2-p12)。
 
 ## 预览
 
@@ -24,20 +26,19 @@
 
 - **一步切换语言**：退出 Cavalry，选择语言并点击 **“切换”**；完成后 Cavalry 会自动打开。
 - **四种界面语言**：English、简体中文、繁體中文和日本語。
-- **双平台支持**：适用于 macOS 与 Windows x64 上的 Cavalry 2.7.2。
-- **完整界面覆盖**：同时翻译 JSON 资源和编译进 Cavalry Qt 界面的文本。
-- **自动发现与恢复**：查找常见安装位置、显示当前语言，并准备受支持的英文恢复所需数据。
+- **双平台支持**：适用于 macOS 与 Windows x64 上的 Cavalry 2.8.0。
+- **原生用户配置语言包**：通过当前用户的 Cavalry 配置写入 2.8 原生界面文本。
+- **归属恢复**：只恢复语言切换器能够证明自己写入的配置与运行时内容。
+- **自动发现与恢复**：查找常见安装位置、显示当前语言，并记录受支持恢复所需状态。
 - **应用内更新**：发现后续 Switcher 版本时提醒用户，并在安装前完成验证。
 
 ## Switcher 窗口
 
-选择目标语言，再点击 **“切换”** 或 **“恢复英文”**。当前语言旁出现可更新徽章时，可以选择它并点击 **“更新”**，重新应用完整语言补丁，无须先切换其他语言或恢复英文。只有补丁已是最新时，当前语言才不可重复选择。操作进度和恢复指引显示在按钮下方。
+选择目标语言，再点击 **“切换”** 或 **“恢复英文”**。当前语言旁出现更新徽章时，可以选择它并点击 **“更新”**，重新应用该语言的最新资源，无须先切换其他语言或恢复英文。只有资源已是最新时，当前语言才不可重复选择。操作进度和恢复指引显示在按钮下方。
 
-在 macOS 上，对已受管安装再次切换语言、更新补丁或“恢复英文”，均要求有为该安装保存且可验证的完整 Cavalry 官方基线。若基线缺失或无法验证，操作会在写入前停止，并提示先从官方安装器重新安装 Cavalry，再应用语言。Windows 行为不受此要求影响。
+2.8 语言包会将原生界面文本和语言设置写入当前用户的 Cavalry 配置。它不使用历史 2.7 JSON 资源覆盖。macOS 需要变更原生运行时时，会先验证 Cavalry 目标和官方基线。基线缺失或无效时，运行时写入会停止。
 
-**已发布 p8 的 Add Layer 搜索：** 可以使用英文或当前语言搜索。右侧 Add Layer 面板中，本地语言的标题匹配不一定获得与英文名称相同的标题优先级。如果目标图层排得较后，可以尝试完整英文名称，例如 `Text Shape`。这是已知的排序限制，不代表搜索输入或图层的创建身份被改写。
-
-**开发分支（尚未发布）：** 在已验证兼容的运行时中，右侧面板的当前语言标题完整匹配，以及符合原厂规则的标题前缀匹配，会获得标题优先级补充。标题其他位置的匹配仍可出现在搜索结果中，并保持原厂排序；筛选与图层创建仍由原厂处理。无法验证兼容性时保留原厂排序，发布前仍需完成 Windows 实机验收。
+**“恢复英文”** 会恢复已保存的用户配置文本，并将语言设为英文。语言切换器拥有运行时内容时，会通过平台验证的恢复事务还原。用户在切换后修改配置时，操作会停止并保留这些修改。
 
 ## 安全与权限
 
@@ -49,7 +50,7 @@ Cavalry Language Switcher 是独立社区工具，不隶属于 Scene Group、Cav
 
 在 Windows 上，当前用户可写的自定义目录会直接处理。UAC 提权仅用于系统 Program Files 目录中的 Cavalry 安装。未知 DLL 不会被删除或替换。
 
-在 macOS 上，**“恢复英文”** 根据已保存的官方基线恢复，不会替你重新安装 Cavalry。若缺少完整、可验证的基线，恢复会在写入前停止，并提示从官方安装器重新安装 Cavalry 2.7.2 后再应用语言。
+**“恢复英文”** 只还原已记录的用户配置文本和语言切换器拥有的运行时。若所需运行时基线缺失或无法验证，操作会在写入 app bundle 前停止。它不会重新安装 Cavalry。
 
 ## 从 Release 安装
 
@@ -80,13 +81,13 @@ npm run build:tauri:windows    # 在 Windows 上构建 NSIS
 
 ## 工作原理
 
-1. 查找 Cavalry 2.7.2；Windows 未找到时允许用户手动选择。
-2. 验证安装，并保存或复用受支持的英文恢复所需数据。
-3. 写入所选 JSON 资源和对应平台的运行时翻译器。
-4. 最后提交语言标记；macOS 随后重新签名修改后的 app bundle。
-5. 以所选语言打开 Cavalry。
+1. 验证所选 Cavalry 2.8.0 安装和内嵌原生资源清单。
+2. 加载由固定 Cavalry 2.8 目录构建的已批准语言包。
+3. 将语言设置和 `strings.json` 包写入当前用户的 Cavalry 配置。
+4. 需要变更运行时时，调用经过验证的平台原生运行时事务。
+5. 语言事务提交后打开 Cavalry。
 
-Cavalry 原有启动路径保持不变。**“恢复英文”** 使用同一套受管事务反向处理，并且只删除语言切换器能够证明属于自己的文件。
+**“恢复英文”** 会恢复已保存的用户配置文本、将语言设为英文，并还原语言切换器拥有的运行时。若用户在切换后修改配置，事务会停止，不会覆盖修改。
 
 ## 支持语言
 
@@ -103,11 +104,9 @@ Cavalry 原有启动路径保持不变。**“恢复英文”** 使用同一套�
 npm run test:contracts         # Renderer、bridge、发布与打包合同
 npm run test:tauri             # Rust 测试
 npm run check:app              # JavaScript 语法
-npm run build:injector         # macOS Qt 注入器
-npm run build:injector:windows # Windows 翻译器与 QPA 委托层
 ```
 
-Qt 6.6.3 必须与 Cavalry 2.7.2 匹配。发布包不得依赖浮动工具版本；请遵循 [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md)。
+2.8.0 生产构建使用 Qt 6.9.2。发布包不得依赖浮动工具版本；请遵循 [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md)。
 
 ## AI / Agent Guide
 
@@ -115,12 +114,11 @@ Qt 6.6.3 必须与 Cavalry 2.7.2 匹配。发布包不得依赖浮动工具版�
 
 ## 翻译面
 
-项目处理两个翻译面：
+2.8.0 原生用户配置包使用 `languages/native/` 中绑定原文的批准译文，并读取固定在 `tools/cavalry_native_target.json` 的官方目录。`tools/native_resource_bundle.js` 会校验并构建三种目标语言包。不要手动修改生成包。
 
-1. `languages/` 中的 **JSON 资源**，与 English 基线保持结构一致。
-2. `tools/*.ts` 与 `tools/model_display_translations.json` 中的 **Qt/UI 文本**，嵌入对应平台的运行时翻译器。
+构建器默认保留官方 `dontTranslate` 条目。显示例外只覆盖 100 个身份和译值均已核对的内置示例菜单标签。它不会修改预设路径、模型名称、菜单动作或用户输入文本。
 
-`injector/generated_translations.inc` 是生成文件，禁止手动修改。翻译规则和实机验证流程见 [docs/translation-guidelines.md](docs/translation-guidelines.md) 与 [docs/runtime-ui-live-capture-workflow.md](docs/runtime-ui-live-capture-workflow.md)。
+`languages/` 中的 JSON 覆盖包和 `tools/*.ts` 注入器译文属于独立的历史或运行时路径，不是 Cavalry 2.8 原生用户配置包的来源。生成的注入器表也不得手动修改。翻译规则和实机验证流程见 [docs/translation-guidelines.md](docs/translation-guidelines.md) 与 [docs/runtime-ui-live-capture-workflow.md](docs/runtime-ui-live-capture-workflow.md)。
 
 ## 仓库结构
 
@@ -129,7 +127,7 @@ Cavalry-i18n/
 ├── renderer/          # Tauri WebView 界面
 ├── src-tauri/         # Rust 命令与平台事务
 ├── injector/          # macOS 与 Windows Qt 运行时翻译器
-├── languages/         # English 基线与三种 JSON 语言包
+├── languages/         # 历史 JSON 包与 2.8 原生批准译文
 ├── tools/             # 构建、验证与发布工具
 ├── docs/              # 公开规则、可重复 SOP 与图片
 └── .github/workflows/ # CI、平台打包与 Release 发布

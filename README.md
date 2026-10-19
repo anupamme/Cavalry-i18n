@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 GitHub 最新正式 Release、当前发布配置、平台运行时边界与 LOCAL_BUILD_SOP
-[OUTPUT]: 对外提供 macOS / Windows 用户安装、当前补丁更新、macOS受管恢复要求、已发布排序限制、开发与安全说明及JSON DNT显示边界
+[OUTPUT]: 对外提供 Cavalry 2.8 用户profile语言切换与归属恢复、2.7.2 p12历史链接、平台权限、开发及翻译边界
 [POS]: 仓库英文用户入口；与三份本地化 README 同步发布真相，不替代平台真机验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -8,13 +8,15 @@
 <div align="center">
   <img src="./src-tauri/icons/icon.png" width="120" />
   <h1>Cavalry-i18n</h1>
-  <p>Switch <a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.7.2 on macOS and Windows between English, Simplified Chinese, Traditional Chinese, and Japanese.</p>
+  <p>Switch <a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.8.0 on macOS and Windows between English, Simplified Chinese, Traditional Chinese, and Japanese.</p>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/stargazers"><img src="https://img.shields.io/github/stars/daftAI2026/Cavalry-i18n?style=flat-square" alt="Stars" /></a>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/releases/latest"><img src="https://img.shields.io/github/v/release/daftAI2026/Cavalry-i18n?sort=date&display_name=tag&style=flat-square" alt="Release" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License" /></a>
 
   <p>Languages: English | <a href="README.zh-Hans.md">简体中文</a> | <a href="README.zh-Hant.md">繁體中文</a> | <a href="README.ja_JP.md">日本語</a></p>
 </div>
+
+For Cavalry 2.7.2, use the historical [p12 release](https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.7.2-p12).
 
 ## Preview
 
@@ -24,20 +26,19 @@
 
 - **One-step language switching**: Quit Cavalry, choose a language, and select **Switch**. Cavalry opens automatically when the change is complete.
 - **Four UI languages**: English, Simplified Chinese, Traditional Chinese, and Japanese.
-- **Two platforms**: Cavalry 2.7.2 on macOS and Windows x64.
-- **Complete UI coverage**: Translates JSON assets and text compiled into Cavalry's Qt interface.
-- **Automatic discovery and recovery**: Finds common installations, keeps the current language visible, and prepares the recovery data required for supported English restoration.
+- **Two platforms**: Cavalry 2.8.0 on macOS and Windows x64.
+- **Native user-profile language packs**: Applies Cavalry 2.8 native UI text through the current user's profile.
+- **Owned-state restoration**: Restores only profile and runtime changes that the Switcher can prove it owns.
+- **Automatic discovery and recovery**: Finds common installations, shows the current language, and records the state needed for supported restoration.
 - **Built-in updates**: Notifies you when a later Switcher version is available and verifies it before installation.
 
 ## Switcher Window
 
-Choose a target language, then select **Switch** or **Restore English**. When the current language has an update badge, select it and choose **Update** to reapply the complete language patch—no language change or English restore is needed first. The current language is disabled only when its patch is up to date. Progress and recovery guidance appear below the actions.
+Choose a target language, then select **Switch** or **Restore English**. When the current language has an update badge, select it and choose **Update** to reapply its latest language resources—no language change or English restore is needed first. The current language is disabled only when its resources are current. Progress and recovery guidance appear below the actions.
 
-On macOS, changing the language or updating the patch on a managed installation, as well as **Restore English**, requires a complete, verifiable official Cavalry baseline saved for that installation. If it is missing or cannot be verified, the operation stops before writing and asks you to reinstall Cavalry from the official installer before applying a language again. Windows behavior is unchanged.
+The 2.8 language pack writes native UI text and the locale setting to the current user's Cavalry profile. It does not use the historical 2.7 JSON asset overlays. On macOS, a native runtime change requires a verified Cavalry target and an official baseline before bundle writes. If the baseline is missing or invalid, the runtime operation stops before writing.
 
-**Add Layer search in released p8:** You can search in English or the selected language. In the right-hand Add Layer panel, localized title matches may not receive the same title priority as English names. If the expected layer appears lower in the results, try its full English name, such as `Text Shape`. This is a known ranking limitation; it does not mean your input or the layer's creation identity has changed.
-
-**Development branch (not yet released):** Exact selected-language title matches and eligible title-prefix matches in the right-hand panel receive a title-priority supplement on verified runtimes. Matches elsewhere in a title can still appear in search results with native ranking. Native filtering and layer creation remain unchanged; unverified runtimes retain native ranking. Windows live acceptance is still required before release.
+**Restore English** restores the saved profile strings, sets the locale to English, and reverses any Switcher-owned runtime change through the platform's verified restoration transaction. If profile files changed after the Switcher wrote them, restoration stops and preserves those changes.
 
 ## Safety & Permissions
 
@@ -45,11 +46,11 @@ Cavalry Language Switcher is an independent community tool. It is not made by, e
 
 The Switcher modifies the local Cavalry installation. If the version is unsupported, the installation cannot be verified, or a write is denied, the new language is not applied.
 
-On macOS, it tries the change directly and opens **System Settings → Privacy & Security → App Management** only after macOS actually denies the write. Grant access only if you trust the build; macOS may ask you to reopen the Switcher before trying again. The changed `Cavalry.app` is locally re-signed so it can launch.
+On macOS, it tries the change directly and opens **System Settings → Privacy & Security → App Management** only after macOS actually denies the write. Grant access only if you trust the build; macOS may ask you to reopen the Switcher before trying again. A changed `Cavalry.app` is locally re-signed so it can launch.
 
 On Windows, writable custom locations are handled directly. UAC elevation is limited to Cavalry installations under the system Program Files directories. Unknown DLLs are never deleted or replaced.
 
-On macOS, **Restore English** restores from the saved official baseline; it does not reinstall Cavalry. If a complete, verifiable baseline is unavailable, the restore stops before writing and asks you to reinstall Cavalry 2.7.2 from the official installer before applying a language again.
+**Restore English** restores only the recorded profile state and Switcher-owned runtime. If the operation needs a runtime baseline that is missing or cannot be verified, it stops before that bundle write. It does not reinstall Cavalry.
 
 ## Install From Release
 
@@ -80,13 +81,13 @@ Use the repository's pinned Node, Rust, Qt, Python, and Windows CMake toolchain.
 
 ## How It Works
 
-1. Detect a Cavalry 2.7.2 installation, or let the user choose one on Windows.
-2. Validate the installation and save or reuse the recovery data required for a supported English restore.
-3. Apply the selected JSON assets and platform runtime translator.
-4. Commit the language marker last; macOS then re-signs the changed app bundle.
-5. Open Cavalry in the selected language.
+1. Verify the selected Cavalry 2.8.0 installation and embedded native-resource manifest.
+2. Load the approved language pack built from the pinned Cavalry 2.8 catalogs.
+3. Apply the locale and `strings.json` pack to the current user's Cavalry profile.
+4. Use the platform's verified native-runtime transaction when a runtime change is required.
+5. Open Cavalry after the language transaction commits.
 
-The original Cavalry launch path remains unchanged. **Restore English** runs the same managed transaction in reverse and removes only files that the Switcher can prove it owns.
+**Restore English** restores the saved profile strings, sets the locale to English, and restores any Switcher-owned runtime. If profile data changed after the Switcher write, the transaction stops instead of overwriting it.
 
 ## Supported Languages
 
@@ -103,11 +104,9 @@ The original Cavalry launch path remains unchanged. **Restore English** runs the
 npm run test:contracts         # Renderer, bridge, release, and packaging contracts
 npm run test:tauri             # Rust tests
 npm run check:app              # JavaScript syntax
-npm run build:injector         # macOS Qt injector
-npm run build:injector:windows # Windows translator and QPA delegate
 ```
 
-Qt 6.6.3 must match Cavalry 2.7.2. Do not build release packages from floating dependencies; use [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md).
+2.8.0 production builds target Qt 6.9.2. Do not build release packages from floating dependencies; use [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md).
 
 ## AI / Agent Guide
 
@@ -115,14 +114,11 @@ Before changing code, read [AGENTS.md](AGENTS.md), [CLAUDE.md](CLAUDE.md), and t
 
 ## Translation Surfaces
 
-The project translates two surfaces:
+For Cavalry 2.8.0, native user-profile packs use source-bound approvals in `languages/native/` and official catalogs pinned in `tools/cavalry_native_target.json`. `tools/native_resource_bundle.js` validates and builds the three target-language packs. Do not edit generated packs by hand.
 
-1. **JSON assets** in `languages/`, kept structurally aligned with the English baseline.
-2. **Compiled Qt/UI text** from `tools/*.ts` and `tools/model_display_translations.json`, embedded into the platform runtime translator.
+The builder preserves official `dontTranslate` rows by default. Its display exception covers only 100 approved built-in demo menu labels with exact catalog identities and values. It does not change preset paths, model names, menu actions, or user-entered text.
 
-The native JSON builder preserves official `dontTranslate` rows by default. The explicit asset-root producer selects only the 100 root-approved, source-bound built-in demo menu labels and checks their full catalog identity plus exact values in all three target languages. The generic projection API remains closed by default. This display exception does not change preset paths, model names, or menu actions.
-
-Generated translations live in `injector/generated_translations.inc` and must not be edited by hand. Translation rules and live verification are documented in [docs/translation-guidelines.md](docs/translation-guidelines.md) and [docs/runtime-ui-live-capture-workflow.md](docs/runtime-ui-live-capture-workflow.md).
+The `languages/` JSON overlays and `tools/*.ts` injector translations are separate legacy/runtime surfaces, not the Cavalry 2.8 native user-profile pack source. The generated injector table must not be edited by hand. Translation rules and live verification are documented in [docs/translation-guidelines.md](docs/translation-guidelines.md) and [docs/runtime-ui-live-capture-workflow.md](docs/runtime-ui-live-capture-workflow.md).
 
 ## Repository
 
@@ -131,7 +127,7 @@ Cavalry-i18n/
 ├── renderer/          # Tauri WebView UI
 ├── src-tauri/         # Rust commands and platform transactions
 ├── injector/          # macOS and Windows Qt runtime translators
-├── languages/         # English baseline and three translated JSON packs
+├── languages/         # Legacy JSON packs and approved 2.8 native translations
 ├── tools/             # Build, validation, and release tooling
 ├── docs/              # Public rules, repeatable SOPs, and images
 └── .github/workflows/ # CI, platform packaging, and Release publication

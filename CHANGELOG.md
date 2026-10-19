@@ -14,8 +14,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-19
+
+### Added
+- 支持 Cavalry 2.8.0，提供 macOS Apple Silicon、Intel 和 Windows x64 版本，可切换英文、简体中文、繁体中文和日文。
+- 增加官方示例菜单、合成名和作者命名图层的显示译文，不改写用户工程。
+- 主窗口新增 GitHub、X 和小红书入口，“关于”窗口提供 X 和小红书关注按钮。
+
 ### Changed
+- 优化已应用补丁后的语言切换速度，并补充恢复配置检查的进度提示。
 - 统一通过同一更新入口获取新版切换器；不支持的 Cavalry 版本沿用主窗口提示，Cavalry 2.7.2 可直接下载 p12。
+
+### Fixed
+- 修复时间编辑器名称、视口质量文字和固定工具提示中的中文、日文字体缺失问题。
+- 补齐欢迎信息、另存为窗口和曲线编辑器空态提示的译文。
 
 ## [1.0.6] - 2026-09-29
 
