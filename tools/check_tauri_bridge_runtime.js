@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/user-profile-text/ui-text/language-scope/version-guidance/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/support-footer/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证单行关注 footer 四语文案/提示/无障碍名称与 GitHub/X/小红书固定 ID 分发；验证 About「关注」文案和平台区分的四语名称；验证旧宿主短提示/p12入口和禁用Switch；保留 camelCase scope/错误白名单、严格 Restore/恢复语义、失败 Activity、局部外链 Toast、任务流、权限、Updater 与组件状态机合同。
+ * [OUTPUT]: 验证单行关注 footer 四语文案/提示/无障碍名称与 GitHub/X/小红书固定 ID 分发；验证 About「关注」文案和平台区分的四语名称；验证旧宿主四语不支持提示、2.7.2专用p12入口和禁用Switch；保留 camelCase scope/错误白名单、严格 Restore/恢复语义、失败 Activity、局部外链 Toast、任务流、权限、Updater 与组件状态机合同。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -988,7 +988,7 @@ test('managed English disables Restore unless Windows still owns cleanup residue
   assert.equal(windows.elements['#restoreButton'].disabled, false);
 });
 
-test('unsupported Cavalry versions are read-only and preserve the user\'s upgrade direction', async () => {
+test('unsupported Cavalry versions remain read-only with a short unsupported message', async () => {
   const older = boot({ status: { version: '2.7.1', versionCompatibility: 'olderUnsupported' } });
   const newer = boot({ status: { version: '2.7.3', versionCompatibility: 'newerUnsupported' } });
   const unknown = boot({ status: { version: 'preview', versionCompatibility: 'unknownUnsupported' } });
@@ -1001,8 +1001,8 @@ test('unsupported Cavalry versions are read-only and preserve the user\'s upgrad
     assert.equal(r.calls.some(({ command }) => command === 'apply_language'), false);
   }
   assert.equal(activityTitle(older), 'Cavalry 2.7.1 isn’t supported');
-  assert.match(activityText(older), /supports Cavalry 2\.7\.2/i);
-  assert.match(activityText(older), /Update Cavalry to use it/i);
+  assert.ok(activityText(older).includes('This Cavalry version isn’t supported.'));
+  assert.doesNotMatch(activityText(older), /update|download|corresponding/i);
   assert.equal(older.elements['#legacyReleaseButton'].hidden, true);
   assert.equal(activityTitle(newer), 'Cavalry 2.7.3 isn’t supported yet');
   assert.match(activityText(newer), /won’t modify this installation/i);
@@ -1010,6 +1010,21 @@ test('unsupported Cavalry versions are read-only and preserve the user\'s upgrad
   assert.doesNotMatch(activityText(newer), /downgrade|reinstall Cavalry/i);
   assert.equal(activityTitle(unknown), 'This Cavalry version isn’t supported');
   assert.match(activityText(unknown), /has not changed your installation/i);
+});
+
+test('hosts older than 2.7.2 get only the four-locale unsupported message', async () => {
+  for (const [locale, message] of [
+    ['en-US', 'This Cavalry version isn’t supported.'],
+    ['zh-CN', '暂不支持此 Cavalry 版本。'],
+    ['zh-TW', '暫不支援此 Cavalry 版本。'],
+    ['ja-JP', 'この Cavalry バージョンには対応していません。'],
+  ]) {
+    const r = boot({ locale, status: { version: '2.7.1', supportedVersion: '2.8.0', versionCompatibility: 'olderUnsupported' } });
+    await flush();
+    assert.ok(activityText(r).includes(message), locale);
+    assert.equal(r.elements['#legacyReleaseButton'].hidden, true, locale);
+    assert.equal(r.elements['#applyButton'].disabled, true, locale);
+  }
 });
 
 test('clean official macOS install with needsExtract allows Apply to establish its baseline', async () => {
@@ -1759,7 +1774,7 @@ test('legacy 2.7.2 host keeps a short p12 link and blocks switching after a Swit
     await flush();
     assert.equal(preview.elements['#legacyReleaseButton'].hidden, false, locale);
     assert.equal(preview.elements['#legacyReleaseButton'].textContent, label, locale);
-    assert.match(activityText(preview), /Cavalry 2\.8\.0/);
+    assert.match(activityTitle(preview), /Cavalry 2\.7\.2/);
     assert.equal(preview.elements['#applyButton'].disabled, true, locale);
     assert.equal(preview.calls.some(({ command }) => command === 'apply_language'), false, locale);
   }
