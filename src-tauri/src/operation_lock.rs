@@ -1,9 +1,11 @@
 /**
  * [INPUT]: 依赖 state 目录、原子标志与 macOS flock/Windows exclusive file handle。
- * [OUTPUT]: 提供共享operation guard与busy错误；Mac和Windows原生writer均复核同一canonical state根。
- * [POS]: src-tauri/src 的 bundle operation 单飞边界；GUI extract/apply/restart 与 Windows headless launch 共享同一跨进程锁语义。
+ * [OUTPUT]: 提供共享operation guard与busy错误；Mac和Windows原生writer复核同一canonical state根；测试构建另提供guard用例串行mutex。
+ * [POS]: src-tauri/src 的 bundle operation 单飞边界；GUI、Windows uninstall/headless launch与原生writer共享锁语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+#[cfg(test)]
+use std::sync::{Mutex, MutexGuard};
 use std::{
     fs,
     path::Path,
@@ -16,9 +18,18 @@ use std::os::fd::AsRawFd;
 use std::os::windows::fs::OpenOptionsExt;
 
 static BUNDLE_OPERATION_IN_PROGRESS: AtomicBool = AtomicBool::new(false);
+#[cfg(test)]
+static BUNDLE_OPERATION_TEST_SERIAL: Mutex<()> = Mutex::new(());
 pub(crate) const BUSY_ERROR: &str =
     "Another Cavalry language operation is already running. Wait for it to finish and try again.";
 const BUNDLE_LOCK_FILE_NAME: &str = ".cavalry-i18n-bundle.lock";
+
+#[cfg(test)]
+pub(crate) fn lock_bundle_operation_tests() -> MutexGuard<'static, ()> {
+    BUNDLE_OPERATION_TEST_SERIAL
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+}
 
 pub(crate) struct BundleOperationGuard {
     #[cfg(any(target_os = "macos", target_os = "windows"))]

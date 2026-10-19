@@ -1,8 +1,8 @@
 /**
- * [INPUT]: 依赖显式锁定的2.8原厂App、target绑定且允许诚实partial的native-preview资源、OS用户profile与state；source分母另计固定插件caption1。
+ * [INPUT]: 依赖显式锁定的2.8原厂App、bundle锁测试串行器、target绑定且允许诚实partial的native-preview资源、OS用户profile与state；source分母另计固定插件caption1。
  * [OUTPUT]: 提供默认ignored的单语言profile smoke及旧owned pack升级fixture；全量读取仅作既有烟测前置，状态投影消费approved digest map。
  * smoke验证receipt/pack SHA、English恢复和vendor/非locale零漂移。
- * [POS]: commands/tests 的真实用户文件动作合同；直接调用test-only profile入口，不经过会自动restart的公开command，不启动Cavalry、不声称真实UI切换已验证。
+ * [POS]: commands/tests 的显式用户文件动作合同；锁操作与全局guard测试串行，调用test-only profile入口，不自动restart或启动Cavalry，不声称真实UI切换已验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::{apply_profile_only_inner, profile_projection};
@@ -164,6 +164,7 @@ fn owned_previous_pack_can_upgrade_but_stale_strings_observation_is_rejected() {
 #[test]
 #[ignore = "writes one explicit real Cavalry user-profile action; never runs automatically"]
 fn native_profile_apply_smoke_performs_one_action_without_restart() {
+    let _serial = crate::operation_lock::lock_bundle_operation_tests();
     assert!(
         native_resources::preview_enabled(),
         "requires explicit native-preview compilation"

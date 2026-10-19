@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖commands的共享状态目录/原生Restart、operation_lock和严格State；legacy另用Windows runtime ready marker与CommandRunner。
- * [OUTPUT]: --launch-cavalry复用GUI的原生状态/锁/Restart准入；原生模式关闭时保留旧revision/marker/QPA/PID就绪合同；测试独立建立损坏状态fixture，不依赖锁的建目录副作用。
+ * [OUTPUT]: --launch-cavalry复用GUI的原生状态/锁/Restart准入；原生模式关闭时保留旧revision/marker/QPA/PID就绪合同；锁测试共用test-only串行器；损坏状态fixture独立建目录，不依赖锁的建目录副作用。
  * [POS]: Windows无WebView入口；native正常启动，legacy仅给子进程注入诊断marker；不改vendor EXE或全局环境。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -171,10 +171,7 @@ mod tests {
         ffi::OsString,
         fs,
         path::{Path, PathBuf},
-        sync::Mutex,
     };
-
-    static LAUNCH_TEST_LOCK: Mutex<()> = Mutex::new(());
 
     #[derive(Default)]
     struct LaunchRecorder {
@@ -300,6 +297,7 @@ mod tests {
 
     #[test]
     fn native_cli_uses_saved_selection_and_same_lock_without_legacy_proofs() {
+        let _serial = operation_lock::lock_bundle_operation_tests();
         let temp = tempfile::tempdir().unwrap();
         let state = temp.path().join("native-2.8");
         let host = temp.path().join("native host with spaces");
@@ -338,6 +336,7 @@ mod tests {
 
     #[test]
     fn native_cli_missing_or_corrupt_selection_does_not_restart() {
+        let _serial = operation_lock::lock_bundle_operation_tests();
         let temp = tempfile::tempdir().unwrap();
         let state = temp.path().join("native-2.8");
         assert!(super::launch_native_from_state(&state, |_| panic!("missing target")).is_err());
@@ -349,7 +348,7 @@ mod tests {
     #[test]
     #[cfg(not(cavalry_native_windows))]
     fn translated_launch_uses_saved_arbitrary_root_and_child_only_environment() {
-        let _serial = LAUNCH_TEST_LOCK.lock().unwrap();
+        let _serial = operation_lock::lock_bundle_operation_tests();
         let temp = tempfile::tempdir().unwrap();
         let (app, resources, state_dir) = fixture(&temp, "zh-Hans");
         let mut runner = LaunchRecorder::ready(4242);
@@ -393,7 +392,7 @@ mod tests {
     #[test]
     #[cfg(not(cavalry_native_windows))]
     fn english_launch_has_no_translation_environment_or_plugin_dependency() {
-        let _serial = LAUNCH_TEST_LOCK.lock().unwrap();
+        let _serial = operation_lock::lock_bundle_operation_tests();
         let temp = tempfile::tempdir().unwrap();
         let (_app, resources, state_dir) = fixture(&temp, "en");
         let mut runner = LaunchRecorder::ready(4242);
@@ -414,7 +413,7 @@ mod tests {
     #[test]
     #[cfg(not(cavalry_native_windows))]
     fn translated_launch_requires_pid_bound_ready_marker() {
-        let _serial = LAUNCH_TEST_LOCK.lock().unwrap();
+        let _serial = operation_lock::lock_bundle_operation_tests();
         let temp = tempfile::tempdir().unwrap();
         let (_app, resources, state_dir) = fixture(&temp, "ja_JP");
         let mut wrong_marker = LaunchRecorder {
@@ -454,7 +453,7 @@ mod tests {
     #[test]
     #[cfg(not(cavalry_native_windows))]
     fn active_language_transaction_blocks_headless_spawn() {
-        let _serial = LAUNCH_TEST_LOCK.lock().unwrap();
+        let _serial = operation_lock::lock_bundle_operation_tests();
         let temp = tempfile::tempdir().unwrap();
         let (_app, resources, state_dir) = fixture(&temp, "zh-Hans");
         let guard = operation_lock::try_begin_bundle_operation(&state_dir).unwrap();
@@ -477,7 +476,7 @@ mod tests {
     #[test]
     #[cfg(not(cavalry_native_windows))]
     fn stale_marker_or_changed_binary_fails_before_spawn() {
-        let _serial = LAUNCH_TEST_LOCK.lock().unwrap();
+        let _serial = operation_lock::lock_bundle_operation_tests();
         let temp = tempfile::tempdir().unwrap();
         let (app, resources, state_dir) = fixture(&temp, "zh-Hant");
         fs::write(app.join(LANG_MARKER_NAME), b"en\n").unwrap();

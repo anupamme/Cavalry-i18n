@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖approved/staged source SHA、runtime owner、baseline与fixture签名端口。
+ * [INPUT]: 依赖approved/staged source SHA、runtime owner、baseline、共享bundle锁测试串行器与fixture签名端口。
  * [OUTPUT]: 验证runtime写入、签名顺序、回滚和owner重放合同。
  * [POS]: NRT writer主测试集；Keychain兼容合同由keychain子模块隔离。
  * Fixture只验槽或模拟codesign，不证明厂商；ignored smoke不启动App。
@@ -340,6 +340,7 @@ fn stock_slot_preimage_rejection_precedes_staging_and_bundle_mutation() {
 
 #[test]
 fn stock_install_rejects_a_caller_hash_that_does_not_match_staged_source() {
+    let _serial = crate::operation_lock::lock_bundle_operation_tests();
     let (f, baseline, source) = fixture();
     let operation = crate::operation_lock::try_begin_bundle_operation(&f.state).unwrap();
     let before = inventory_bundle(&f.app).unwrap();
@@ -713,6 +714,7 @@ fn managed_update_rejects_owner_changed_after_its_read_only_snapshot() {
 
 #[test]
 fn managed_update_rejects_a_caller_hash_that_does_not_match_staged_source() {
+    let _serial = crate::operation_lock::lock_bundle_operation_tests();
     let (f, baseline, mut signer) = installed_fixture();
     let owned = privilege::load_owned_native_runtime_details(&f.state, &f.app, &mut signer)
         .unwrap()
@@ -1160,6 +1162,7 @@ fn failed_vendor_source_verification_rolls_back_managed_tree_and_keeps_owner() {
 #[test]
 #[ignore = "requires explicit official source and approved injector; mutates only a temporary copy"]
 fn stock_official_copy_installs_native_runtime_with_real_signing_smoke() {
+    let _serial = crate::operation_lock::lock_bundle_operation_tests();
     use crate::{
         native_mac_bundle_inventory::BundleObject, native_mac_vendor_baseline::capture_or_reuse,
         operation_lock::try_begin_bundle_operation, privilege::RealCommandRunner,

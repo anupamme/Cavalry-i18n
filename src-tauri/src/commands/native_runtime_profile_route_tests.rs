@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖native_runtime实际编排、owner hint、2.8 bundle观察、profile事务与临时fixture。
+ * [INPUT]: 依赖native_runtime实际编排、owner hint、2.8 bundle观察、共享bundle锁测试串行器与临时fixture。
  * [OUTPUT]: 证明同源hint只准profile快路；成功按Verify/Ensure/Apply排序，早期拒绝止于Ensure。
- * [POS]: native_runtime路由合同；缺baseline和Extension的fixture只证明profile成功，不证明App完整性。
+ * [POS]: native_runtime路由合同；全局guard测试共享串行器；缺baseline和Extension的fixture只证明profile成功，不证明App完整性。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::*;
@@ -25,8 +25,6 @@ use std::{
 const SOURCE_BYTES: &[u8] = b"approved native runtime fixture";
 const PROFILE_PACK: &[u8] =
     br#"[{"type":"strings","language":"zh-Hans","value":{"fixture":{"UI-text":"fixture"}}}]"#;
-static TEST_SERIAL: Mutex<()> = Mutex::new(());
-
 #[derive(Clone, Default)]
 struct RecordingReporter(Arc<Mutex<Vec<(String, String)>>>);
 
@@ -181,9 +179,7 @@ fn assert_profile_recovery_failure(reporter: &RecordingReporter) {
 
 #[test]
 fn matching_bounded_owner_hint_applies_profile_without_baseline_or_extension() {
-    let _serial = TEST_SERIAL
-        .lock()
-        .unwrap_or_else(|error| error.into_inner());
+    let _serial = operation_lock::lock_bundle_operation_tests();
     let fixture = Fixture::new(native_resources::NATIVE_VERSION);
     let source_sha256 = digest(SOURCE_BYTES);
     fixture.write_owner(&source_sha256);
@@ -237,9 +233,7 @@ fn matching_bounded_owner_hint_applies_profile_without_baseline_or_extension() {
 
 #[test]
 fn same_source_route_still_rejects_a_corrupt_user_receipt() {
-    let _serial = TEST_SERIAL
-        .lock()
-        .unwrap_or_else(|error| error.into_inner());
+    let _serial = operation_lock::lock_bundle_operation_tests();
     let fixture = Fixture::new(native_resources::NATIVE_VERSION);
     fixture.write_owner(&digest(SOURCE_BYTES));
     fs::write(fixture.paths.receipt(), b"not a receipt").unwrap();
@@ -285,9 +279,7 @@ fn same_source_route_still_rejects_a_corrupt_user_receipt() {
 
 #[test]
 fn english_mismatch_bad_hint_wrong_version_and_missing_candidate_keep_full_admission() {
-    let _serial = TEST_SERIAL
-        .lock()
-        .unwrap_or_else(|error| error.into_inner());
+    let _serial = operation_lock::lock_bundle_operation_tests();
     let source_sha256 = digest(SOURCE_BYTES);
 
     let english = Fixture::new(native_resources::NATIVE_VERSION);
@@ -347,9 +339,7 @@ fn english_mismatch_bad_hint_wrong_version_and_missing_candidate_keep_full_admis
 
 #[test]
 fn malformed_nrt_journal_blocks_same_source_profile_routing() {
-    let _serial = TEST_SERIAL
-        .lock()
-        .unwrap_or_else(|error| error.into_inner());
+    let _serial = operation_lock::lock_bundle_operation_tests();
     let fixture = Fixture::new(native_resources::NATIVE_VERSION);
     fixture.write_owner(&digest(SOURCE_BYTES));
     let journal = fixture.state.join("macos-apply-transaction");

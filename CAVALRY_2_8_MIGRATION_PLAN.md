@@ -6154,3 +6154,26 @@ release-production环境仅追加cavalry-2.8.0-p* tag许可。
 仅复验本次发布接线，不重做已过人工UI或Cavalry实屏。
 首个2.8正式发行必须等待tag实际产物与更新清单回读。
 主账暂仍42/44，G-3/G-6不得提前记PASS。
+
+
+### 66.192 未发布p1的测试隔离修正（2026-10-19）
+
+首轮tag源码57c533e的Windows库测试342通过、4失败、1忽略。
+直接原因是不同测试同时占用进程级operation guard。
+首个headless用例得到busy，模块mutex随后poison，引起三项级联失败。
+同源main CI已成功，印证这是测试调度竞争，不是UI或切语故障。
+不以重复运行碰运气替代根因修复。
+
+统一所有相关unit test的测试串行器。
+共享mutex/helper仅在cfg(test)编译，真实busy断言保留。
+operation_lock及headless生产函数逐字节不变。
+其余普通测试继续并行，不关闭用例或追加产品等待。
+L3、src、commands及tests三层局部地图同步。
+真实state/operation_lock与提取的native CLI用例确定性红测exit101。
+修正后在另一测试持锁条件下等待并通过。
+Mac Rust库438通过、0失败、9忽略，未执行ignored现场动作。
+
+维护者明确批准将未公开p1标签更新至修正提交，不占用p2。
+旧tag流水线取消，Release仍未创建；p12历史资产不变。
+新提交后按远端旧tag对象lease约束更新标签，再走完整发行闭包。
+G-3/G-6仍待实际公开资产回读，不提前记PASS。

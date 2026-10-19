@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖Windows原生路径facade与临时任意安装根。
+ * [INPUT]: 依赖Windows原生路径facade、共享bundle锁测试串行器与临时任意安装根。
  * [OUTPUT]: 任意根发现/零写规划；选择持久化、同选择重试耐久写及写失败；缺目标卸载零profile写入与宿主缺失幂等恢复。
- * [POS]: Windows接线差异合同；只用临时目录，不接真实profile或宿主进程。
+ * [POS]: Windows接线差异合同；锁用例与其他global bundle guard测试串行，只用临时目录。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::*;
@@ -43,6 +43,7 @@ fn absent_state_plan_is_canonical_without_creating_directories() {
 
 #[test]
 fn verified_auto_selection_is_durable_without_legacy_revision() {
+    let _serial = crate::operation_lock::lock_bundle_operation_tests();
     let temp = tempfile::tempdir().unwrap();
     let state = temp.path().join("state");
     let host = temp.path().join("自动发现 host");

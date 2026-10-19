@@ -3,10 +3,10 @@
 
 成员清单
 native_windows_runtime_reconciliation.rs: Windows native English复用marker/QPA残留检查，隔离验证Restore协调、拒Official及hostless许可不扩张，不读真实profile。
-native_windows_paths.rs: 任意根发现/零写规划；已验选择持久化、同路径重试耐久写/保存失败、缺状态卸载保持owned profile原字节、宿主移除幂等恢复，以及Current/drift/pending/未知namespace原生Restart准入。
+native_windows_paths.rs: 任意根发现/零写规划；已验选择持久化、同路径重试耐久写/保存失败；取得bundle guard的用例使用共享test-only串行器；缺状态卸载保持owned profile原字节，宿主移除幂等恢复，以及Current/drift/pending/未知namespace原生Restart准入。
 user_language_files_windows.rs: Windows临时Local/Roaming分离根合同；复用共享事务验证三语commit、English恢复、资源发布后中断恢复与未知strings保护，不触碰真实profile。
 native_status_readonly_smoke.rs: status的人工ignored子模块；明确App/repo与native编译后组合真实原厂验签、pack和OS profile，manifest绑定target原字节SHA；source总量为target官方10473+补充373及独立插件caption1，approvedUIKeys限于源范围；先解析三语missing再推导complete以接受诚实partial；人工烟测只读默认profile，不启动WK/Cavalry或验证Apply。
-native_user_profile_apply_smoke.rs: tempfile合同证明旧owned pack升级及陈旧strings拒绝；人工ignored单动作校验target原字节SHA、schema补充373、插件caption1与三语missing；full NativeResources只作烟测前置，status投影用approved digest map；保留真实App/profile/operation lock动作边界，不启动Cavalry。
+native_user_profile_apply_smoke.rs: tempfile合同证明旧owned pack升级及陈旧strings拒绝；人工ignored单动作校验target原字节SHA、schema补充373、插件caption1与三语missing；full NativeResources只作烟测前置，status投影用approved digest map；与其他bundle guard用例共用test-only串行器；保留真实App/profile/operation lock动作边界，不启动Cavalry。
 runtime.rs: 验证补丁回执跨源更新/安装绑定且观察零写入， Resources 与 `_up_` 候选顺序、macOS injector定位与显式legacy restart runner、Windows generic plugin 的 child-only 环境，以及 apply/restart 在失败前不 spawn 的边界；legacy runner合同绕开preview OS-home profile admission，原生准入由独立fixture测试覆盖。
 user_language.rs: 纯 JSON Preferences.locale 投影合同；验证 native locale 映射、畸形 typed locale/unsupported language 零变更拒绝、缺失/原值前像、字段/metadata drift 下 test-only CAS rollback 与 fixed English helper；不接触文件系统、IPC 或真实 profile。
 user_language_files.rs: 临时profile事务/恢复合同；覆盖compact/legacy receipt、pending recovery warning不被清除、原像与drift拒绝、固定en-GB和guard边界；保留显式新pending receipt验证合同；只用fixture，不接真实profile或App。

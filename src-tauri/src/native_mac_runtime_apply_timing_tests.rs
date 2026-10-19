@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖显式官方2.8源、approved injector路径与SHA-256环境变量。
+ * [INPUT]: 依赖显式官方2.8源、共享bundle锁测试串行器、approved injector路径与SHA-256环境变量。
  * [OUTPUT]: 记录baseline捕获、stock写入、严格验签和原厂恢复耗时。
  * [POS]: native runtime writer的显式ignored烟测；只操作临时APFS克隆，不启动App或访问profile。
  * 本测试不额外调用inventory_bundle；baseline沿用生产捕获与来源校验。
@@ -73,6 +73,7 @@ macro_rules! timed_stage {
 #[test]
 #[ignore = "requires explicit official source and approved injector; mutates only a temporary APFS clone"]
 fn stock_runtime_writer_timing_smoke_on_temporary_clone() {
+    let _serial = crate::operation_lock::lock_bundle_operation_tests();
     let source = fs::canonicalize(
         env::var_os("CAVALRY_I18N_NATIVE_STOCK_SMOKE_SOURCE")
             .expect("set explicit read-only official source"),
