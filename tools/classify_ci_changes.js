@@ -2,7 +2,7 @@
 /**
  * [INPUT]: 依赖 Git 变更范围、GitHub event/ref/base/head 与仓库路径职责边界
  * [OUTPUT]: 对外提供 documentation/source/vulnerability/windows/macos-injector 五类 CI 风险投影及 GitHub Actions outputs
- * [POS]: tools 的 CI 调度分类器，共享翻译/输入/Quick Add context/display/顶部标签/搜索/Classic 搜索与评分/Quick Add 描述策略必须经过双平台门，macOS-only 原生源码只进入 macOS 门；tag、手动运行、未知路径和不可解析 diff 均 fail-closed
+ * [POS]: tools 的 CI 调度分类器，离线验收表工具只走合同门，未知新增驱动不豁免；项目技能 Markdown 只走文档门；共享翻译/输入/Quick Add context/display/顶部标签/搜索/Classic 搜索与评分/Quick Add 描述策略必须经过双平台门，macOS-only 原生源码只进入 macOS 门；tag、手动运行、未知路径和不可解析 diff 均 fail-closed
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -18,12 +18,17 @@ const DOCUMENTATION_PATHS = [
   /^README(?:\.[^/]+)?\.md$/,
   /^LICENSE(?:\..+)?$/,
   /^docs\//,
+  /^\.agents\/skills\/.+\.md$/,
   /^\.github\/(?:CODEOWNERS|(?:ISSUE_TEMPLATE|PULL_REQUEST_TEMPLATE)(?:\/|$))/,
   /^\.github\/(?!workflows\/).+\.md$/,
   /(?:^|\/)CLAUDE\.md$/,
 ];
 
 const CONTRACT_ONLY_PATHS = [
+  /^tools\/acceptance\/(?:catalog|masters|scenarios|checklist|migration|scene-scope(?:\.test)?|checklist.test)\.js$/,
+  /^tools\/acceptance\/(?:run_flow|test_run_flow)\.py$/,
+  /^tools\/acceptance\/(?:plugin-actions|plugin-acceptance-scope)\.json$/,
+  /^tools\/acceptance\/(?:README|DRIVERS)\.md$/,
   /^CHANGELOG\.md$/,
   /^LOCAL_BUILD_SOP\.md$/,
   /^requirements-audit\.(?:in|txt)$/,

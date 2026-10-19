@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 contract/transport 的 hash-locked plan、storage durable journal/recovery、OS Known Folder、固定资源映射与 windows_qpa transition。
- * [OUTPUT]: 提供同一 Switcher EXE 的 Program Files apply/recovery 提权 worker；委托 preparation-root journal 的原子发布与 displaced CAS 证据，QPA 首次写入前持久化精确 postimage，再固定执行 pending→assets/generic→QPA→pre-final proof→final，并以 0/42/43/44/45 表达可证明状态。
- * [POS]: privilege/windows/language_transaction 的唯一提权执行边界；父进程持有应用锁，worker 重验 Known Folder/EXE/root/journal，不写 Tauri state、不重启 Cavalry，也不接受任意目标路径。
+ * [OUTPUT]: 同EXE Program Files worker与普通native根共用journal执行器；native拒绝legacy assets且不关闭用户进程，全部同用户写者须退出；保留QPA写前postimage与final marker最后提交。
+ * [POS]: 固定Windows事务执行边界；提权入口重验Known Folder，普通native入口明确拒绝Program Files；共用EXE/provenance/journal，不写Tauri state、不重启Cavalry、不接受任意目标。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -73,7 +73,7 @@ pub(crate) fn run_elevated_recovery_worker(transport: &RecoveryTransport) -> u32
             return Ok(WORKER_EXIT_COMMITTED_CLEAN);
         }
         let mut runner = RealCommandRunner;
-        match close_cavalry_before_modification(&layout.root, &mut runner) {
+        match guard_transaction_writers(&layout, &mut runner) {
             Ok(()) => {}
             Err(CloseCavalryError::StillRunning) => return Ok(WORKER_EXIT_CAVALRY_STILL_RUNNING),
             Err(CloseCavalryError::Command(_)) => {
@@ -104,7 +104,7 @@ fn recover_pending_before_apply(layout: &InstallLayout) -> Result<(), u32> {
         return Ok(());
     }
     let mut runner = RealCommandRunner;
-    match close_cavalry_before_modification(&layout.root, &mut runner) {
+    match guard_transaction_writers(layout, &mut runner) {
         Ok(()) => {}
         Err(CloseCavalryError::StillRunning) => return Err(WORKER_EXIT_CAVALRY_STILL_RUNNING),
         Err(CloseCavalryError::Command(_)) => return Err(WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN),
@@ -134,6 +134,41 @@ fn run_elevated_worker_inner(transport: &WorkerTransport) -> Result<u32, u32> {
     )
     .map_err(|_| WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN)?;
 
+    execute_resolved_transaction(&plan, resolved)
+}
+
+/// 同一固定payload/journal执行器供普通native根复用；此入口拒绝Program Files。
+pub(crate) fn run_native_direct_plan(plan: &ElevatedLanguagePlan, plan_path: &Path) -> u32 {
+    let run = || -> Result<u32, u32> {
+        let refuse = WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN;
+        if !cfg!(cavalry_native_windows) {
+            return Err(refuse);
+        }
+        super::contract::validate_plan(plan, plan_path).map_err(|_| refuse)?;
+        require_complete_core_surface(&plan.payloads).map_err(|_| refuse)?;
+        verify_current_executable(plan).map_err(|_| refuse)?;
+        let root = Path::new(&plan.install_root);
+        let canonical = fs::canonicalize(root).map_err(|_| refuse)?;
+        let layout = InstallLayout::from_root(&canonical);
+        crate::windows_qpa::preflight_direct_writable(&layout).map_err(|_| refuse)?;
+        recover_pending_before_apply(&layout)?;
+        let resolved = resolve_transaction(plan, plan_path, layout).map_err(|_| refuse)?;
+        verify_staged_payloads(plan, plan_path, &resolved).map_err(|_| refuse)?;
+        super::source_provenance::verify_staged_source_provenance(
+            plan,
+            plan_path,
+            &resolved.layout,
+        )
+        .map_err(|_| refuse)?;
+        execute_resolved_transaction(plan, resolved)
+    };
+    flatten_worker_result(run())
+}
+
+fn execute_resolved_transaction(
+    plan: &ElevatedLanguagePlan,
+    resolved: ResolvedTransaction,
+) -> Result<u32, u32> {
     let desired_complete = desired_payloads_match(&resolved);
     if should_skip_mutation(&plan.qpa_transition, desired_complete) {
         crate::windows_qpa::execute_writable_transition(&plan.qpa_transition)
@@ -142,7 +177,7 @@ fn run_elevated_worker_inner(transport: &WorkerTransport) -> Result<u32, u32> {
     }
 
     let mut runner = RealCommandRunner;
-    match close_cavalry_before_modification(&resolved.layout.root, &mut runner) {
+    match guard_transaction_writers(&resolved.layout, &mut runner) {
         Ok(()) => {}
         Err(CloseCavalryError::StillRunning) => {
             return Err(WORKER_EXIT_CAVALRY_STILL_RUNNING);
@@ -239,6 +274,22 @@ fn run_elevated_worker_inner(transport: &WorkerTransport) -> Result<u32, u32> {
         CommitCleanup::RolledBack => Ok(WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN),
         CommitCleanup::Uncertain(_) => Ok(WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN),
     }
+}
+
+fn guard_transaction_writers(
+    layout: &InstallLayout,
+    runner: &mut RealCommandRunner,
+) -> Result<(), CloseCavalryError> {
+    if cfg!(cavalry_native_windows) {
+        return crate::privilege::windows::native_profile::guard_writers(runner).map_err(|error| {
+            if error == "nativeWriterStillRunning" {
+                CloseCavalryError::StillRunning
+            } else {
+                CloseCavalryError::Command(error)
+            }
+        });
+    }
+    close_cavalry_before_modification(&layout.root, runner)
 }
 
 fn load_verified_plan(transport: &WorkerTransport) -> Result<ElevatedLanguagePlan, String> {
@@ -387,6 +438,21 @@ fn resolve_asset_destination(
 }
 
 fn require_complete_core_surface(payloads: &[PayloadRecord]) -> Result<(), String> {
+    if cfg!(cavalry_native_windows) {
+        return if payloads.iter().all(|r| {
+            matches!(
+                r.kind,
+                PayloadKind::PendingMarker
+                    | PayloadKind::FinalMarker
+                    | PayloadKind::GenericPlugin
+                    | PayloadKind::QpaProxySource
+            )
+        }) {
+            Ok(())
+        } else {
+            Err("Native runtime refuses legacy asset payloads.".into())
+        };
+    }
     let expected = CORE_MAP
         .iter()
         .map(|(_, target)| *target)

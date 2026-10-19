@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 state 目录、原子标志与 macOS flock/Windows exclusive file handle。
- * [OUTPUT]: 提供 try_begin_bundle_operation、BundleOperationGuard 与稳定 busy 错误。
+ * [OUTPUT]: 提供共享operation guard与busy错误；Mac和Windows原生writer均复核同一canonical state根。
  * [POS]: src-tauri/src 的 bundle operation 单飞边界；GUI extract/apply/restart 与 Windows headless launch 共享同一跨进程锁语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -23,6 +23,24 @@ const BUNDLE_LOCK_FILE_NAME: &str = ".cavalry-i18n-bundle.lock";
 pub(crate) struct BundleOperationGuard {
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     lock_file: Option<fs::File>,
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    state_root: Option<std::path::PathBuf>,
+}
+
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+impl BundleOperationGuard {
+    pub(crate) fn require_state_dir(&self, state_dir: &Path) -> Result<(), String> {
+        require_locked_state_root(self.state_root.as_deref(), state_dir)
+    }
+}
+
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+fn require_locked_state_root(locked: Option<&Path>, state_dir: &Path) -> Result<(), String> {
+    let selected = fs::canonicalize(state_dir).map_err(|error| error.to_string())?;
+    if locked != Some(selected.as_path()) {
+        return Err("Native runtime operation guard belongs to another state directory.".into());
+    }
+    Ok(())
 }
 
 impl Drop for BundleOperationGuard {
@@ -107,16 +125,41 @@ pub(crate) fn try_begin_bundle_operation(state_dir: &Path) -> Result<BundleOpera
     let guard = BundleOperationGuard {
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         lock_file: None,
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        state_root: None,
     };
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     {
         let mut guard = guard;
         guard.lock_file = Some(acquire_bundle_file_lock(state_dir)?);
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        {
+            guard.state_root =
+                Some(fs::canonicalize(state_dir).map_err(|error| error.to_string())?);
+        }
         return Ok(guard);
     }
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
         let _ = state_dir;
         Ok(guard)
+    }
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod native_binding_tests {
+    use super::*;
+
+    #[test]
+    fn native_runtime_guard_requires_the_selected_canonical_state_root() {
+        let temp = tempfile::tempdir().unwrap();
+        let first = temp.path().join("first");
+        let second = temp.path().join("second");
+        fs::create_dir(&first).unwrap();
+        fs::create_dir(&second).unwrap();
+        let canonical = fs::canonicalize(&first).unwrap();
+        assert!(require_locked_state_root(Some(&canonical), &first).is_ok());
+        assert!(require_locked_state_root(Some(&canonical), &second).is_err());
+        assert!(require_locked_state_root(None, &first).is_err());
     }
 }

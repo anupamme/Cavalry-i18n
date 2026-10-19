@@ -2,19 +2,99 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+check_powershell_syntax.ps1: Parser.ParseFile单文件语法driver；只读源码并以退出码报告错误，不执行待验脚本。
+windows_native_pack_contract.ps1: Windows合同driver加载真实native pack校验器；只消费临时fixture，不安装软件。
+windows_native_pack.ps1: NSIS烟测的production三语资源校验器；显式接收源根与安装根，复用调用方断言，核manifest与payload字节。
+windows_native_build.js: Windows默认2.8生产包装器；准备官方资源和native DLL，独立Tauri子进程启用production，固定四overlay与显式x64目标，复用provenance三阶段。
+windows_native_build.test.js: 注入进程与文件操作验证准备/打包阶段、MSVC与CTest、DLL发布、production隔离及tag参数；不运行原生编译器。
+prepare_cavalry_28_windows_ci_inputs.ps1: Windows CI官方输入；按现有target摘要提取MSI到RUNNER_TEMP，aqt准备Qt6.9.2后导出assets/SDK路径，不安装宿主。
+prepare_cavalry_28_windows_ci_inputs.test.js: 官方源、既有身份、隔离路径及BOM/CRLF合同；Windows真实解析全部生产PS并拒绝坏续行，不替代实际提取。
+check_windows_native_nsis.test.js: 核PS接线与BOM；Windows临时三语包调用真实PS校验器，验证原样通过与manifest/payload漂移拒绝；不执行安装。
+check_app_syntax.js: Node短入口按固定清单逐文件执行--check；保留原顺序，不经shell拼接，首个失败返回非零。
+check_app_syntax.test.js: 短入口与原218项顺序摘要合同；实际语法错/缺文件验证非零退出和停止后续检查。
+cavalry_native_windows_target.json: Windows 2.8官方MSI及x64运行时摘要锁；仅宿主准入，译文沿共享native catalog。
+acceptance/: 44主项整轮单表；schema2分离源键库存与实屏项，显式迁移保留历史；Python按平台编排，离线自测不启动产品。
+generate_demo_reader_tables.js: 构建期将批准示例投影为有限native表；Windows显式CRLF须还原完整批准LF身份后映射实际SHA/偏移，不修改厂商文件。
+generate_demo_reader_tables.test.js: 合成UTF-8源验证默认精确准入、显式CRLF偏移映射及BOM/未知字节漂移拒绝，不授官方运行信用。
+native_demo_scene_dnt_identities.js: 官方100项示例菜单源身份表，只限定DNT显示例外，不含译文。
+native_demo_menu_approval.test.js: 合成catalog验证100菜单三语批准值、完整身份与production profile透传，拒绝越界DNT例外。
+native_demo_scene_dnt_exceptions.test.js: 验证DNT默认关闭、逐语审批和身份漂移拒绝，不运行Cavalry。
+native_demo_script_translations.test.js: 验证100示例文件的批准文字与位置，保留脚本身份和DNT符号。
+native-display-tests/: 项目显示技能的四份标准库离线维护测试；依赖技能脚本与场景，不运行App，不自动加入test:contracts。
+native_schema_gap_translations.test.js: 离线源绑定合同；保留365固定行和旧364摘要，验证隐藏Background Rendering独立caption；合成producer完整与单键撤批missing分开守门；不读App或私账。
+native_remaining_ui_contract.js: 纯测试共享分区摘要、格式与三语producer守门；单键回退供历史摘要重放。不读私账/App，不进入产品运行时。
+native_remaining_ui_final_repair_cases.js: 构建期剩余UI后半分区纯静态回退数据，Global06的112文字槽/6物理键决定、Node A04/A05/A06与B04/B05/B06分别绑定77/98/82/58/52/40个冻结源身份及旧值；不依赖私账，不以数据生成代验批准。
+native_remaining_ui_repair_cases.js: 构建期纯静态有限真实修订回退样本，A02/A03/B01/B02/B03/Global04/Global05精确source身份与old/new逐槽共址；测试逻辑不依赖私账，拆分防止多批合同单文件膨胀。
+native_graphics_reaudit.test.js: Node本轮88槽/62键有限图形修订、13纠错/377厂商原样及Twist单键译名revision合同；负例锁来源/批准/其他12键，三语真实投影无metadata；不读私账或冒称live。
+native_remaining_ui_translations.test.js: Node剩余UI入库主合同；锁十三分区、三语producer及有限旧值回退，继续验证空场景/JS Snippet单键历史摘要；类别提示合同独立文件，不读私账或代表live。
+native_messagebar_no_further_revision.test.js: Node单键尾字节合同；核三语真实producer、严格UTF-8反例与原摘要回退。不运行App，不证明live。
+native_empty_region_prompt_punctuation.test.js: Node离线空区域提示类别合同；有限锁38个appStrings键/源/三语文字，复算真实native pack producer与六模块旧/新决定摘要；旧值回退只复现历史，不做运行时裁剪或live证明。
+native_remaining_ui_tail_translations.test.js: Node剩余UI后半合同；保留A05/A06/B04/B05/B06完整摘要及历史源回退；闭合77官方模块/10278键、Forge8、缺源365固定行+隐藏caption1、插件caption1，共81模块/10653键；target补充373不变，资源补充375，DNT仍195；不读取stage或私账、不代表live。
+native_guide_plugin_translations.test.js: Node的15完整Guide/Plugin catalog、396键/1188决定合同；历史批准摘要保持原值，现行三语摘要含Twist单键修订；锁390厂商来源JA中13纠错/377原样、6DNT与真实producer，不代验live。
+native_mesh_family_translations.test.js: 官方catalogId+owner双身份选择，不把同owner schema补键反写旧批准分母；Node的六完整mesh-family owner/152键默认源绑定批准合同；锁456决定与真实源身份，完整基线后15旧译回退及21单槽有限语义反例，显示投影不写模型，不依赖stage或live。 合成source fixture保留官方DNT，避免新源绑定门将漏metadata误报为批准漂移。
+native_mesh_family_semantic_contract.js: 构建期有限语义合同；源notes绑定Fill All/Count、网格细分与顶点标签、Capture/Flow、剔除与松弛、SkSL边界和当前caption，区分Catmull DNT与Mitchell技术保留，不实现通用NLP。
+native_six_owner_translations.test.js: 官方catalogId+owner双身份选择，不把同owner schema补键反写旧批准分母；Node的六完整owner/200键默认审批合同；共享official-target投影仍锁冻结b6官方身份，锁600决定/源/notes/角色/DNT/审批登记，正向基线后36摘要破坏与63单槽反例；合成源同步DNT身份，不代验live。
+native_six_owner_semantic_contract.js: 纯测试有限语义合同；引用现行Kerning/Character Spacing/Camera及本域label，约束Falloff概率/视口与计算、父路径垂线/帧模式/圆弧阈值、统计Nominal/柱高、四角入出与Bayer/2.5D保留；不是通用NLP，不参与产品运行时。
+native_ten_owner_translations.test.js: 官方catalogId+owner双身份选择，不把同owner schema补键反写旧批准分母；Node的十完整owner/201键合同；共享official-target投影保留冻结b6源身份，603现行源绑定决定与历史批准摘要分开锁定；全201基线后30摘要变异及58有限反例/39旧译回退，只投影display、不依赖私账或通用NLP。
+native_ten_owner_semantic_contract.js: 纯测试合同；以既有Auto Animate显示词约束Stagger引用，按source-notes绑定通用宽度渐变、沿路径移动与仅未设置材质时替换的已审caption，双端渐细独立守边界；共享正向guard与单槽真实旧译反例，改译须重新审定，不进入产品运行时。
+native_resource_bundle.js: 构建期生成三语native包；默认development-preview，显式production-2.8要求10848键完整。两模式复用审批与payload；freshness核源摘要，缺译或profile不符拒绝。
+native_resource_bundle.test.js: 纯生成合同覆盖DNT、vendor优先与补充源；另锁生产完整度、计数一致性、资源overlay及2.8独立endpoint。
+prepare_cavalry_28_ci_inputs.sh: 仅被显式2.8 macOS矩阵调用；按arm64/x86_64 runner与target下载并校验官方Cavalry/Qt字节，在runner隔离目录生成production包和同架构dylib；仅成功后写入GitHub环境。
+prepare_native_qt_headers.py: 验证官方Qt6.9.2 qtbase归档SHA与长度；兼容include与framework Versions/A/Headers布局，将三个模块归一到include前缀，只复制公开头文件。
+prepare_native_qt_headers.test.py: 标准库路径合同与可选锁定py7zr的合成7z输入；验证framework成员映射、私有版本目录排除及旧include兼容，不读取网络或Qt运行库。
+check_native_28_ci_input_contract.js: YAML解析同SHA源码前置条件，mock双架构下载/构建边界；验证Rust测试仅用TAURI_CONFIG清空打包资源、CI分派与发布边界，并调用native源码manifest临时树合同核生成/消费及漂移拒绝，不运行vendor或GitHub Actions。
+native_schema_supplement.js: 2.8 nodeDefinitions原始SHA、Forge owner父链、八字段完整schema及Inspector顺序的source-only投影；固定catalogId/source notes与dontTranslate=false、补充target字段及官方键碰撞门，不生成locale译文、不扩展任意ID。
+native_schema_supplement.test.js: 合成nodeDefinitions边界合同；验证8个owner/ID/fallback source及显式DNT=false、父链/schema/UI顺序/重复身份/官方碰撞和原始字节摘要拒绝，不依赖安装、App或profile。
+native_schema_gap_sources.js: SHA锁定的2.8 nodeDefinitions adapter；历史365源行摘要不变，额外输出隐藏Background Rendering行，当前投影366；固定行继续校验父链/schema/Inspector顺序，隐藏字段另校验hide=true、无UI自有字段、bool/default及碰撞；不装配审批或运行时。
+native_plugin_caption_supplement.js: 构建期SHA锁Directional Blur definitions原始字节；只输出amount一条source row并校验owner/schema/Inspector顺序及官方键碰撞，不读取target sourceFiles、不进入运行时。
+native_plugin_caption_supplement.test.js: 合成验证Directional Blur身份与schema、raw SHA拒绝门、单键三语producer投影和missing；不嵌入厂商definition字节，真实raw正例由assets-root验收，不代验实机消费。
+native_schema_gap_sources.test.js: 固定365 tuple摘要与当前366源行投影合同；合成根/继承/list/compound及隐藏bool定义，覆盖schema漂移、hide/UI漂移、官方/Forge碰撞与metadata拒绝；不证明live/审批。
+native_official_target.js: 精确投影target官方字段；target仍锁Forge8+固定缺源365=373，隐藏Background Rendering与插件caption均在target外独立计数，不改变baseline摘要。
+native_official_target.test.js: source/provenance共用target合同；冻结官方摘要正例，验证runtime/catalog/native count/安装身份变异失败，并证明补充count/path/hash单独失败且未知字段不被忽略。
+native_user_scope_copy.test.js: 四语 userProfile copy与badge状态投影合同；锁定开发预览/共享profile文案、unset+en的English (default)及当前语言ARIA、显式/Unknown/legacy分流和默认语言不授予hostless Restore；读取user-profile-text→ui-text组合，不代替浏览器布局或现场可见性验收。
+cavalry_native_target.json: 2.8 host/17个official catalog与原厂源身份锁；target保持10473官方键、Forge8及固定缺源365=补充373；隐藏caption1和插件caption1仅在资源manifest独立计数，不改target/baseline原字节。
+native_observed_ui_translations.test.js: Node 的 CUA 现场遗漏键入库合同；锁定 42 app 键与 drawable 不透明度、完整 catalog 身份、Auto 推荐限定词、9 DNT、三语格式与厂商日语优先，混合包投影保护模型身份，离线通过不代替现场重验。
+native_sound_translations.test.js: Node 的 Sound 整域 65 键审批合同；绑定官方 source/notes/角色摘要、三语显式决策、Mel/Bark/RMS 技术保留、分析阈值与声像/采样/计权关系、11枚举索引及反向变异、当前标签引用；缺模块/原草稿真实失败，离线通过不代表 Sound live 验收。
+native_sound_legacy_translations.test.js: Node 的 Sound Legacy 整域48键入库合同；绑定旧场景说明与独有最大dB、两项技术保留、七类关系及真实反向变异、标签引用/显示身份和厂商日语优先；入库前缺模块为RED，不将新版Sound或离线审批作旧场景行为证明。
+native_rgb_split_translations.test.js: Node 的 RGB Split 完整35键/105译值审批合同；锁定源对/notes/role/provenance、RGB偏移、镜头半径与Padding边界、重复距离与次数、One/Two/Zero预设及16个命名混合模式，含真实反向变异；stage输入仅用于只读红绿核验，不代表实机显示。
+native_slit_scan_translations.test.js: Node 的 Slit Scan 48键/144译值默认合同；锁定完整owner/source/notes/角色与provenance、base/Glow混合模式引用、Mirror Scan 原标签及非整图翻转/循环算法过度承诺边界、ICU/富文本格式、模型身份投影和真实反向变异；正式模块缺失先RED，stage仅对root绑定草稿RED/审定候选GREEN，不代表实机显示。
+native_align_distortion_glow_translations.test.js: 官方catalogId+owner双身份选择，不把同owner schema补键反写旧批准分母；Node的三完整owner/100键默认审批合同；锁定官方source/notes/身份、300决策、对齐方向/HSV/RGB/半径强度/预览/Xor/Porter-Duff与18共享模式，22个实际修订逐一原稿回退变异；缺模块先真实RED，stage诊断不代表正式入库或live。
+native_array_distribution_translations.test.js: Node 的 Array完整4键/12值默认合同；锁定官方source/notes/身份摘要、手工坐标列表/计数方向/序列索引与三语审定文字，12个实际译值反向变异保护Array非网格和日语配置语法；正式模块缺失真实RED，source-only stage不代表审批或live。
+native_auto_animate_translations.test.js: Node 离线 autoAnimate 128 叶入库合同；锁定 owner/source/notes 与稳定键摘要、三语格式、当前进度模式/层级标签引用、相机变焦/几何缩放与可逆进退场、显示投影不写模型身份和厂商日语优先，先RED后入库，不调用服务或App。
+native_metadata_reuse.js: Node 的已审帮助复用与表装配器；复用478条SHA审批和34条source-bound补译，拒绝缺项/源漂移，输出384 main与17 def根表。
+native_metadata_reuse.test.js: Node 的纯复用/帮助表合同；锁哈希、补译闭合、分表输出与synthetic边界，环境指定时校验384/17/111分账。
+build_native_help_description_table.js: 从SHA锁定的四份2.8 MetaData与source-bound审定仓外生成跨平台384/17说明表、独立401根排版表及回执；说明字节不变，ABI由消费者承担。
+build_native_help_description_table.test.js: Node生成器合同；锁UTF-8转义、仓外输出、384/17说明与401根排版分表，不授live信用。
+native_easing_display_data.js: 构建期内置缓动显示源；15项root批准译文仅作显示，五项复用既有native键，不进官方catalog或包统计。
+build_native_easing_display_table.js: 校验20项内置身份与现有源键；接受Windows跨卷仓外输出，生成同源C++表，不接runtime。
+native_easing_display.test.js: Node纯合同；锁20项身份/源唯一、五项native复用、三语闭合、C++转义与仓外输出，不授live信用。 Windows path.win32合同区分仓内、同卷仓外与跨卷临时目录。
+native_help_popup_rows.js: 构建期纯投影；复用稳定根键，保留main/def同名项，按原厂格式输出type/name/参数/返回文字，不含说明或像素宽。
+native_help_popup_rows.test.js: Node纯合同；锁可选参数富文本、默认值不显示、返回顶层键排序和根范围；不读App或私档。
+native_translation_inventory.js: Node 的全量纯队列编排器；组合官方 source/日语 catalog 与旧 JSON/TS 候选，按 registry key 排序，dontTranslate 与厂商日语优先，候选分类不代表审定或完成。
+native_translation_inventory.test.js: Node 的离线全量队列合同；锁定来源清单、跨 catalog 撞键、未映射叶、同源多键和互斥三语计数，期望文件清单仍由调用方核对。
+native_translation_candidates.js: Node 的旧译纯索引；从已知 JSON 显示角色及 TS 提取精确英语候选和来源，保留歧义，不以规范化匹配或模型身份自动批准复用。
+native_translation_candidates.test.js: Node 的旧译角色/身份合同；覆盖稳定 owner、数组重排、显示专用来源、重复身份隔离、空译及多义同源，不把单候选当翻译通过。
+native_translation_format.js: Node 的构建期格式门；使用固定 FormatJS ICU AST 比对参数、分支、offset、逐分支 #，另保留旧占位符与 HTML 技术属性，不引入运行时解释器。
+native_translation_format.test.js: Node 的合成格式合同；验证 ICU 语法/语义、参数新增删除、legacy tokens、HTML 属性字节和 Unicode，不能证明原厂 ICU 求值或界面布局。
+native_metadata_help.js: Node 的脚本帮助纯投影/表生产器；按稳定键验source绑定，分别输出已审非def/def根name、英文源与三语译文，不走UI ICU门。
+native_metadata_help.test.js: Node的metadata根表合同；覆盖排序、跨表同名隔离、def同表重复、未知namespace、source漂移和缺译拒绝。
+native_translation_reviews.test.js: Node 的补译入库合同；核验 UI/形状/OpenType/累加渲染与帮助说明的完整源绑定、三语决策、格式/代码/标签引用和显示投影，锁定字形访问而非全选、基字相对位置/字母匹配及源纠错/字符串缩短/自动宽度条件；首批九条不是范围上限。
+project_translation_skill.test.js: Node 的项目级翻译技能配置合同；验证可发现元数据、上游及安装摘要、Markdown 依赖与 EXTEND 四语词表路径，不发翻译请求、不承担产品运行时。
+native_language_pack.js: Node构建期纯投影；按实体/字段路径收集显示键，DNT保持强身份、日语默认vendor优先；只有带root批准及完整source/notes/原JA/新译摘要的精确key纠错可覆盖，vendor-corrected内部状态不泄露到UI-text，不读安装或写用户目录。
+native_language_pack.test.js: Node 的 2.8 native-first TDD 合同；锁定稳定键与命名空间、DNT强身份边界和默认vendor优先；有限厂商纠错必须绑定key/catalog/owner/fieldPath/source/notes/原JA及root批准，跨语种/上下文漂移拒绝，确定性输出不代替真实语义和实机验收。
 check_macos_timeline_font.test.js: Node 驱动 vendor-free 原生字体策略回归，编译并验证完整名称覆盖、UTF-8 边界与 borrowed 字体字节保真。
 macos_timeline_font_fixture.cpp: C++ mock 字体覆盖差异和重复调用回归；不冒充私有 ABI 或实机字形证明。
 check_macos_quick_add_category.test.js: 同时比对完整 injector fixture 与生产构建的适配器编译输入，防止链接遗漏； 锁定 Mac 类别 getter 的双架构机器码、编译器 QString 返回 ABI、exact owner 与共享映像门，不冒充实机。
 quick_add_placeholder_fixture.cpp / check_quick_add_placeholder.sh: Qt vendor-free 空结果显示合同，锁定三语、exact Classic owner、viewport、重复 Paint 幂等与原厂英文重写恢复；不替代平台 ABI 或实机。
 classic_rank_contract_fixture.cpp: Qt 6.6.3 合成评分器与既有 Classic 搜索共同挂接，验证三语完整/前缀标题排序、UTF-8 长度与三语界面英文回退、分数归还、碰撞、独立 detach 与 1000 次生命周期；不冒充原厂 ABI 或实机证据。
 check_classic_rank_contract.sh: macOS 隔离编译运行共享评分 fixture，固定 Qt 6.6.3 与 QT_NO_KEYWORDS，可选 ASan/UBSan，不启动 Cavalry。
-post_release_reactions.js: 已公开 Release 的六种正向反馈与分页回读；GitHub 按账号幂等，拒绝 draft/prerelease，不触碰资产。
-post_release_reactions.test.js: 注入式 GitHub API 离线合同，验证六种 reaction、重复调用、公开状态前置条件与回读失败。
+post_release_reactions.js: 已公开 Release 的六种正向反馈与分页回读；默认使用 2.7 profile，显式 profile 可为已公开的2.8 Release补 reactions；GitHub 按账号幂等，拒绝 draft/prerelease，不触碰资产。
+post_release_reactions.test.js: 注入式 GitHub API 离线合同，验证六种 reaction、重复调用、默认/显式 profile tag 约束、公开状态前置条件与回读失败。
 check_quick_add_display_tags.h: Fast 显示 fixture 的独立标签片段，验证原厂显示别名、paint/sizeHint 一致投影及源分类/创建身份保真，覆盖短字符串与大块堆存储边界。
 
 check_macos_selection_values.sh: 本地原生 fixture 构建入口，显式接收 Qt SDK/vendor Frameworks、链接 Classic 评分 ABI 适配器，只读链接 libskia 并强制 SDK 单套 Qt/offscreen plugin，保留测试退出码。
 check_macos_selection_values.mm: Qt 原生选择值 fixture，直调 macOS 生产翻译入口并验证三语普通 QLineEdit、只读切换、Combo/编辑器/自定义弹出列表；实际值、信号与 Paint 不污染业务值，placeholder 仍翻译；只读链接显式 vendor Frameworks，不启动或修改真实 Cavalry。
-check_selection_value_contract.test.js: 同时锁定共享 Quick Add context 的双平台源码闭包； CI-safe 选择值保护接线合同，冻结双平台共享输入策略的 Combo/编辑器/弹出列表覆盖与 QLineEdit placeholder-only/实际名称查询值原文边界（含只读、parentless/重挂接），与原生 fixture 分层验收。
+check_selection_value_contract.test.js: 按实际runtime核对Mac输入策略与Windows native字体源码指纹； 同时锁定共享 Quick Add context 的双平台源码闭包； CI-safe 选择值保护接线合同，冻结双平台共享输入策略的 Combo/编辑器/弹出列表覆盖与 QLineEdit placeholder-only/实际名称查询值原文边界（含只读、parentless/重挂接），与原生 fixture 分层验收。
 check_macos_quick_add_inputs.sh: 本地 macOS Quick Add 搜索输入合同 runner；只读链接 Qt 6.6.3/vendor Frameworks，链接 Classic 评分 ABI 适配器，绿色运行生产搜索 guard，红测仅在临时生产源码副本恢复 QLineEdit 实际值 `setText` 污染后预期失败。
 check_macos_quick_add_inputs.mm: 覆盖预填充 parentless 补全输入及 owner 建立前的回调； Qt 原生 Quick Add 搜索输入 fixture；以 moc 生成精确 `QuickAddWindow`/`cavalry::FastQuickAddWindow`、`CompleterLineEdit`/`SearchBar`/`Widget` 父系，直调生产显示、callback 与 Paint 路径并验证三语完整/部分/大小写/CJK/清空 query 与 placeholder 分层，不启动或修改真实 Cavalry。
 check_quick_add_search.cpp: Qt 6.6.3 vendor-free FastQuickAdd model/view 合同；以可控 owner/model fixture 证明精确 FastQuickAddModel 下三语 role 257 alias 投影与内侧 Unicode code-point subsequence filter 不污染 role 0/256 与其他角色，并保留 vendor role 0/257 fuzzy subsequence 命中（含 Behaviour Mixer），覆盖视频词条 Text/Shape/Box/Circle、任意新条目、多词别名、大小写/标点/组合字符/clear、分类多实例、动态插入删除、源替换、幂等挂接、原始搜索框接线、拒绝任意 Qt 列表及 view/filter 双向析构、旧 filter 复用与 QObject 生命周期，不冒充真实 Cavalry UI 证据；搜索上下文 guard 来自窄 `injector/cavalry_i18n_quick_add_context.h`。
@@ -27,27 +107,30 @@ check_classic_quick_add_search.cpp: Qt 6.6.3 vendor-free Classic QuickAddWindow/
 check_classic_quick_add_search.sh: 本地 Classic Quick Add 搜索合同 runner；从 `CAVALRY_QT_PREFIX` 或仓库 `qt_sdk/6.6.3/macos` 选择 SDK，先以 `qmake -query QT_VERSION` 验证 6.6.3，再在隔离临时目录运行 moc/clang++ fixture 及 原生 source-only 同 locale 排序矩阵，不读取或修改真实 Cavalry.app；编译闭包包含共享 Quick Add context。
 test_temp_dir.js: 合同测试 fixture 的临时目录所有权边界；仅创建并清理本进程在 os.tmpdir 直接子级、固定前缀且无 symlink/reparse 的注册目录
 windows-acceptance/: Windows x64 Cavalry 2.7.2 release acceptance contract/producer; Rust live tests emit the TEMP machine record only after the runtime source DLL bytes match the final NSIS inputs, the interactive reviewer only confirms existing screenshots and derives review/final records, and the producer verifies final NSIS/provenance, generic/QPA DLL identities, live inventory, exact PID/HWND matrix, tag/source/session bindings before deriving a portable release summary.
-check_app_contracts.js: QLabel fallback 断言按函数边界而非固定字符距离定位，允许精确类别 getter 分流但不丢普通标签路径； Tauri-only Node 合同测试；在既有跨平台/翻译/打包边界上，定向锁定 macOS/Windows Assets 瞬态 owner、Tag/Tracking 负边界、Add Layer 具体快捷键隔离、Scene Statistics 同窗 Update 三语值、Transform 五 action ABI 防火墙、Guide 固定 `en` 加载槽位与所有 JSON `type:font` 默认字体选择身份，不承载现场证据编排。
-check_renderer_contract.js: Renderer 静态与隔离 VM 合同，冻结 token 单向依赖、平台 chrome、主窗口 10px 同行动作关系、无重复视觉标题的 About、跨平台 reconciliation Restore、Grid/Flex、Activity、Trigger/popup 双占位且开启后不漂移的 Select、Tooltip/AlertDialog/Toast、无描边彩色 Badge、Phosphor 图标、固定外链 ID 与 400×484 capability；锁定普通 verify 错误专属报告入口、四语按钮/说明、固定 `reportIssue` bridge ID 与现存 Bug Report 表单，typed `cavalryStillRunning` 不得显示按钮；typed `reinstallRequired` 仍只在失败 phase 原位覆盖并要求受支持版本重装；权限审查页冻结视觉参数、HTML drag/fixture 边界、retry 的唯一 `attemptId`、Activity 历史保留及只追加真实后端阶段，并锁定瞬时 Alert 正向来源、持久 Activity 返回锚点、显式 Back reverse 与业务 settled cleanup，阻止合成权限旁白与 DOM 单屏替身冒充原生 drop、授权、多屏或 backing-scale 证据。
+check_app_contracts.js: output只保留稳定规则，派生报告不作fixture；打包与source artifact隔离门。QLabel fallback 断言按函数边界而非固定字符距离定位，允许精确类别 getter 分流但不丢普通标签路径； Tauri-only Node 合同测试；在既有跨平台/翻译/打包边界上，定向锁定 macOS/Windows Assets 瞬态 owner、Tag/Tracking 负边界、Add Layer 具体快捷键隔离、Scene Statistics 同窗 Update 三语值、Transform 五 action ABI 防火墙、Guide 固定 `en` 加载槽位与所有 JSON `type:font` 默认字体选择身份，不承载现场证据编排。
+path_display.test.js: Node 的安装位置显示纯组件合同；验证默认候选列表走 PathDisplay 结构化投影、逐路径复用截断并保留完整 aria-label，app 不把路径插入本地化 label，VM按 user-profile-text→ui-text加载且隔离普通提示/已选安装路径，不访问 Cavalry。
+check_renderer_contract.js: Renderer 静态与隔离 VM 合同，冻结 token 单向依赖、模块化 UI_TEXT 脚本顺序/四语字典合并、平台 chrome、DOM 锚点、Select/Tooltip/AlertDialog/Toast、About与主窗footer共享图标源；主窗相对顺序为 Toast→固定外链适配器→footer→app，About 为 Toast→固定外链适配器→About 控制器；支持文案和无障碍名称四语闭合；About Twitter/X 与小红书按「关注+图标」双列、GitHub/License全宽、Simple Icons CC0图标指纹与固定 project-link ID，外链失败复用外围 Toast 且不接收裸URL；主窗57px单行footer独立视觉层保持原444px内容轨；Windows caption、scope与恢复策略；锁定userProfile普通Switch直达事务、仅Restore确认、原厂English/Japanese与unknown+owned zh-Hans徽章矩阵及不按locale推断来源、版本门控、报告入口、权限 handoff、Updater、CSP 和本机视觉边界。
 check_operation_log_runtime.js: 任务反馈专属运行时合同，以最小 DOM/时钟执行真实 icons/operation-log 源，隔离验证 Marker 稳定原位更新、下一帧真实行高收敛后的 live-edge、首尾固定轨道改变中段高度后的溢出与起止边缘回算、快事件可读串行、结果排队和错误立即抢占，不重复 bridge 业务 fixture。
-check_tauri_bridge_runtime.js: 覆盖四语选中徽章、动态状态/禁用与占位清理；补丁四态/旧状态 fallback、四语同语言可更新徽章与应用入口运行时合同；Tauri bridge fake-DOM 运行合同，执行真实组件和 app 源；覆盖手动安装入口、保留但禁用当前语言的 Select Trigger/popup 占位与显式选择、macOS 未提交 marker 与 Windows runtime 残留的 Restore、Managed Legacy 受管英文恢复、旧/新/未知版本只读门禁、普通验证失败显示固定 Issue 按钮并通过 `reportIssue` 路由、按钮失败 Toast 保留 Activity、typed Cavalry 运行中错误不显示按钮且不索取不可见详情或要求重装、旧 macOS preflight hint 不再阻断真实事务、只读权限未知的 idle 投影、typed PermissionDenied 的平台恢复以及 forward/return rect 投影、主任务/Updater/About/窗口控件，锁定更新确认不内嵌 manifest changelog，并证明 About/外链失败进入局部 Toast 而不覆盖 Activity。
-ui_review_workspace.js: localhost UI Review 的纯导航壳；侧栏切换真实主窗口/320×308 且 Chrome 覆盖完整画布的无重复视觉标题 About、反馈/图标/徽章总览及权限交接页，只拥有 fixture/locale 路由与主/About 审查窗口外框；普通验证失败场景单独展示报告入口，typed Cavalry 仍运行保留独立错误场景；handoff 占满可用 stage，不再套用会压缩原型的假窗口；revision 变化重载整个工作台以同步父级 CSS、目录和 renderer，而不是只刷新 iframe，并兼容转发独立 handoff renderer。
-ui_review_permission_handoff.js: clean-room macOS App Management 权限 handoff 的结构/样式层；以内嵌真实 `permissionMac` renderer iframe 为源、匿名 DOM mock 为系统设置目标，复用生产 tokens/Button/语义图标/应用标识，以 604px 舞台完整容纳 400×484 source、484px 设置目标与 532×112px 参考同形 helper；helper 固定“项目箭头 + 单行 Drag 指令 / Phosphor Back + 单行 App row”，外层只模拟 accessory 自有半透明材质，拖拽快照显式清除 row 背景与边框；底部并列不入库的本机截图、仅供核对提示箭头的私有 Raster 与项目自绘候选；落稳后的 App 权限项与有状态已有行开关只审查 HTML 视觉连续性，控制区分别显露同进程 oracle、Later 与 Quit & Reopen fresh-session，不复制生产 Dialog、第三方私有资产或冒充原生 AppKit 实现。
+check_tauri_bridge_runtime.js: fake-DOM Tauri bridge 运行合同执行真实 bridge、user-profile-text→ui-text、language-scope/version-guidance和app源；锁 camelCase DTO、nativeLocale三态投影、四语 Official 对原厂English/Japanese显示与unknown+owned zh-Hans隐藏（不按locale推断来源）、不预选与Restore ownership门，及普通userProfile Switch不显示确认且立即apply、Restore仍确认、installation/native user事务、失败恢复、权限、Updater、主窗单行footer四语文案/title/无障碍名称与GitHub/X/小红书固定ID；About验证共享图标、「关注+图标」顺序、平台区分的四语名称与固定ID、拒绝裸URL和局部Toast，不虚称WebView/CSP/Tauri shell。
+ui_review_workspace.js: localhost UI Review 的纯导航壳；侧栏切换真实主窗口/400×541主窗（原444px内容+57px单行footer）；320×354 且 Chrome 覆盖完整画布的无重复视觉标题 About、反馈/图标/徽章总览及权限交接页，只拥有 fixture/locale 路由与主/About 审查窗口外框；普通验证失败场景单独展示报告入口，typed Cavalry 仍运行保留独立错误场景；handoff 占满可用 stage，不再套用会压缩原型的假窗口；revision 变化重载整个工作台以同步父级 CSS、目录和 renderer，而不是只刷新 iframe，并兼容转发独立 handoff renderer。
+ui_review_permission_handoff.js: clean-room macOS App Management 权限 handoff 的结构/样式层；以内嵌真实 `permissionMac` renderer iframe 为源、匿名 DOM mock 为系统设置目标，复用生产 tokens/Button/语义图标/应用标识，以 604px 舞台完整容纳 400×541 source、484px 设置目标与 532×112px 参考同形 helper；helper 固定“项目箭头 + 单行 Drag 指令 / Phosphor Back + 单行 App row”，外层只模拟 accessory 自有半透明材质，拖拽快照显式清除 row 背景与边框；底部并列不入库的本机截图、仅供核对提示箭头的私有 Raster 与项目自绘候选；落稳后的 App 权限项与有状态已有行开关只审查 HTML 视觉连续性，控制区分别显露同进程 oracle、Later 与 Quit & Reopen fresh-session，不复制生产 Dialog、第三方私有资产或冒充原生 AppKit 实现。
 ui_review_permission_handoff_runtime.js: 权限 handoff 原型的浏览器行为层；将 typed 拒绝→打开/定位设置→单次 50pt 弧线与双图交叉→参考同形 live helper 接管/项目自绘箭头提示→整条 App row 的透明底 DOM snapshot drag image 向整个 System Settings 区域发起 file URL copy drop→系统行视觉更新→fixture 经真实 renderer 运行一次同进程 oracle 分开建模；正向可来自瞬时 Alert 或持久 Activity，helper 的显式 Back 会重新捕获持久 Activity 动作并 reverse，drop/已有行才进入真实 oracle，成功、仍拒绝或其他错误都直接 cleanup；Later 保留生产 Activity 中的“重新打开语言切换器”阻断，Quit & Reopen 则只投影为不续跑旧任务的普通新会话，不能冒充系统已成功重开；显式重置会重载同一生产 renderer fixture，并在新 document 重新出现真实权限动作前关闭交接入口，避免旧状态或导航竞态污染下一轮审查；正向开始后冻结 forward source，Back 前刷新 Activity return target；source 缺失与系统 Reduce Motion 走静态 helper，renderer 变化与舞台重排只刷新 target；所有 DOM 视觉、单屏 CSS 几何、HTML 拖放与 fixture 结果仅是 UI Review 证据，不冒充 NSImage/NSPanel/NSDraggingSession、多屏 backing-scale、真实系统退出重开或 native 授权。
 ui_review_permission_handoff_session.js: 权限 handoff 原型的 session 生命周期片段；只生成 Quit & Reopen fresh-session iframe 投影与显式 reset 函数，复用 runtime 的状态/视觉 owner，不复制几何、拖拽或业务 fixture，也不把浏览器文档重载冒充 macOS 进程重开。
-ui_review_server.js: 补丁 fixture 明确区分 current/updateAvailable/unknown/notApplicable，重应用成功收敛到 current、结构拒绝保留旧状态且不虚构生产错误码；localhost UI Review 编排入口；每次请求直接读取真实 renderer 并失效工作台/handoff/catalogs/session 模块缓存，600ms revision 同时覆盖生产 renderer 与五个审查模块以自动刷新当前 iframe；只在 frozen bridge 前注入 fake API，以不含审查占位更新说明的场景 fixture 驱动未找到/官方/翻译/Managed Legacy/旧新版本/重装、普通 verify 失败报告入口、typed Cavalry 运行中错误、更新 Tooltip、AlertDialog、Toast 及 Switch/Restore English/Update 流程，并以固定同源消息让 handoff 审查页把三种注入结论跑进同一真实 Activity；权限场景在 `applyTransaction` commit 后、进入 `restartCavalry` 前发送 success-settled 控制消息，供 review cleanup 使用但不新增生产 Activity 事件；`/handoff` 只提供匿名 clean-room 原型，三个固定 `/local-reference/` 路由从临时目录或显式 `CAVALRY_UI_REVIEW_REFERENCE_ROOT` 只读取落稳 helper、箭头和系统行且缺失即 404，不伪造 native/package 证据。
-ui_review_catalogs.js: UI Review 三类动态总览；从生产 tokens/styles/ui-text/icons 读取并投影四语反馈文案、语义图标和 Badge 状态，不维护第二套产品视觉资产。
-classify_ci_changes.js: GitHub Actions 变更风险分类器；以 PR merge-base、push before/head 或事件强制策略投影 documentation/source/vulnerability/windows/macOS-injector 门，未知源码路径和不可解析 diff 均 fail-closed，tag/workflow_dispatch 永远跑完整闭环；共享 Quick Add 顶部标签与显示适配器、Classic 评分、描述输入/策略与生成表进入双平台 native 门。
-classify_ci_changes.test.js: CI 风险分类器离线合同；覆盖纯文档、合同/SOP、Windows、macOS、共享翻译表及翻译/输入/Quick Add 顶部标签/显示/搜索/Classic 搜索与评分策略的逐文件双平台门、macOS-only 原生源码、依赖/workflow、定时漏洞复审、空 diff 与未知源码/自动化路径边界。
-check_tauri_build_sop.js: Tauri 打包 SOP、四语 README 用户路径、CI 风险调度与配置 contract 测试；除跨平台发布、updater 资产、tag preflight、macOS/Windows 打包门外，验证 workflow 按 classifier 输出选择昂贵证据并由稳定 ci_gate 汇总选中/跳过结果、macOS 原生门实际调用无 vendor Quick Add 搜索/Classic/显示 fixture、Windows CMake/CTest 接入共享搜索 fixture，Quick Add 顶部标签/显示与 Classic 评分头文件变更同时触发双平台门并使旧 installer provenance 失效，Quick Add 描述生成器/English+三语 JSON/共享 header/生成表进入 package/native/provenance 闭包，四语徽章直接读取最新正式 Release 且禁止本地 JSON/发布后 PR 同步、README 到最新 Release/唯一构建 SOP 的导航，以及 SOP/配置同构的 400×484 固定最小窗口、主窗口无滚动而 Select/任务事件视窗可内部滚动、macOS decorations/Overlay/hiddenTitle 原生窗口合同与显式标题拖动 capability，并验证 `NSAppBundlesUsageDescription` 四语源文件、`bundle.macOS.files` 目标、DMG `产品 + SemVer + 架构` 卷标和可选最终 `.app` readback。
-check_tauri_packaged_app.js: packaged Tauri `.app` 资源测试，打包后按 runtime resource 候选检查 renderer 关键 shell/语义图标/任务事件/Updater 投影，并以权限 handoff 源文件→唯一 Brotli payload→最终可执行文件的字节闭包拒绝旧 WebView 资源；Cargo 多 hash build cache 中逐字节相同的 payload 只计一个内容身份；同时验证 languages、同次平台构建 injector 的哈希同一性与 Qt ABI、ad-hoc bundle seal及 bundle size report。
+ui_review_server.js: 补丁 fixture 明确区分 current/updateAvailable/unknown/notApplicable，重应用成功收敛到 current、结构拒绝保留旧状态且不虚构生产错误码；localhost UI Review 编排入口；About link failure fixture 点击小红书入口并覆盖双列社交链接布局；`notFound` fixture 提供两条固定默认候选以视觉核验独立 label、逐路径截断及固定单行几何；四个闭合 `nativeUnknown`/`nativeResourceUnavailable`/`nativeRecoveryNoResources`/`nativeLegacyRelease` userProfile URL fixture 审查 2.8.0 Unknown、缺资源/恢复门与 2.7.2 固定旧版入口；新增 `nativeDefaultEnglish` unset+en/unknown、`nativeOfficialDefaultEnglish` unset+en/official、`nativeOwnedHans` explicit+zh-Hans/unknown 三种 2.8 userProfile 来源/语言分离 fixture，全部资源可用且不伪造 officialRecovery 或 English Restore 权限；官方来源仅由fake backend投影给出，owned zh-Hans保持unknown；另有 `nativeRestoreOnly` owned-hostless 与 `nativeRestoreOnlyHostFailure` 同版本宿主探测失败 fixture，以真实 renderer/fake bridge 核验有权用户级英文恢复不受安装路径/资源可用性门误挡、host probe失败后的状态仍为 unknown、只读探测失败不伪造成 Channel error、三阶段均保留实际完成事件且不假造 restart、最终“未验证兼容安装/未启动”结果语义；每次请求直接读取真实 renderer 并失效工作台/handoff/catalogs/session 模块缓存，600ms revision 同时覆盖生产 renderer 与五个审查模块以自动刷新当前 iframe；只在 frozen bridge 前注入 fake API，以不含审查占位更新说明的场景 fixture 驱动未找到/官方/翻译/Managed Legacy/旧新版本/重装、普通 verify 失败报告入口、typed Cavalry 运行中错误、更新 Tooltip、AlertDialog、Toast 及 Switch/Restore English/Update 流程，并以固定同源消息让 handoff 审查页把三种注入结论跑进同一真实 Activity；权限场景在 `applyTransaction` commit 后、进入 `restartCavalry` 前发送 success-settled 控制消息，供 review cleanup 使用但不新增生产 Activity 事件；`/handoff` 只提供匿名 clean-room 原型，三个固定 `/local-reference/` 路由从临时目录或显式 `CAVALRY_UI_REVIEW_REFERENCE_ROOT` 只读取落稳 helper、箭头与系统行且缺失即 404，不伪造 native/package 证据。
+ui_review_catalogs.js: UI Review 三类动态总览；从生产 tokens/styles 与 user-profile-text→ui-text 字典加载顺序读取四语反馈文案、语义图标和 Badge 状态，不维护第二套产品视觉资产。
+classify_ci_changes.js: GitHub Actions 变更风险分类器；项目技能Markdown只走文档门，技能脚本仍按未知源码全门；以 PR merge-base、push before/head 或事件强制策略投影 documentation/source/vulnerability/windows/macOS-injector 门，未知源码路径和不可解析 diff 均 fail-closed，tag/workflow_dispatch 永远跑完整闭环；共享 Quick Add 顶部标签与显示适配器、Classic 评分、描述输入/策略与生成表进入双平台 native 门。
+classify_ci_changes.test.js: CI 风险分类器离线合同；覆盖技能Markdown/脚本/混合原生/tag边界、纯文档、合同/SOP、Windows、macOS、共享翻译表及翻译/输入/Quick Add 顶部标签/显示/搜索/Classic 搜索与评分策略的逐文件双平台门、macOS-only 原生源码、依赖/workflow、定时漏洞复审、空 diff 与未知源码/自动化路径边界。
+check_tauri_build_sop.js: NSIS夹具读取真实production overlay与安装语言配置，验证三语包、源变更、语言文件漂移及完整prepare/record/verify； 2.8 ARM/Intel与Windows native生产入口合同；核共同production及Windows资源overlay，拒过期未实现声明；保留独立双feed、p12冻结、三平台发布guard及既有配置/provenance合同。
+check_tauri_packaged_app.js: 最终App资源验收；production-2.8按显式arm64/x86_64目标核App架构、架构中立manifest/三payload、同架构runtime内嵌与renderer字节闭包。默认仍选arm64；不把SKIP当生产通过。
+packaged_native_resources.js: 纯文件校验production包与构建输入一致；按显式目标架构将runtime Mach-O切片绑定可执行文件，manifest保持架构中立；不启动App。
+packaged_native_resources.test.js: 临时fixture验证资源manifest中立性、arm64/x86_64 runtime正反例、错误profile/缺译/字节漂移与错误目标架构。
 windows_nsis_provenance_contract.js: Windows NSIS provenance 跨边界结构真相层；从 machine-readable schema 读取唯一版本、目标与 required keys，向 producer 提供文档构造器、向 producer/verifier 提供同一 fail-closed 结构校验，但不替代双方对真实文件与哈希的独立复验。
-windows_nsis_provenance.js: Windows x64 NSIS 当前输入自证器；通过共享 contract 生成 schema v2 sidecar，intent 区分普通构建与 tag updater 构建，前者拒绝任意 `.exe.sig`，后者要求并绑定 exact base64 signature；只清本版本受控 EXE/provenance/signature，拒绝外国输出，并对 renderer/languages/Tauri/updater overlay/Rust/native/shared translation+input+Quick Add context+tabs+display+search+Classic search/rank+Quick Add 描述 policy/JSON/generated table/generic/QPA 复算 fingerprint。
-check_windows_nsis_install.ps1: 带 UTF-8 BOM 的 Windows x64 NSIS 安装态守门器；先以 `windows_nsis_provenance.js` 复算显式 `x86_64-pc-windows-msvc` target 的唯一 EXE/sidecar，再在固定 HKCU/快捷方式冲突即失败的前提下于唯一随机 `%TEMP%` 根静默安装、以同一安装器执行 `/UPDATE`、仅通过包内卸载器静默卸载并观察零残留；三阶段都要求独立 TEMP 根中 `qwindows.dll`、vendor backup 与 manifest 的长度/SHA-256 哨兵不变，漂移时保留证据，禁止递归删除掩盖失败。
+windows_nsis_provenance.js: 与默认wrapper共用四份2.8配置；指纹绑定native三语包、原生源码、译文、两DLL及配置的NSIS语言文件；通过共享 contract 生成 schema v2 sidecar，intent 区分普通构建与 tag updater 构建，前者拒绝任意 `.exe.sig`，后者要求并绑定 exact base64 signature；只清本版本受控 EXE/provenance/signature，拒绝外国输出，并对 renderer/languages/Tauri/updater overlay/Rust/native/shared translation+input+Quick Add context+tabs+display+search+Classic search/rank+Quick Add 描述 policy/JSON/generated table/generic/QPA 复算 fingerprint。
+check_windows_nsis_install.ps1: 核对生成输入与已安装的2.8 production manifest/三语pack；带 UTF-8 BOM 的 Windows x64 NSIS 安装态守门器；先以 `windows_nsis_provenance.js` 复算显式 `x86_64-pc-windows-msvc` target 的唯一 EXE/sidecar，再在固定 HKCU/快捷方式冲突即失败的前提下于唯一随机 `%TEMP%` 根静默安装、以同一安装器执行 `/UPDATE`、仅通过包内卸载器静默卸载并观察零残留；三阶段都要求独立 TEMP 根中 `qwindows.dll`、vendor backup 与 manifest 的长度/SHA-256 哨兵不变，漂移时保留证据，禁止递归删除掩盖失败。
 capture_windows_pid_window.ps1: 带 UTF-8 BOM 的 Windows disposable live-smoke GUI 证据 helper；先验 `%TEMP%` sentinel clone/evidence、无 reparse 路径链与精确 PID，自动截取 Viewport Quality/Transform 且 Transform 必须同时命中 action 与三条长操作前缀的 64 位位图，并在有界 exact-HWND 前台获取重试中以 `VK_A` 触发 Edit Shape，键投递前由 helper 再复核 HWND/PID；Onboarding 只接受 runtime 发布的非零十进制 HWND，复核可见、未 cloaked 且属于 exact PID 后直接截图；Adjacent 正式 gate 由 producer-side Qt grab 封存瞬态 PNG，本 helper 的 exact-HWND screen-copy 只保留为诊断回退；Close 向 exact PID 全部顶层 HWND 投递 WM_CLOSE，ForceStop 只在超时且再次复核同 executable/PID 后用于 disposable child 清理，不参与 PASS；按键后的同 PID 子窗/模态窗焦点变化不再被误判为失败，禁止盲键确认、场景脚本、Qt UIA、坐标/鼠标自动化、固定 sleep 和覆盖证据。
 check_dmg_layout.sh: DMG 身份、布局与签名守门器；挂载真实镜像并从 `.DS_Store` 锁定 800×476 Finder frame、400px 左锚和非正 AppKit bottom-origin，确保首次打开由 Finder 约束到当前可见底边；同时验证卷标、背景、卷宗图标、Applications 链接及 DMG/安装态 bundle seal。
-window_contract_lib.js: 窗口回归公共库，封装 AX 权限探测、精确 PID 绑定的窗口枚举/聚焦/resize/关闭、原生交通灯几何与 About 菜单操作，以及 400×484 Overlay 内容截图与 `sips` 像素尺寸归一，不依赖 Python/PIL。 System Events 直接 tell PID，不把进程或窗口存为会按同名重解析的对象变量。
-check_tauri_window_regression.js: packaged Tauri 主窗口 macOS 回归测试；以 launchTauri 子进程 PID 绑定首次显示、resize/restore、About 开关与截图，要求主窗口和 About 的三个原生交通灯中心距窗口顶端为 `TITLEBAR_HEIGHT / 2`（40/2=20pt，容差 1pt），水平左缘相对窗口为 12/35/58pt（容差 1pt），再验证 400×484 Overlay 外形、完整内容区截图与 backing scale，拒绝同名已安装 App 污染证据。先启动同名对照进程，验证候选身份不会被名称解析覆盖。
+window_contract_lib.js: 窗口回归公共库，封装 AX 权限探测、精确 PID 绑定的窗口枚举/聚焦/resize/关闭、选定bundle的CFBundleName读取、原生交通灯几何与About菜单精确操作，以及400×541 Overlay内容截图与`sips`尺寸归一；System Events直接tell PID，旧API保持兼容。
+check_tauri_window_regression.js: packaged Tauri 主窗口 macOS 回归测试；以launchTauri子进程PID绑定首次显示、resize/restore、About开关与截图；About菜单项按选定bundle的CFBundleName精确匹配，About窗口标题保持固定；再验三灯位置、400×541 Overlay外形与完整内容截图，拒绝同名App污染证据。
 sync_project_version.js: 项目版本同步器，以 CHANGELOG 最新正式版本为真相源，规范化 CRLF/LF 后级联同步 package、package-lock、Cargo、Tauri 公共配置与 Cargo.lock。
 install_git_hooks.js: 跨平台 Git hook 安装器，Windows 在 stale PATH 时继续探测 Program Files/用户级 Git，写入 hook 目录与当前 Node 绝对路径，并精确区分 Git 不可用与非工作树，供 npm postinstall 消费。
 pre_commit_gate.js: 可测试的 Node pre-commit 执行层；先拒绝本次 gate 输入闭包中的未暂存/未跟踪差异，再按暂存路径运行 Rust `cargo fmt --check`、JS `node --check`、版本投影同步、语言 JSON 合同与嵌入翻译表一致性；禁止通配暂存，版本投影是唯一受控 `git add`。
@@ -55,12 +138,16 @@ check_git_hooks.js: Windows 兼容 Git hook 合同测试，模拟 stale PATH、�
 python_command.js: Python 3 命令边界，优先尊重 `PYTHON`；Windows 先探测用户级 Python Launcher 的绝对路径，再回退 `py -3`/`python`，隔离 IDE/Codex 继承旧 PATH 与 Windows Store 假别名；其余平台使用 `python3`，供 Node 验证器与 Qt SDK 解析器复用。
 npm_command.js: npm 工具链身份命令边界，优先以当前 Node 执行 `npm_execpath` 保持无 shell；仅在缺少 CLI 路径的 Windows 宿主为固定 `npm --version` 使用 shell fallback，供漏洞门与 toolchain evidence recorder 复用。
 powershell_command.js: Windows 开发脚本宿主边界；优先单次启动 `pwsh.exe`，仅在宿主不存在时清除继承的 `PSModulePath` 并回退 `powershell.exe`，脚本非零或启动拒绝原样失败，供 injector 构建与 NSIS 安装态守门复用。
-release_metadata.js: GitHub Release 协议守门器，以 `release.config.json` 为真相源，校验 `cavalry-2.7.2-pN` tag，生成双架构 DMG、Windows x64 NSIS、macOS updater archive、三份签名 sidecar 与 `latest.json` 的唯一名称，并向 manifest producer 共享同一解析函数。
-create_updater_manifest.js: 静态 Tauri updater manifest producer；从当前 package SemVer、已审阅 notes、三个 exact-name artifact 及对应 base64 `.sig` 确定性生成 `latest.json`，只允许两个 macOS 架构与 Windows x64，不持有密钥也不上传。
-create_updater_manifest.test.js: updater manifest 离线对抗测试；以临时伪 artifact/signature 验证三平台映射、稳定 URL/时间归一化，以及命名、签名格式和 symlink 输入失败关闭。
-release_publish.js: 幂等 GitHub Release 发布器；先以三项签名 sidecar 生成并验证 manifest/provenance，再让私有 draft 只上传三项安装包、两个 macOS updater archive、`latest.json` 与 `SHA256SUMS` 七项用户/updater 资产并逐字节回读，最后一步才公开；SBOM、toolchain、provenance 与独立签名仅在 CI 内验证，远端冲突仍 fail-closed。
-create_sbom.js / verify_release_provenance.js: 从 npm/Cargo lockfiles 生成确定性 CycloneDX 1.5 SBOM，并在 CI 内复核 ReleaseAssetProvenance v5 对 release commit、真实平台签名声明、SBOM、toolchain、九项安装/updater/signature 输入及 manifest 三平台语义的精确绑定；这些构建证据不再作为用户下载附件。
-create_source_artifact.js / verify_source_artifact.js / source_artifact_manifest.json + schemas/: 用 mode-preserving tar 输出 repo 外 source artifact；verifier 独立生成同 commit 的 `git archive`，逐 entry 拒绝 link/special/traversal/duplicate/secret 并精确比对路径、bytes、type 与 mode，marker 不能替代 tree 校验。
+release.config.json / release-2.8.config.json: 2.7默认profile与2.8纯准备profile；2.8固定双feed元数据和tag-pinned archive URL，但生产workflow在runtime接线完成前拒绝2.8 tag。
+release_metadata.js: GitHub Release 元数据守门器；默认 `release.config.json` 输出保持2.7 `latest.json`，显式profile纯生成2.8双feed元数据；生产tag仍由workflow在原生构建前阻断。
+create_updater_manifest.js: 静态 Tauri updater manifest producer；从所选 profile、当前 package SemVer、已审阅 notes、三个 exact-name artifact 与 base64 `.sig` 确定性生成指定 JSON；2.8 archive URL 固定到 tag，平台仍限 macOS 双架构与 Windows x64。
+create_updater_manifest.test.js: updater manifest 离线对抗测试；以临时伪 artifact/signature 验证默认 latest.json 与显式 2.8 manifest、tag-pinned URL、三平台映射、时间归一化及命名/签名/symlink 失败关闭。
+create_legacy_updater_manifest.js: 固定 p12 原文/输出字节锁的离线 producer；显式2.8 profile确定输出名；本脚本只生成并校验冻结latest.json，provenance、上传与远端回读归release_publish.js，不重验archive签名。
+create_legacy_updater_manifest.test.js: 固定历史feed的离线合同；锁原文字节/三条tag URL/原签名指纹、真实input/output变异和CLI新建/同字节幂等/异内容保留/参数与symlink拒绝；独立source fixture，不依赖动态发行平台或密码学验签。
+release_publish.js: profile-aware GitHub Release发布器；2.7 p12仅只读回读七项资产，p13+拒绝；2.8双feed发布闭环仅由fake-gh纯合同覆盖，生产workflow尚不准入。
+release_publish.test.js: fake-gh离线合同；验证p12只读七项回读、阻断p13、合成2.8 profile的双manifest/provenance与八项公开资产闭环；不授予生产tag权限。
+create_sbom.js / verify_release_provenance.js: 从 npm/Cargo lockfiles 生成确定性 CycloneDX 1.5 SBOM，并在 CI 内按所选profile复核 ReleaseAssetProvenance v5、release commit、真实平台签名声明、SBOM/toolchain、默认九项或双feed十项分发身份及manifest语义；这些构建证据不作为用户下载附件。
+create_source_artifact.js / verify_source_artifact.js / source_artifact_manifest.json + schemas/: 用 mode-preserving tar 输出 repo 外 source artifact；必需路径包含2.7/2.8 release profiles及2.8 endpoint overlay；verifier独立生成同commit的`git archive`，拒绝link/special/traversal/duplicate/secret并精确比对路径、bytes、type与mode，marker不能替代tree校验。
 verify_ci_action_pins.js + ci_action_pins.json: 以 strict unique-key YAML AST 枚举 job/step 全部 `uses`（含 unnamed、`if`-first、flow mapping 与 quoted key），执行 GitHub Actions 全量 40 位 SHA allowlist、Node/Python/aqt/Rust 精确 pin，并拒绝 cargo-audit 绕过 channel qualifier 触发项目组件调和。
 record_toolchain_evidence.js / create_toolchain_evidence_bundle.js: 前者在 source-contract/macOS 真实 producer 上 fail-closed 捕获无 secret 的版本与 runner 证据；后者要求 source-contracts、macOS aarch64/x64 三 scope 与 release commit/target 精确一致，聚合为由公开 provenance 绑定的 `toolchain-evidence.json`；Windows producer evidence 由 `record_windows_toolchain_evidence.js` 单独上传，待 #16 纳入 release 聚合。
 extract_release_changelog.js: 保留英文分类语义并投影中文标题、要求逐条中文且拒绝伪列表的 Release notes 内容守门器，按内部 SemVer 从 `CHANGELOG.md` 精确抽取单个已发布日期区块；缺失、重复、未标日期或空正文时失败关闭，防止固定产品模板吞掉版本更新。
@@ -96,7 +183,7 @@ ja_JP.ts: 日文 compiled UI 翻译源。
 zh-Hans.ts: 简体中文 compiled UI 翻译源。
 zh-Hant.ts: 繁体中文 compiled UI 翻译源。
 runtime_ui_allowlist.json: runtime UI 覆盖率允许保留英文/快捷键/格式标签/样本值的 exact、contains、regex 与 stripRegex 清单；可翻译的自动编号 Composition 标签不得进入噪声豁免。
-fixtures/: 测试 fixture 工厂，生成 fake Cavalry.app 而不提交真实应用包。
+fixtures/: fake Cavalry.app测试工厂与已发行p12公开manifest的固定字节输入；不包含真实应用包或用户配置。
 git-hooks/: Git Hook bootstrap 目录，承载提交前 Node 路径解析与快速门禁入口（详见 git-hooks/CLAUDE.md）。
 
 依赖边界:
@@ -194,4 +281,13 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-09-22: Issue 33 现行输入边界收敛为双平台共享 `translateLineEditPlaceholder` 的 placeholder-only 路径：普通/只读名称以及 parentless/重挂接查询框的 QLineEdit 实际值保持原文，`text()` 仅供改名/查询或 Paint fingerprint 观察；上方 2026-05-18/21 条目保留为当时历史，不改写成现行行为。当前合同名为 `embedded injector keeps input values outside display translation` 与 `generic line edit paths on both platforms do not write business text`；其他 model DisplayRole 风险未由此条目宣称全部解决。
 2026-09-22: Issue 33 现行输入边界收敛为双平台共享 `translateLineEditPlaceholder` 的 placeholder-only 路径：普通/只读名称以及 parentless/重挂接查询框的 QLineEdit 实际值保持原文，`text()` 仅供改名/查询或 Paint fingerprint 观察；上方 2026-05-18/21 条目保留为当时历史，不改写成现行行为。当前合同名为 `embedded injector keeps input values outside display translation` 与 `generic line edit paths on both platforms do not write business text`；其他 model DisplayRole 风险未由此条目宣称全部解决。
 2026-09-22: 新增 JSON `type:font` 默认身份 B14 合同；以递归全 surface 比较保留 default 键存在性及完整对象，禁止翻译字体族/样式或为无 default 的定义制造默认值。Node 合同与 Python validator 都不硬编码字体名、节点路径或语言文案，B14 直接阻断 full-ui。
+2026-10-06: UI Review 将显式 owned zh-Hans fixture 从误报 official 改为后端 unknown；Node 的隔离生产 renderer 矩阵验证原厂 English/Japanese 可显示 Official、unknown+owned zh-Hans 隐藏徽章，四语文案一致且 JS 不按 locale 推断来源。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+
+dependency_vulnerability_gate.json: 固定审计工具、RustSec快照和Python活动锁闭包。复核日期随真实审查更新，30日上限不放宽。
+
+2026-10-16: Qt头包真实输入使用framework Versions/A/Headers；抽取器归一为include/Qt*。PR跑纯路径合同，macOS锁定venv再跑合成7z合同；真实官方归档已独立抽取通过。
+
+手动预验合同逐事件验证checkout/Node前置，防止显式打包在空runner读取缺失脚本。
+
+验收场景范围：scene-scope显式归档195个未填展开项；Timeline保留180观察索引与15父场景。macOS当前表2630项，不新增GUI或产品门。

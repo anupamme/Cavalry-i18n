@@ -2,10 +2,10 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-build.yml: 主 CI/CD 工作流，固定 `ubuntu-24.04`/`windows-2022`/`macos-14` label 并记录实际 runner 身份；PR/main 不接触 updater 私钥，显式 `updater_signing_smoke` 只在受保护 environment 生成 macOS updater 候选并以客户端内嵌公钥流式验签；tag 只要求提交已进入 `origin/main` 与既有 Tauri updater 私钥，macOS 生成未公证的 ad-hoc DMG 和 `.app.tar.gz/.sig`，Windows 生成 NSIS `.exe/.sig` 并继续跑安装/同版本更新/卸载门；macOS 原生 Qt 门在无 vendor app 的现场运行共享 Quick Add、Classic 搜索/评分、空结果幂等与显示副本 fixture，Windows CMake/CTest 则运行共享 Quick Add/Classic 搜索与评分 fixture，未知 Windows 显示 ABI 不接线；release job 以 package SemVer 生成三平台 `latest.json`，CI 内部 provenance 验证签名输入与供应链证据，公开面只上传三项安装包、两个 macOS updater archive、`latest.json` 与 `SHA256SUMS` 并逐字节回读后才公开；npm audit 对固定 registry 的传输错误做三次有界重试，服务不可用只告警，拿到有效漏洞报告时仍立即失败；source tar、toolchain 与 Actions full-SHA 等发布门保持 fail-closed，README 徽章直接读取 GitHub 最新正式 Release，workflow 不写回版本副本或创建徽章 PR，Developer ID/notarization 与 Windows Authenticode 均不在当前 workflow 实现。
+build.yml: Windows PR/main先行政提取官方2.8 MSI和Qt6.9.2，再经唯一wrapper生成native DLL/三语包、运行共享Rust合同、production NSIS构建及安装更新卸载；tag只向同wrapper追加updater。主CI/CD工作流；手动默认`none`，显式`macos-2.8-preflight`才跳过依赖漏洞门、等待同SHA build源码门成功后在固定macos-26 ARM与macos-26-intel矩阵构建2.8 ad-hoc App/DMG；漏洞门失败仍阻断打包，不运行Windows、不签updater、不创建Release；ci_gate只聚合PR/main。2.7所有tag拒绝重打包；公开2.8 tag按release-2.8 endpoint选profile但在任何平台构建前由implementation-not-ready拒绝。macOS矩阵target只传一次；production输入helper从固定字节的官方Cavalry 2.8与Qt6.9.2头包生成同架构dylib；独立Rust测试仅以`TAURI_CONFIG`清空`bundle.resources`，不改生产构建覆盖。
 
 依赖边界:
-workflow 只调用仓库里已经存在的脚本与构建入口；默认 build 变更时这里必须同构更新。唯一当前发布私钥是 Tauri updater key，只通过受保护 Actions secrets 引用且禁止打印；平台身份签名未来独立接入。
+workflow 只调用仓库里已经存在的脚本与构建入口；默认 build 变更时这里必须同构更新。显式手动2.8预验跳过漏洞扫描，但依赖同SHA源码build成功；failed扫描或源码失败均不得进入macOS打包。`ci_gate`只聚合PR/main必需检查；手动macOS预验跳过Windows与聚合门。Updater密钥只供tag生产流程使用；2.8预验没有no-tag签名smoke。平台身份签名未来独立接入。
 
 法则: 脚本唯一·产物可追踪·release 不漂移·tag fail-closed
 
@@ -60,4 +60,15 @@ workflow 只调用仓库里已经存在的脚本与构建入口；默认 build �
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 
+2026-10-14: 2.8双feed/profile元数据保留纯合同；生产tag在profile验证与任一平台构建前以`implementation-not-ready`拒绝。等待macOS、Intel与Windows runtime资源接线完成后再接workflow，禁止用2.7制品换名。
+2026-10-16: 2.8 macOS-only预验显式选择`macos-2.8-preflight`；同一矩阵以macos-26/macOS-26 Intel runner和arm64/x86_64目标、无硬编码target Tauri入口分别构建ARM/Intel。固定官方Cavalry/Qt字节锁驱动匹配架构native builder；仅上传ad-hoc包，不签updater、不建Release。默认手动`none`，公开2.8 tag仍由三平台implementation-not-ready阻断。p12与所有旧2.7 tag只保留历史下载，拒绝重打包。
+2026-10-16: `ci_gate`只聚合PR/main；手动预验跳过Windows和聚合门。tag macOS构建按release preflight传入的endpoint overlay，再叠tag-only updater签名配置；手动预验不读updater密钥，当前不提供no-tag签名smoke。
+
 2026-09-08: 移除发布后的 badge JSON/PR 同步与不再需要的 pull-requests 写权限；四语 README 直接读取最新正式 Release tag。
+
+2026-10-16: macOS输入准备先在锁定venv运行Qt归档映射三项合同；显式import py7zr，归档子项不得因缺依赖跳过。PR源合同保留无依赖路径映射。
+
+2026-10-16: 显式macOS手动预验先checkout源码并准备固定Node，再读取profile脚本；普通检查不扩大前置，tag ancestry与三平台guard不变。
+
+2026-10-16: 手动预验失败时保留自研native候选1天。诊断制品不含官方库，不用于发布，不授验收通过。
+2026-10-16: 仅显式macOS 2.8手动预验跳过漏洞扫描；package_macos等同SHA源码build成功并接受该预验的精确skipped，source合同及平台packaged门不重复执行。

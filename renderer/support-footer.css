@@ -1,0 +1,80 @@
+/**
+ * [INPUT]: 依赖 tokens.css 的30px footer、14px/20px、Medium正文、16px图标与32px命中区；上方与底部均消费固定10px间距；上方归content底留白所有。
+ * [OUTPUT]: 对外提供无分割线、整组居中的单行关注入口；保持原主内容轨道。
+ * [POS]: 主窗口支持 footer 的唯一视觉层；独立消费 shared icons.js 装配的品牌 SVG；宽标识扩展槽宽以保持可见间距。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+.support-footer {
+  min-height: var(--support-footer-height);
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: var(--line-height-compact);
+  justify-content: center;
+  align-items: center;
+  gap: var(--support-footer-gap);
+  padding: 0 var(--padding-window) var(--support-footer-spacing);
+  background: var(--window);
+  text-align: left;
+}
+
+.support-footer-message {
+  width: 100%;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--type-compact);
+  font-weight: var(--weight-medium);
+  line-height: var(--line-height-compact);
+  white-space: nowrap;
+}
+
+.support-footer-links {
+  height: var(--support-link-icon-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-inline);
+}
+
+.support-footer-link {
+  width: var(--support-link-hit-size);
+  height: var(--support-link-hit-size);
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-circle);
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.support-footer-link:hover {
+  color: var(--text);
+}
+
+.support-footer-link:focus-visible {
+  outline: var(--stroke-focus) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}
+
+.support-footer-icon {
+  width: var(--support-link-icon-size);
+  height: var(--support-link-icon-size);
+  display: grid;
+  place-items: center;
+}
+
+.support-footer-icon > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.support-footer-icon-xiaohongshu {
+  width: calc(var(--support-link-icon-size) * 2);
+}
+
+.support-footer-link-xiaohongshu {
+  width: calc(var(--support-link-hit-size) + var(--support-link-icon-size));
+}
+
+.support-footer-link-xiaohongshu:hover {
+  color: var(--brand-xiaohongshu);
+}

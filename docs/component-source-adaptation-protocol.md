@@ -114,7 +114,7 @@ UI Review 工作台遵守同一边界：允许替换 bridge 数据、事件顺�
 
 Windows 标题栏右侧四枚 renderer caption 动作统一使用 `32×32px` 点击区、`4px` 间距与 `16px` Phosphor Regular 图形：About 使用 Info，最小化使用 Minus，最大化/还原使用 Square/Copy，关闭使用 X；只有关闭按钮在 hover/active 进入危险色。About 打开独立窗口，另外三枚由 `window-controls.js` 映射到冻结的 Tauri main-window API；Button 只拥有视觉与原生按钮状态，绝不在 CSS 或图标层复制窗口行为。标题旁的绿色 Updater 是独立的 `20px` 业务入口，只在真实更新可用时出现，不属于这组 caption。
 
-Windows 主窗口以 `400×484px` 为产品本体，四边各留 `10px` transparent-compositor 阴影画布，所以 HWND/配置尺寸为 `420×504px`；阴影画布不参与最小产品尺寸、内容 padding 或标题光学对齐。产品本体圆角为 Windows 独占的 `32px`，macOS 继续使用 AppKit 默认窗口圆角与原生交通灯。关闭图标的可见 X 路径距本体右边约 `15px`，标题左缘使用同一个 `15px` 光学距离；这两个值都从本体边界计算，不从透明画布边界计算。CSS px 在 WebView2 中是逻辑像素，由系统缩放映射到物理像素，因此 Retina 上形成的 token 可以跨平台复用；真机验收仍需覆盖 Windows 100%/125%/150% 缩放，不能把截图物理像素当 token 回写。
+主窗口以 `400×556px` 为产品本体，40px标题栏、原444px内容轨道和底部72px支持 footer 分轨；footer 不压缩原内容。Windows 四边各留 `10px` transparent-compositor 阴影画布，所以 HWND/配置尺寸为 `420×576px`；阴影画布不参与最小产品尺寸、内容 padding 或标题光学对齐。产品本体圆角为 Windows 独占的 `32px`，macOS 继续使用 AppKit 默认窗口圆角与原生交通灯。关闭图标的可见 X 路径距本体右边约 `15px`，标题左缘使用同一个 `15px` 光学距离；这两个值都从本体边界计算，不从透明画布边界计算。CSS px 在 WebView2 中是逻辑像素，由系统缩放映射到物理像素，因此 Retina 上形成的 token 可以跨平台复用；真机验收仍需覆盖 Windows 100%/125%/150% 缩放，不能把截图物理像素当 token 回写。
 
 ### UI Review 平台外壳
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 create_updater_manifest.js、临时 updater artifacts/签名与仓库 release 元数据
- * [OUTPUT]: 覆盖确定性三平台 manifest、SemVer 与 latest.json 命名、artifact/signature 错配及 symlink 输入失败关闭
+ * [INPUT]: 依赖 create_updater_manifest.js、临时 updater artifacts/签名与默认/显式 release profile
+ * [OUTPUT]: 覆盖默认 latest.json 与 2.8 独立 manifest、tag-pinned URL、三平台闭包、artifact/signature 错配及 symlink 输入失败关闭
  * [POS]: tools 的 updater manifest 离线对抗测试；使用伪签名字节，不读取真实私钥、不联网、不触碰 Release
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -18,9 +18,9 @@ const { loadConfig, metadataForTag } = require('./release_metadata');
 const repoRoot = path.resolve(__dirname, '..');
 const tag = 'cavalry-2.7.2-p999';
 
-function fixture() {
+function fixture({ profilePath = null, profileTag = tag } = {}) {
   const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-updater-manifest-')));
-  const metadata = metadataForTag(loadConfig(), tag);
+  const metadata = metadataForTag(loadConfig(profilePath), profileTag);
   const files = {
     arm: path.join(root, metadata.RELEASE_UPDATER_ASSET_NAME_AARCH64),
     intel: path.join(root, metadata.RELEASE_UPDATER_ASSET_NAME_X64),
@@ -36,6 +36,8 @@ function fixture() {
   fs.writeFileSync(notes, 'Updater notes\r\nsecond line\r\n');
   return {
     root,
+    tag: profileTag,
+    profilePath,
     metadata,
     files,
     signatures,
@@ -46,7 +48,7 @@ function fixture() {
 
 function run(f, overrides = {}) {
   const values = {
-    '--tag': tag,
+    '--tag': f.tag,
     '--output': f.output,
     '--notes': f.notes,
     '--pub-date': '2026-08-28T08:30:00+08:00',
@@ -60,6 +62,7 @@ function run(f, overrides = {}) {
   };
   return spawnSync(process.execPath, [
     path.join(repoRoot, 'tools/create_updater_manifest.js'),
+    ...(f.profilePath ? ['--profile', f.profilePath] : []),
     ...Object.entries(values).flat(),
   ], { cwd: repoRoot, encoding: 'utf8' });
 }
@@ -94,6 +97,35 @@ test('writes a deterministic latest.json with exact Tauri platform keys and sign
     const rerun = run(f);
     assert.equal(rerun.status, 0, rerun.stderr);
     assert.equal(fs.readFileSync(f.output, 'utf8'), firstBytes);
+  } finally {
+    fs.rmSync(f.root, { recursive: true, force: true });
+  }
+});
+
+test('explicit 2.8 profile uses its separate feed name and tag-pinned archive URLs', () => {
+  const f = fixture({
+    profilePath: path.join(repoRoot, 'release-2.8.config.json'),
+    profileTag: 'cavalry-2.8.0-p17',
+  });
+  try {
+    assert.equal(f.metadata.RELEASE_UPDATER_MANIFEST_NAME, 'latest-cavalry-2.8.json');
+    assert.equal(f.metadata.RELEASE_UPDATER_LEGACY_MANIFEST_NAME, 'latest.json');
+    assert.equal(
+      f.metadata.RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL,
+      `https://github.com/daftAI2026/Cavalry-i18n/releases/download/${f.tag}`
+    );
+    const result = run(f);
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    const manifest = JSON.parse(fs.readFileSync(f.output, 'utf8'));
+    assert.equal(path.basename(f.output), 'latest-cavalry-2.8.json');
+    assert.equal(
+      manifest.platforms['darwin-aarch64'].url,
+      `${f.metadata.RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL}/${f.metadata.RELEASE_UPDATER_ASSET_NAME_AARCH64}`
+    );
+    assert.equal(
+      manifest.platforms['windows-x86_64'].url,
+      `${f.metadata.RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL}/${f.metadata.RELEASE_ASSET_NAME_WINDOWS_X64}`
+    );
   } finally {
     fs.rmSync(f.root, { recursive: true, force: true });
   }

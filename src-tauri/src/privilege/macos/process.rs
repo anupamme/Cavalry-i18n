@@ -1,11 +1,11 @@
 /**
- * [INPUT]: 依赖 InstallLayout、libproc 的进程路径探针、固定 JXA terminate 请求与 CommandRunner。
- * [OUTPUT]: 提供以原始 executable basename 排除无关进程、再以 canonical executable/PID 确认目标的只读运行探针、显式重启场景下的 graceful close 与 transaction 内复核。
- * [POS]: macOS 进程边界；普通 Switch/Restore 要求用户自行保存退出，只有显式 restart 可请求 graceful terminate；无关路径不做文件系统解析，可能的目标路径不可检查才 fail closed，仅 typed vanished PID 可忽略；精确路径才是身份，不强杀可见/未保存进程。
+ * [INPUT]: 依赖 InstallLayout、libproc 的进程路径探针、bundle Info.plist 身份与固定 JXA terminate 请求。
+ * [OUTPUT]: 提供 selected executable exact-PID 与共享用户文件 all-Cavalry 只读 admission、显式重启场景下的 graceful close 与 transaction 内复核。
+ * [POS]: macOS 进程边界；native user-file 写入要覆盖所有 Cavalry 副本/版本，先按原始 basename 缩小候选，再验证 canonical *.app/Contents/MacOS 路径和 bundle ID；无法检查的候选 fail closed、不同 bundle ID 忽略，仅 typed vanished PID 可忽略；普通 Switch/Restore 不关闭进程。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
-    ffi::{c_int, c_void, CStr, OsString},
+    ffi::{c_int, c_void, CStr, OsStr, OsString},
     fs,
     os::unix::ffi::OsStringExt,
     path::{Path, PathBuf},
@@ -21,6 +21,8 @@ const PROC_ALL_PIDS: u32 = 1;
 const PROC_PIDPATHINFO_MAXSIZE: usize = 4096;
 const CLOSE_TIMEOUT: Duration = Duration::from_secs(15);
 const CLOSE_POLL_INTERVAL: Duration = Duration::from_millis(100);
+const CAVALRY_BUNDLE_ID: &str = "com.scenegroup.cavalry";
+const CAVALRY_EXECUTABLES: [&str; 2] = ["Cavalry", "CavalryLauncher"];
 
 const TERMINATE_EXACT_PROCESS_JXA: &str = r#"
 function run(argv) {
@@ -64,17 +66,20 @@ extern "C" {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) enum ExactProcessGuardError {
+pub(crate) enum CavalryProcessGuardError {
     StillRunning { pids: Vec<u32> },
     Inspection(String),
 }
 
-impl std::fmt::Display for ExactProcessGuardError {
+/// 旧事务 seam 保留 exact-process 名称；共享 profile guard 复用同一 typed 结果，但不暗示仅选中安装会写入。
+pub(crate) type ExactProcessGuardError = CavalryProcessGuardError;
+
+impl std::fmt::Display for CavalryProcessGuardError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::StillRunning { pids } => write!(
                 formatter,
-                "Selected Cavalry is still running with exact process ID(s): {}",
+                "Cavalry process ID(s) are still running: {}",
                 pids.iter()
                     .map(u32::to_string)
                     .collect::<Vec<_>>()
@@ -91,9 +96,7 @@ enum ProcessPathProbe {
     Path(PathBuf),
 }
 
-/// Re-check used from inside the durable transaction immediately before any mutation. Unlike the
-/// graceful-close entry point this never sends a signal: a matching PID is a typed fail-closed
-/// result, and an uninspectable live PID is an inspection error rather than a false "not running".
+/// Durable mutation recheck: never signals; a live match or uninspectable PID fails closed.
 pub(crate) fn guard_exact_cavalry_not_running(
     exact_executable: &Path,
 ) -> Result<(), ExactProcessGuardError> {
@@ -105,8 +108,125 @@ pub(crate) fn guard_exact_cavalry_not_running(
     }
 }
 
-/// Switch/Restore 的共同 admission：只判断所选 Cavalry 是否仍在运行，不替用户关闭
-/// 创作软件。真正写事务还会在首个 mutation 前再次执行 exact-PID guard，封闭 TOCTOU。
+/// 共享 profile 的只读 admission 快照，不是 OS 启动锁；调用方仍须满足闭 writer 前提。
+pub(crate) fn guard_all_cavalry_not_running() -> Result<(), CavalryProcessGuardError> {
+    let pids = matching_cavalry_pids().map_err(CavalryProcessGuardError::Inspection)?;
+    if pids.is_empty() {
+        Ok(())
+    } else {
+        Err(CavalryProcessGuardError::StillRunning { pids })
+    }
+}
+
+fn matching_cavalry_pids() -> Result<Vec<u32>, String> {
+    matching_cavalry_pids_from(all_pids()?, process_path, read_bundle_identifier)
+}
+
+fn matching_cavalry_pids_from<I, F, B>(
+    pids: I,
+    mut process_path_for: F,
+    mut bundle_identifier_for: B,
+) -> Result<Vec<u32>, String>
+where
+    I: IntoIterator<Item = u32>,
+    F: FnMut(u32) -> Result<ProcessPathProbe, String>,
+    B: FnMut(&Path) -> Result<String, String>,
+{
+    let mut output = Vec::new();
+    for pid in pids {
+        let raw_path = match process_path_for(pid)? {
+            ProcessPathProbe::Exited => continue,
+            ProcessPathProbe::Path(path) => path,
+        };
+        if !is_cavalry_executable(&raw_path) {
+            continue;
+        }
+
+        let executable = match fs::canonicalize(&raw_path) {
+            Ok(path) => path,
+            Err(error) => match process_path_for(pid)? {
+                ProcessPathProbe::Exited => continue,
+                ProcessPathProbe::Path(current_path) => {
+                    return Err(format!(
+                        "Could not resolve candidate Cavalry executable {} for live process {pid}: {error}. Current proc_pidpath is {}.",
+                        raw_path.display(),
+                        current_path.display()
+                    ));
+                }
+            },
+        };
+        let app_root = cavalry_app_root(&executable).map_err(|error| {
+            format!("Could not establish the Cavalry bundle for candidate process {pid}: {error}")
+        })?;
+        let bundle_id = bundle_identifier_for(&app_root).map_err(|error| {
+            format!(
+                "Could not inspect bundle identity for candidate process {pid} at {}: {error}",
+                app_root.display()
+            )
+        })?;
+        if bundle_id == CAVALRY_BUNDLE_ID {
+            output.push(pid);
+        }
+    }
+    output.sort_unstable();
+    output.dedup();
+    Ok(output)
+}
+
+fn is_cavalry_executable(path: &Path) -> bool {
+    CAVALRY_EXECUTABLES
+        .iter()
+        .any(|name| path.file_name() == Some(OsStr::new(name)))
+}
+
+fn cavalry_app_root(executable: &Path) -> Result<PathBuf, String> {
+    let macos = executable
+        .parent()
+        .ok_or_else(|| "executable has no parent directory".to_string())?;
+    if macos.file_name() != Some(OsStr::new("MacOS")) {
+        return Err(format!(
+            "executable is not under *.app/Contents/MacOS: {}",
+            executable.display()
+        ));
+    }
+    let contents = macos
+        .parent()
+        .ok_or_else(|| "MacOS directory has no Contents parent".to_string())?;
+    if contents.file_name() != Some(OsStr::new("Contents")) {
+        return Err(format!(
+            "executable is not under *.app/Contents/MacOS: {}",
+            executable.display()
+        ));
+    }
+    let app_root = contents
+        .parent()
+        .ok_or_else(|| "Contents directory has no app bundle parent".to_string())?;
+    let app_name = app_root
+        .file_name()
+        .and_then(OsStr::to_str)
+        .ok_or_else(|| "app bundle name is not valid UTF-8".to_string())?;
+    if !app_name.ends_with(".app") || app_name.len() == ".app".len() {
+        return Err(format!(
+            "executable is not under a named *.app bundle: {}",
+            executable.display()
+        ));
+    }
+    Ok(app_root.to_path_buf())
+}
+
+fn read_bundle_identifier(app_root: &Path) -> Result<String, String> {
+    let info_plist = app_root.join("Contents/Info.plist");
+    let value = plist::Value::from_file(&info_plist)
+        .map_err(|error| format!("could not parse {}: {error}", info_plist.display()))?;
+    value
+        .as_dictionary()
+        .and_then(|dictionary| dictionary.get("CFBundleIdentifier"))
+        .and_then(plist::Value::as_string)
+        .map(str::to_string)
+        .ok_or_else(|| format!("{} has no string CFBundleIdentifier", info_plist.display()))
+}
+
+/// Selected-install admission only; the durable writer rechecks exact PID before first mutation.
 pub(crate) fn ensure_cavalry_not_running(app_path: &Path) -> Result<(), CloseCavalryError> {
     let layout = InstallLayout::from_root(app_path);
     let target = fs::canonicalize(&layout.executable).map_err(|error| {
@@ -412,6 +532,128 @@ mod tests {
     }
 
     #[test]
+    fn all_cavalry_copies_and_renamed_bundles_are_detected_by_bundle_identity() {
+        let temp = tempfile::tempdir().unwrap();
+        let first = write_test_bundle(temp.path(), "Cavalry 2.7.app", "Cavalry", CAVALRY_BUNDLE_ID);
+        let renamed = write_test_bundle(
+            temp.path(),
+            "Renamed Cavalry 2.8.app",
+            "Cavalry",
+            CAVALRY_BUNDLE_ID,
+        );
+        let first = fs::canonicalize(first).unwrap();
+        let renamed = fs::canonicalize(renamed).unwrap();
+        let matching = matching_cavalry_pids_from(
+            [61, 62],
+            |pid| {
+                Ok(ProcessPathProbe::Path(if pid == 61 {
+                    first.clone()
+                } else {
+                    renamed.clone()
+                }))
+            },
+            read_bundle_identifier,
+        )
+        .unwrap();
+        assert_eq!(matching, vec![61, 62]);
+    }
+
+    #[test]
+    fn old_launcher_wrapper_is_detected_without_relying_on_bundle_name() {
+        let temp = tempfile::tempdir().unwrap();
+        let launcher = write_test_bundle(
+            temp.path(),
+            "User Renamed.app",
+            "CavalryLauncher",
+            CAVALRY_BUNDLE_ID,
+        );
+        let launcher = fs::canonicalize(launcher).unwrap();
+        let matching = matching_cavalry_pids_from(
+            [71],
+            |_| Ok(ProcessPathProbe::Path(launcher.clone())),
+            read_bundle_identifier,
+        )
+        .unwrap();
+        assert_eq!(matching, vec![71]);
+    }
+
+    #[test]
+    fn unrelated_same_basename_bundle_and_unrelated_executable_are_ignored() {
+        let temp = tempfile::tempdir().unwrap();
+        let unrelated = write_test_bundle(
+            temp.path(),
+            "Some Other App.app",
+            "Cavalry",
+            "org.example.other-app",
+        );
+        let unrelated = fs::canonicalize(unrelated).unwrap();
+        let other_name = temp
+            .path()
+            .join("Some Other App.app/Contents/MacOS/OtherApp");
+        fs::write(&other_name, b"not a Cavalry executable").unwrap();
+        let other_name = fs::canonicalize(other_name).unwrap();
+        let matching = matching_cavalry_pids_from(
+            [81, 82],
+            |pid| {
+                Ok(ProcessPathProbe::Path(if pid == 81 {
+                    unrelated.clone()
+                } else {
+                    other_name.clone()
+                }))
+            },
+            read_bundle_identifier,
+        )
+        .unwrap();
+        assert!(matching.is_empty());
+    }
+
+    #[test]
+    fn vanished_pid_is_ignored_and_live_candidate_inspection_failure_blocks() {
+        assert!(matching_cavalry_pids_from(
+            [91],
+            |_| Ok(ProcessPathProbe::Exited),
+            read_bundle_identifier,
+        )
+        .unwrap()
+        .is_empty());
+        let error = matching_cavalry_pids_from(
+            [92],
+            |_| Err("proc_pidpath denied live process".to_string()),
+            read_bundle_identifier,
+        )
+        .unwrap_err();
+        assert!(error.contains("denied live process"), "{error}");
+    }
+
+    #[test]
+    fn uninspectable_candidate_bundle_and_non_bundle_candidate_fail_closed() {
+        let temp = tempfile::tempdir().unwrap();
+        let missing_info = temp.path().join("Incomplete.app/Contents/MacOS/Cavalry");
+        fs::create_dir_all(missing_info.parent().unwrap()).unwrap();
+        fs::write(&missing_info, b"executable fixture").unwrap();
+        let missing_info = fs::canonicalize(missing_info).unwrap();
+        let error = matching_cavalry_pids_from(
+            [101],
+            |_| Ok(ProcessPathProbe::Path(missing_info.clone())),
+            read_bundle_identifier,
+        )
+        .unwrap_err();
+        assert!(error.contains("candidate process 101"), "{error}");
+        assert!(error.contains("Info.plist"), "{error}");
+        let loose = temp.path().join("Loose/Cavalry");
+        fs::create_dir_all(loose.parent().unwrap()).unwrap();
+        fs::write(&loose, b"candidate fixture").unwrap();
+        let loose = fs::canonicalize(loose).unwrap();
+        let error = matching_cavalry_pids_from(
+            [102],
+            |_| Ok(ProcessPathProbe::Path(loose.clone())),
+            read_bundle_identifier,
+        )
+        .unwrap_err();
+        assert!(error.contains("*.app/Contents/MacOS"), "{error}");
+    }
+
+    #[test]
     fn vanished_process_is_ignored_but_probe_error_fails_closed() {
         let target = Path::new("/Applications/Cavalry.app/Contents/MacOS/Cavalry");
         assert!(
@@ -526,5 +768,30 @@ mod tests {
         assert_eq!(command.args[4], "123");
         assert_eq!(command.args[5], target.to_string_lossy());
         assert!(!command.args[3].contains(&target.to_string_lossy().to_string()));
+    }
+
+    fn write_test_bundle(
+        root: &Path,
+        app_name: &str,
+        executable_name: &str,
+        bundle_id: &str,
+    ) -> PathBuf {
+        let app_root = root.join(app_name);
+        let executable = app_root.join("Contents/MacOS").join(executable_name);
+        fs::create_dir_all(executable.parent().unwrap()).unwrap();
+        fs::write(&executable, b"synthetic executable").unwrap();
+
+        let mut info = plist::Dictionary::new();
+        info.insert(
+            "CFBundleIdentifier".to_string(),
+            plist::Value::String(bundle_id.to_string()),
+        );
+        info.insert(
+            "CFBundleExecutable".to_string(),
+            plist::Value::String(executable_name.to_string()),
+        );
+        let mut file = fs::File::create(app_root.join("Contents/Info.plist")).unwrap();
+        plist::to_writer_xml(&mut file, &plist::Value::Dictionary(info)).unwrap();
+        executable
     }
 }

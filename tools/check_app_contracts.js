@@ -2,6 +2,7 @@
 /**
  * [INPUT]: 依赖 node:test、python_command.js、test_temp_dir.js 与仓库源码文件，读取跨平台 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单、package 脚本及版本化 Release notes 契约
  * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG、发布供应链精确工具输入、Qt bootstrap stdout/stderr 隔离与 npm 版本命令宿主解析、renderer typed warningCodes→Activity 投影、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、8 条跨平台 exact-only/owner 回补及 Scene Statistics 同窗 Update 三语值、Windows 普通 Qt 对话框/性能标签及 Tracking owner/receiver PE 包络、EditShapeTool/TransformTool 长操作前缀与 `Space`/`Shift` 纯键位保护、Pencil/Pen/Centre/Bone 静态 text-path、CogTool 动态节圆半径、selected-count 及来源绑定的 Mesh Explorer QLabel、Color Settings QComboBox 与单索引 QPlainTextEdit 占位文字、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 源码边界、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、QLineEdit 实际值不回写与共享提示文字入口、受控动态显示属性专用 Paint 路径及 Quick Add 分类 getter 分流后的 QLabel fallback、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、自动编号 Composition 标签分母、Guide 固定 loader slot、所有 JSON `type:font` 默认完整身份、macOS Assets/Tag/Tracking owner 边界与 Transform 五 source ABI 防火墙、English refresh/extract 只读与 apply-owned macOS recovery boundary
+ * output派生报告不作fixture；稳定规则、打包资源与source artifact共同锁定隔离边界。
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言，并阻止平台命令、换行、交互期全局刷新、普通运行 inventory 写盘与固定模板吞掉版本更新等回归
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1509,23 +1510,34 @@ test('Qt SDK contract preserves macOS builds and prepares the Windows x64 SDK fr
   );
   assert.equal(
     packageScripts['build:tauri:windows'],
-    'npm run prepare:qt-sdk:windows && tauri build --target x86_64-pc-windows-msvc --config src-tauri/tauri.windows.conf.json && node tools/windows_nsis_provenance.js --record',
-    'the public Windows build entry must prepare Qt, build the explicit x64 target, and record provenance'
+    'node tools/windows_native_build.js',
+    'the public Windows package entry must use the 2.8 native production wrapper'
   );
   assert.equal(
     windowsConfig.build.beforeBuildCommand,
     'npm run prepare:tauri:windows-bundle',
-    'the Tauri Windows hook must build the injector and prepare provenance before bundling'
+    'the Windows config must retain its explicit bundle preparation hook'
   );
   assert.equal(
     packageScripts['prepare:tauri:windows-bundle'],
-    'npm run build:injector:windows && node tools/windows_nsis_provenance.js --prepare',
-    'the bundle hook must publish the Windows injector before fingerprinting package inputs'
+    'node tools/windows_native_build.js --prepare-only',
+    'the Windows bundle preparation hook must build the 2.8 native inputs without packaging'
   );
+  const windowsNativeBuildPath = path.join(repoRoot, 'tools', 'windows_native_build.js');
+  const windowsNativeBuildSource = fs.readFileSync(windowsNativeBuildPath, 'utf8');
+  const windowsNativeBuild = require(windowsNativeBuildPath);
+  assert.deepEqual(windowsNativeBuild.WINDOWS_PRODUCTION_CONFIGS, [
+    'src-tauri/tauri.windows.conf.json',
+    'src-tauri/tauri.native-production-2.8.conf.json',
+    'src-tauri/tauri.native-windows-2.8.conf.json',
+    'src-tauri/tauri.release-2.8.conf.json',
+  ]);
+  assert.match(windowsNativeBuildSource, /CAVALRY_I18N_NATIVE_BUILD_PROFILE/);
+  assert.match(windowsNativeBuildSource, /production-2\.8/);
   assert.match(
     workflowSource,
-    /windows_check:[\s\S]*npm run build:tauri:windows/,
-    'Windows CI must use the same self-contained x64 build entry as local packaging'
+    /windows_check:[\s\S]*npm run build:tauri:windows -- --package-only/,
+    'Windows CI must package through the same production wrapper after its split preparation step'
   );
   assert.doesNotMatch(
     workflowSource,
@@ -2667,7 +2679,7 @@ test('live full UI matrix orchestrator exposes help without starting a capture',
   assert.equal(parseArgs(['-h']).help, true);
 });
 
-test('measurement integrity workflow reports live UI as optional and mirrors LOCAL_BUILD_SOP gates', () => {
+test('measurement integrity keeps live UI optional and validates DMG release artifacts', () => {
   const workflowSource = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'build.yml'), 'utf8');
   const stampScript = fs.readFileSync(path.join(repoRoot, 'tools', 'stamp_dmg_icon.sh'), 'utf8');
   const dmgLayoutScript = fs.readFileSync(path.join(repoRoot, 'tools', 'check_dmg_layout.sh'), 'utf8');
@@ -2677,11 +2689,6 @@ test('measurement integrity workflow reports live UI as optional and mirrors LOC
     workflowSource,
     /NOT-RUN-NO-LIVE-CAVALRY/,
     'CI workflow should report that live Cavalry capture was not run without turning optional maintainer evidence into a tag blocker'
-  );
-  assert.match(
-    workflowSource,
-    /unset CI[\s\S]*npm run tauri:build -- --target \$\{\{ matrix\.rust_target \}\}[\s\S]*bash tools\/stamp_dmg_icon\.sh src-tauri\/target\/\$\{\{ matrix\.rust_target \}\}\/release\/bundle\/dmg[\s\S]*npm run check:app[\s\S]*npm run test:contracts[\s\S]*npm run check:tauri[\s\S]*npm run test:tauri[\s\S]*PACKAGED_APP_PATH="\$app_path" PACKAGED_EXPECTED_ARCH="\$\{\{ matrix\.expected_arch \}\}" npm run test:tauri:packaged[\s\S]*bash tools\/check_dmg_layout\.sh "\$bundle_root\/dmg"/,
-    'macOS packaging workflow should mirror LOCAL_BUILD_SOP for each matrix architecture, omitting only manual-smoke and GUI window regression'
   );
   assert.doesNotMatch(
     workflowSource,
@@ -2710,7 +2717,7 @@ test('measurement integrity workflow reports live UI as optional and mirrors LOC
   );
   assert.equal(
     packageJson.scripts['test:tauri:dmg-layout'],
-    'bash tools/check_dmg_layout.sh src-tauri/target/release/bundle/dmg',
+    'bash tools/check_dmg_layout.sh src-tauri/target/aarch64-apple-darwin/release/bundle/dmg',
     'package scripts should expose the DMG layout gate used by GitHub packaging'
   );
   [
@@ -4995,28 +5002,24 @@ test('translation validator permits only the declared spelling and punctuation v
   );
 });
 
-test('JSON surface translation report uses non-overlapping file counts', () => {
-  const reportPath = path.join(repoRoot, 'output', 'json-surfaces', 'translation-gap-report.md');
-  const report = fs.readFileSync(reportPath, 'utf8');
-  const rowValue = (label) => {
-    const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const match = report.match(
-      new RegExp(`\\| ${escaped} \\|\\s*(\\d+)\\s*\\|\\s*(\\d+)\\s*\\|\\s*(\\d+)\\s*\\|`)
-    );
-    assert.ok(match, `missing report row: ${label}`);
-    assert.equal(match[1], match[2], `${label} should match across zh-Hans and zh-Hant`);
-    assert.equal(match[1], match[3], `${label} should match across zh-Hans and ja_JP`);
-    return Number(match[1]);
-  };
-
-  const total = rowValue('Total JSON files');
-  const retained = rowValue('Previously covered files retained');
-  const translated = rowValue('New user-visible files translated');
-  const preserved = rowValue('New zero-user-visible files preserved');
-  const deferred = rowValue('Files deferred');
-
-  assert.equal(retained + translated + preserved + deferred, total);
-  assert.equal(deferred, 0);
+test('derived output stays outside packaged truth and test fixtures', () => {
+  const policy = fs.readFileSync(path.join(repoRoot, 'output', 'README.md'), 'utf8');
+  assert.match(policy, /派生产物不作为构建、测试或运行时输入。/);
+  assert.match(policy, /正式语言源位于`languages\/`。/);
+  const ignore = fs.readFileSync(path.join(repoRoot, '.gitignore'), 'utf8');
+  for (const rule of ['/output/*', '!/output/CLAUDE.md', '!/output/README.md']) {
+    assert.ok(ignore.split(/\r?\n/).includes(rule), `missing output rule: ${rule}`);
+  }
+  const artifact = readJson(path.join(repoRoot, 'tools', 'source_artifact_manifest.json'));
+  assert.ok(artifact.forbiddenPathPrefixes.includes('output'));
+  for (const name of fs.readdirSync(path.join(repoRoot, 'src-tauri'))) {
+    if (!/^tauri(?:\.[^.]+)?\.conf\.json$/.test(name)) continue;
+    const config = readJson(path.join(repoRoot, 'src-tauri', name));
+    const resources = config.bundle?.resources || [];
+    const paths = Array.isArray(resources) ? resources : [...Object.keys(resources), ...Object.values(resources)];
+    assert.ok(paths.every((entry) => !entry.replace(/\\/g, '/').split('/').includes('output')),
+      `${name} must not package derived output`);
+  }
 });
 
 test('English language package is the 38-file JSON surface source truth', () => {
@@ -5335,21 +5338,42 @@ test('runtime noise quarantine keeps unproven short tokens out of embedded trans
 
 test('release workflow prebuilds the injector and publishes Tauri macOS artifacts', () => {
   const workflow = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'build.yml'), 'utf8');
+  const packageMacosStart = workflow.indexOf('  package_macos:\n');
+  const packageMacosEnd = workflow.indexOf('\n  release:\n', packageMacosStart);
+  assert.ok(packageMacosStart >= 0 && packageMacosEnd > packageMacosStart,
+    'release workflow must retain its dedicated macOS package job');
+  const packageMacosJob = workflow.slice(packageMacosStart, packageMacosEnd);
+  const nativeMacInputPreparer = fs.readFileSync(
+    path.join(repoRoot, 'tools', 'prepare_cavalry_28_ci_inputs.sh'),
+    'utf8'
+  );
   const macConfig = JSON.parse(
     fs.readFileSync(path.join(repoRoot, 'src-tauri', 'tauri.macos.conf.json'), 'utf8')
   );
   const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
 
   assert.match(
-    workflow,
-    /runs-on:\s*macos-14/,
-    'release pipeline should use a fixed macOS runner label so end users do not need Qt locally'
+    packageMacosJob,
+    /runs-on:\s*\$\{\{\s*matrix\.runner_label\s*\}\}/,
+    'macOS package job should run on the explicit architecture matrix runners'
   );
   assert.match(
-    workflow,
-    /npm run prepare:qt-sdk/,
-    'release pipeline should prepare the Qt SDK through the same project target resolver used by local builds'
+    packageMacosJob,
+    /- name: Prepare official 2\.8 native production inputs[\s\S]*?CAVALRY_NATIVE_CI_TARGET:\s*\$\{\{\s*matrix\.rust_target\s*\}\}[\s\S]*?run:\s*bash tools\/prepare_cavalry_28_ci_inputs\.sh/,
+    'macOS release packaging should prepare official 2.8 inputs for the selected architecture'
   );
+  assert.match(
+    nativeMacInputPreparer,
+    /\[\[ "\$\{RELEASE_PROFILE_CONFIG:-\}" == 'release-2\.8\.config\.json' \]\]/,
+    'the macOS input helper should require the 2.8 release profile'
+  );
+  assert.match(
+    nativeMacInputPreparer,
+    /short_version" == '2\.8\.0' && "\$bundle_version" == '2\.8\.0'/,
+    'the macOS input helper should verify the official 2.8.0 target'
+  );
+  assert.match(nativeMacInputPreparer, /aarch64-apple-darwin/);
+  assert.match(nativeMacInputPreparer, /x86_64-apple-darwin/);
   assert.match(
     workflow,
     /node tools\/create_source_artifact\.js[\s\S]*cavalry-i18n-source[\s\S]*Re-verify downloaded source artifact/,

@@ -2,12 +2,15 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-playwright/: 前端截图输出目录，保存各语言 UI 回归截图。
-json-surfaces/: Cavalry 38 个 JSON asset 的抓取分母、英文基线、三语 draft、翻译缺口报告与接手话术。
+README.md: 派生产物稳定规则；区分正式源、版本证据、私人归档与定点清理。
 
 依赖边界:
-output 只保存派生审计产物，不作为运行时 source truth；可由工具重建，正式语言包仍以 languages/ 为准。
+本目录只跟踪此地图与README。
+派生产物不驱动构建、测试或运行时。
+实跑证据使用仓外session目录。
+历史研究进入私人文档，不成为构建依赖。
+正式语言源仍位于languages/。
 
-法则: 派生产物·可重建·不驱动运行时
+法则: 来源明确·原字节归档·定点清理
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

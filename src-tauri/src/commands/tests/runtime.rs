@@ -1,12 +1,14 @@
 /**
  * [INPUT]: 依赖 commands 测试 fixture、平台条件编译 runner 与 commands facade 的 apply/restart seam。
- * [OUTPUT]: 覆盖补丁回执只读状态、源更新与安装绑定、打包资源解析、macOS 注入器定位、Windows QPA ACTIVE/诊断环境启动边界与语言应用回归场景。
- * [POS]: commands/tests 的运行时集成测试；macOS bundle apply 与 Windows DLL 资源解析使用各自平台 fixture，防止跨平台假安装掩盖生产准入约束。
+ * [OUTPUT]: 覆盖补丁回执只读状态、源更新与安装绑定、打包资源解析、macOS legacy restart runner、Windows QPA ACTIVE/诊断环境启动边界与语言应用回归场景。
+ * [POS]: commands/tests 的运行时集成测试；macOS bundle apply/legacy restart 与 Windows DLL 资源解析使用各自平台 fixture，防止跨平台假安装掩盖生产准入约束或误入native用户profile。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #[cfg(not(target_os = "windows"))]
 use super::super::apply_language_inner;
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(target_os = "macos")]
+use super::super::restart::restart_cavalry_legacy_inner;
+#[cfg(target_os = "windows")]
 use super::super::restart_cavalry_inner;
 #[cfg(target_os = "windows")]
 use super::super::restart_cavalry_inner_with_qpa_inspector;
@@ -380,11 +382,11 @@ fn restart_cavalry_inner_refuses_missing_trusted_plugin_before_spawn() {
 
 #[test]
 #[cfg(target_os = "macos")]
-fn restart_cavalry_inner_uses_runner() {
+fn restart_cavalry_legacy_inner_uses_runner() {
     let temp = tempfile::tempdir().unwrap();
     let app = make_bundle(temp.path());
     let mut runner = RecordingRunner::default();
-    restart_cavalry_inner(
+    restart_cavalry_legacy_inner(
         temp.path(),
         &temp.path().join("state"),
         temp.path(),

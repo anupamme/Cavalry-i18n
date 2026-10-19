@@ -1,0 +1,174 @@
+/**
+ * [INPUT]: 依赖Cavalry 2.8 arm64 Extension/fmt10调用与libc++源对象证据。
+ * [OUTPUT]: 锁定标题fmt调用、24字节源对象、空值tag和借用参数布局。
+ * [POS]: 只记录已证ABI边界；漂移时标题维持原厂格式。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+#pragma once
+
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <type_traits>
+
+namespace native_title_format_abi {
+
+struct FormatStringView {
+    const char *data;
+    std::size_t size;
+};
+
+struct BorrowedStringArgument {
+    const char *data;
+    std::size_t size;
+};
+
+struct CStringArgument {
+    const char *data;
+    std::uintptr_t unused;
+};
+
+union FormatValue {
+    BorrowedStringArgument string;
+    CStringArgument cstring;
+    std::uintptr_t words[2];
+};
+
+struct FormatArguments {
+    std::uint64_t descriptor;
+    const FormatValue *values;
+};
+
+struct LibCppStringSnapshot {
+    std::uint8_t bytes[24]{};
+};
+
+static_assert(sizeof(FormatStringView) == 16);
+static_assert(std::is_trivially_copyable_v<FormatStringView>);
+static_assert(sizeof(BorrowedStringArgument) == 16);
+static_assert(std::is_trivially_copyable_v<BorrowedStringArgument>);
+static_assert(sizeof(CStringArgument) == 16);
+static_assert(std::is_trivially_copyable_v<CStringArgument>);
+static_assert(sizeof(FormatValue) == 16);
+static_assert(std::is_trivially_copyable_v<FormatValue>);
+static_assert(sizeof(FormatArguments) == 16);
+static_assert(std::is_trivially_copyable_v<FormatArguments>);
+static_assert(sizeof(LibCppStringSnapshot) == 24);
+static_assert(std::is_trivially_copyable_v<LibCppStringSnapshot>);
+
+inline bool isEmptyShortString(const LibCppStringSnapshot &snapshot) noexcept
+{
+    constexpr std::size_t shortLengthOffset = 23;
+    return (snapshot.bytes[shortLengthOffset] & 0x80U) == 0 &&
+        snapshot.bytes[shortLengthOffset] == 0;
+}
+
+namespace contract {
+
+inline constexpr char kExtensionUuid[] =
+    "448DD50E-75F4-3F2D-A46B-2C9F00DF9408";
+inline constexpr char kFmtUuid[] = "110C9692-B750-3974-85A5-49FCA0FBB0F4";
+inline constexpr char kUpdateAppTitleSymbol[] = "__ZN3Gui14updateAppTitleEv";
+inline constexpr std::uintptr_t kUpdateAppTitleOffset = 0x12d69c;
+inline constexpr char kVformatSymbol[] =
+    "__ZN3fmt3v107vformatENS0_17basic_string_viewIcEENS0_17basic_format_argsINS0_20basic_format_contextINS0_8appenderEcEEEE";
+inline constexpr std::uintptr_t kVformatOffset = 0x1ed0;
+inline constexpr std::array<std::uint8_t, 16> kVformatEntryBytes = {
+    0xf8, 0x5f, 0xbc, 0xa9, 0xf6, 0x57, 0x01, 0xa9,
+    0xf4, 0x4f, 0x02, 0xa9, 0xfd, 0x7b, 0x03, 0xa9
+};
+
+inline constexpr char kFormatString[] = "Project: {} - Scene: {} {}";
+inline constexpr std::uintptr_t kFormatStringOffset = 0xf4ba8b;
+inline constexpr std::size_t kFormatStringLength = 26;
+inline constexpr std::uintptr_t kCallSetupOffset = 0x12d9b8;
+inline constexpr std::array<std::uint8_t, 28> kCallSetupBytes = {
+    0xe0, 0x70, 0x00, 0xd0, 0x00, 0x2c, 0x2a, 0x91,
+    0xe8, 0xe3, 0x00, 0x91, 0xe3, 0x03, 0x04, 0x91,
+    0x41, 0x03, 0x80, 0x52, 0xa2, 0x9b, 0x81, 0x52,
+    0x93, 0x41, 0x32, 0x94
+};
+inline constexpr std::uintptr_t kVformatCallOffset = 0x12d9d0;
+inline constexpr std::uintptr_t kVformatReturnOffset = 0x12d9d4;
+inline constexpr std::uint64_t kFormatDescriptor = 0x0cdd;
+inline constexpr std::size_t kFormatValueCount = 3;
+inline constexpr std::uintptr_t kCallerFrameOffset = 0x12d69c;
+inline constexpr std::array<std::uint8_t, 24> kCallerFrameBytes = {
+    0xf8, 0x5f, 0xbc, 0xa9, 0xf6, 0x57, 0x01, 0xa9,
+    0xf4, 0x4f, 0x02, 0xa9, 0xfd, 0x7b, 0x03, 0xa9,
+    0xfd, 0xc3, 0x00, 0x91, 0xff, 0xc3, 0x07, 0xd1
+};
+inline constexpr std::uintptr_t kSourceStringGettersOffset = 0x12d6cc;
+inline constexpr std::array<std::uint8_t, 20> kSourceStringGettersBytes = {
+    0xa8, 0x23, 0x01, 0xd1, 0x1b, 0x4a, 0x32, 0x94,
+    0xa8, 0x83, 0x01, 0xd1, 0xe0, 0x03, 0x13, 0xaa,
+    0x10, 0x58, 0x32, 0x94
+};
+inline constexpr std::uintptr_t kProjectFallbackDistance = 0xe0;
+inline constexpr std::size_t kProjectFallbackLength = 4;
+inline constexpr std::uintptr_t kSceneFallbackDistance = 0x100;
+inline constexpr std::size_t kSceneFallbackLength = 8;
+// -- caller frame: values位于sp+0x100，x29位于sp+0x220 -------------------
+inline constexpr std::uintptr_t kFormatValuesFromStackPointer = 0x100;
+inline constexpr std::uintptr_t kFramePointerFromStackPointer = 0x220;
+inline constexpr std::uintptr_t kProjectSourceFromFramePointer = 0x48;
+inline constexpr std::uintptr_t kSceneSourceFromFramePointer = 0x60;
+inline constexpr std::uintptr_t kProjectSourceObjectFromValues = 0xd8;
+inline constexpr std::uintptr_t kSceneSourceObjectFromValues = 0xc0;
+inline constexpr std::size_t kLibCppStringObjectBytes = 24;
+inline constexpr std::size_t kLibCppShortLengthOffset = 23;
+inline constexpr std::uintptr_t kSourceStringWindowOffset = 0x12d7a0;
+inline constexpr std::array<std::uint8_t, 60> kSourceStringWindowBytes = {
+    0xa8, 0xf3, 0x5c, 0x38, 0xc8, 0x01, 0x38, 0x37,
+    0x48, 0x03, 0x00, 0x34, 0xa0, 0x83, 0xdb, 0x3c,
+    0xe0, 0x0b, 0x80, 0x3d, 0xa8, 0x83, 0x5c, 0xf8,
+    0xe8, 0x1b, 0x00, 0xf9, 0xa8, 0x73, 0xdb, 0x38,
+    0x88, 0x03, 0xf8, 0x37, 0x68, 0x04, 0x00, 0x34,
+    0xa0, 0x03, 0xda, 0x3c, 0xe0, 0x03, 0x80, 0x3d,
+    0xa8, 0x03, 0x5b, 0xf8, 0xe8, 0x0b, 0x00, 0xf9,
+    0x61, 0x00, 0x00, 0x14
+};
+inline constexpr std::uintptr_t kFallbackValueWindowOffset = 0x12d810;
+inline constexpr std::array<std::uint8_t, 100> kFallbackValueWindowBytes = {
+    0x88, 0x00, 0x80, 0x52, 0xe8, 0xdf, 0x00, 0x39,
+    0xc8, 0xe9, 0x8d, 0x52, 0xc8, 0xad, 0xac, 0x72,
+    0xe8, 0x23, 0x00, 0xb9, 0xff, 0x93, 0x00, 0x39,
+    0xa8, 0x73, 0xdb, 0x38, 0xc8, 0xfc, 0xff, 0x36,
+    0xb7, 0x83, 0x5a, 0xf8, 0xf7, 0x00, 0x00, 0xb4,
+    0xb5, 0x03, 0x5a, 0xf8, 0xff, 0x5a, 0x00, 0xf1,
+    0x28, 0x07, 0x00, 0x54, 0xf7, 0x5f, 0x00, 0x39,
+    0xe0, 0x03, 0x00, 0x91, 0x41, 0x00, 0x00, 0x14,
+    0x08, 0x01, 0x80, 0x52, 0xe8, 0x5f, 0x00, 0x39,
+    0xa8, 0xca, 0x8d, 0xd2, 0x88, 0x2e, 0xad, 0xf2,
+    0x88, 0x8e, 0xcd, 0xf2, 0xa8, 0x8c, 0xec, 0xf2,
+    0xe8, 0x03, 0x00, 0xf9, 0xff, 0x23, 0x00, 0x39,
+    0x3b, 0x00, 0x00, 0x14
+};
+inline constexpr std::uintptr_t kFormatValuesWindowOffset = 0x12d980;
+inline constexpr std::array<std::uint8_t, 56> kFormatValuesWindowBytes = {
+    0x7f, 0x01, 0x00, 0x71, 0xeb, 0x03, 0x00, 0x91,
+    0xec, 0x37, 0x40, 0xa9, 0x8b, 0xb1, 0x8b, 0x9a,
+    0xaa, 0xb1, 0x8a, 0x9a, 0xe9, 0x23, 0x10, 0xa9,
+    0xeb, 0x2b, 0x11, 0xa9, 0xe8, 0x71, 0x00, 0xb0,
+    0x08, 0x51, 0x11, 0x91, 0xe9, 0x70, 0x00, 0xd0,
+    0x29, 0xf9, 0x29, 0x91, 0x9f, 0x02, 0x00, 0x71,
+    0x28, 0x11, 0x88, 0x9a, 0xe8, 0x7f, 0x12, 0xa9
+};
+inline constexpr std::uintptr_t kEmptySuffixOffset = 0xf6a454;
+inline constexpr std::uintptr_t kRestrictedSuffixOffset = 0xf4ba7e;
+
+static_assert(sizeof(kFormatString) - 1 == kFormatStringLength);
+static_assert(kVformatCallOffset + 4 == kVformatReturnOffset);
+static_assert(kFormatValueCount * sizeof(FormatValue) == 48);
+static_assert(kSceneSourceObjectFromValues + kLibCppStringObjectBytes ==
+              kProjectSourceObjectFromValues);
+static_assert(kFramePointerFromStackPointer - kProjectSourceFromFramePointer -
+                  kFormatValuesFromStackPointer ==
+              kProjectSourceObjectFromValues);
+static_assert(kFramePointerFromStackPointer - kSceneSourceFromFramePointer -
+                  kFormatValuesFromStackPointer ==
+              kSceneSourceObjectFromValues);
+static_assert(kLibCppShortLengthOffset + 1 == kLibCppStringObjectBytes);
+
+}  // namespace contract
+}  // namespace native_title_format_abi

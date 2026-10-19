@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 detect/state/status 同步、snapshot English 真相投影、platform_runtime.restart、共享 operation_lock 测试门与 CommandRunner。
- * [OUTPUT]: 提供 restart_cavalry_inner；重启前同步 revision 并按已证明现实覆盖 stale marker 状态，测试仍以显式 inspector seam 覆盖 QPA ACTIVE。
- * [POS]: commands 的重启编排层；Windows QPA/plugin/诊断 marker 与 macOS launcher 下沉 platform_runtime，状态投影不写安装根，也不拥有 Switch/Restore 的 journal 收敛。
+ * [INPUT]: 依赖 detect/state/status 同步、snapshot English 真相投影、platform_runtime.restart、native_user独立Restart准入、共享operation_lock与CommandRunner。
+ * [OUTPUT]: 独立原生Restart按平台检查同一profile；Windows验证2.8宿主后正常启动，Mac保留NRT/owner准入。
+ * [POS]: commands的重启编排层；独立Restart保留完整native准入，apply提交后由native_user专用leaf复用同一operation guard与writer admission；Windows QPA/plugin/诊断marker和平台启动落在各自owner。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::path::Path;
@@ -14,6 +14,24 @@ use super::{
 };
 
 pub fn restart_cavalry_inner<R: CommandRunner>(
+    repo_root: &Path,
+    state_dir: &Path,
+    resource_dir: &Path,
+    app_path: &Path,
+    runner: &mut R,
+) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    if super::native_resources::native_runtime_enabled() {
+        return super::native_user::restart(app_path, state_dir, runner);
+    }
+    #[cfg(target_os = "windows")]
+    if super::native_resources::native_runtime_enabled() {
+        return super::native_windows::restart(app_path, state_dir, runner);
+    }
+    restart_cavalry_legacy_inner(repo_root, state_dir, resource_dir, app_path, runner)
+}
+
+pub(super) fn restart_cavalry_legacy_inner<R: CommandRunner>(
     repo_root: &Path,
     state_dir: &Path,
     resource_dir: &Path,

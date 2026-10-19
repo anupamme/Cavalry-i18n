@@ -1,0 +1,61 @@
+/**
+ * [INPUT]: 依赖同bundle Extension/spdlog、固定UUID、导出地址与interpose GOT。
+ * [OUTPUT]: 核原导出与GOT；完整ABI就绪后才发布唯一Welcome返回PC。
+ * [POS]: 原函数走本interposer的dyld旧实现导入桩，构造前门值为零。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+namespace welcome_log_it_runtime {
+namespace welcome_contract = welcome_log_it::contract;
+LoadedImage gWelcomeExtensionImage{};
+LoadedImage gWelcomeSpdlogImage{};
+
+bool verifyWelcomeLogItContract() noexcept
+{
+    nativeWelcomeLogItExpectedReturnPc.store(0, std::memory_order_release);
+
+    std::array<char, PATH_MAX> extensionPath{};
+    std::array<char, PATH_MAX> spdlogPath{};
+    if (!appFrameworkPath(welcome_contract::kExtensionImageName,
+                          extensionPath.data(), extensionPath.size()) ||
+        !appFrameworkPath(welcome_contract::kSpdlogImageName,
+                          spdlogPath.data(), spdlogPath.size()) ||
+        !findLoadedImageExactPath(spdlogPath.data(), &gWelcomeSpdlogImage) ||
+        !imageUuidEquals(gWelcomeSpdlogImage, welcome_contract::kSpdlogUuid))
+        return false;
+
+    const void *original = findMachOSymbol(
+        gWelcomeSpdlogImage, welcome_contract::kLogItSymbol);
+    if (original == nullptr || original != imageAddress(
+            gWelcomeSpdlogImage, welcome_contract::kLogItOffset)) return false;
+    if (!findLoadedImageExactPath(extensionPath.data(), &gWelcomeExtensionImage) ||
+        !imageUuidEquals(gWelcomeExtensionImage, welcome_contract::kExtensionUuid))
+        return false;
+
+    const void *boundTarget = nullptr;
+    if (!readSelf(imageAddress(gWelcomeExtensionImage,
+                               welcome_contract::kExtensionGotOffset),
+                  sizeof(boundTarget), &boundTarget) ||
+        boundTarget != reinterpret_cast<const void *>(nativeWelcomeLogItVeneer))
+        return false;
+
+    nativeWelcomeLogItExpectedReturnPc.store(
+        reinterpret_cast<std::uintptr_t>(imageAddress(
+            gWelcomeExtensionImage, welcome_contract::kExtensionReturnOffset)),
+        std::memory_order_release);
+    return true;
+}
+
+__attribute__((used)) static struct {
+    const void *replacement;
+    const void *replacee;
+} welcomeLogItInterpose __attribute__((section("__DATA,__interpose"))) = {
+    reinterpret_cast<const void *>(nativeWelcomeLogItVeneer),
+    reinterpret_cast<const void *>(welcomeLogItTarget)
+};
+
+}  // namespace welcome_log_it_runtime
+
+bool verifyWelcomeLogItContract() noexcept
+{
+    return welcome_log_it_runtime::verifyWelcomeLogItContract();
+}

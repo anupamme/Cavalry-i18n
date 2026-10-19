@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Vercel design.md 发布的排印、字重、4px 间距及 vbg-blue-700 informational 颜色角色，依赖 macOS AppKit 与 Windows compositor alpha 窗口表面的平台几何及系统字体策略
- * [OUTPUT]: 对外提供精确投影 vbg-blue-700 的 informational blue-subtle 语言类别与权限引导、green-subtle Official 徽章、warning/danger 任务标记语义色、13px 可读下限排印、4px 主节奏、20px 页面 padding 派生的 10px 页面动作组间距、Windows 10px 阴影留白/32px 外壳圆角、20px Updater 与 16px Windows caption 图标、以当前 X 可见右缘为基准的 15px 标题光学边距、80px About 标识、176px Activity，以及自然正文断行的 shadcn Base Nova Tooltip/Select/AlertDialog/Marker/Toast 几何、层级、权限阻断可读停顿与动效真相源
+ * [OUTPUT]: 对外提供精确投影 vbg-blue-700 的 informational blue-subtle 语言类别与权限引导、green-subtle Official 徽章、warning/danger 任务标记语义色、13px 可读下限排印、4px 主节奏、20px 页面 padding 派生的 10px 页面动作组间距、Windows 10px 阴影留白/32px 外壳圆角、20px正文行与10px底留白推导的30px无分割线关注 footer、20px Updater 与 16px Windows caption 图标、以当前 X 可见右缘为基准的 15px 标题光学边距、80px About 标识、小红书标识独立品牌红、176px Activity，以及自然正文断行的 shadcn Base Nova Tooltip/Select/AlertDialog/Marker/Toast 几何、层级、权限阻断可读停顿与动效真相源
  * [POS]: renderer 视觉系统的基础层；button/styles/window-controls 等组件层只消费角色，不再持有可调设计常量
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -156,6 +156,14 @@
   /* ---------- About 组件契约 ---------- */
   --about-app-icon-size: calc(var(--space-16) + var(--space-4));
   --about-link-icon-size: 16px;
+  --brand-xiaohongshu: #ff2442;
+
+  /* ---------- 主窗口支持入口 ---------- */
+  --support-footer-gap: var(--space-3);
+  --support-footer-spacing: calc(var(--padding-window) / 2);
+  --support-link-hit-size: var(--space-8);
+  --support-link-icon-size: var(--space-4);
+  --support-footer-height: calc(var(--line-height-compact) + var(--support-footer-spacing));
 
   /* ---------- Select 组件契约 ---------- */
   --select-trigger-content-gap: var(--space-2);

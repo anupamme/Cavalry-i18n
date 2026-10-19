@@ -1,0 +1,293 @@
+<!--
+[INPUT]: 依赖成功驱动索引、批准显示键、宿主Qt与原生窗口图。
+[OUTPUT]: 提供控件动作、原生保存面板、popup归属与Guide路由方法。
+[POS]: 固定控件动作参考；帮助正文和搜索另行路由。
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+-->
+# 固定控件动作
+
+## 复用驱动
+
+CUA走不通时先查私人文档成功驱动；PID只证明进程归属。
+旧Qt驱动复用意图和公开接口，不把6.6.3二进制注入6.9.2宿主。
+新调用先核host导入与同App Qt导出；头文件声明不证明导出。
+dynamic_lookup只延迟解析，不补符号。缺getter标未读，不伪造空值。
+原生子窗覆盖父控件时，visibleRegion为空不等于不可见。
+主控件先核同MainDock父链、原生子窗暴露和全局边界。
+已知子菜单沿批准父QAction的menu()绑定。
+用子菜单isVisible与原图核显示，不用visibleRegion否定popup。
+macOS系统Help复用已验AX入口，不假设它有Qt QMenuBar。
+按已证接收者派发事件，再看同PID原图。
+属性连接拖动保持press接收者，move和release不逐点换widgetAt。
+宿主自行按global坐标找drop；另核连接后态与Guide推进。
+新事件适配先在独立fixture核通道，再验厂商控件身份与消费。
+构建后核客户端实际解析路径和已加载库的监听目录。
+模块入口与构建快照须指向同一mailbox。
+探针锁候选路径时，同时核其编译门与实际加载路径。
+只改runner参数不证明探针已准入新候选。
+制品目录名不证明监听目录；旧库可仍监听旧session。
+错投请求保留原件，不重放到新目录。
+复用宿主Qt，不装第二套runtime；测试监听有截止，不进产品。
+不读密码或任意输入，不刷新字体或补写译文。
+脚本只用[获准固定只读样例](search-switcher.md#创建后的精确类型)；帮助hover不执行脚本。
+
+## Settings质量与抗锯齿
+
+按批准标签在同一可见Settings窗口定位唯一质量和抗锯齿组合框。
+核同窗标签、三项批准选项及唯一组合框共同绑定字段。
+选项动作复用下文[枚举与复选框](#枚举与复选框)。
+组合顺序、禁用语义和恢复按[质量矩阵](surfaces.md#viewport-名称与质量)。
+动作后读回两字段；像素结果独立判定。
+
+私人查找键：`quality-probe/native_ui_quality_settings_probe.mm`、
+`quality-probe/request.py`、`run_quality_matrix.py`。
+这些文件不随技能分发；按当前host和session核验后复用。
+
+## Tool菜单动作
+
+在唯一MainDock子树内绑定唯一QMenuBar和批准Tool菜单。
+用菜单栏QAction持有的QMenu与menuAction反向引用核所有权。
+QMenu弹出窗口不是MainDock；不要要求它的window等于MainDock。
+只触发唯一批准叶动作`tool.editShape.name`或`tool.select.name`。
+动作触发只证明Qt收到触发，不证明工具像素或帮助已消费。
+另核工具图标或帮助原图，不用动作回执代替。
+动作前读取Select checked；仅初态为true且回交后仍为true才记恢复。
+不满足时记handback，不记恢复。
+
+私人查找键：`native_ui_tool_action_probe.mm`、
+`tool-action-probe/request.py`、`run_tool_actions.py`。
+这些文件不随技能分发；按当前host和session核验后复用。
+
+## 成功驱动的查找键
+
+以下是私人历史中的源文件名，不是本技能随附命令。
+先查[当前接续索引](../../../../tools/acceptance/DRIVERS.md)，缺项再按下表查私人历史。
+取同一记录内的源、相对依赖、请求表、构建入口和runner。
+核当前App/Qt匹配后复用；找不到完整依赖就记驱动缺口，不猜命令。
+
+| 目标 | 历史查找键 |
+| --- | --- |
+| Twist枚举与属性提示合批 | native_ui_twist_enum_probe.mm、native_ui_twist_tooltip_batch_probe.mm、run-combined-language.root.py |
+| 节点说明 | native_ui_twist_node_info_tooltip_probe.mm、native_ui_boxblur_node_info_tooltip_probe.mm、run-node-tooltip.root.py |
+| 同语跨插件帮助与枚举 | native_ui_multi_plugin_help_batch_probe.mm、native_ui_multi_plugin_enum_batch_probe.mm、run_language.py |
+| Spherise实际tab换页 | native_ui_spherise_tab_probe.mm、request_tab.py |
+| 条件bool与数值字段 | native_ui_disabled_help_bool_controls.mm、numeric_field_actions.inc |
+| FPS显示开关与播放 | native_ui_viewport_fps_probe.mm |
+| 六名Timeline | native_ui_timeline_matrix_probe.mm、native_ui_fixed_fixture_open_probe.mm |
+| Quick Add查询 | native_ui_fast_search_probe.mm |
+| getLayerType根帮助 | native_ui_get_layer_type_probe.mm |
+| Guide选择页与正文 | native_ui_guide_probe_run03.mm、run_guide_roles.root.py |
+
+这些键用于找方法，不保证历史驱动已覆盖本轮目标。
+厂商App、Qt和编译测试库不进入技能资产。
+
+## 创建插件与加载属性
+
+1. 按exact PID读当前菜单，用批准menu.create和menu.create.effects值进入Effects。
+2. 按稳定type对应的批准叶名唯一匹配可用项，不递归整棵Create菜单。
+3. 先核实际新节点，再执行后续依赖选择的动作。
+4. 执行menu.edit.title下的menu.comp.showInAttrEditor项。
+5. 菜单含U+200C时只接受原名或该前缀加原名；不猜历史索引。
+6. 助记符只按批准值剥除；读取当前Header内可见启用的GroupButton。
+7. 用宿主Qt发送真实鼠标按下/释放，再读实际面板。
+8. 同快照核NodeRowWidget名称和AttrControlRow字段位于同一AttributeEditorTreeWidget父链。
+
+type、key和父链共同绑定owner；显示同名不证明身份。
+属性批准owner是源域，插件owner是模型身份；分别核源，不互比。
+同名不唯一则停止，不取第一个。
+菜单动作已发送不证明节点已创建。
+保留成功驱动的父菜单与叶项动画节拍。
+创建后按预期行数或选择状态有界轮询，出现即采集。
+第一次读回仍是旧态时，不重发创建或另加清选择前置。
+后续菜单禁用时保留结果，先核当前场景。
+厂商定义hide:true时，默认菜单缺项不是漏译；用获准旧场景另验，不改定义。
+只扫批准可见标签，不读用户输入或任意参数值。
+名称和首字段不抵全部字段、tab或tooltip。
+
+## 实验性Def帮助
+
+Def实验选项经正常Preferences界面切换；更改后重启Cavalry才生效。
+切换前读回原状态；结束后经同一界面恢复、重启并核读回。
+偏好恢复未读回时，不记清理完成。
+实验选项控件是自绘CheckBox；不要假定QCheckBox或QAbstractButton。
+按批准标签定位同父CheckBox，发送标准鼠标事件并读回实际状态。
+原生窗口图按exact PID匹配；不要只保留CG layer 0。
+首次检查Create菜单为空时，先经正常UI打开Create子菜单，再读批准项。
+菜单初始化前的空库存不证明Def节点不存在；不加固定等待。
+以唯一批准Def type创建节点；用厂商nodeDefinitions的完整默认表达式。
+不要用占位文本替代厂商默认表达式。
+保留创建时的完整编辑器文本；17个批准Def方法只加入未执行注释fixture。
+逐条核同一真实tooltip popup的完整正文与对应原生PNG。
+批次结束后恢复完整默认文本并精确读回；禁止Run或Save。
+
+## Show Selected备用路径
+
+双击或拖入后未加载UI时，按当前清单走Show Selected一次。
+需要前台时，在同一exact PID动作中激活并调用菜单；CUA不是唯一入口。
+[厂商文档](https://cavalry.studio/docs/user-interface/menus/window-menu/attribute-editor/)说明此按钮清空面板并加载所选Layer。
+分开记录selection、UI加载、目标结果可见。
+点击后仍旧时保留失败，停止盲点；后续独立样例用新空场景。
+停靠面板可不属于Qt顶层窗；沿可见树定位，再核父链。
+图标像按钮不证明C++类型；按Header与批准tooltip核真实元类。
+点击后至少读目标面板和字段，不用sendEvent布尔值证明消费。
+
+## Render Manager入口
+
+先核当前File菜单的Render Manager项及快捷键。
+macOS 2.8已验默认快捷键为Option+B，可按exact PID发送正常键盘事件。
+不改窗口大小；用该PID的CG窗口与原图确认面板已打开。
+采集须包含浮动窗，不能只取layer 0主窗。
+请求超时不证明面板未出现；先核已有窗口图，不重复打开。
+关闭面板后，先核目标状态，再进入下一项。
+
+## 停靠面板与空提示
+
+空提示被停靠布局裁切时，先经Cavalry实际停靠菜单取消停靠。
+核真实菜单项、单次选择和同PID的新浮窗，再判全文。
+需要前台输入时，先激活exact PID，再打开菜单。
+菜单弹出后不再次激活；激活会使菜单消失。
+Qt context事件须发给已证事件接收者；不等同OS右击。
+脱离后标题结构可变；旧标签库存为空不证明面板消失。
+用实际CG窗口绑定原图，不改字体或最小宽度迎合测试。
+浮窗仍裁切时，可用正常OS拖动扩宽同一浮窗。
+记录扩宽前后CG边界；全文通过不抵默认窄布局通过。
+私人查找键：`snippet_context_menu_host.mm`、`request.py`、`host_mouse.root.py`。
+
+## 枚举与复选框
+
+宿主自绘CheckBox不等于Qt `QCheckBox`；先读真实控件库存与父链。
+按实际元类型选择事件接收者，不凭外观推断控件类。
+条件消费须前后读取依赖子字段的`enabled`状态。
+事件已发送或库存已见不单独授PASS。
+
+按唯一owner、批准字段和真实QComboBox定位。
+帮助扫查滚出节点标题时，先正常滚回同树标题，再定位枚举。
+条件隐藏枚举先经正常UI切换其前置模式，再验选项。
+记录原模式与原索引；结束后恢复两者，不改厂商定义。
+只读其批准选项，按当前QStyle箭头区域展开。
+读取真实view、viewport和popup几何，用model索引的visualRect定位选项。
+先移入选项中心，再按下/释放；不以setCurrentIndex或发信号代替点击。
+Qt6.9.2打开后短暂屏蔽释放；MouseMove移距大于9可解除该门。
+依据：[Qt6.9.2枚举事件实现](https://github.com/qt/qtbase/blob/v6.9.2/src/widgets/widgets/qcombobox.cpp#L770-L803)。
+不加等待重试；动作后核批准值、实际索引和popup关闭。
+同进程切各项并恢复默认；展开与选后图像分别判定。
+QCheckBox按当前QStyle指示器区域点击，不假定整行中心可点。
+依据：[QStyle区域定义](https://doc.qt.io/qt-6/qstyle.html#SubElement-enum)。
+核实际checked变化，不用setChecked或缩窄fixture迎合错误坐标。
+
+## NumericField数值编辑
+
+先核同一属性行内唯一QLineEdit及真实元类。
+宿主NumericField默认只读是拖动模式，不是字段禁用。
+向该NumericField发送标准双击；读回可编辑后再提交。
+不用setReadOnly、setText或setValue跳过宿主事件。
+Return后控件会回到只读；恢复原值时同样先进入编辑。
+保存原文本和数值；读回实际值与依赖行enabled变化。
+Restore沿同一控件及原始快照，不套用Apply的默认值前提。
+异常时先尝试恢复，再清理自有测试进程。
+
+## 厂商tab实际换页
+
+Spherise标签是RolloverLabel，事件接收者是其父AttributeTabWidget。
+在唯一NodeRowWidget同树内按批准tab名定位，向接收者发送标准鼠标事件。
+点击后核两页专属字段的出现/消失，再采原图；事件返回值不授消费。
+回交原页并再次核字段，别用固定屏幕坐标或旧布局截图证明换页。
+
+## 可见tab备用证据
+
+QTabBar读取能力不证明厂商tab采用该类型。
+qobject_cast后不再限定元类名；库存为空先看该owner已有原PNG。
+源与显示链未变时，在实际tab条ROI断言批准名。
+不造控件给读取器通过；图像不授新Qt读回或tab点击信用。
+工具及图像判据见[证据与定位](evidence.md)。
+
+## Guide选择页与正文
+
+从批准Help入口打开选择页；读回后再点唯一OptionWidget。
+选择页标签使用QLabel；正文使用QTextBrowser。
+先按Guide owner筛选，再核同名标签唯一。
+同文多键不等于多个控件。先以正文锁路由，再核唯一标题包含目标键。
+同文DockableTabWidget不算Guide重复命中。
+页面切换只发送一次动作，再有限等待目标正文。
+`ok=true`和事件已派发不证明目标页已出现。
+条件动作按指南目标输入，不贴内部阈值。
+字段读回只证明控件状态；目标页另读标题与正文。
+Done已返回选择页时，沿用该页，不再打开Help。
+正文须属于唯一可见OnboardingGuideView。
+用宿主Qt解析批准HTML，再比较实际正文全文。
+固定图片占位符须同时核U+FFFC与图片片段位置。
+徽章若为QTextImageFormat，按批准badge/color/bg核图片名。
+不要按文字X或字符颜色比对图片徽章。
+示例场景名称另验，不用默认合成名替代。
+需要验示例名时，复用已证非空场景再首次进入指南。
+空场景可沿用默认合成名；正文通过不证明示例名出现。
+这是已验测试前提，不断言厂商所有场景分支。
+采浮窗前激活exact PID，再取其layer 8原生图。
+Qt winId不替代CG窗口ID；仅主窗图不证明浮窗文字。
+切入其他场景前核指南已关闭；Escape不证明关闭。
+OptionWidget同步单击可进入原厂验证弹窗。
+动作只派一次；另路采CG，不等回执阻断采图，不重发。
+翻译验收只核待验标题与正文。
+Cancel/Reset行为不增加翻译验收门。
+先验节点，再验指南，避免指南新增属性树打断节点定位。
+
+## Guide条件动作链
+
+事先按批准路线编好全部条件动作，同语连续执行。
+每次只派一次输入；实际后页决定是否继续。
+SceneTree新增行按前后库存差分绑定，不按行号猜测。
+需要其属性时，核该新增行确实为唯一选中行。
+在同一AttributeEditorTree内找目标属性行。
+从属性行读取真实父链，不把树当NodeRow的子控件。
+复用NumericField标准编辑；字段值不替代后页读回。
+
+Add派发尚未返回且菜单已显示时，先核poll回调仍在执行。
+同一poll回调未返回前，不提前回执再等待下一poll请求。
+在一次动作内完成Add与批准菜单叶项的标准输入。
+两段dispatch返回后才发布动作回执，再独立读取后页。
+这只修测试驱动，不调用模型setter或Guide内部推进方法。
+私人驱动查找键：`run-behaviour-current.root.py`、`falloff_scale_commit.inc`。
+
+## 原生保存面板
+
+仅验caption时，用未保存Scene执行标准Save。
+不要填文件名，也不要按面板Save。
+核对标题和原图后，按固定Cancel退出。
+Cavalry提供caption；系统提供Save/Cancel等控件。
+分开判定两者，不改系统语言填补业务caption。
+
+先按exact PID核主可执行和实际候选载库。
+外载候选不抵生产wrapper部署验收。
+只在事务封存的获准owned副本上外载。
+不替换成功制品，也不继承其显示PASS。
+
+AX只读面板标题、矩形与固定取消按钮。
+CG按PID与精确标题找窗口，不固定layer 0。
+原生面板使用其他layer时，保留该窗口身份。
+也可按AXPosition/AXSize截取原生区域。
+取消前缓存标题与矩形；取消后AX对象失效。
+以面板消失证明Cancel实际消费。
+取消读回只证明清理，不抵标题显示。
+
+菜单动作前激活exact App，再打开父菜单。
+AXEnabled按布尔或NSNumber读，不当成字符串。
+Switcher语言选项从真实manifest读取。
+已选combobox不再带placeholder；不以它判UI语言。
+动作回执先于新进程出现时，有限等待读回。
+已成功派发后，不因读回断言失败重放动作。
+
+## 菜单与脚本缓冲边界
+
+菜单标题和Dock标题分别绑定各自显示键。
+同一功能的两个标题不保证空格或用词相同。
+脚本页签遮住SceneTree时，先经Window菜单恢复目标面板。
+隐藏视图不判数据缺失；模型英文角色不替代本地化像素判定。
+OS菜单点击先移入实际行，再按下和释放。
+动作后读取真实后态；事件派发不证明消费。
+
+只读API片段不等于编辑器操作只读。
+探针若替换全文，优先新建自有空白脚本页。
+沿用已有页时，须在内存保存并逐字节恢复原缓冲。
+从真实页签和空内容证明前置，不能只传确认flag。
+保留原脚本页，不执行或覆盖未知缓冲。
+运行后关闭自有测试页，不保存用户工程。

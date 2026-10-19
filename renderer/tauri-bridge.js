@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Tauri 的预注入 __TAURI_INTERNALS__.invoke/transformCallback/unregisterCallback（或兼容 __TAURI__.core.invoke）能力。
- * [OUTPUT]: 冻结最小 window.cavalryI18n API；Apply Channel 只转发 verify/baseline/apply/restart，Status 只归一化轻量安装观察、版本兼容、语言补丁状态与固定中性的旧证明字段，内部 journal/签名清理事实不进入 DTO；权限入口只接受固定 App Management、有限 CSS forward/return rect 与 viewport，Updater Channel 只转发安全阶段与计数；其余接口仅转发 repository/license/reportIssue 三个固定 project-link、About、main caption 与固定 about-label close，丢弃 raw warning、URL/签名/路径/原始响应。
+ * [OUTPUT]: 冻结最小 window.cavalryI18n API；Apply Channel 只转发 verify/baseline/apply/restart，Status 只归一化 installation/userProfile scope、受控 locale/unknown、camelCase nativeLocaleState（userProfile仅接受unset/explicit/unrecognized，旧安装置null）、严格 ownership-gated English restore availability、原枚举语言补丁状态与固定中性旧字段，内部 journal/签名清理事实不进入 DTO；英文 restore-only 成功不冒充启动；权限入口只接受固定 App Management、有限 CSS forward/return rect 与 viewport，Updater Channel 只转发安全阶段与计数；其余接口仅转发twitter/xiaohongshu/repository/license/reportIssue/legacyRelease 固定 project-link、About 与窗口操作，拒绝 snake_case/debug 扩展并丢弃 raw warning/error prose、URL/签名/路径。
  * [POS]: renderer 的非视觉桥，关闭 withGlobalTauri 后仍在 app.js/about-window.js 前加载；业务只消费稳定 DTO，About 创建仍归单一 Rust owner，窗口插件调用只允许源码固定的 main/about label。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -17,6 +17,17 @@
     'supported', 'olderUnsupported', 'newerUnsupported', 'unknownUnsupported',
   ]);
   const PATCH_STATUS = new Set(['current', 'updateAvailable', 'unknown', 'notApplicable']);
+  const LANGUAGE_SCOPE = new Set(['installation', 'userProfile']);
+  const NATIVE_LOCALE_STATE = new Set(['unset', 'explicit', 'unrecognized']);
+  const ACTION_ERROR_CODE_MANIFEST = Object.freeze([
+    'permissionRequired',
+    'cavalryStillRunning',
+    'reinstallRequired',
+    'operationBusy',
+    'nativeUserLanguageConflict',
+    'nativeResourceUnavailable',
+    'nativeUserLanguagePermissionDenied',
+  ]);
   const WARNING_CODE_MANIFEST = Object.freeze([
     'restartFailed',
     'stateDurabilityPending',
@@ -35,7 +46,7 @@
     'updateBusy',
     'updateStateUnavailable',
   ]);
-  const PROJECT_LINK_MANIFEST = Object.freeze(['repository', 'license', 'reportIssue']);
+  const PROJECT_LINK_MANIFEST = Object.freeze(['twitter', 'xiaohongshu', 'repository', 'license', 'reportIssue', 'legacyRelease']);
   const OPERATION_PHASE_MANIFEST = Object.freeze([
     'verifyInstallation',
     'ensureBaseline',
@@ -141,12 +152,24 @@
   function normalizeStatus(result) {
     const granted = result.appManagementGranted;
     const compatibility = pick(result.versionCompatibility, 'supported');
+    const languageScope = LANGUAGE_SCOPE.has(result.languageScope) ? result.languageScope : 'installation';
+    const supportedLanguage = LANGUAGE_MANIFEST.some(({ value }) => value === result.currentLang);
+    const nativeLocaleState = languageScope === 'userProfile'
+      ? NATIVE_LOCALE_STATE.has(result.nativeLocaleState) ? result.nativeLocaleState : 'unrecognized'
+      : null;
     return {
       appManagementGranted: typeof granted === 'boolean' ? granted : null,
       appPath: pick(result.appPath, ''),
-      currentLang: LANGUAGE_MANIFEST.some(({ value }) => value === result.currentLang)
+      currentLang: supportedLanguage
         ? result.currentLang
-        : 'en',
+        : languageScope === 'userProfile' ? 'unknown' : 'en',
+      languageScope,
+      nativeLocaleState,
+      nativeResourceAvailable: languageScope === 'installation'
+        || result.nativeResourceAvailable === true,
+      nativeEnglishRestoreAvailable: languageScope === 'userProfile'
+        && supportedLanguage && result.currentLang !== 'en'
+        && result.reconciliationRequired !== true && result.nativeEnglishRestoreAvailable === true,
       patchStatus: PATCH_STATUS.has(result.patchStatus) ? result.patchStatus : 'unknown',
       installationMode: pick(result.installationMode, 'unknown'),
       macosPermissionHandoffRequired: result.platform === 'macos' && result.macosPermissionHandoffRequired === true,
@@ -177,7 +200,7 @@
     };
   }
 
-  function normalizeAction(result) {
+  function normalizeAction(result, allowNativeRestoreOnly = false) {
     const warningCodes = [];
     const legacyWarningCode =
       typeof result.warningCode === 'string' && WARNING_CODE_MANIFEST.includes(result.warningCode)
@@ -192,17 +215,25 @@
       if (!warningCodes.includes(normalized)) warningCodes.push(normalized);
     }
     if (warningCodes.length === 0 && result.warning) warningCodes.push('nonFatalCleanup');
+    const currentLang = LANGUAGE_MANIFEST.some(({ value }) => value === result.currentLang)
+      || result.currentLang === 'unknown'
+      ? result.currentLang
+      : null;
     return {
       ok: pick(result.ok, false),
       count: pick(result.count, null),
-      currentLang: pick(result.currentLang, null),
+      currentLang,
       warning: null,
       warningCode: legacyWarningCode,
       warningCodes: Object.freeze(warningCodes),
       permissionRequired: pick(result.permissionRequired, false),
       reconciliationRequired: result.reconciliationRequired === true,
-      error: pick(result.error, null),
-      errorCode: pick(result.errorCode, null),
+      nativeRestoreOnly: allowNativeRestoreOnly && result.ok === true && currentLang === 'en'
+        && warningCodes.length === 0 && result.reconciliationRequired !== true
+        && result.permissionRequired !== true && !result.error && !result.errorCode
+        && result.nativeRestoreOnly === true,
+      error: null,
+      errorCode: ACTION_ERROR_CODE_MANIFEST.includes(result.errorCode) ? result.errorCode : null,
       handoffOutcome: HANDOFF_OUTCOME_MANIFEST.includes(result.handoffOutcome)
         ? result.handoffOutcome
         : null,
@@ -272,7 +303,8 @@
         const event = normalizeOperationEvent(result);
         if (event) onEvent(event);
       });
-      return invoke('apply_language', { appPath, lang, onEvent: channel }).then(normalizeAction);
+      return invoke('apply_language', { appPath, lang, onEvent: channel })
+        .then((result) => normalizeAction(result, lang === 'en'));
     },
     openPrivacySecurity: (geometry = {}, onEvent = () => {}) => {
       const channel = new OrderedChannel((result) => {

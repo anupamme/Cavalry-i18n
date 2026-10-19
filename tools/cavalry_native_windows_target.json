@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "cavalryVersion": "2.8.0",
+  "qtVersion": "6.9.2",
+  "architecture": "x86_64",
+  "msiSha256": "5409d19515665be1c3f27f247d5a31df36657048d1df448b1327a4eb8e04aaeb",
+  "files": {
+    "Cavalry.exe": "bad89abf30c67b2d2fb3c9d0a26c3cfda9b738164e11bca050ac54ad0e2783a1",
+    "Api.dll": "c59528bd08e2325eba8f18e1846ca0f551297d36619b1cf70f38448561892567",
+    "Core.dll": "79f13303824d33a70a2f148fe5c9cee7115d724f5e49ff975f9aad54dca8d398",
+    "Qt6Core.dll": "b378b4447d8cd0170755298dd501adf6f648228dc93a07ff1dc8edb8852d7b4c",
+    "qwindows.dll": "f80153ee381ad1437148f785aa4f952b29d285729185e952866e141f96b13b86"
+  }
+}

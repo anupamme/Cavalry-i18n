@@ -1,0 +1,10 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download/latest-cavalry-2.8.json"
+      ]
+    }
+  }
+}

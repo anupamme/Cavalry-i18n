@@ -1,0 +1,46 @@
+{
+  "_contract": {
+    "INPUT": "sound-empty-file.js固定创建与播放操作。",
+    "OUTPUT": "声明运行前结构预期；静态合同不证明App加载或显示。",
+    "POS": "Sound空File输入模板；不声称通知通过或Scene已保存。",
+    "PROTOCOL": "变更时更新此头部，然后检查 CLAUDE.md"
+  },
+  "script": "sound-empty-file.js",
+  "cavalryTarget": "2.8",
+  "nodeCount": 2,
+  "nodes": [
+    {
+      "name": "Sound Notification Rectangle",
+      "nodeType": "basicShape"
+    },
+    {
+      "name": "Sound Missing Audio",
+      "nodeType": "sound",
+      "fileInput": {
+        "label": "File",
+        "expected": "empty",
+        "assignment": "none"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "from": "Sound Missing Audio.id",
+      "to": "Sound Notification Rectangle.generator.dimensions.x"
+    }
+  ],
+  "selectedNode": "Sound Missing Audio",
+  "typeReadback": {
+    "source": "api.getLayerType",
+    "expected": {
+      "rectangle": "basicShape",
+      "sound": "sound"
+    }
+  },
+  "notificationPass": {
+    "isInputDeclaration": false,
+    "status": "not-asserted"
+  },
+  "sceneSave": "not-asserted",
+  "acceptanceStatus": "input contract only; verify in an owned empty Scene via standard Run"
+}

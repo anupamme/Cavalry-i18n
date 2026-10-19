@@ -1,0 +1,48 @@
+{
+  "_contract": {
+    "INPUT": "timeline-six-names.cv原生场景数据",
+    "OUTPUT": "供读取器与像素断言使用的固定预期",
+    "POS": "测试skill的输入清单，不证明加载或显示通过",
+    "PROTOCOL": "变更时更新此头部，然后检查 CLAUDE.md"
+  },
+  "scene": "timeline-six-names.cv",
+  "cavalryTarget": "2.8",
+  "sceneFileVersion": "1.0.72",
+  "activeComposition": "compNode#1",
+  "topLevelLayerCount": 6,
+  "rows": [
+    {
+      "row": 0,
+      "nodeId": "javaScriptShape#6",
+      "name": "文字名称の長いテスト文字名称の長いテスト文字名称の長いテスト文字名称の長いテスト文字名称の長いテスト文字名称の長いテスト文字名称の長いテスト文字名称の長いテスト"
+    },
+    {
+      "row": 1,
+      "nodeId": "javaScriptShape#5",
+      "name": "Text Box 自定义33"
+    },
+    {
+      "row": 2,
+      "nodeId": "javaScriptShape#4",
+      "name": "変形テスト 2"
+    },
+    {
+      "row": 3,
+      "nodeId": "javaScriptShape#3",
+      "name": "圖層測試999"
+    },
+    {
+      "row": 4,
+      "nodeId": "javaScriptShape#2",
+      "name": "ASCII Control33"
+    },
+    {
+      "row": 5,
+      "nodeId": "javaScriptShape#1",
+      "name": "控制测试33"
+    }
+  ],
+  "externalAssets": [],
+  "defaultExpressions": "six default JavaScript Shape ellipse paths; no file or network access",
+  "acceptanceStatus": "input only; verify actual load and display for each candidate"
+}

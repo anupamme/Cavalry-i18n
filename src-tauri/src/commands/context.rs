@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Tauri AppHandle、detect 的语言目录扫描与共享 runtime_paths。
- * [OUTPUT]: 提供应用路径上下文、资源候选、语言源定位和单调 staging nonce。
+ * [OUTPUT]: 统一repo/state/resource；Windows GUI/CLI/卸载共用不依赖AppHandle的模式解析；production和preview状态域分离。
  * [POS]: commands 的运行环境解析层；业务动作只接收已经归一化的 repo/state/resource 路径。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -11,7 +11,7 @@ use std::{
 
 use tauri::Manager;
 
-use crate::runtime_paths;
+use crate::runtime_paths::{self, state_dir_for_native_mode};
 
 use super::contract::LanguageChoice;
 
@@ -56,12 +56,31 @@ pub(crate) fn state_dir_for_app(app: &tauri::AppHandle) -> PathBuf {
     #[cfg(target_os = "windows")]
     {
         let _ = app;
-        return runtime_paths::current_windows_state_dir();
+        return windows_state_dir();
     }
     #[cfg(not(target_os = "windows"))]
     {
-        runtime_paths::resolve_state_dir(app.path().app_data_dir().ok())
+        let base = runtime_paths::resolve_state_dir(app.path().app_data_dir().ok());
+        #[cfg(target_os = "macos")]
+        {
+            return state_dir_for_native_mode(
+                &base,
+                super::native_resources::preview_enabled(),
+                super::native_resources::production_enabled(),
+            );
+        }
+        #[cfg(not(target_os = "macos"))]
+        base
     }
+}
+
+#[cfg(target_os = "windows")]
+pub(crate) fn windows_state_dir() -> PathBuf {
+    state_dir_for_native_mode(
+        &runtime_paths::current_windows_state_dir(),
+        super::native_resources::preview_enabled(),
+        super::native_resources::production_enabled(),
+    )
 }
 
 pub(crate) fn resource_dir_for_app(app: &tauri::AppHandle) -> PathBuf {
@@ -129,4 +148,23 @@ pub(crate) fn language_source_dir(repo_root: &Path, resource_dir: &Path, lang: &
 
 pub(crate) fn next_staging_nonce() -> u64 {
     STAGING_COUNTER.fetch_add(1, Ordering::Relaxed)
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod native_state_scope_tests {
+    use super::state_dir_for_native_mode;
+    use std::path::Path;
+
+    #[test]
+    fn production_and_preview_state_roots_do_not_reuse_the_legacy_state_document() {
+        let base = Path::new("/tmp/switcher-state");
+        let legacy = state_dir_for_native_mode(base, false, false);
+        let preview = state_dir_for_native_mode(base, true, false);
+        let production = state_dir_for_native_mode(base, false, true);
+        assert_eq!(legacy, base);
+        assert_eq!(preview, base.join("native-2.8-preview"));
+        assert_eq!(production, base.join("native-2.8"));
+        assert_ne!(legacy, production);
+        assert_ne!(preview, production);
+    }
 }

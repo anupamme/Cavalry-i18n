@@ -1,6 +1,6 @@
-# [INPUT]: 依赖仓库版本/CHANGELOG/release.config、可测试 CI 变更分类器、跨平台 Tauri 与 tag-only updater artifact 配置、受保护 updater 凭据、Qt runtime 构建入口与共享 Classic 评分/空结果幂等合同、Windows provenance、pinned Actions/toolchain 与 GitHub tag/artifact 环境
-# [OUTPUT]: 对外提供始终可结算的必需检查、按文档/合同/依赖/平台风险选择的证据门、每周依赖漏洞复审、平台 Runner 原生构建、NSIS 生命周期、无 tag updater 签名 smoke、tag 上 ad-hoc macOS 包与 Tauri updater 签名产物、确定性 latest.json、七项公开资产 exact readback、CI 内部 provenance/SBOM/toolchain 证据、幂等公开 Release 与非阻断六种 Release reactions 回读
-# [POS]: .github/workflows 的唯一 CI/CD 编排器；普通 PR/main 由 classify_ci_changes.js 缩减无关原生 Runner，未知路径 fail-closed，tag/workflow_dispatch 无条件跑完整闭环；普通 CI 不接触 updater 私钥，显式 workflow_dispatch smoke 只验证签名且不进入 release job，tag 必须来自 origin/main 并在唯一 updater 凭据与资产闭环后才能公开；macOS Developer ID/notarization 与 Windows Authenticode 均未作为当前发布前提
+# [INPUT]: 依赖受控workflow_dispatch选择器、2.8 ARM/Intel生产输入、漏洞审计例外、tag-only updater、Windows2.8官方输入/native生产包装器与GitHub环境
+# [OUTPUT]: 对外提供风险分流、同SHA源码门后的2.8 macOS双架构预验、隔离资源的Rust测试、PR/main聚合门、Windows闭环、2.8 tag阻断及Release闭环
+# [POS]: 唯一CI/CD编排器；手动2.8预验仅跳过漏洞审计，等待同SHA源码门后打包；公开tag仍受三平台guard约束
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
 
@@ -9,11 +9,14 @@ on:
     - cron: '23 3 * * 1'
   workflow_dispatch:
     inputs:
-      updater_signing_smoke:
-        description: 'Build and verify signed updater artifacts without creating a tag or Release'
-        required: false
-        default: false
-        type: boolean
+      package_scope:
+        description: 'Default: run checks only. Select macos-2.8-preflight for unsigned, non-publishing ARM + Intel packages.'
+        required: true
+        default: 'none'
+        type: choice
+        options:
+          - none
+          - macos-2.8-preflight
   push:
     branches: [main]
     tags: ['cavalry-*-p*']
@@ -84,10 +87,13 @@ jobs:
 
   release_tag_preflight:
     runs-on: ubuntu-24.04
+    outputs:
+      release_profile_config: ${{ steps.release_profile.outputs.config }}
+      tauri_endpoint_config: ${{ steps.release_profile.outputs.tauri_endpoint_config }}
 
     steps:
       - name: Checkout release tag history
-        if: startsWith(github.ref, 'refs/tags/cavalry-')
+        if: startsWith(github.ref, 'refs/tags/cavalry-') || (github.event_name == 'workflow_dispatch' && inputs.package_scope == 'macos-2.8-preflight')
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
@@ -98,13 +104,60 @@ jobs:
           git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
           git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main
 
+      - name: Set up pinned Node.js for release profile validation
+        if: startsWith(github.ref, 'refs/tags/cavalry-') || (github.event_name == 'workflow_dispatch' && inputs.package_scope == 'macos-2.8-preflight')
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.20.0
+
+      - name: Select release profile by tag
+        id: release_profile
+        shell: bash
+        env:
+          RELEASE_REF: ${{ github.ref }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          MANUAL_PACKAGE_SCOPE: ${{ inputs.package_scope }}
+        run: |
+          set -euo pipefail
+          profile='release-2.8.config.json'
+          if [[ "$RELEASE_REF" == refs/tags/cavalry-* ]]; then
+            case "$RELEASE_TAG" in
+              cavalry-2.7.2-p[0-9]*) echo "The 2.7.2 p12 feed is historical only; repackaging is forbidden: $RELEASE_TAG" >&2; exit 1 ;;
+              cavalry-2.8.0-p[0-9]*) profile='release-2.8.config.json' ;;
+              *) echo "Unsupported Cavalry release tag: $RELEASE_TAG" >&2; exit 1 ;;
+            esac
+            node tools/release_metadata.js --profile "$profile" --check --tag "$RELEASE_TAG"
+          else
+            case "$MANUAL_PACKAGE_SCOPE" in
+              none|'') profile='release-2.8.config.json' ;;
+              macos-2.8-preflight)
+                profile='release-2.8.config.json'
+                node tools/release_metadata.js --profile "$profile" --check
+                ;;
+              *) echo "Unsupported manual package scope: $MANUAL_PACKAGE_SCOPE" >&2; exit 1 ;;
+            esac
+          fi
+          if [[ "$profile" == 'release-2.8.config.json' ]]; then
+            tauri_endpoint_config='src-tauri/tauri.release-2.8.conf.json'
+          else
+            tauri_endpoint_config=''
+          fi
+          echo "config=$profile" >> "$GITHUB_OUTPUT"
+          echo "tauri_endpoint_config=$tauri_endpoint_config" >> "$GITHUB_OUTPUT"
+
+      - name: Require ready production runtime for 2.8 tags
+        if: ${{ startsWith(github.ref, 'refs/tags/cavalry-') && steps.release_profile.outputs.config == 'release-2.8.config.json' }}
+        run: |
+          echo "implementation-not-ready: Cavalry 2.8 public release closure is not approved; refusing to build or publish." >&2
+          exit 1
+
       - name: Skip release ancestry gate for non-tag CI
         if: ${{ !startsWith(github.ref, 'refs/tags/cavalry-') }}
         run: echo "Not a Cavalry release tag; ancestry gate is not applicable."
 
   dependency_vulnerability_gate:
     needs: [release_tag_preflight, change_scope]
-    if: needs.change_scope.outputs.vulnerability == 'true'
+    if: ${{ needs.change_scope.outputs.vulnerability == 'true' && (github.event_name != 'workflow_dispatch' || inputs.package_scope != 'macos-2.8-preflight') }}
     runs-on: ubuntu-24.04
 
     steps:
@@ -216,6 +269,8 @@ jobs:
     needs: [release_tag_preflight, change_scope, dependency_vulnerability_gate]
     if: ${{ always() }}
     runs-on: ubuntu-24.04
+    env:
+      RELEASE_PROFILE_CONFIG: ${{ needs.release_tag_preflight.outputs.release_profile_config }}
 
     steps:
       - name: Fail if CI scope or required upstream gates did not settle
@@ -258,7 +313,7 @@ jobs:
 
       - name: Validate release protocol
         if: needs.change_scope.outputs.source == 'true'
-        run: npm run check:release
+        run: npm run check:release -- --profile "$RELEASE_PROFILE_CONFIG"
 
       - name: Validate supply-chain pins and source completeness contracts
         if: needs.change_scope.outputs.source == 'true'
@@ -276,6 +331,10 @@ jobs:
       - name: Validate app contracts
         if: needs.change_scope.outputs.source == 'true'
         run: npm run test:contracts
+
+      - name: Validate native 2.8 ARM and Intel CI input contract
+        if: needs.change_scope.outputs.source == 'true'
+        run: npm run check:native-2.8-ci-inputs
 
       - name: Validate app syntax
         if: needs.change_scope.outputs.source == 'true'
@@ -380,8 +439,11 @@ jobs:
 
   windows_check:
     needs: [release_tag_preflight, change_scope, dependency_vulnerability_gate]
-    if: ${{ always() && needs.change_scope.result == 'success' && needs.release_tag_preflight.result == 'success' && needs.change_scope.outputs.windows == 'true' && (needs.dependency_vulnerability_gate.result == 'success' || needs.dependency_vulnerability_gate.result == 'skipped') }}
+    if: ${{ always() && github.event_name != 'workflow_dispatch' && needs.change_scope.result == 'success' && needs.release_tag_preflight.result == 'success' && needs.change_scope.outputs.windows == 'true' && (needs.dependency_vulnerability_gate.result == 'success' || needs.dependency_vulnerability_gate.result == 'skipped') }}
     runs-on: windows-2022
+    env:
+      RELEASE_PROFILE_CONFIG: ${{ needs.release_tag_preflight.outputs.release_profile_config }}
+      TAURI_UPDATER_ENDPOINT_CONFIG: ${{ needs.release_tag_preflight.outputs.tauri_endpoint_config }}
     environment:
       name: ${{ startsWith(github.ref, 'refs/tags/cavalry-') && 'release-production' || 'ci-readonly' }}
 
@@ -418,7 +480,7 @@ jobs:
       - name: Validate project metadata and app contracts
         run: |
           npm run check:version
-          npm run check:release
+          npm run check:release -- --profile "$env:RELEASE_PROFILE_CONFIG"
           npm run check:app
           npm run test:contracts
 
@@ -431,10 +493,11 @@ jobs:
           $identity -join [Environment]::NewLine | Set-Content -LiteralPath $identityPath -Encoding utf8
           Write-Output "Pinned Windows CMake identity: $identityPath"
 
-      - name: Build Windows runtime trust anchors
-        run: |
-          npm run prepare:qt-sdk:windows
-          npm run build:injector:windows
+      - name: Prepare Cavalry 2.8 Windows production inputs
+        run: node tools/powershell_command.js tools/prepare_cavalry_28_windows_ci_inputs.ps1
+
+      - name: Build Windows 2.8 native runtime and language packs
+        run: npm run prepare:tauri:windows-bundle
 
       - name: Record Windows producer toolchain evidence
         shell: pwsh
@@ -472,7 +535,7 @@ jobs:
 
       - name: Build the Windows NSIS installer (PR/main)
         if: ${{ !startsWith(github.ref, 'refs/tags/cavalry-') }}
-        run: npm run build:tauri:windows
+        run: npm run build:tauri:windows -- --package-only
 
       - name: Build the Windows NSIS installer and updater signature (tag)
         if: startsWith(github.ref, 'refs/tags/cavalry-')
@@ -480,10 +543,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           CAVALRY_I18N_EXPECT_UPDATER_SIGNATURE: '1'
-        run: |
-          npm run prepare:qt-sdk:windows
-          npm run tauri -- build --target x86_64-pc-windows-msvc --config src-tauri/tauri.windows.conf.json --config src-tauri/tauri.updater-artifacts.conf.json
-          node tools/windows_nsis_provenance.js --record
+        run: npm run build:tauri:windows -- --package-only --updater
 
       - name: Install, update, and uninstall the Windows NSIS package
         run: npm run test:tauri:windows-nsis
@@ -561,7 +621,7 @@ jobs:
 
   ci_gate:
     needs: [change_scope, release_tag_preflight, dependency_vulnerability_gate, build, windows_check, macos_injector_check]
-    if: ${{ always() && (github.event_name == 'pull_request' || github.ref == 'refs/heads/main') }}
+    if: ${{ always() && github.event_name != 'workflow_dispatch' && (github.event_name == 'pull_request' || github.ref == 'refs/heads/main') }}
     runs-on: ubuntu-24.04
 
     steps:
@@ -605,12 +665,19 @@ jobs:
           require_selected macos_injector_check "$EXPECT_MACOS_INJECTOR" "$MACOS_INJECTOR_RESULT"
 
   package_macos:
-    needs: [release_tag_preflight, dependency_vulnerability_gate]
-    if: startsWith(github.ref, 'refs/tags/cavalry-') || github.event_name == 'workflow_dispatch'
-    runs-on: macos-14
+    needs: [release_tag_preflight, dependency_vulnerability_gate, build]
+    if: >-
+      ${{ always() &&
+          (startsWith(github.ref, 'refs/tags/cavalry-') || (github.event_name == 'workflow_dispatch' && inputs.package_scope == 'macos-2.8-preflight')) &&
+          needs.release_tag_preflight.result == 'success' &&
+          needs.build.result == 'success' &&
+          (needs.dependency_vulnerability_gate.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.package_scope == 'macos-2.8-preflight' && needs.dependency_vulnerability_gate.result == 'skipped')) }}
+    runs-on: ${{ matrix.runner_label }}
     environment:
-      name: ${{ (startsWith(github.ref, 'refs/tags/cavalry-') || (github.event_name == 'workflow_dispatch' && inputs.updater_signing_smoke)) && 'release-production' || 'ci-readonly' }}
+      name: ${{ startsWith(github.ref, 'refs/tags/cavalry-') && 'release-production' || 'ci-readonly' }}
     env:
+      RELEASE_PROFILE_CONFIG: ${{ needs.release_tag_preflight.outputs.release_profile_config }}
+      TAURI_UPDATER_ENDPOINT_CONFIG: ${{ needs.release_tag_preflight.outputs.tauri_endpoint_config }}
       # The action installs this minimal toolchain explicitly. Do not let the repository override
       # reconcile rustfmt/clippy against a runner image that may contain stale component files.
       RUSTUP_TOOLCHAIN: '1.98.0'
@@ -621,9 +688,11 @@ jobs:
           - label: aarch64
             rust_target: aarch64-apple-darwin
             expected_arch: arm64
+            runner_label: macos-26
           - label: x64
             rust_target: x86_64-apple-darwin
             expected_arch: x86_64
+            runner_label: macos-26-intel
 
     steps:
       - name: Checkout repository
@@ -651,25 +720,21 @@ jobs:
           python -m venv "$RUNNER_TEMP/aqt-venv"
           "$RUNNER_TEMP/aqt-venv/bin/python" -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r requirements-ci.txt
           echo "PYTHON=$RUNNER_TEMP/aqt-venv/bin/python" >> "$GITHUB_ENV"
+          "$RUNNER_TEMP/aqt-venv/bin/python" -c "import py7zr"
+          "$RUNNER_TEMP/aqt-venv/bin/python" tools/prepare_native_qt_headers.test.py
 
       - name: Record GitHub runner image identity
-        run: node tools/verify_runner_image.js --mode record --runner-label macos-14
+        run: node tools/verify_runner_image.js --mode record --runner-label "${{ matrix.runner_label }}"
 
       - name: Install app dependencies
         run: npm ci
 
-      - name: Validate project version metadata
-        run: npm run check:version
-
-      - name: Validate release protocol
-        run: npm run check:release
-
       - name: Resolve release metadata
         if: startsWith(github.ref, 'refs/tags/cavalry-')
-        run: npm run release:metadata -- --github-env
+        run: npm run release:metadata -- --profile "$RELEASE_PROFILE_CONFIG" --github-env
 
-      - name: Require updater signing secrets for tag or signing smoke
-        if: ${{ startsWith(github.ref, 'refs/tags/cavalry-') || (github.event_name == 'workflow_dispatch' && inputs.updater_signing_smoke) }}
+      - name: Require updater signing secrets for tag builds
+        if: startsWith(github.ref, 'refs/tags/cavalry-')
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
@@ -683,8 +748,20 @@ jobs:
             exit 1
           fi
 
-      - name: Prepare target Qt SDK for injector build
-        run: npm run prepare:qt-sdk
+      - name: Prepare official 2.8 native production inputs
+        if: env.RELEASE_PROFILE_CONFIG == 'release-2.8.config.json'
+        env:
+          CAVALRY_NATIVE_CI_TARGET: ${{ matrix.rust_target }}
+        run: bash tools/prepare_cavalry_28_ci_inputs.sh
+
+      - name: Preserve failed native candidate for diagnosis
+        if: failure() && github.event_name == 'workflow_dispatch' && inputs.package_scope == 'macos-2.8-preflight'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: failed-native-candidate-${{ matrix.label }}
+          path: ${{ runner.temp }}/cavalry-2.8-${{ matrix.expected_arch }}-inputs/**/libCavalryNativeFontCandidate*.dylib
+          if-no-files-found: warn
+          retention-days: 1
 
       - name: Build packaged macOS app (tag = ad-hoc + signed updater)
         if: startsWith(github.ref, 'refs/tags/cavalry-')
@@ -696,59 +773,27 @@ jobs:
         run: |
           unset CI
           echo "Tag packaging uses an ad-hoc macOS app signature and the protected Tauri updater key."
+          if [[ -z "${TAURI_UPDATER_ENDPOINT_CONFIG:-}" ]]; then
+            echo "Tag packaging requires the endpoint overlay selected by release_tag_preflight." >&2
+            exit 1
+          fi
           npm run tauri:build -- \
             --target ${{ matrix.rust_target }} \
-            --config src-tauri/tauri.updater-artifacts.conf.json
+            --config src-tauri/tauri.updater-artifacts.conf.json \
+            --config "$TAURI_UPDATER_ENDPOINT_CONFIG"
           dmg_dir="src-tauri/target/${{ matrix.rust_target }}/release/bundle/dmg"
           bash tools/stamp_dmg_icon.sh "$dmg_dir"
 
       - name: Build packaged macOS app (workflow_dispatch = ad-hoc verification only)
-        if: ${{ !startsWith(github.ref, 'refs/tags/cavalry-') && !inputs.updater_signing_smoke }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_scope == 'macos-2.8-preflight' }}
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
           APPLE_SIGNING_IDENTITY: "-"
         run: |
           unset CI
-          echo "workflow_dispatch packaging uses ad-hoc signing for build verification only; it is not a publishable release."
+          echo "2.8 macOS preflight builds unsigned-updater ARM and Intel packages only; it cannot create a Release."
           npm run tauri:build -- --target ${{ matrix.rust_target }}
           bash tools/stamp_dmg_icon.sh src-tauri/target/${{ matrix.rust_target }}/release/bundle/dmg
-
-      - name: Build signed updater artifact (workflow_dispatch smoke, no release)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.updater_signing_smoke }}
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: false
-          APPLE_SIGNING_IDENTITY: "-"
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        run: |
-          unset CI
-          echo "Signing smoke uses ad-hoc app signing plus the protected updater key; it cannot publish a Release."
-          npm run tauri:build -- \
-            --target ${{ matrix.rust_target }} \
-            --config src-tauri/tauri.updater-artifacts.conf.json
-          bash tools/stamp_dmg_icon.sh src-tauri/target/${{ matrix.rust_target }}/release/bundle/dmg
-
-      - name: Verify signed updater artifact against embedded public key (workflow_dispatch smoke)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.updater_signing_smoke }}
-        run: |
-          bundle_dir="src-tauri/target/${{ matrix.rust_target }}/release/bundle"
-          updater_artifact_count="$(find "$bundle_dir" -type f -name '*.app.tar.gz' -print | wc -l | tr -d ' ')"
-          if [ "$updater_artifact_count" -ne 1 ]; then
-            echo "Expected exactly one macOS updater artifact under $bundle_dir; found $updater_artifact_count." >&2
-            exit 1
-          fi
-          updater_artifact="$(find "$bundle_dir" -type f -name '*.app.tar.gz' -print -quit)"
-          updater_artifact="$(cd "$(dirname "$updater_artifact")" && pwd -P)/$(basename "$updater_artifact")"
-          updater_signature="$updater_artifact.sig"
-          if [ ! -f "$updater_signature" ] || [ -L "$updater_signature" ]; then
-            echo "Updater signature is missing or unsafe: $updater_signature" >&2
-            exit 1
-          fi
-          CAVALRY_I18N_UPDATER_ARTIFACT="$updater_artifact" \
-          CAVALRY_I18N_UPDATER_SIGNATURE="$updater_signature" \
-            cargo test --manifest-path src-tauri/Cargo.toml \
-              --test updater_signature_contract \
-              verifies_external_updater_signature -- --ignored --exact --nocapture
 
       - name: Verify ad-hoc app signature (tag only)
         if: startsWith(github.ref, 'refs/tags/cavalry-')
@@ -811,11 +856,9 @@ jobs:
         run: |
           bundle_root="src-tauri/target/${{ matrix.rust_target }}/release/bundle"
           app_path="$bundle_root/macos/Cavalry Language Switcher.app"
-          npm run check:app
-          npm run test:contracts
-          npm run check:tauri
-          npm run test:tauri
-          PACKAGED_APP_PATH="$app_path" PACKAGED_EXPECTED_ARCH="${{ matrix.expected_arch }}" npm run test:tauri:packaged
+          TAURI_CONFIG='{"bundle":{"resources":[]}}' \
+            npm run test:tauri -- --target ${{ matrix.rust_target }} --no-fail-fast
+          PACKAGED_NATIVE_PROFILE=production-2.8 PACKAGED_APP_PATH="$app_path" PACKAGED_EXPECTED_ARCH="${{ matrix.expected_arch }}" npm run test:tauri:packaged
           bash tools/check_dmg_layout.sh "$bundle_root/dmg"
 
       - name: Re-verify final ad-hoc app and DMG bytes after all package gates (tag only)
@@ -875,6 +918,8 @@ jobs:
       name: release-production
     permissions:
       contents: write
+    env:
+      RELEASE_PROFILE_CONFIG: ${{ needs.release_tag_preflight.outputs.release_profile_config }}
 
     steps:
       - name: Checkout repository
@@ -921,7 +966,7 @@ jobs:
           path: dist/toolchain-records
 
       - name: Resolve release metadata
-        run: npm run release:metadata -- --github-env
+        run: npm run release:metadata -- --profile "$RELEASE_PROFILE_CONFIG" --github-env
 
       - name: Flatten release assets into dist/
         run: |
@@ -1006,7 +1051,12 @@ jobs:
       - name: Create and verify deterministic updater manifest
         run: |
           pub_date="$(git show -s --format=%cI "$GITHUB_SHA")"
+          if [ -n "$RELEASE_UPDATER_LEGACY_MANIFEST_NAME" ]; then
+            node tools/create_legacy_updater_manifest.js \
+              --output "dist/$RELEASE_UPDATER_LEGACY_MANIFEST_NAME"
+          fi
           node tools/create_updater_manifest.js \
+            --profile "$RELEASE_PROFILE_CONFIG" \
             --tag "$GITHUB_REF_NAME" \
             --output "dist/$RELEASE_UPDATER_MANIFEST_NAME" \
             --notes release-changes.md \
@@ -1106,6 +1156,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           node tools/release_publish.js \
+            --profile "$RELEASE_PROFILE_CONFIG" \
             --tag "$GITHUB_REF_NAME" \
             --release-commit "$GITHUB_SHA" \
             --dist dist \
@@ -1116,4 +1167,4 @@ jobs:
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node tools/post_release_reactions.js "$GITHUB_REF_NAME" "$GITHUB_REPOSITORY"
+        run: node tools/post_release_reactions.js "$GITHUB_REF_NAME" "$GITHUB_REPOSITORY" --profile "$RELEASE_PROFILE_CONFIG"

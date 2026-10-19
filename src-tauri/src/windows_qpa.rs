@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 InstallLayout、当前打包 QPA/generic 所有权锚、安装根 durable manifest 与 windows_qpa/storage 原子文件能力。
- * [OUTPUT]: 提供严格 QPA transition/四态检查与逐路径预期 postimage 投影；显式 English 恢复原厂 qwindows 并删除哈希自有 generic/recovery。
+ * [OUTPUT]: 提供严格 QPA transition/四态检查、候选源只读比较与逐路径预期 postimage 投影；显式 English 恢复原厂 qwindows 并删除哈希自有 generic/recovery。
  * [POS]: Windows 持久部署边界；自身状态机定义唯一可写字节身份并投影给外层 journal，厂商更新与未知 DLL 永不被覆盖、删除或事后认领。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -52,6 +52,38 @@ use storage::{
 
 pub fn inspect(layout: &InstallLayout) -> Result<QpaInspection, String> {
     inspect_with_policy(layout, &Policy::production())
+}
+
+/// 仅完整受管态可以比较来源；Stock需要安装，漂移/恢复态不能冒称可用。
+#[cfg(target_os = "windows")]
+pub(crate) fn native_runtime_source_matches(
+    layout: &InstallLayout,
+    language: &str,
+    generic_sha256: &str,
+    proxy_sha256: &str,
+) -> Result<bool, String> {
+    match inspect(layout)?.state {
+        QpaDeploymentState::Stock => Ok(false),
+        QpaDeploymentState::Active => {
+            let manifest = read_manifest(layout, &Policy::production())?
+                .ok_or("Active runtime manifest is unavailable")?;
+            ensure_regular_file(&layout.language_marker, "runtime language marker")?;
+            if fs::metadata(&layout.language_marker)
+                .map_err(|e| e.to_string())?
+                .len()
+                > 64
+            {
+                return Err("Runtime language marker exceeds its contract".into());
+            }
+            let marker = fs::read_to_string(&layout.language_marker).map_err(|e| e.to_string())?;
+            Ok(manifest.generic_plugin_sha256 == generic_sha256
+                && manifest.proxy_qwindows_sha256 == proxy_sha256
+                && marker.trim() == language)
+        }
+        QpaDeploymentState::Recover | QpaDeploymentState::Drifted => {
+            Err("Native runtime requires reconciliation".into())
+        }
+    }
 }
 
 pub fn build_activation_plan(request: ActivationRequest<'_>) -> Result<QpaActivationPlan, String> {

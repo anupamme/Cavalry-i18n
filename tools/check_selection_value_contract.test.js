@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖双平台生产翻译入口、共享选择输入/Quick Add context 策略与原生回归测试源码
- * [OUTPUT]: 对外提供输入值的跨平台接线合同，锁定 QLineEdit 仅翻译提示文字、Combo/弹出列表原值保护及共享 Quick Add context 的双平台源码闭包
+ * [OUTPUT]: 对外提供输入值的跨平台接线合同，锁定 QLineEdit 仅翻译提示文字、Combo/弹出列表原值保护及共享 Quick Add context 与Windows native字体源码闭包
  * [POS]: tools 的 CI-safe 静态回归门；与原生测试互补，不冒充真实 Cavalry 字体效果验收
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -80,12 +80,14 @@ test('Windows shares the same guard for combo and custom tree popup', () => {
   }
 });
 
-test('shared input and Quick Add context policies are included in both native provenance closures', () => {
-  for (const file of [
-    'tools/macos-acceptance/source_contract.js',
-    'tools/windows_nsis_provenance.js',
-  ]) {
-    assert.match(read(file), /cavalry_i18n_input_policy\.h/, file);
-    assert.match(read(file), /cavalry_i18n_quick_add_context\.h/, file);
+test('provenance follows the owning runtime rather than legacy Windows policies', () => {
+  const mac = read('tools/macos-acceptance/source_contract.js');
+  assert.match(mac, /cavalry_i18n_input_policy\.h/);
+  assert.match(mac, /cavalry_i18n_quick_add_context\.h/);
+  const windows = read('tools/windows_nsis_provenance.js');
+  assert.match(windows, /injector\/native/);
+  for (const file of ['getpath_font_texts.inc', 'getpath_graph_editor_empty_texts.inc',
+    'cavalry_i18n_macos_timeline_font_policy.h']) {
+    assert.ok(windows.includes(file), `Windows native runtime input ${file}`);
   }
 });

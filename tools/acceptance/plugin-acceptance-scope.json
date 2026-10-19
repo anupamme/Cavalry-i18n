@@ -1,0 +1,373 @@
+{
+  "_l3": {
+    "input": "依赖§5.2代表矩阵与§66已证插件消费者范围。",
+    "output": "列出允许进入实屏case的69个插件源键。",
+    "pos": "静态验收范围表；其余插件源键只进入sourceInventory，不产生实屏case。",
+    "protocol": "[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md"
+  },
+  "schemaVersion": 1,
+  "authority": [
+    "CAVALRY_2_8_MIGRATION_PLAN.md#5.2",
+    "CAVALRY_2_8_MIGRATION_PLAN.md#66.30",
+    "CAVALRY_2_8_MIGRATION_PLAN.md#66.59",
+    "CAVALRY_2_8_MIGRATION_PLAN.md#66.62",
+    "CAVALRY_2_8_MIGRATION_PLAN.md#66.64",
+    "CAVALRY_2_8_MIGRATION_PLAN.md#66.65",
+    "CAVALRY_2_8_MIGRATION_PLAN.md#66.66",
+    "CAVALRY_2_8_MIGRATION_PLAN.md#66.97",
+    "CAVALRY_2_8_MIGRATION_PLAN.md#66.99"
+  ],
+  "ruleCounts": {
+    "REUSE_C3_REP_FIELD": 12,
+    "REUSE_C3_REP_NAME": 14,
+    "REUSE_C3_FINITE_PLUGIN": 21,
+    "REUSE_C3_CONDITION_HELP": 22
+  },
+  "approvedKeys": [
+    {
+      "source": "languages/native/plugins_bilateral_blur.js",
+      "key": "nodeAttr:sceneGroup::bilateralBlurFilter.amount",
+      "rule": "REUSE_C3_REP_FIELD"
+    },
+    {
+      "source": "languages/native/plugins_bilateral_blur.js",
+      "key": "nodeName:sceneGroup::bilateralBlurFilter",
+      "rule": "REUSE_C3_REP_NAME"
+    },
+    {
+      "source": "languages/native/plugins_box_blur.js",
+      "key": "attrInfo:sceneGroup::boxBlurFilter.amount",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_box_blur.js",
+      "key": "nodeAttr:sceneGroup::boxBlurFilter.amount",
+      "rule": "REUSE_C3_REP_FIELD"
+    },
+    {
+      "source": "languages/native/plugins_box_blur.js",
+      "key": "nodeInfo:sceneGroup::boxBlurFilter",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_box_blur.js",
+      "key": "nodeName:sceneGroup::boxBlurFilter",
+      "rule": "REUSE_C3_REP_NAME"
+    },
+    {
+      "source": "languages/native/plugins_bulge.js",
+      "key": "nodeAttr:sceneGroup::bulgeFilter.passthroughBackground",
+      "rule": "REUSE_C3_REP_FIELD"
+    },
+    {
+      "source": "languages/native/plugins_bulge.js",
+      "key": "nodeName:sceneGroup::bulgeFilter",
+      "rule": "REUSE_C3_REP_NAME"
+    },
+    {
+      "source": "languages/native/plugins_chroma_key.js",
+      "key": "attrInfo:sceneGroup::chromaKeyFilter.despillBias",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_chroma_key.js",
+      "key": "nodeAttr:sceneGroup::chromaKeyFilter.viewMode",
+      "rule": "REUSE_C3_REP_FIELD"
+    },
+    {
+      "source": "languages/native/plugins_chroma_key.js",
+      "key": "nodeName:sceneGroup::chromaKeyFilter",
+      "rule": "REUSE_C3_REP_NAME"
+    },
+    {
+      "source": "languages/native/plugins_directional_blur.js",
+      "key": "nodeAttr:sceneGroup::directionalBlurFilter.angle",
+      "rule": "REUSE_C3_REP_FIELD"
+    },
+    {
+      "source": "languages/native/plugins_directional_blur.js",
+      "key": "nodeName:sceneGroup::directionalBlurFilter",
+      "rule": "REUSE_C3_REP_NAME"
+    },
+    {
+      "source": "languages/native/plugins_erosion.js",
+      "key": "nodeName:sceneGroup::erosionFilter",
+      "rule": "REUSE_C3_REP_NAME"
+    },
+    {
+      "source": "languages/native/plugins_gaussian_blur.js",
+      "key": "attrInfo:sceneGroup::gaussianBlurFilter.amount",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_gaussian_blur.js",
+      "key": "nodeAttr:sceneGroup::gaussianBlurFilter.amount",
+      "rule": "REUSE_C3_REP_FIELD"
+    },
+    {
+      "source": "languages/native/plugins_gaussian_blur.js",
+      "key": "nodeInfo:sceneGroup::gaussianBlurFilter",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_gaussian_blur.js",
+      "key": "nodeName:sceneGroup::gaussianBlurFilter",
+      "rule": "REUSE_C3_REP_NAME"
+    },
+    {
+      "source": "languages/native/plugins_grain.js",
+      "key": "attrInfo:sceneGroup::grainFilter.grainAmount",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_grain.js",
+      "key": "attrInfo:sceneGroup::grainFilter.grainSize",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_grain.js",
+      "key": "nodeAttr:sceneGroup::grainFilter.monochromeGrain",
+      "rule": "REUSE_C3_REP_FIELD"
+    },
+    {
+      "source": "languages/native/plugins_grain.js",
+      "key": "nodeName:sceneGroup::grainFilter",
+      "rule": "REUSE_C3_REP_NAME"
+    },
+    {
+      "source": "languages/native/plugins_light_sweep.js",
+      "key": "attrInfo:sceneGroup::lightSweepFilter.edgeThickness",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_light_sweep.js",
+      "key": "attrInfo:sceneGroup::lightSweepFilter.falloffDistance",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_light_sweep.js",
+      "key": "nodeAttr:sceneGroup::lightSweepFilter.sweepIntensity",
+      "rule": "REUSE_C3_REP_FIELD"
+    },
+    {
+      "source": "languages/native/plugins_light_sweep.js",
+      "key": "nodeName:sceneGroup::lightSweepFilter",
+      "rule": "REUSE_C3_REP_NAME"
+    },
+    {
+      "source": "languages/native/plugins_polar_coordinates.js",
+      "key": "nodeName:sceneGroup::rectToPolarFilter",
+      "rule": "REUSE_C3_REP_NAME"
+    },
+    {
+      "source": "languages/native/plugins_ripple.js",
+      "key": "attrInfo:sceneGroup::rippleFilter.arms",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_ripple.js",
+      "key": "attrInfo:sceneGroup::rippleFilter.direction",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_ripple.js",
+      "key": "attrInfo:sceneGroup::rippleFilter.displacementAxis",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_ripple.js",
+      "key": "nodeAttr:sceneGroup::rippleFilter.mode",
+      "rule": "REUSE_C3_REP_FIELD"
+    },
+    {
+      "source": "languages/native/plugins_ripple.js",
+      "key": "nodeName:sceneGroup::rippleFilter",
+      "rule": "REUSE_C3_REP_NAME"
+    },
+    {
+      "source": "languages/native/plugins_spherise.js",
+      "key": "attrInfo:sceneGroup::spheriseFilter.ambientColor",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_spherise.js",
+      "key": "attrInfo:sceneGroup::spheriseFilter.ambientStrength",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_spherise.js",
+      "key": "attrInfo:sceneGroup::spheriseFilter.backExposure",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_spherise.js",
+      "key": "attrInfo:sceneGroup::spheriseFilter.bumpMapStrength",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_spherise.js",
+      "key": "attrInfo:sceneGroup::spheriseFilter.enableSelfShadowing",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_spherise.js",
+      "key": "attrInfo:sceneGroup::spheriseFilter.lightColor",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_spherise.js",
+      "key": "attrInfo:sceneGroup::spheriseFilter.lightIntensity",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_spherise.js",
+      "key": "attrInfo:sceneGroup::spheriseFilter.lightPosition",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_spherise.js",
+      "key": "attrInfo:sceneGroup::spheriseFilter.shadowIntensity",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_spherise.js",
+      "key": "attrInfo:sceneGroup::spheriseFilter.shadowSoftness",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_spherise.js",
+      "key": "attrInfo:sceneGroup::spheriseFilter.shininess",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_spherise.js",
+      "key": "attrInfo:sceneGroup::spheriseFilter.specularColor",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_spherise.js",
+      "key": "attrInfo:sceneGroup::spheriseFilter.specularStrength",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_spherise.js",
+      "key": "attrInfo:sceneGroup::spheriseFilter.useAsBumpMap",
+      "rule": "REUSE_C3_CONDITION_HELP"
+    },
+    {
+      "source": "languages/native/plugins_spherise.js",
+      "key": "nodeAttr:sceneGroup::spheriseFilter.centre",
+      "rule": "REUSE_C3_REP_FIELD"
+    },
+    {
+      "source": "languages/native/plugins_spherise.js",
+      "key": "nodeName:sceneGroup::spheriseFilter",
+      "rule": "REUSE_C3_REP_NAME"
+    },
+    {
+      "source": "languages/native/plugins_twist.js",
+      "key": "attrInfo:sceneGroup::twistFilter.angle",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_twist.js",
+      "key": "attrInfo:sceneGroup::twistFilter.centre",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_twist.js",
+      "key": "attrInfo:sceneGroup::twistFilter.falloff",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_twist.js",
+      "key": "attrInfo:sceneGroup::twistFilter.radius",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_twist.js",
+      "key": "nodeAttr:sceneGroup::twistFilter.angle",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_twist.js",
+      "key": "nodeAttr:sceneGroup::twistFilter.centre",
+      "rule": "REUSE_C3_REP_FIELD"
+    },
+    {
+      "source": "languages/native/plugins_twist.js",
+      "key": "nodeAttr:sceneGroup::twistFilter.falloff",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_twist.js",
+      "key": "nodeAttr:sceneGroup::twistFilter.radius",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_twist.js",
+      "key": "nodeAttrEnum:sceneGroup::twistFilter.falloff.0",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_twist.js",
+      "key": "nodeAttrEnum:sceneGroup::twistFilter.falloff.1",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_twist.js",
+      "key": "nodeAttrEnum:sceneGroup::twistFilter.falloff.2",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_twist.js",
+      "key": "nodeInfo:sceneGroup::twistFilter",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_twist.js",
+      "key": "nodeName:sceneGroup::twistFilter",
+      "rule": "REUSE_C3_REP_NAME"
+    },
+    {
+      "source": "languages/native/plugins_zoom_blur.js",
+      "key": "attrInfo:sceneGroup::zoomBlurFilter.amount",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_zoom_blur.js",
+      "key": "attrInfo:sceneGroup::zoomBlurFilter.attenuationMultiplier",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_zoom_blur.js",
+      "key": "attrInfo:sceneGroup::zoomBlurFilter.origin",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_zoom_blur.js",
+      "key": "nodeAttr:sceneGroup::zoomBlurFilter.amount",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_zoom_blur.js",
+      "key": "nodeAttr:sceneGroup::zoomBlurFilter.attenuationMultiplier",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_zoom_blur.js",
+      "key": "nodeAttr:sceneGroup::zoomBlurFilter.origin",
+      "rule": "REUSE_C3_REP_FIELD"
+    },
+    {
+      "source": "languages/native/plugins_zoom_blur.js",
+      "key": "nodeInfo:sceneGroup::zoomBlurFilter",
+      "rule": "REUSE_C3_FINITE_PLUGIN"
+    },
+    {
+      "source": "languages/native/plugins_zoom_blur.js",
+      "key": "nodeName:sceneGroup::zoomBlurFilter",
+      "rule": "REUSE_C3_REP_NAME"
+    }
+  ]
+}

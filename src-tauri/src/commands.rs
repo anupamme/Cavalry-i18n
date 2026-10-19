@@ -1,12 +1,33 @@
 /**
- * [INPUT]: 依赖 commands 子模块、共享 operation_lock、Tauri command runtime/IPC Channel 与 privilege facade。
- * [OUTPUT]: 保持九条稳定 Tauri command；macOS Switch/Restore 直接进入安全事务，仅将真实 typed PermissionDenied 投影为 App Management handoff，保护写事务 commit 后只清理交接层而不反向飞回已失效动作；其余 apply 四阶段、真实 commit oracle、Windows residue、Updater、固定项目链接与 About 保持既有 owner。
- * [POS]: renderer API facade；具体状态、快照、写入和平台运行时下沉至领域模块，GUI 与卸载恢复复用同一单飞/事务语义。
+ * [INPUT]: 依赖共享2.8资源/profile事务、operation_lock及平台facade；Windows production使用native_windows，Mac使用native_runtime，九命令保持。
+ * [OUTPUT]: 保持九条稳定 Tauri command；native runtime在同一九命令API内将只读状态/signature探测卸载到blocking worker，独立投影厂商Official来源、userProfile范围与脱敏 nativeLocaleState（unset/explicit/unrecognized），并提交自有strings/typed locale；receipt证明的English restore-only成功不尝试启动不兼容宿主，耐久warning不启动Cavalry；native runtime成功apply只复用同一operation guard并用writer guard后直接launch，独立Restart仍保留完整native准入；macOS Switch/Restore 直接进入安全事务，仅将真实 typed PermissionDenied 投影为 App Management handoff，保护写事务 commit 后只清理交接层而不反向飞回已失效动作；其余 apply 四阶段、真实 commit oracle、Windows residue、Updater、固定项目链接与 About 保持既有 owner。
+ * [POS]: renderer API facade；Official仅是编译期native runtime的厂商来源展示，不代表版本支持、资源可用、profile状态、恢复能力或写入许可；具体状态、快照、写入和平台运行时下沉至领域模块。native runtime自动apply提交后走专用launch leaf，独立Restart继续承担启动时准入，不扩IPC。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 mod apply;
 mod context;
+#[cfg(target_os = "windows")]
+pub(crate) use context::windows_state_dir;
 mod contract;
+#[cfg(target_os = "macos")]
+mod native_official;
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+mod native_resources;
+#[cfg(target_os = "macos")]
+mod native_runtime;
+#[cfg(target_os = "macos")]
+mod native_runtime_source;
+#[cfg(target_os = "windows")]
+mod native_windows;
+#[cfg(target_os = "windows")]
+pub(crate) use native_windows::{
+    enabled as windows_native_enabled,
+    restore_for_uninstall as restore_native_windows_for_uninstall,
+};
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+mod native_user;
+#[cfg(all(test, target_os = "macos"))]
+pub(crate) use native_runtime::apply_disposable_profile;
 mod patch_receipt;
 mod restart;
 mod snapshot;
@@ -15,6 +36,10 @@ mod status;
 #[path = "commands/tests.rs"]
 mod tests;
 mod update;
+#[cfg(any(test, target_os = "macos", target_os = "windows"))]
+mod user_language;
+#[cfg(any(test, target_os = "macos", target_os = "windows"))]
+mod user_language_files;
 
 use chrono::{SecondsFormat, Utc};
 use std::path::PathBuf;
@@ -24,10 +49,17 @@ use crate::{operation_lock, privilege};
 pub use apply::apply_language_inner;
 pub(crate) use context::RESTORE_OFFICIAL_ACTION;
 pub use contract::{
-    ActionPayload, BrowsePayload, BundleDiagnostics, LanguageChoice, OperationEvent,
-    PermissionHandoffEvent, PermissionHandoffPayload, PermissionHandoffRequest,
+    ActionPayload, BrowsePayload, BundleDiagnostics, LanguageChoice, NativeLocaleState,
+    OperationEvent, PermissionHandoffEvent, PermissionHandoffPayload, PermissionHandoffRequest,
     PermissionSourceRect, PermissionViewportSize, StatusPayload,
 };
+#[cfg(target_os = "macos")]
+pub(crate) use native_official::{
+    verify_native_baseline_source, VerifiedNativeVendorSource,
+    NATIVE_SOURCE_POLICY as NATIVE_BASELINE_SOURCE_POLICY_ID,
+};
+#[cfg(target_os = "macos")]
+pub(crate) use native_resources::baseline_target_sha256 as native_baseline_target_sha256;
 pub use restart::restart_cavalry_inner;
 #[cfg(test)]
 pub use snapshot::extract_english_inner;
@@ -53,9 +85,15 @@ fn complete_permission_handoff_after_commit() {
     crate::macos_permission_handoff::finish_app_management_handoff(false);
 }
 
+fn should_restart_after_apply(applied: &ActionPayload, native_runtime: bool) -> bool {
+    applied.ok
+        && !applied.native_restore_only
+        && !(native_runtime && applied.reconciliation_required)
+}
+
 #[tauri::command]
-pub fn get_status(app: tauri::AppHandle) -> Result<StatusPayload, String> {
-    status::get_status_for_app(&app)
+pub async fn get_status(app: tauri::AppHandle) -> Result<StatusPayload, String> {
+    status::get_status_for_app(&app).await
 }
 
 #[tauri::command]
@@ -112,20 +150,59 @@ pub async fn apply_language(
         match tauri::async_runtime::spawn_blocking(move || -> Result<ActionPayload, String> {
             let _guard = guard;
             let mut runner = privilege::RealCommandRunner;
-            let applied = match apply::apply_language_inner_with_reporter(
-                &paths.repo_root,
-                &paths.state_dir,
-                &paths.resource_dir,
-                &app_path,
-                &lang,
-                &mut runner,
-                &now,
-                worker_progress.clone(),
-            ) {
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            let native_runtime_enabled = native_resources::native_runtime_enabled();
+            #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+            let native_runtime_enabled = false;
+            let mut legacy_apply = || {
+                apply::apply_language_inner_with_reporter(
+                    &paths.repo_root,
+                    &paths.state_dir,
+                    &paths.resource_dir,
+                    &app_path,
+                    &lang,
+                    &mut runner,
+                    &now,
+                    worker_progress.clone(),
+                )
+            };
+            #[cfg(target_os = "macos")]
+            let applied_result = if native_runtime_enabled {
+                Ok(native_runtime::apply(
+                    &_guard,
+                    &paths.repo_root,
+                    &paths.state_dir,
+                    &paths.resource_dir,
+                    &app_path,
+                    &lang,
+                    worker_progress.clone(),
+                    &mut runner,
+                ))
+            } else {
+                legacy_apply()
+            };
+            #[cfg(target_os = "windows")]
+            let applied_result = if native_runtime_enabled {
+                Ok(native_windows::apply(
+                    &_guard,
+                    &paths.repo_root,
+                    &paths.state_dir,
+                    &paths.resource_dir,
+                    &app_path,
+                    &lang,
+                    &worker_progress,
+                    &mut runner,
+                ))
+            } else {
+                legacy_apply()
+            };
+            #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+            let applied_result = legacy_apply();
+            let applied = match applied_result {
                 Ok(payload) => payload.into_renderer_contract(),
                 Err(error) => return Err(error),
             };
-            if !applied.ok {
+            if !should_restart_after_apply(&applied, native_runtime_enabled) {
                 return Ok(applied);
             }
             // 受保护写事务已提交，权限 oracle 已成立；先回收 handoff，再继续普通重启阶段。
@@ -135,13 +212,38 @@ pub async fn apply_language(
                 &worker_progress,
                 contract::OperationPhase::RestartCavalry,
             );
-            match restart::restart_cavalry_inner(
-                &paths.repo_root,
-                &paths.state_dir,
-                &paths.resource_dir,
-                &app_path,
-                &mut runner,
-            ) {
+            let restart_result = {
+                #[cfg(target_os = "macos")]
+                {
+                    if native_runtime_enabled {
+                        native_user::launch_after_committed_apply(
+                            &_guard,
+                            &paths.state_dir,
+                            &app_path,
+                            &mut runner,
+                        )
+                    } else {
+                        restart::restart_cavalry_inner(
+                            &paths.repo_root,
+                            &paths.state_dir,
+                            &paths.resource_dir,
+                            &app_path,
+                            &mut runner,
+                        )
+                    }
+                }
+                #[cfg(not(target_os = "macos"))]
+                {
+                    restart::restart_cavalry_inner(
+                        &paths.repo_root,
+                        &paths.state_dir,
+                        &paths.resource_dir,
+                        &app_path,
+                        &mut runner,
+                    )
+                }
+            };
+            match restart_result {
                 Ok(()) => {
                     restart_phase.completed();
                     Ok(applied)

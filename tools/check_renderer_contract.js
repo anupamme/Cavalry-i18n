@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review 补丁状态收敛与结构拒绝 fake bridge/动态目录与热重载入口、typed reinstallRequired remediation 与写入拒绝后的权限 handoff 结构、普通 verify failure 的固定 Issue ID/按钮条件/点击路由与现有 Issue Form、独立运行时与本机参考图安全边界、来源通知、窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、主页面 20px padding 派生的 10px 同行动作关系、无重复视觉标题但保留 OS 标题的 About、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、跨平台 reconciliation Restore、版本只读门禁、普通验证失败才显露固定报告入口/四语文案且不得要求重装或不可见详情、typed 缺失基线错误才要求重装的 Activity 原位合同、仅消费后端只读清理投影、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源。
- * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
+ * [INPUT]: renderer 静态 DOM、语义 token/图标表、user-profile-text→ui-text四语字典、project-link-control固定外链适配、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review补丁状态与fake bridge/动态目录、nativeDefaultEnglish/nativeOfficialDefaultEnglish/nativeOwnedHans preview fixture、Restore/remediation/permission handoff、Issue form、来源通知/窗口配置、冻结bridge API与scope/locale/resource策略合同、node:crypto。
+ * [OUTPUT]: 守住 UI 单向依赖、400×504主窗（40px标题栏+434px内容+30px footer）/Activity、原生标题栏、主页面 20px padding 派生的 10px 同行动作关系、无重复视觉标题但保留 OS 标题的 About（含四语「关注+平台图标」双列、GitHub/License全宽、平台区分的可访问名称、Phosphor XLogo与Simple Icons CC0路径指纹及固定链接合同）、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、跨平台 reconciliation Restore、版本只读门禁、普通验证失败才显露固定报告入口/四语文案且不得要求重装或不可见详情、typed 缺失基线错误才要求重装的 Activity 原位合同、仅消费后端只读清理投影、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源；另锁定 installation/userProfile DTO 投影、原厂English/Japanese与unknown+owned zh-Hans徽章矩阵、scope不推断安装来源、用户级Switch直达事务、仅Restore确认、固定英文恢复、Switch-only resource gate 与 hostless owned-only strict grant、nativeRestoreOnly结果不启动及host-probe不能伪造 Channel error 三项回归、三类固定 native 错误路由、仅 explicit Cavalry 2.8.0 preview + installed 2.7.2 时显露的闭合 legacyRelease 项和四语标签。
+ * [POS]: renderer 的快速静态契约测试；冻结宽品牌标识的等可见间距；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
@@ -21,10 +22,24 @@ const {
   feedbackCatalogHtml,
   iconCatalogHtml,
 } = require('./ui_review_catalogs');
+const { APP_SYNTAX_FILES } = require('./check_app_syntax.js');
 
 const repoRoot = path.resolve(__dirname, '..');
 const read = (relative) => fs.readFileSync(path.join(repoRoot, relative), 'utf8');
 const UI_LOCALE_MARKERS = ['  en: {', "  'zh-Hans': {", "  'zh-Hant': {", '  ja_JP: {'];
+const PROFILE_TEXT_KEYS = [
+  'nativeLocaleEnglishDefault', 'nativeUserProfileScopeTitle', 'nativeUserProfileRecoveryTitle',
+  'nativeResourceUnavailableTitle', 'nativeUserProfileScopeNotice', 'nativeUserProfileReconciliation',
+  'nativeResourceUnavailable', 'nativeUserProfileResourcesUnavailableRecovery',
+  'nativeUserLanguageFailureTitle', 'nativeUserLanguageConflict', 'nativeUserLanguagePermissionDenied',
+  'cavalryStillRunningUserProfile', 'nativeUserProfileRestoreConfirmTitle',
+  'nativeUserProfileRestoreConfirmBody', 'nativeEnglishRestoreOnlyOutcome',
+  'phaseVerifyEnglishRestoreRunningTitle', 'phaseVerifyEnglishRestoreCompletedTitle',
+  'phaseVerifyEnglishRestoreErrorTitle', 'phaseEnsureRecoveryUserProfileRunningTitle',
+  'phaseEnsureRecoveryUserProfileCompletedTitle', 'phaseEnsureRecoveryUserProfileErrorTitle',
+  'phaseApplyEnglishRestoreRunningTitle', 'phaseApplyEnglishRestoreCompletedTitle',
+  'phaseApplyEnglishRestoreErrorTitle',
+];
 const UPDATE_ICON_PATH = 'M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm37.66-101.66a8,8,0,0,1-11.32,11.32L136,107.31V168a8,8,0,0,1-16,0V107.31l-18.34,18.35a8,8,0,0,1-11.32-11.32l32-32a8,8,0,0,1,11.32,0Z';
 const RESTORE_ICON_PATH = 'M208,32H83.31A15.86,15.86,0,0,0,72,36.69L36.69,72A15.86,15.86,0,0,0,32,83.31V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM88,48h80V80H88ZM208,208H48V83.31l24-24V80A16,16,0,0,0,88,96h80a16,16,0,0,0,16-16V48h24Zm-80-96a40,40,0,1,0,40,40A40,40,0,0,0,128,112Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,176Z';
 
@@ -55,6 +70,39 @@ function sourceStatement(source, marker) {
   return source.slice(start, end + 1);
 }
 
+test('renderer copy extraction stays in the renderer map and both pages load it before UI_TEXT', () => {
+  const rendererMap = read('renderer/CLAUDE.md');
+  const toolsMap = read('tools/CLAUDE.md');
+  const mainPage = read('renderer/index.html');
+  const aboutPage = read('renderer/about.html');
+  const catalogs = read('tools/ui_review_catalogs.js');
+  const packagedCheck = read('tools/check_tauri_packaged_app.js');
+  const artifactManifest = JSON.parse(read('tools/source_artifact_manifest.json'));
+  const packageJson = JSON.parse(read('package.json'));
+  assert.match(rendererMap, /^# renderer\/\n/m);
+  assert.doesNotMatch(rendererMap, /^# tools\/\n/m);
+  assert.match(toolsMap, /^# tools\/\n/m);
+  assert.doesNotMatch(toolsMap, /^# renderer\/\n/m, 'a renderer map must not be prepended to the tools map');
+  assert.match(rendererMap, /^user-profile-text\.js:.*四语 userProfile/m);
+  assert.match(toolsMap, /^check_renderer_contract\.js:/m);
+  for (const [name, page] of [['main', mainPage], ['About', aboutPage]]) {
+    assert.match(
+      page,
+      /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/user-profile-text\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>/,
+      `${name} must load native profile copy before the unified UI_TEXT consumer`
+    );
+  }
+  assert.match(catalogs, /'<script src="\/renderer\/user-profile-text\.js"><\/script>',\s*'<script src="\/renderer\/ui-text\.js"><\/script>'/);
+  assert.match(packagedCheck, /'user-profile-text\.js': sha256\(path\.join\(rendererRoot, 'user-profile-text\.js'\)\)/);
+  assert.match(packagedCheck, /'index\.html', '\/styles\.css', '\/support-footer\.css', '\/project-link-control\.js', '\/support-footer\.js', '\/operation-log\.css', '\/user-profile-text\.js', '\/ui-text\.js'/);
+  assert.ok(artifactManifest.requiredPaths.includes('renderer/user-profile-text.js'));
+  assert.ok(artifactManifest.requiredPaths.includes('renderer/support-footer.css'));
+  assert.ok(artifactManifest.requiredPaths.includes('renderer/support-footer.js'));
+  assert.equal(packageJson.scripts['check:app'], 'node tools/check_app_syntax.js');
+  assert.ok(APP_SYNTAX_FILES.indexOf('renderer/user-profile-text.js') < APP_SYNTAX_FILES.indexOf('renderer/ui-text.js'));
+  assert.ok(APP_SYNTAX_FILES.includes('renderer/support-footer.js'));
+});
+
 test('UI Review renders the exact production shell and replaces only the data bridge', () => {
   const reviewServerSource = read('tools/ui_review_server.js');
   const workspaceModulePath = require.resolve('./ui_review_workspace');
@@ -73,11 +121,14 @@ test('UI Review renders the exact production shell and replaces only the data br
 
   assert.equal(normalized, production, 'review app may inject a base and fixture bridge, but may not copy or edit production UI');
   assert.notEqual(workspace, '<stale-workspace />', 'review server must evict stale workspace modules before rendering');
+  assert.match(workspace, /\.window \{[^}]*width: 400px; height: 504px;/, 'review workspace must preserve the old main track and add the footer below it');
   assert.equal(
     aboutReview.replace('\n  <base href="/renderer/" />', '').replace('<script src="/fixture.js"></script>\n  ', ''),
     aboutProduction,
     'review About may inject a base and fixture bridge, but may not copy or edit production UI'
   );
+  assert.match(workspace, /\.window\[data-surface="about"\] \{ width: 320px; height: 354px;/, 'About review frame must preserve the social row and full-width project rows');
+  assert.match(fixture, /if \(scenario === 'aboutLinkToast'\)[\s\S]*?waitForReady\('#aboutXiaohongshuLink'\)/, 'About link failure fixture must exercise the new fixed social link');
   assert.match(review, /<script src="\/fixture\.js"><\/script>\s*<script src="\.\/tauri-bridge\.js"><\/script>/);
   assert.match(workspace, /<iframe id="reviewFrame"[^>]*><\/iframe>/);
   assert.match(workspace, /data-view="handoff"[^>]*><span>权限 handoff<\/span>/);
@@ -114,9 +165,14 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(fixture, /window\.cavalryI18n = Object\.freeze/);
   assert.match(fixture, /scenario === 'verifyFailure' && phase === 'verifyInstallation'[\s\S]*?errorCode: null/);
   assert.match(fixture, /scenario === 'error' && phase === 'verifyInstallation'[\s\S]*?errorCode: 'cavalryStillRunning'/);
+  assert.doesNotMatch(fixture, /nativeRestoreOnlyHostFailure' && phase === 'verifyInstallation'/,
+    'an internal host probe failure must not invent a Channel error phase');
   assert.match(fixture, /\['updateAvailable', 'updateConfirm', 'update', 'updateFailure'\]\.includes\(scenario\)/);
   assert.match(fixture, /scenario === 'permissionMac' \? 'openPrivacy' : 'none'/);
-  assert.match(fixture, /installationMode: windowsScenario[\s\S]*?\? 'unknown'/);
+  assert.match(fixture, /nativeOfficialScenario = \['nativeOfficialDefaultEnglish'\]\.includes\(scenario\)/);
+  assert.match(fixture, /installationMode: nativeOfficialScenario[\s\S]*?\? 'official'[\s\S]*?nativeProfileScenario \|\| windowsScenario[\s\S]*?\? 'unknown'/);
+  assert.match(fixture, /nativeLocaleStateByScenario = Object\.freeze\([\s\S]*?nativeDefaultEnglish: 'unset'[\s\S]*?nativeOwnedHans: 'explicit'/);
+  assert.match(fixture, /officialRecoveryAvailable: nativeProfileScenario \? false/);
   assert.match(fixture, /\['verifyInstallation', 'ensureBaseline', 'applyTransaction', 'restartCavalry'\]/);
   assert.match(fixture, /onEvent\(\{ phase: 'downloading', downloaded, contentLength: total \}\)/);
   assert.match(
@@ -267,7 +323,7 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /const appDragImage = draggableAppRow\.cloneNode\(true\)/);
   assert.match(handoff, /appDragImage\.style\.inlineSize = rowRect\.width \+ 'px'/);
   assert.match(handoff, /event\.dataTransfer\.setDragImage\?\.\(appDragImage, dragOffsetX, dragOffsetY\)/);
-  assert.doesNotMatch(handoff, /handoff-drag-image-size|56px/, 'target sample drags the live app-row snapshot, not an icon-only proxy');
+  assert.doesNotMatch(handoff, /handoff-drag-image-size|(?<![0-9])56px/, 'target sample drags the live app-row snapshot, not an icon-only proxy');
   assert.match(handoff, /function handleDrop\(event\)[\s\S]*?existingRowSwitch\.setAttribute\('aria-checked', 'true'\)[\s\S]*?demonstrateRetryResult\('denied'\)/);
   assert.match(handoff, /function simulateSystemQuitAndReopen\(\)[\s\S]*?sourceFrame\.src = freshSessionUrl[\s\S]*?freshSessionStarted/);
   assert.doesNotMatch(handoff, /系统设置接受 copy drop/, 'browser review must not present an HTML drop as native System Settings evidence');
@@ -298,8 +354,10 @@ const REQUIRED_IDS = [
   'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText',
   'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton',
   'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton',
-  'permissionButton', 'reportIssueButton', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome',
+  'permissionButton', 'legacyReleaseButton', 'reportIssueButton', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome',
   'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText',
+  'supportFooter', 'supportFooterMessage', 'supportFooterLinks', 'supportGithubLink', 'supportGithubIcon',
+  'supportTwitterLink', 'supportTwitterIcon', 'supportXiaohongshuLink', 'supportXiaohongshuIcon',
 ];
 
 const REQUIRED_API_METHODS = [
@@ -341,6 +399,7 @@ test('Toast follows the pinned shadcn/Base UI timing while consuming local desig
   const tokens = read('renderer/tokens.css');
   const styles = read('renderer/toast.css');
   const control = read('renderer/toast-control.js');
+  const projectLinkControl = read('renderer/project-link-control.js');
   const app = read('renderer/app.js');
   const aboutWindow = read('renderer/about-window.js');
 
@@ -369,7 +428,8 @@ test('Toast follows the pinned shadcn/Base UI timing while consuming local desig
 
   assert.match(app, /onError:\s*\(\) => toastControl\.show\(/);
   assert.doesNotMatch(app, /onError:\s*\(\) => setStatus\('aboutOpenFailed'/, 'About failure must not overwrite Activity');
-  assert.match(aboutWindow, /description:\s*text\(locale, 'openProjectLinkFailed'\)/);
+  assert.match(projectLinkControl, /description:\s*text\('openProjectLinkFailed'\)/);
+  assert.match(aboutWindow, /global\.createProjectLinkControl\(/);
 });
 
 test('renderer retains DOM anchors and uses only local resources', () => {
@@ -377,22 +437,27 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   const tokens = read('renderer/tokens.css');
   const buttonStyles = read('renderer/button.css');
   const styles = read('renderer/styles.css');
+  const supportStyles = read('renderer/support-footer.css');
   const operationStyles = read('renderer/operation-log.css');
   const toastStyles = read('renderer/toast.css');
   const toastControl = read('renderer/toast-control.js');
   const icons = read('renderer/icons.js');
   const operationLog = read('renderer/operation-log.js');
+  const supportFooter = read('renderer/support-footer.js');
   const updateProgress = read('renderer/update-progress.js');
   const tooltipControl = read('renderer/tooltip-control.js');
   const thirdPartyNotices = read('renderer/THIRD_PARTY_NOTICES.md');
   const aboutStyles = read('renderer/about.css');
   const windowControlStyles = read('renderer/window-controls.css');
   const app = read('renderer/app.js');
+  const profileText = read('renderer/user-profile-text.js');
   const uiText = read('renderer/ui-text.js');
+  const languageScope = read('renderer/language-scope.js');
+  const versionGuidance = read('renderer/version-guidance.js');
   for (const id of REQUIRED_IDS) assert.match(html, new RegExp(`id="${id}"`), `#${id} missing`);
   const staticButtons = [...html.matchAll(/<button\b[^>]*>/g)].map((match) => match[0]);
-  assert.equal(staticButtons.length, 13, 'production shell must keep thirteen static button elements');
-  assert.equal(staticButtons.filter((tag) => /class="[^"]*\bui-button\b/.test(tag)).length, 12, 'every static action except the Select Trigger must consume ui-button');
+  assert.equal(staticButtons.length, 14, 'production shell must keep fourteen static button elements');
+  assert.equal(staticButtons.filter((tag) => /class="[^"]*\bui-button\b/.test(tag)).length, 13, 'every static action except the Select Trigger must consume ui-button');
   assert.match(staticButtons.find((tag) => tag.includes('id="languageSelectTrigger"')) || '', /class="select-trigger"/, 'Select Trigger must preserve its independent component state');
   assert.match(toastControl, /closeButton\.className = 'ui-button toast-close'[\s\S]*?setAttribute\('data-variant', 'ghost'\)/, 'runtime Toast close must consume the ghost ui-button variant');
   assert.doesNotMatch(
@@ -401,7 +466,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
     'the single-task UI must not retain the old Recovery controls'
   );
   const htmlWithoutSvgNamespace = html.replace(/\s+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/g, '');
-  const implementationCss = `${buttonStyles}\n${styles}\n${operationStyles}\n${toastStyles}\n${aboutStyles}\n${windowControlStyles}`.replace(/\/\*[\s\S]*?\*\//g, '');
+  const implementationCss = `${buttonStyles}\n${styles}\n${supportStyles}\n${operationStyles}\n${toastStyles}\n${aboutStyles}\n${windowControlStyles}`.replace(/\/\*[\s\S]*?\*\//g, '');
   const operationWithoutRuntimeState = operationStyles.replace(
     /--operation-(?:scroll-fade-(?:top|bottom)|shimmer-(?:base|highlight))\s*:[^;]+;/g,
     ''
@@ -413,34 +478,57 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.doesNotMatch(tokens, /@import|url\(["']?https?:/i, 'tokens must not load remote resources');
   assert.doesNotMatch(buttonStyles, /@import|url\(["']?https?:/i, 'Button styles must not load remote resources');
   assert.doesNotMatch(styles, /@import|url\([\"']?https?:/i, 'styles must not load remote resources');
+  assert.doesNotMatch(supportStyles, /@import|url\([\"']?https?:/i, 'support footer styles must not load remote resources');
   assert.doesNotMatch(operationStyles, /@import|url\([\"']?https?:/i, 'operation log styles must not load remote resources');
   assert.doesNotMatch(toastStyles, /@import|url\([\"']?https?:/i, 'Toast styles must not load remote resources');
   assert.doesNotMatch(icons, /@import|url\([\"']?https?:/i, 'icon registry must not load remote resources');
   assert.doesNotMatch(aboutStyles, /@import|url\([\"']?https?:/i, 'about styles must not load remote resources');
   assert.doesNotMatch(windowControlStyles, /@import|url\([\"']?https?:/i, 'window controls must not load remote resources');
+  assert.match(html, /<footer id="supportFooter" class="support-footer">[\s\S]*?id="supportFooterMessage"[\s\S]*?id="supportFooterLinks"[\s\S]*?id="supportGithubLink"[\s\S]*?id="supportTwitterLink"[\s\S]*?id="supportXiaohongshuLink"[\s\S]*?<\/footer>/);
+  assert.match(styles, /grid-template-rows:\s*var\(--titlebar-height\) minmax\(0, 1fr\) var\(--support-footer-height\)/, 'footer occupies a separate shell track below existing content');
+  assert.doesNotMatch(supportStyles, /border-top:/, 'footer shares the content gap without a divider');
+  assert.match(tokens, /--support-footer-height:\s*calc\(/, 'footer derives its height from actual shared geometry');
+  assert.match(tokens, /--support-link-hit-size:\s*var\(--space-8\)/);
+  assert.match(tokens, /--support-link-icon-size:\s*var\(--space-4\)/);
+  assert.match(supportStyles, /\.support-footer-message\s*\{[^}]*font-size:\s*var\(--type-compact\)[^}]*font-weight:\s*var\(--weight-medium\)[^}]*line-height:\s*var\(--line-height-compact\)[^}]*white-space:\s*nowrap/);
+  assert.doesNotMatch(supportStyles, /text-overflow|overflow:\s*hidden/, 'support copy must remain visible at the 360px inner width');
+  assert.match(supportStyles, /\.support-footer-link-xiaohongshu:hover\s*\{\s*color:\s*var\(--brand-xiaohongshu\)/);
+  assert.doesNotMatch(supportStyles, /\.support-footer-link-xiaohongshu\s*\{[^}]*color:\s*var\(--brand-xiaohongshu\)/, 'footer Xiaohongshu stays neutral before hover');
+  assert.match(uiText, /supportFooterMessage: '关注我们'/);
   assert.match(buttonStyles, /\.ui-button\s*\{[\s\S]*?display:\s*inline-flex;[\s\S]*?align-items:\s*center;[\s\S]*?justify-content:\s*center;[\s\S]*?appearance:\s*none;[\s\S]*?background:\s*transparent;[\s\S]*?white-space:\s*nowrap;[\s\S]*?user-select:\s*none;[\s\S]*?cursor:\s*pointer/);
   assert.match(buttonStyles, /\.ui-button:disabled\s*\{[\s\S]*?pointer-events:\s*none;[\s\S]*?opacity:\s*var\(--opacity-control-disabled\)/);
   assert.match(buttonStyles, /\.ui-button > svg\s*\{[\s\S]*?flex:\s*0 0 auto;[\s\S]*?pointer-events:\s*none/);
   assert.match(thirdPartyNotices, /## shadcn\/ui[\s\S]*Licensed under the MIT License/);
   assert.match(thirdPartyNotices, /## Phosphor Icons[\s\S]*Licensed under the MIT License/);
+  assert.match(thirdPartyNotices, /simple-icons\/simple-icons\/blob\/4d29a35c954699b389a834aacc97dd6e7e74143c\/icons\/github\.svg[\s\S]*CC0 1\.0/);
   assert.match(
     html,
-    /<link rel="stylesheet" href="\.\/tokens\.css" \/>\s*<link rel="stylesheet" href="\.\/button\.css" \/>\s*<link rel="stylesheet" href="\.\/styles\.css" \/>\s*<link rel="stylesheet" href="\.\/operation-log\.css" \/>\s*<link rel="stylesheet" href="\.\/toast\.css" \/>\s*<link rel="stylesheet" href="\.\/about\.css" \/>\s*<link rel="stylesheet" href="\.\/window-controls\.css" \/>/,
+    /<link rel="stylesheet" href="\.\/tokens\.css" \/>\s*<link rel="stylesheet" href="\.\/button\.css" \/>\s*<link rel="stylesheet" href="\.\/styles\.css" \/>\s*<link rel="stylesheet" href="\.\/support-footer\.css" \/>\s*<link rel="stylesheet" href="\.\/operation-log\.css" \/>\s*<link rel="stylesheet" href="\.\/toast\.css" \/>\s*<link rel="stylesheet" href="\.\/about\.css" \/>\s*<link rel="stylesheet" href="\.\/window-controls\.css" \/>/,
     'semantic tokens must load before shared and platform visual implementations'
   );
   assert.match(
     html,
-    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/select-control\.js"><\/script>\s*<script src="\.\/tooltip-control\.js"><\/script>\s*<script src="\.\/path-display\.js"><\/script>\s*<script src="\.\/operation-log\.js"><\/script>\s*<script src="\.\/permission-handoff\.js"><\/script>\s*<script src="\.\/update-progress\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/about-control\.js"><\/script>\s*<script src="\.\/window-controls\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
-    'renderer scripts must load bridge, stable text, icons, component state machines, then app'
+    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/user-profile-text\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/language-scope\.js"><\/script>\s*<script src="\.\/version-guidance\.js"><\/script>\s*<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/select-control\.js"><\/script>\s*<script src="\.\/tooltip-control\.js"><\/script>\s*<script src="\.\/path-display\.js"><\/script>\s*<script src="\.\/operation-log\.js"><\/script>\s*<script src="\.\/permission-handoff\.js"><\/script>\s*<script src="\.\/update-progress\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/project-link-control\.js"><\/script>\s*<script src="\.\/support-footer\.js"><\/script>\s*<script src="\.\/about-control\.js"><\/script>\s*<script src="\.\/window-controls\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
+    'renderer scripts must load bridge, copy, policies, components, then app'
   );
+  assert.match(profileText, /const NATIVE_USER_PROFILE_TEXT = Object\.freeze\(/);
+  assert.match(uiText, /\.\.\.NATIVE_USER_PROFILE_TEXT\.(?:en|'zh-Hans'|'zh-Hant'|ja_JP)/);
   assert.match(icons, /window\.cavalryIcons = Object\.freeze\(\{ create: createIcon \}\)/);
+  for (const brand of ['githubLogo', 'xLogo', 'xiaohongshuLogo']) assert.match(icons, new RegExp(`\\b${brand}: \\{`));
   for (const iconName of ['spinner', 'checkCircle', 'warningCircle', 'infoCircle', 'errorCircle', 'verify', 'archive', 'translate', 'restore', 'open', 'download', 'package', 'update', 'back', 'minimizeWindow', 'maximizeWindow', 'restoreWindow', 'close']) {
     assert.match(icons, new RegExp(`\\b${iconName}: \\{`), `${iconName} must stay in the semantic icon registry`);
   }
   assert.doesNotMatch(operationLog, /const ICONS|createElementNS|<path/, 'operation log must consume icon names without owning SVG path data');
+  assert.match(supportFooter, /global\.createSupportFooterControl = createSupportFooterControl/);
+  assert.match(supportFooter, /openProjectLink\(entry\.target\)/);
+  assert.doesNotMatch(supportFooter, /https?:\/\/|openProjectLink\([^)]*url/i, 'footer must dispatch fixed IDs, never a URL');
   assert.match(operationLog, /const createIcon = window\.cavalryIcons\.create;/);
   assert.match(uiText, /const UI_TEXT = \{/);
   assert.doesNotMatch(app, /const UI_TEXT = \{/);
+  assert.match(languageScope, /window\.createLanguageScopeController = createLanguageScopeController/);
+  assert.doesNotMatch(languageScope, /__TAURI__|\.invoke\(/, 'scope policy must not cross the Tauri bridge boundary');
+  assert.match(versionGuidance, /window\.cavalryVersionGuidance = Object\.freeze/);
+  assert.doesNotMatch(versionGuidance, /__TAURI__|\.invoke\(/, 'version policy must not cross the Tauri bridge boundary');
   assert.doesNotMatch(`${tokens}\n${styles}`, /@font-face|Geist|assets\/fonts/, 'renderer must use the platform font stack');
   assert.match(tokens, /--font-sans:\s*-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif/);
   assert.match(tokens, /--font-mono:\s*ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace/);
@@ -449,10 +537,11 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.doesNotMatch(operationWithoutRuntimeState, /--[a-z0-9-]+\s*:/i, 'operation implementation may own runtime CSS state, but no private design constants');
   assert.doesNotMatch(toastStyles, /--[a-z0-9-]+\s*:/i, 'Toast implementation must consume tokens instead of defining private constants');
   assert.doesNotMatch(aboutStyles, /--[a-z0-9-]+\s*:/i, 'about implementation must consume tokens instead of defining private constants');
+  assert.doesNotMatch(supportStyles, /--[a-z0-9-]+\s*:/i, 'support footer must consume tokens instead of defining private constants');
   assert.doesNotMatch(windowControlStyles, /--[a-z0-9-]+\s*:/i, 'platform implementation must consume tokens instead of defining private constants');
   assert.doesNotMatch(tunableImplementationCss, /#[0-9a-f]{3,8}|rgba?\(|[+-]?(?:\d+\.?\d*|\.\d+)(?:px|ms|em|deg)|:\s*(?:black|white)(?:\s|;|,)/i, 'implementation CSS must not own tunable design literals');
   const tokenDefinitions = [...tokens.matchAll(/(--[a-z0-9-]+)\s*:/gi)].map((match) => match[1]);
-  const tokenReferences = `${tokens}\n${buttonStyles}\n${styles}\n${operationStyles}\n${toastStyles}\n${aboutStyles}\n${windowControlStyles}\n${tooltipControl}\n${operationLog}\n${toastControl}`;
+  const tokenReferences = `${tokens}\n${buttonStyles}\n${styles}\n${supportStyles}\n${operationStyles}\n${toastStyles}\n${aboutStyles}\n${windowControlStyles}\n${tooltipControl}\n${operationLog}\n${toastControl}`;
   assert.deepEqual(
     tokenDefinitions.filter(
       (name) => !tokenReferences.includes(`var(${name})`) && !tokenReferences.includes(`'${name}'`)
@@ -461,7 +550,10 @@ test('renderer retains DOM anchors and uses only local resources', () => {
     'semantic tokens must have a real consumer'
   );
   assert.equal(fs.existsSync(path.join(repoRoot, 'renderer/assets')), false, 'unused bundled font assets must stay removed');
-  assert.ok(app.split(/\r?\n/).length <= 800, 'renderer/app.js must stay within the 800-line contract');
+  assert.ok(app.trimEnd().split(/\r?\n/).length <= 800, 'renderer/app.js must stay within the 800-line contract');
+  assert.ok(uiText.trimEnd().split(/\r?\n/).length <= 800, 'renderer/ui-text.js must stay within the 800-line contract');
+  assert.ok(languageScope.trimEnd().split(/\r?\n/).length <= 800, 'renderer/language-scope.js must stay within the 800-line contract');
+  assert.ok(versionGuidance.trimEnd().split(/\r?\n/).length <= 800, 'renderer/version-guidance.js must stay within the 800-line contract');
   assert.ok(updateProgress.split(/\r?\n/).length <= 800, 'renderer/update-progress.js must stay within the 800-line contract');
   assert.ok(tooltipControl.split(/\r?\n/).length <= 800, 'renderer/tooltip-control.js must stay within the 800-line contract');
   assert.ok(toastControl.split(/\r?\n/).length <= 800, 'renderer/toast-control.js must stay within the 800-line contract');
@@ -506,6 +598,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   const aboutControl = read('renderer/about-control.js');
   const aboutPage = read('renderer/about.html');
   const aboutWindow = read('renderer/about-window.js');
+  const uiText = read('renderer/ui-text.js');
   const updateButton = html.match(/<button id="updateButton"[\s\S]*?<\/button>/)?.[0];
   assert.ok(updateButton, '#updateButton block missing');
   assert.match(
@@ -580,7 +673,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(html, /class="language-control-row"[\s\S]*?id="applyButton"[^>]*>Switch<\/button>[\s\S]*?id="restoreButton"[^>]*>Restore English<\/button>/);
   assert.match(html, /<dialog id="modalBackdrop"[^>]*role="alertdialog"[^>]*aria-modal="true"[^>]*aria-labelledby="modalTitle"[^>]*aria-describedby="modalBody">/);
   assert.match(html, /id="statusPanel"[^>]*aria-labelledby="statusLabel"/);
-  assert.match(html, /id="statusLabel"[\s\S]*?id="statusIdle"[\s\S]*?id="statusIntro"[^>]*hidden[\s\S]*?id="statusViewport"[\s\S]*?id="statusText"[^>]*role="log"[^>]*aria-live="polite"[\s\S]*?id="statusOutcome"[^>]*role="status"[^>]*aria-live="polite"[^>]*hidden[\s\S]*?id="permissionButton"[^>]*hidden[\s\S]*?id="reportIssueButton"[^>]*hidden/, 'idle, fixed intro, bounded live log, fixed outcome, and conditional recovery/report actions must remain in source order');
+  assert.match(html, /id="statusLabel"[\s\S]*?id="statusIdle"[\s\S]*?id="statusIntro"[^>]*hidden[\s\S]*?id="statusViewport"[\s\S]*?id="statusText"[^>]*role="log"[^>]*aria-live="polite"[\s\S]*?id="statusOutcome"[^>]*role="status"[^>]*aria-live="polite"[^>]*hidden[\s\S]*?id="permissionButton"[^>]*hidden[\s\S]*?id="legacyReleaseButton"[^>]*hidden[\s\S]*?id="reportIssueButton"[^>]*hidden/, 'idle, fixed intro, bounded live log, fixed outcome, and conditional recovery/report actions must remain in source order');
   assert.match(tokens, /--control-height:\s*36px/);
   assert.match(tokens, /--space-5:\s*20px/);
   assert.match(tokens, /--padding-window:\s*var\(--space-5\)/);
@@ -606,7 +699,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(selectControl, /alignPopupItemToTrigger\(selected >= 0 \? list\.children\[activeIndex\] : popupPlaceholder\)/);
   assert.match(selectControl, /root\.dataset\.placeholder = String\(!hasSelection\)/);
   assert.match(selectControl, /select\.value = options\.some\([\s\S]*?\? previousValue : '';/);
-  assert.doesNotMatch(html, /id="about(?:Dialog|Title|Version|CloseButton|RepositoryLink|RepositoryLabel|LicenseLink|LicenseLabel)"/, 'About content must not remain in the main window');
+  assert.doesNotMatch(html, /id="about(?:Dialog|Title|Version|CloseButton|TwitterLink|TwitterLabel|XiaohongshuLink|XiaohongshuLabel|RepositoryLink|RepositoryLabel|LicenseLink|LicenseLabel)"/, 'About content must not remain in the main window');
   assert.match(html, /id="aboutControl"[^>]*data-tooltip-state="closed"[^>]*hidden/);
   assert.match(aboutControl, /createAboutControl/);
   assert.match(aboutControl, /button\.append\(icons\.create\('infoCircle'\)\)/);
@@ -625,20 +718,68 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(aboutPage, /class="window-title"[^>]*data-tauri-drag-region[^>]*aria-hidden="true"><\/span>/);
   assert.match(aboutPage, /id="aboutWindowControls"[^>]*class="windows-window-controls"[^>]*hidden/);
   assert.match(aboutPage, /id="aboutWindowCloseButton"[^>]*class="ui-button window-control-button window-control-close"[^>]*data-size="icon-sm"/);
-  assert.match(aboutPage, /<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/about-window\.js"><\/script>/);
+  assert.match(aboutPage, /<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/project-link-control\.js"><\/script>\s*<script src="\.\/about-window\.js"><\/script>/);
+  assert.match(aboutPage, /<script src="\.\/user-profile-text\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/icons\.js"><\/script>/);
   assert.match(aboutPage, /<img class="about-app-icon" src="\.\/app-icon\.png" alt="" aria-hidden="true" \/>/);
+  const socialRow = aboutPage.match(/<div class="about-social-links">([\s\S]*?)<\/div>/)?.[1] || '';
+  const twitterRow = socialRow.match(/<a id="aboutTwitterLink"[\s\S]*?<\/a>/)?.[0] || '';
+  const xiaohongshuRow = socialRow.match(/<a id="aboutXiaohongshuLink"[\s\S]*?<\/a>/)?.[0] || '';
+  assert.match(aboutPage, /<div class="about-social-links">[\s\S]*?<a id="aboutTwitterLink" class="about-link" href="#twitter"[\s\S]*?<span id="aboutTwitterLabel">Follow<\/span>\s*<span id="aboutTwitterIcon" class="about-link-icon" aria-hidden="true"><\/span>[\s\S]*?<\/a>[\s\S]*?<a id="aboutXiaohongshuLink" class="about-link" href="#xiaohongshu"[\s\S]*?<span id="aboutXiaohongshuLabel">Follow<\/span>\s*<span id="aboutXiaohongshuIcon" class="about-link-icon about-link-icon-xiaohongshu" aria-hidden="true"><\/span>[\s\S]*?<\/a>[\s\S]*?<\/div>\s*<a id="aboutRepositoryLink" class="about-link"[\s\S]*?<a id="aboutLicenseLink" class="about-link"/);
+  assert.match(twitterRow, /<span id="aboutTwitterLabel">Follow<\/span>\s*<span id="aboutTwitterIcon" class="about-link-icon" aria-hidden="true"><\/span>/);
+  assert.doesNotMatch(aboutPage, /@daftAI|daftai/i, 'About follow buttons must not show an account name');
+  assert.match(aboutWindow, /\['#aboutTwitterIcon', 'xLogo'\]/);
+  assert.equal(
+    icons.match(/xLogo:\s*\{[\s\S]*?paths:\s*\['([^']+)'/)?.[1],
+    'M214.75,211.71l-62.6-98.38,61.77-67.95a8,8,0,0,0-11.84-10.76L143.24,99.34,102.75,35.71A8,8,0,0,0,96,32H48a8,8,0,0,0-6.75,12.3l62.6,98.37-61.77,68a8,8,0,1,0,11.84,10.76l58.84-64.72,40.49,63.63A8,8,0,0,0,160,224h48a8,8,0,0,0,6.75-12.29ZM164.39,208,62.57,48h29L193.43,208Z',
+    'About must use the upstream Phosphor Regular XLogo path, not a generic close X or the retired Twitter bird'
+  );
+  assert.doesNotMatch(twitterRow, /M23\.953 4\.57/, 'About must not regress to the Twitter bird');
+  assert.match(xiaohongshuRow, /<span id="aboutXiaohongshuIcon" class="about-link-icon about-link-icon-xiaohongshu" aria-hidden="true"><\/span>/);
+  assert.match(aboutWindow, /\['#aboutXiaohongshuIcon', 'xiaohongshuLogo'\]/);
+  assert.match(aboutStyles, /\.about-link-icon-xiaohongshu\s*\{\s*width:\s*calc\(var\(--about-link-icon-size\) \* 2\)/);
+  assert.match(tokens, /--brand-xiaohongshu:\s*#ff2442/);
+  assert.match(aboutStyles, /\.about-link-icon-xiaohongshu\s*\{[^}]*color:\s*var\(--brand-xiaohongshu\)/);
+  const xiaohongshuPath = icons.match(/xiaohongshuLogo:\s*\{[\s\S]*?viewBox:\s*'0 7\.5 24 9',[\s\S]*?paths:\s*\['([^']+)'/)?.[1] || '';
+  assert.equal(
+    crypto.createHash('sha256').update(xiaohongshuPath).digest('hex'),
+    '1d15f62d2a7d33f664fe682a597ec239803c55dbb100736cc21079088d3701ef',
+    'shared About/footer registry must retain the pinned Simple Icons Xiaohongshu glyph path'
+  );
+  assert.equal((aboutPage.match(/class="about-link"/g) || []).length, 4, 'About keeps two social links and full-width GitHub/license links on one link component');
+  assert.match(aboutStyles, /\.about-social-links\s*\{[\s\S]*?grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)[\s\S]*?gap:\s*var\(--space-1\)/);
   assert.match(aboutPage, /id="aboutRepositoryLink"[\s\S]*?class="about-link-icon"[\s\S]*?id="aboutRepositoryLabel"/);
   assert.match(aboutWindow, /getSwitcherVersion\(\)/);
   assert.match(aboutWindow, /cavalryIcons\.create\('close'\)/);
   assert.match(aboutWindow, /cavalryI18n\.closeAboutWindow\(\)/);
   assert.match(aboutWindow, /openProjectLink\(link\)/);
-  assert.match(aboutWindow, /wireProjectLink\('#aboutRepositoryLink', 'repository', showProjectLinkError\)/);
-  assert.match(aboutWindow, /wireProjectLink\('#aboutLicenseLink', 'license', showProjectLinkError\)/);
+  assert.match(aboutWindow, /wireProjectLink\('#aboutXiaohongshuLink', 'xiaohongshu', openProjectLink\)/);
+  assert.match(aboutWindow, /aboutXiaohongshuLinkAria/);
+  assert.match(aboutWindow, /text\(locale, 'aboutSocialFollow'\)/);
+  assert.match(uiText, /aboutSocialFollow: 'Follow'/);
+  assert.match(uiText, /aboutSocialFollow: '关注'/);
+  assert.match(uiText, /aboutSocialFollow: '關注'/);
+  assert.match(uiText, /aboutSocialFollow: 'フォロー'/);
+  assert.match(uiText, /aboutTwitterLinkAria: 'Follow on X \(Twitter\)'/);
+  assert.match(uiText, /aboutXiaohongshuLinkAria: 'Follow on Xiaohongshu'/);
+  assert.match(uiText, /aboutTwitterLinkAria: '在Twitter\/X关注'/);
+  assert.match(uiText, /aboutXiaohongshuLinkAria: '在小红书关注'/);
+  assert.match(uiText, /aboutTwitterLinkAria: '在Twitter\/X關注'/);
+  assert.match(uiText, /aboutXiaohongshuLinkAria: '在小紅書關注'/);
+  assert.match(uiText, /aboutTwitterLinkAria: 'X（Twitter）をフォロー'/);
+  assert.match(uiText, /aboutXiaohongshuLinkAria: '小紅書をフォロー'/);
+  assert.doesNotMatch(uiText, /@daftAI|daftai/i, 'About copy must not expose an account name');
+  assert.equal((uiText.match(/aboutXiaohongshuLinkAria:/g) || []).length, 4, 'About social accessible names cover all four locales');
+  assert.equal((uiText.match(/aboutSocialFollow:/g) || []).length, 4, 'About visible Follow labels cover all four locales');
+  assert.match(aboutWindow, /wireProjectLink\('#aboutRepositoryLink', 'repository', openProjectLink\)/);
+  assert.match(aboutWindow, /wireProjectLink\('#aboutTwitterLink', 'twitter', openProjectLink\)/);
+  assert.match(aboutWindow, /wireProjectLink\('#aboutLicenseLink', 'license', openProjectLink\)/);
   assert.match(aboutWindow, /createToastControl/);
-  assert.match(aboutWindow, /projectLinkFailedTitle/);
+  assert.match(aboutWindow, /createProjectLinkControl/);
+  assert.match(read('renderer/project-link-control.js'), /projectLinkFailedTitle/);
   assert.doesNotMatch(aboutWindow, /showAbout/);
   assert.doesNotMatch(aboutPage, /https?:\/\//, 'About page must use fixed bridge ids, not renderer URLs');
-  assert.match(bridge, /PROJECT_LINK_MANIFEST = Object\.freeze\(\['repository', 'license', 'reportIssue'\]\)/);
+  assert.match(bridge, /PROJECT_LINK_MANIFEST = Object\.freeze\(\['twitter', 'xiaohongshu', 'repository', 'license', 'reportIssue', 'legacyRelease'\]\)/);
+  assert.match(read('renderer/THIRD_PARTY_NOTICES.md'), /simple-icons\/simple-icons\/blob\/4d29a35c954699b389a834aacc97dd6e7e74143c\/icons\/xiaohongshu\.svg[\s\S]*?CC0 1\.0/);
   assert.match(bridge, /invoke\('open_project_link', \{ link \}\)/);
   assert.match(bridge, /showAbout:\s*\(\) => invoke\('show_about'\)\.then\(normalizeAction\)/);
   assert.match(bridge, /closeAboutWindow:\s*\(\) => invokeWindow\('close', 'about'\)/);
@@ -855,6 +996,8 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   const app = read('renderer/app.js');
   const uiText = read('renderer/ui-text.js');
   const selectControl = read('renderer/select-control.js');
+  const languageScope = read('renderer/language-scope.js');
+  const versionGuidance = read('renderer/version-guidance.js');
   const bridge = read('renderer/tauri-bridge.js');
   assert.doesNotMatch(app, /\.innerHTML\s*=/, 'renderer must not interpolate backend data as HTML');
   assert.match(selectControl, /document\.createElement\('option'\)/);
@@ -863,10 +1006,10 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   assert.match(selectControl, /className = 'badge select-item-badge'/);
   assert.match(selectControl, /createElementNS\('http:\/\/www\.w3\.org\/2000\/svg', 'svg'\)/);
   assert.match(selectControl, /path\.setAttribute\('d', 'm20 6-11 11-5-5'\)/);
-  assert.match(app, /filter\(\(language\) => language\.value !== 'en'\)/);
-  assert.match(app, /disabled:\s*language\.value === state\.currentLang && state\.patchStatus === 'current'/);
-  assert.match(app, /patchStatus === 'updateAvailable' \|\| state\.patchStatus === 'unknown'/);
-  assert.match(app, /updateLanguagePatch/);
+  assert.match(languageScope, /languages\.filter\(\(language\) => language\.value !== 'en'\)/);
+  assert.match(languageScope, /disabled:\s*!canSwitch\(\) \|\| \(isCurrentLanguage && patchStatus === 'current'\)/);
+  assert.match(languageScope, /patchStatus === 'updateAvailable' \|\| patchStatus === 'unknown'/);
+  assert.match(languageScope, /'updateLanguagePatch' : 'apply'/);
   assert.match(read('renderer/styles.css'), /\.badge\[data-kind="green-subtle"\]/);
   assert.match(read('renderer/styles.css'), /\.select-item-badge[\s\S]*?pointer-events:\s*none/);
   assert.match(selectControl, /nativeOption\.disabled = option\.disabled/);
@@ -882,7 +1025,13 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   );
   assert.match(app, /restoreButton\.addEventListener\('click', requestRestore\)/);
   const requestApplyFunction = sourceFunction(app, 'function requestApply() {', 'function requestRestore');
-  assert.match(requestApplyFunction, /void runApply\(languageSelect\.value\)\.catch\(recoverOperationFailure\);/);
+  assert.match(requestApplyFunction, /const nextLanguage = languageSelect\.value;/);
+  assert.match(requestApplyFunction, /void runApply\(nextLanguage\)\.catch\(recoverOperationFailure\);/);
+  assert.match(requestApplyFunction, /languageScope\.showConfirmation\('switch'/);
+  assert.match(requestApplyFunction, /if \(languageScope\.showConfirmation\('switch'[\s\S]*?\)\) return;\s*void runApply\(nextLanguage\)/,
+    'normal Switch runs immediately when the scope policy declines a confirmation');
+  assert.match(languageScope, /action !== 'restore'[\s\S]*?return false/,
+    'user-profile scope no longer opens a normal Switch confirmation');
   assert.doesNotMatch(app, /showApplyConfirmation|t\('confirmTitle'\)|t\('confirmBody'\)/);
   for (const body of uiLocaleBodies(uiText)) {
     assert.match(body, /apply: '(?:Switch|切换|切換|切り替える)'/);
@@ -895,13 +1044,30 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   assert.match(app, /operationLog\.idle\(\)/);
   assert.match(app, /operationLog\.replace\(\{/);
   assert.match(app, /operationLog\.upsert\(operationPhaseCopy\(event, context\)\)/);
-  assert.match(app, /reportIssueButton\.addEventListener\('click', \(\) => void openIssueReport\(\)\)/);
-  assert.match(app, /async function openIssueReport\(\)[\s\S]*?api\.openProjectLink\('reportIssue'\)[\s\S]*?showProjectLinkFailure\(\)/);
+  assert.match(app, /reportIssueButton\.addEventListener\('click', \(\) => void openProjectLink\('reportIssue'\)\)/);
+  assert.match(app, /legacyReleaseButton\.addEventListener\('click', \(\) => void openProjectLink\('legacyRelease'\)\)/);
+  assert.match(app, /const openProjectLink = window\.createProjectLinkControl\(\{ api, text: t, toast: toastControl \}\)/);
+  assert.doesNotMatch(app, /async function openProjectLink|function showProjectLinkFailure/, 'shared project-link adapter owns navigation failure feedback');
+  assert.match(app, /versionGuidance\.shouldOfferLegacyRelease\(bootstrapState\)/);
+  assert.match(app, /versionGuidance\.buttonLabel\(uiLocale\)/);
+  assert.match(app, /versionGuidance\.statusKey\(state\.versionCompatibility\)/);
+  assert.match(versionGuidance, /status\.versionCompatibility === 'olderUnsupported'[\s\S]*?status\.version === '2\.7\.2'[\s\S]*?status\.supportedVersion === '2\.8\.0'/);
+  for (const label of [
+    'Download the final Cavalry 2.7.2 Switcher release',
+    '下载最终版 Cavalry 2.7.2 语言切换器',
+    '下載最終版 Cavalry 2.7.2 語言切換器',
+    '最終版 Cavalry 2.7.2 スイッチャーをダウンロード',
+  ]) assert.ok(versionGuidance.includes(label), `version guidance must localize ${label}`);
   assert.match(app, /reportIssueButton\.textContent = t\('reportIssueButton'\)/);
   assert.match(app, /visualState === 'official'/);
   assert.match(app, /installationBadge\.dataset\.state = showInstallation \? 'official' : 'unknown'/);
+  const installationBadgeGate = sourceStatement(app, 'const showInstallation =');
+  assert.match(installationBadgeGate, /state\.platform === 'macos'[\s\S]*?Boolean\(state\.appPath\)[\s\S]*?visualState === 'official'/);
+  assert.doesNotMatch(installationBadgeGate, /currentLang|nativeLocaleState|nativeResourceAvailable|patchStatus|zh-Hans|ja_JP/,
+    'the renderer must display backend classification, never infer Official from a language or resource');
   assert.doesNotMatch(app, /translatedBadge|modifiedBadge|installationBadgeState/);
-  assert.match(app, /return code === 'en' \? 'English' : code/);
+  assert.match(languageScope, /return match \? match\.label : code === 'en' \? 'English' : text\('unknownLanguage'\)/);
+  assert.match(languageScope, /if \(code === 'restore-official'\) return text\('restore'\)/, 'installation macOS Restore keeps its existing localized action label');
   assert.doesNotMatch(uiText, /englishUi:/, 'English is a stable Cavalry language identity, not localized shell copy');
   assert.match(html, /id="currentLanguage"[^>]*data-kind="language"[\s\S]*id="installationBadge"[^>]*data-kind="installation"/);
   assert.match(app, /updateButton\.addEventListener/);
@@ -912,15 +1078,28 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   assert.match(bridge, /Object\.freeze\(\{/);
   assert.match(bridge, /LANGUAGE_MANIFEST/);
   assert.match(bridge, /PATCH_STATUS = new Set\(\['current', 'updateAvailable', 'unknown', 'notApplicable'\]\)/);
+  assert.match(bridge, /LANGUAGE_SCOPE = new Set\(\['installation', 'userProfile'\]\)/);
+  assert.match(bridge, /currentLang: supportedLanguage[\s\S]*?languageScope === 'userProfile' \? 'unknown' : 'en'/);
+  assert.match(bridge, /nativeResourceAvailable: languageScope === 'installation'[\s\S]*?result\.nativeResourceAvailable === true/);
+  assert.match(bridge, /nativeEnglishRestoreAvailable: languageScope === 'userProfile'[\s\S]*?supportedLanguage && result\.currentLang !== 'en'[\s\S]*?result\.reconciliationRequired !== true[\s\S]*?result\.nativeEnglishRestoreAvailable === true/);
+  assert.match(bridge, /nativeRestoreOnly: allowNativeRestoreOnly && result\.ok === true && currentLang === 'en'[\s\S]*?warningCodes\.length === 0[\s\S]*?result\.reconciliationRequired !== true[\s\S]*?result\.permissionRequired !== true[\s\S]*?!result\.error && !result\.errorCode[\s\S]*?result\.nativeRestoreOnly === true/);
+  assert.match(bridge, /normalizeAction\(result, lang === 'en'\)/);
   assert.match(bridge, /patchStatus: PATCH_STATUS\.has\(result\.patchStatus\) \? result\.patchStatus : 'unknown'/);
   for (const method of REQUIRED_API_METHODS) assert.match(bridge, new RegExp(`${method}:`));
   assert.doesNotMatch(bridge, /restartCavalry:/, 'restart is internal to apply, not a renderer API');
   assert.doesNotMatch(app, /api\.restartCavalry\(/, 'renderer must not split apply/restart operations');
 });
 
+test('support footer gives wide brand marks the same visible icon gap', () => {
+  const css = read('renderer/support-footer.css');
+  assert.match(css, /\.support-footer-link-xiaohongshu\s*\{[^}]*width:\s*calc\(var\(--support-link-hit-size\) \+ var\(--support-link-icon-size\)\)/,
+    'the 32px Xiaohongshu mark needs a 48px slot, not the 16px marks’ 32px slot');
+});
+
 test('Tauri configuration disables global injection and declares a local-only CSP', () => {
   const tokens = read('renderer/tokens.css');
   const styles = read('renderer/styles.css');
+  const supportFooterStyles = read('renderer/support-footer.css');
   const windowControls = read('renderer/window-controls.js');
   const windowControlStyles = read('renderer/window-controls.css');
   const config = JSON.parse(read('src-tauri/tauri.conf.json'));
@@ -934,9 +1113,9 @@ test('Tauri configuration disables global injection and declares a local-only CS
   assert.equal(window.titleBarStyle, 'Overlay');
   assert.equal(window.hiddenTitle, true);
   assert.equal(window.width, 400);
-  assert.equal(window.height, 484);
+  assert.equal(window.height, 504);
   assert.equal(window.minWidth, 400);
-  assert.equal(window.minHeight, 484);
+  assert.equal(window.minHeight, 504);
   const capabilities = JSON.parse(read('src-tauri/capabilities/default.json'));
   assert.ok(capabilities.permissions.includes('core:window:allow-start-dragging'));
   for (const permission of [
@@ -951,12 +1130,32 @@ test('Tauri configuration disables global injection and declares a local-only CS
   }
   assert.equal(windowsWindow.decorations, false);
   assert.equal(windowsWindow.width, 420);
-  assert.equal(windowsWindow.height, 504);
+  assert.equal(windowsWindow.height, 524);
   assert.equal(windowsWindow.minWidth, 420);
-  assert.equal(windowsWindow.minHeight, 504);
+  assert.equal(windowsWindow.minHeight, 524);
   assert.equal(windowsWindow.transparent, true);
   assert.equal(windowsWindow.shadow, false);
   assert.equal(windowsWindow.visible, false);
+  assert.match(tokens, /--line-height-label:\s*16px/);
+  assert.match(tokens, /--space-1:\s*4px/);
+  assert.match(tokens, /--space-4:\s*16px/);
+  assert.match(tokens, /--space-5:\s*20px/);
+  assert.match(tokens, /--space-8:\s*32px/);
+  assert.match(tokens, /--padding-window:\s*var\(--space-5\)/);
+  assert.doesNotMatch(tokens, /--support-footer-padding-block:/, 'content owns the existing top gap');
+  assert.match(tokens, /--support-footer-spacing:\s*calc\(var\(--padding-window\) \/ 2\)/, 'one fixed 10px token owns both footer edges');
+  assert.match(styles, /\.content\s*\{[^}]*padding:\s*var\(--padding-window\) var\(--padding-window\) var\(--support-footer-spacing\)/, 'top gap is padding, not a second margin');
+  assert.match(tokens, /--support-footer-gap:\s*var\(--space-3\)/);
+  assert.match(tokens, /--support-link-hit-size:\s*var\(--space-8\)/);
+  assert.match(tokens, /--support-link-icon-size:\s*var\(--space-4\)/);
+  assert.match(tokens, /--support-footer-height:\s*calc\(var\(--line-height-compact\)\s*\+\s*var\(--support-footer-spacing\)\)/);
+  assert.match(supportFooterStyles, /\.support-footer\s*\{[\s\S]*?grid-template-columns:\s*auto auto;[\s\S]*?grid-template-rows:\s*var\(--line-height-compact\);[\s\S]*?justify-content:\s*center;[\s\S]*?align-items:\s*center;[\s\S]*?gap:\s*var\(--support-footer-gap\)/);
+  assert.match(supportFooterStyles, /padding:\s*0\s+var\(--padding-window\)\s+var\(--support-footer-spacing\)/);
+  assert.match(supportFooterStyles, /\.support-footer\s*\{[^}]*text-align:\s*left/, 'single-row copy remains readable inside the centered group');
+  assert.match(supportFooterStyles, /\.support-footer-links\s*\{[^}]*height:\s*var\(--support-link-icon-size\)[^}]*justify-content:\s*center/, 'links stay on one visual row in the centered group');
+  assert.match(read('renderer/support-footer.js'), /setAttribute\('title', label\)/, 'icon-only links retain visible localized action hints');
+  assert.match(supportFooterStyles, /\.support-footer-links\s*\{[^}]*display:\s*flex;[^}]*align-items:\s*center/);
+  assert.match(supportFooterStyles, /\.support-footer-link\s*\{[^}]*width:\s*var\(--support-link-hit-size\);[^}]*height:\s*var\(--support-link-hit-size\)/, '32px hit targets remain centered inside the 16px visual row');
   assert.match(tokens, /--windows-shell-radius:\s*32px/);
   assert.match(tokens, /--window-shadow-inset:\s*10px/);
   assert.match(tokens, /--about-caption-icon-size:\s*var\(--windows-caption-icon-size\)/);
@@ -976,10 +1175,32 @@ test('Tauri configuration disables global injection and declares a local-only CS
 test('renderer localizes reinstall and composable warning-code paths without raw warning prose', () => {
   const app = read('renderer/app.js');
   const uiText = read('renderer/ui-text.js');
+  const profileText = read('renderer/user-profile-text.js');
+  const languageScope = read('renderer/language-scope.js');
   const bridge = read('renderer/tauri-bridge.js');
   const styles = read('renderer/styles.css');
   assert.equal((uiText.match(/^\s{4}reinstallRequired:/gm) || []).length, 4, 'all four UI locales must localize the reinstall route');
   const localeBodies = uiLocaleBodies(uiText);
+  const nativeCopies = vm.runInNewContext(`${profileText}\nNATIVE_USER_PROFILE_TEXT`, {});
+  const mergedCopies = vm.runInNewContext(`${profileText}\n${uiText}\nUI_TEXT`, {});
+  const localeNames = ['en', 'zh-Hans', 'zh-Hant', 'ja_JP'];
+  assert.deepEqual(Object.keys(nativeCopies).sort(), [...localeNames].sort());
+  for (const locale of localeNames) {
+    assert.deepEqual(Object.keys(nativeCopies[locale]).sort(), [...PROFILE_TEXT_KEYS].sort(), `${locale} userProfile copy domain drifted`);
+    assert.equal(Object.keys(mergedCopies[locale]).length, 195, `${locale} merged UI_TEXT key count must include five support-footer keys and one shared follow label`);
+    for (const removedSwitchKey of ['nativeUserProfileSwitchConfirmTitle', 'nativeUserProfileSwitchConfirmBody']) {
+      assert.equal(Object.hasOwn(nativeCopies[locale], removedSwitchKey), false, `${locale} no longer owns ${removedSwitchKey}`);
+      assert.equal(Object.hasOwn(mergedCopies[locale], removedSwitchKey), false, `${locale} no longer exports ${removedSwitchKey}`);
+    }
+    for (const key of PROFILE_TEXT_KEYS) {
+      assert.equal(mergedCopies[locale][key], nativeCopies[locale][key], `${locale}.${key} must be consumed from the extracted domain`);
+    }
+  }
+  for (const body of localeBodies) {
+    for (const key of PROFILE_TEXT_KEYS) {
+      assert.doesNotMatch(body, new RegExp(`^\\s{4}${key}:`, 'm'), `${key} must have one owner in user-profile-text.js`);
+    }
+  }
   for (const locale of localeBodies) {
     const recovery = locale.match(/^\s{4}verifyInstallationRecovery: '([^']+)'/m)?.[1];
     const reportLabel = locale.match(/^\s{4}reportIssueButton: '([^']+)'/m)?.[1];
@@ -996,7 +1217,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(uiText, /reinstallRequired: '此 Cavalry 安装缺少完整且可验证的原厂备份[^\n]*恢复英文[^\n]*重新安装 Cavalry \{supportedVersion\}[^\n]*重新打开语言切换器，再选择语言。'/);
   assert.match(uiText, /reinstallRequired: '此 Cavalry 安裝缺少完整且可驗證的原廠備份[^\n]*還原英文[^\n]*重新安裝 Cavalry \{supportedVersion\}[^\n]*重新開啟語言切換器，再選擇語言。'/);
   assert.match(uiText, /reinstallRequired: 'この Cavalry インストールには完全で検証済みの元のバックアップ[^\n]*英語への復元[^\n]*Cavalry \{supportedVersion\} を再インストール[^\n]*言語スイッチャーを開き直してから言語を選び直してください。'/);
-  assert.doesNotMatch(uiText, /Managed \/ Unverified|已管理|未验证|未驗證|管理済み \/ 未検証/);
+  assert.doesNotMatch(uiText, /(?:officialMode|modifiedMode|recoveryMode|officialBadge|modifiedBadge):[^\n]*(?:Managed \/ Unverified|已管理|未验证|未驗證|管理済み \/ 未検証)/);
   assert.doesNotMatch(
     uiText,
     /interrupted update|中断的更新|中斷的更新|中断した更新/,
@@ -1027,6 +1248,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     'obsolete Recovery/Refresh copy must stay deleted'
   );
   for (const key of [
+    'unknownLanguage',
     'officialBadge',
     'patchUpdateBadge',
     'languageOptionUpdateAria',
@@ -1108,6 +1330,29 @@ test('renderer localizes reinstall and composable warning-code paths without raw
       assert.match(body, new RegExp(`^\\s{4}${key}:`, 'm'), `${key} missing from a locale`);
     }
   }
+  const englishRestorePhaseCopies = [
+    ['Restoring English', 'English restored', 'Could not restore English'],
+    ['正在恢复英文', '已恢复英文', '无法恢复英文'],
+    ['正在還原英文', '已還原英文', '無法還原英文'],
+    ['英語を復元中', '英語に戻しました', '英語に戻せませんでした'],
+  ];
+  for (const [index, locale] of localeNames.entries()) {
+    const body = nativeCopies[locale];
+    assert.ok(body.nativeEnglishRestoreOnlyOutcome, 'every locale distinguishes restore from launch');
+    const [running, completed, error] = englishRestorePhaseCopies[index];
+    assert.equal(body.phaseApplyEnglishRestoreRunningTitle, running);
+    assert.equal(body.phaseApplyEnglishRestoreCompletedTitle, completed);
+    assert.equal(body.phaseApplyEnglishRestoreErrorTitle, error);
+    assert.ok(body.phaseVerifyEnglishRestoreRunningTitle, 'every locale avoids presenting profile English verification as host verification');
+    assert.ok(body.phaseVerifyEnglishRestoreCompletedTitle);
+    assert.ok(body.phaseVerifyEnglishRestoreErrorTitle);
+  }
+  for (const copy of [
+    'English restored. No verified compatible installation; Cavalry was not started.',
+    '已恢复英文。未验证到兼容安装，Cavalry 未启动。',
+    '已還原英文。未能驗證相容安裝，Cavalry 未啟動。',
+    '英語に戻しました。互換性のあるインストールを確認できないため、Cavalry は起動していません。',
+  ]) assert.ok(Object.values(nativeCopies).some((locale) => Object.values(locale).includes(copy)), `hostless Restore copy missing: ${copy}`);
   assert.doesNotMatch(app, /requiresCavalryReinstall|restoreIsBlockedByMissingBaseline/);
   assert.doesNotMatch(app, /startupRecoveryError|setStatus\('reinstallRequired', 'error'\)/);
   assert.match(app, /const restoreAction = state\.platform === 'macos' \? 'restore-official' : 'en';/);
@@ -1120,9 +1365,10 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(uiText, /reinstallRequired: 'reinstallCavalryTitle'/);
   assert.match(app, /warningCodes\.includes\('stateDurabilityPending'\)/);
   assert.match(app, /browseButton\.disabled[\s\S]*durabilityPending/);
-  const setBusyFunction = sourceFunction(app, 'function setBusy(isBusy) {', 'function updateLanguageOptions');
+  const setBusyFunction = sourceFunction(app, 'function setBusy(isBusy) {', 'function localizeShell');
   const applyDisabledStatement = sourceStatement(setBusyFunction, 'applyButton.disabled =');
   assert.match(applyDisabledStatement, /!languageSelect\.value/, 'Switch must require an explicit target-language choice');
+  assert.match(applyDisabledStatement, /!languageScope\.canSwitch\(\)/, 'missing native resources block only the Switch path');
   assert.match(applyDisabledStatement, /state\.controlsBlocked[\s\S]*durabilityPending;/);
   assert.doesNotMatch(applyDisabledStatement, /reinstallRequired/);
   assert.doesNotMatch(
@@ -1131,14 +1377,19 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     'a clean official install may auto-create its baseline on Apply'
   );
   const restoreDisabledStatement = sourceStatement(setBusyFunction, 'restoreButton.disabled =');
-  assert.match(restoreDisabledStatement, /restoreIsNeeded\(\)/);
+  assert.match(restoreDisabledStatement, /languageScope\.restoreIsNeeded\(state\.appPath, state\.currentLang, state\.englishRestoreNeeded\)/);
+  assert.match(restoreDisabledStatement, /state\.controlsBlocked && !languageScope\.hostlessRestoreAvailable\(state\.appPath\)/,
+    'only strict owned-image policy may bypass incompatible-host blocking for English Restore');
+  assert.doesNotMatch(restoreDisabledStatement, /languageScope\.canSwitch/, 'missing native resources must not disable Restore');
   assert.doesNotMatch(restoreDisabledStatement, /restoreIsBlockedByMissingBaseline\(\)/);
   assert.match(restoreDisabledStatement, /state\.controlsBlocked[\s\S]*durabilityPending;/);
-  const restoreNeededFunction = sourceFunction(app, 'function restoreIsNeeded() {', 'function isRestoreAction');
-  assert.match(restoreNeededFunction, /state\.currentLang !== 'en'/);
-  assert.match(restoreNeededFunction, /state\.englishRestoreNeeded/);
-  assert.doesNotMatch(restoreNeededFunction, /state\.platform === 'windows'/);
-  assert.doesNotMatch(restoreNeededFunction, /installationMode/, 'managed English must not expose a no-op Restore action');
+  assert.match(languageScope, /function restoreIsNeeded\(appPath, currentLang, reconciliationRequired\)/);
+  assert.match(languageScope, /function hostlessRestoreAvailable\(appPath\)/);
+  assert.match(languageScope, /nativeEnglishRestoreAvailable === true/);
+  assert.match(languageScope, /status\.versionCompatibility !== 'supported'/);
+  assert.match(languageScope, /currentLang !== 'en' \|\| reconciliationRequired/);
+  assert.doesNotMatch(languageScope, /platform === 'windows'/);
+  assert.doesNotMatch(languageScope, /installationMode/, 'managed English must not expose a no-op Restore action');
   const retryCallback = sourceFunction(app, 'onRetry: () => {', 'onError:');
   assert.match(app, /permissionRetryAttempt: 0/);
   assert.match(retryCallback, /state\.permissionRetryAttempt \+= 1;/);
@@ -1149,8 +1400,11 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     "async function runApply(nextLanguage, { attemptId = '' } = {}) {",
     'function handlePermissionButton'
   );
-  assert.match(runApplyFunction, /const restoring = isRestoreAction\(nextLanguage\);/);
-  assert.match(runApplyFunction, /const operationContext = \{ language, restoring, attemptId \};/);
+  assert.match(runApplyFunction, /const restoring = languageScope\.isRestoreAction\(nextLanguage\);/);
+  assert.match(runApplyFunction, /result\.nativeRestoreOnly === true\) operationLog\.complete\(t\('nativeEnglishRestoreOnlyOutcome'\)\)/);
+  assert.match(app, /languageScope\.phaseTitleKey\([\s\S]*?,\s*restoring\s*\)/);
+  assert.match(languageScope, /isUserProfile\(\) && restoring && phase === 'verifyInstallation'/);
+  assert.match(languageScope, /isUserProfile\(\) && restoring && phase === 'applyTransaction'/);
   assert.match(runApplyFunction, /setReportIssueVisible\(false\)/, 'a new operation must clear the previous report action');
   assert.match(app, /const id = attemptId \? `\$\{attemptId\}:\$\{phase\}` : phase;/);
   assert.match(runApplyFunction, /phase: 'verifyInstallation', state: 'running'/);
@@ -1200,6 +1454,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.doesNotMatch(app, /result\.warning(?!Codes)/, 'app.js must never render backend warning prose');
   assert.doesNotMatch(app, /result\.error\b/, 'app.js must never render backend error prose');
   assert.match(runApplyFunction, /result\.errorCode === 'reinstallRequired'[\s\S]*?title: t\('reinstallCavalryTitle'\)[\s\S]*?description: t\('reinstallRequired', \{ supportedVersion: state\.supportedVersion \}\)/);
+  assert.match(runApplyFunction, /languageScope\.failureTextKey\(result\.errorCode\)[\s\S]*?nativeUserLanguageFailureTitle/);
   assert.match(bridge, /WARNING_CODE_MANIFEST/);
   assert.match(bridge, /warning:\s*null/);
   assert.match(bridge, /warningCodes:\s*Object\.freeze/);
@@ -1233,8 +1488,11 @@ test('typed reinstallRequired replaces the failed phase with an actionable offic
     setBusy(value) { state.busy = value; },
     setPermissionWait() {},
     setReportIssueVisible(value) { reportIssueVisibility.push(value); },
-    languageLabel: (language) => language,
-    isRestoreAction: () => false,
+    languageScope: {
+      languageLabel: (language) => language,
+      isRestoreAction: () => false,
+      failureTextKey: () => null,
+    },
     t: (key, params = {}) => `${key}:${params.supportedVersion || ''}`,
     operationPhaseCopy: ({ phase, state: phaseState }) => ({
       id: phase,
@@ -1330,5 +1588,118 @@ test('UI Review patch fixtures preserve update state on rejection and converge o
       assert.deepEqual(JSON.parse(JSON.stringify(events.at(-1))), { phase: 'applyTransaction', state: 'error' });
     }
     assert.match(workspaceHtml(), new RegExp('data-scenario="' + scenario + '"'));
+  }
+});
+
+test('UI Review native preview fixtures separate locale state, installation source, and the legacy release boundary', async () => {
+  const fixtures = [
+    ['nativeDefaultEnglish', {
+      version: '2.8.0', supportedVersion: '2.8.0', versionCompatibility: 'supported',
+      languageScope: 'userProfile', nativeResourceAvailable: true, currentLang: 'en',
+      nativeLocaleState: 'unset', patchStatus: 'notApplicable', installationMode: 'unknown',
+      officialRecoveryAvailable: false, nativeEnglishRestoreAvailable: false, reconciliationRequired: false,
+    }],
+    ['nativeOfficialDefaultEnglish', {
+      version: '2.8.0', supportedVersion: '2.8.0', versionCompatibility: 'supported',
+      languageScope: 'userProfile', nativeResourceAvailable: true, currentLang: 'en',
+      nativeLocaleState: 'unset', patchStatus: 'notApplicable', installationMode: 'official',
+      officialRecoveryAvailable: false, nativeEnglishRestoreAvailable: false, reconciliationRequired: false,
+    }],
+    ['nativeOwnedHans', {
+      version: '2.8.0', supportedVersion: '2.8.0', versionCompatibility: 'supported',
+      languageScope: 'userProfile', nativeResourceAvailable: true, currentLang: 'zh-Hans',
+      nativeLocaleState: 'explicit', patchStatus: 'current', installationMode: 'unknown',
+      officialRecoveryAvailable: false, nativeEnglishRestoreAvailable: false, reconciliationRequired: false,
+    }],
+    ['nativeUnknown', {
+      version: '2.8.0', supportedVersion: '2.8.0', versionCompatibility: 'supported',
+      languageScope: 'userProfile', nativeResourceAvailable: true, currentLang: 'unknown',
+      patchStatus: 'unknown', reconciliationRequired: false,
+    }],
+    ['nativeResourceUnavailable', {
+      version: '2.8.0', supportedVersion: '2.8.0', versionCompatibility: 'supported',
+      languageScope: 'userProfile', nativeResourceAvailable: false, currentLang: 'zh-Hans',
+      patchStatus: 'current', reconciliationRequired: false,
+    }],
+    ['nativeRecoveryNoResources', {
+      version: '2.8.0', supportedVersion: '2.8.0', versionCompatibility: 'supported',
+      languageScope: 'userProfile', nativeResourceAvailable: false, currentLang: 'unknown',
+      patchStatus: 'unknown', reconciliationRequired: true,
+    }],
+    ['nativeLegacyRelease', {
+      version: '2.7.2', supportedVersion: '2.8.0', versionCompatibility: 'olderUnsupported',
+      languageScope: 'userProfile', nativeResourceAvailable: true, currentLang: 'en',
+      patchStatus: 'notApplicable', reconciliationRequired: false,
+    }],
+    ['nativeRestoreOnly', {
+      version: '2.8.0', supportedVersion: '2.8.0', versionCompatibility: 'unknownUnsupported',
+      languageScope: 'userProfile', installationMode: 'unknown', nativeResourceAvailable: false, currentLang: 'zh-Hans',
+      nativeEnglishRestoreAvailable: true, appPath: '', reconciliationRequired: false,
+    }],
+    ['nativeRestoreOnlyHostFailure', {
+      version: '2.8.0', supportedVersion: '2.8.0', versionCompatibility: 'supported',
+      languageScope: 'userProfile', installationMode: 'unknown', nativeResourceAvailable: false, currentLang: 'zh-Hans',
+      nativeEnglishRestoreAvailable: true, appPath: '/Applications/Cavalry.app', reconciliationRequired: false,
+    }],
+  ];
+
+  for (const [scenario, expected] of fixtures) {
+    const window = { addEventListener() {} };
+    vm.runInNewContext(fixtureSource(), {
+      window, navigator: {}, URLSearchParams, location: { search: '?scenario=' + scenario },
+      setTimeout: (resolve) => resolve(),
+    });
+    const status = await window.cavalryI18n.getStatus();
+    for (const [key, value] of Object.entries(expected)) {
+      assert.equal(status[key], value, `${scenario}.${key}`);
+    }
+  }
+});
+
+test('UI Review projects owned Simplified Chinese as unknown and does not infer installation source from locale', async () => {
+  for (const [scenario, nextLanguage, expectedMode] of [
+    ['nativeDefaultEnglish', 'zh-Hans', 'unknown'],
+    ['nativeOfficialDefaultEnglish', 'zh-Hans', 'official'],
+    ['nativeOwnedHans', 'en', 'unknown'],
+  ]) {
+    const window = { addEventListener() {} };
+    vm.runInNewContext(fixtureSource(), {
+      window, navigator: {}, URLSearchParams, location: { search: '?scenario=' + scenario },
+      setTimeout: (resolve) => resolve(),
+    });
+    assert.equal((await window.cavalryI18n.getStatus()).installationMode, expectedMode, `${scenario} starts from the evidenced source state`);
+    const result = await window.cavalryI18n.applyLanguage('/fixture', nextLanguage);
+    assert.equal(result.ok, true, `${scenario} changes language in the fixture`);
+    const after = await window.cavalryI18n.getStatus();
+    assert.equal(after.currentLang, nextLanguage, `${scenario} projects the changed locale`);
+    assert.equal(after.installationMode, expectedMode, `${scenario} does not infer source from locale`);
+    assert.equal(after.officialRecoveryAvailable, false, `${scenario} does not invent installation recovery ownership`);
+    assert.equal(after.nativeEnglishRestoreAvailable, false, `${scenario} does not grant English restore ownership`);
+  }
+});
+
+test('UI Review restoreOnly fixtures model owned hostless and same-version host-probe failure without a restart phase', async () => {
+  for (const [scenario, expectedVerifyState, appPath] of [
+    ['nativeRestoreOnly', 'completed', ''],
+    ['nativeRestoreOnlyHostFailure', 'completed', '/Applications/Cavalry.app'],
+  ]) {
+    const window = { addEventListener() {} };
+    vm.runInNewContext(fixtureSource(), {
+      window, navigator: {}, URLSearchParams, location: { search: `?scenario=${scenario}` },
+      setTimeout: (resolve) => resolve(),
+    });
+    const events = [];
+    const result = await window.cavalryI18n.applyLanguage(appPath, 'en', (event) => events.push(event));
+    assert.equal(result.ok, true, `${scenario} restore commits`);
+    assert.equal(result.nativeRestoreOnly, true, `${scenario} does not claim Cavalry launch`);
+    assert.deepEqual(events.map(({ phase, state }) => [phase, state]), [
+      ['verifyInstallation', 'running'], ['verifyInstallation', expectedVerifyState],
+      ['ensureBaseline', 'running'], ['ensureBaseline', 'completed'],
+      ['applyTransaction', 'running'], ['applyTransaction', 'completed'],
+    ], `${scenario} reports the actual three phases and never a restart`);
+    const after = await window.cavalryI18n.getStatus();
+    assert.equal(after.currentLang, 'en');
+    assert.equal(after.nativeEnglishRestoreAvailable, false);
+    assert.equal(after.installationMode, 'unknown', `${scenario} cannot promote a failed host probe to official`);
   }
 });

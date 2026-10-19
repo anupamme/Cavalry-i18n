@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 windows_nsis_provenance_contract.js、renderer/languages、Windows Tauri/Rust/NSIS/updater overlay、package manifests、共享 translation/input/Quick Add context/display/顶部标签/search/Classic/Quick Add 描述 policy 与生成输入、已编译 generic/QPA 与显式 x64 NSIS 输出
+ * [INPUT]: 依赖 windows_nsis_provenance_contract.js、renderer/2.8 production原生三语包、Windows Tauri/Rust/NSIS hooks与配置语言文件/updater overlay、package manifests、共享 translation/input/Quick Add context/display/顶部标签/search/Classic/Quick Add 描述 policy 与生成输入、已编译 generic/QPA 与显式 x64 NSIS 输出
  * [OUTPUT]: 对外提供 prepare/record/verify 三阶段 provenance 与生产文档构造器；普通构建拒绝任意 `.exe.sig`，tag 构建以 intent 要求并绑定 exact Tauri updater signature，同时保持 installer/native 输入与 canonical identity 校验
  * [POS]: tools 的 Windows 打包自证器；构建前只清本版本受控 EXE/provenance/signature，拒绝外国或陈旧输出，构建后封闭人工安装与 updater 共用 NSIS 字节
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -14,6 +14,8 @@ const {
   createWindowsNsisProvenance,
   validateWindowsNsisProvenance,
 } = require('./windows_nsis_provenance_contract');
+
+const { WINDOWS_PRODUCTION_CONFIGS } = require('./windows_native_build');
 
 const INTENT_FILE_NAME = 'cavalry-i18n-windows-nsis-build-intent.json';
 
@@ -242,12 +244,16 @@ function collectConfiguredBundleResources(repoRoot, results) {
   );
   const frontendDist = tauriConfig.build && tauriConfig.build.frontendDist;
   collectConfiguredPath(repoRoot, frontendDist, 'Tauri frontendDist', results);
-  const resources = windowsConfig.bundle && windowsConfig.bundle.resources;
+  const runtimeConfig = readJson(
+    path.join(repoRoot, 'src-tauri', 'tauri.native-windows-2.8.conf.json'),
+    'Windows 2.8 production runtime overlay'
+  );
+  const resources = runtimeConfig.bundle && runtimeConfig.bundle.resources;
   if (!resources || Array.isArray(resources) || typeof resources !== 'object') {
     fail('Windows Tauri bundle.resources must be a non-empty source-to-destination object.');
   }
   const requiredResources = {
-    '../languages': 'languages',
+    'target/native-language-packs': 'target/native-language-packs',
     '../injector/windows/generic/cavalryi18n.dll': 'injector/windows/generic/cavalryi18n.dll',
     '../injector/windows/qpa/qwindows.dll': 'injector/windows/qpa/qwindows.dll',
   };
@@ -259,59 +265,43 @@ function collectConfiguredBundleResources(repoRoot, results) {
   for (const sourcePath of Object.keys(resources).sort()) {
     collectConfiguredPath(repoRoot, sourcePath, `Windows Tauri bundle resource ${sourcePath}`, results);
   }
-  const installerHooks = windowsConfig.bundle
-    && windowsConfig.bundle.windows
-    && windowsConfig.bundle.windows.nsis
-    && windowsConfig.bundle.windows.nsis.installerHooks;
-  collectConfiguredPath(repoRoot, installerHooks, 'Windows NSIS installerHooks', results);
+  const nsis = windowsConfig.bundle.windows && windowsConfig.bundle.windows.nsis;
+  collectConfiguredPath(repoRoot, nsis && nsis.installerHooks, 'Windows NSIS installerHooks', results);
+  for (const [locale, sourcePath] of Object.entries(nsis.customLanguageFiles || {}).sort()) {
+    collectConfiguredPath(repoRoot, sourcePath, `Windows NSIS customLanguageFiles ${locale}`, results);
+  }
 }
 
 function collectInputFingerprint(repoRoot) {
   const files = [];
   collectConfiguredBundleResources(repoRoot, files);
-  collectRegularFiles(
-    repoRoot,
-    path.join('injector', 'windows'),
-    (relativePath) => {
-      const name = path.posix.basename(relativePath);
-      return name === 'CMakeLists.txt'
-        || /\.(?:cpp|h|json|ps1)$/i.test(name);
-    },
-    files
-  );
-  collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_translation_policy.h'), files);
-  collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_input_policy.h'), files);
-  collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_quick_add_context.h'), files);
-  collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_quick_add_display.h'), files);
-  collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_quick_add_tabs.h'), files);
-  collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_search_policy.h'), files);
-  collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_classic_search.h'), files);
-  collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_classic_rank.h'), files);
-  collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_search_descriptions.h'), files);
-  collectExactInput(repoRoot, path.join('injector', 'generated_translations.inc'), files);
-  collectExactInput(repoRoot, path.join('injector', 'generated_quick_add_descriptions.inc'), files);
+  for (const directory of ['injector/windows', 'injector/native']) {
+    collectRegularFiles(repoRoot, directory,
+      relativePath => /(?:CMakeLists\.txt|\.(?:cpp|h|mm|json))$/.test(relativePath), files);
+  }
+  collectRegularFiles(repoRoot, 'languages/native', relativePath => relativePath.endsWith('.js'), files);
+  collectRegularFiles(repoRoot, 'tools', relativePath =>
+    /^tools\/(?:native_|build_native_|generate_demo_reader_tables|windows_native_build|windows_nsis_provenance)/.test(relativePath)
+      && relativePath.endsWith('.js') && !relativePath.endsWith('.test.js'), files);
   collectRegularFiles(repoRoot, path.join('src-tauri', 'src'), () => true, files);
   collectRegularFiles(repoRoot, path.join('src-tauri', 'capabilities'), () => true, files);
   collectRegularFiles(repoRoot, path.join('src-tauri', 'icons'), () => true, files);
   for (const relativePath of [
-    'package.json',
-    'package-lock.json',
-    path.join('src-tauri', 'Cargo.toml'),
-    path.join('src-tauri', 'Cargo.lock'),
-    path.join('src-tauri', 'build.rs'),
-    path.join('src-tauri', 'tauri.conf.json'),
-    path.join('src-tauri', 'tauri.windows.conf.json'),
-    path.join('src-tauri', 'tauri.updater-artifacts.conf.json'),
-    path.join('tools', 'generate_quick_add_descriptions.js'),
+    'injector/native/getpath_font_texts.inc',
+    'injector/native/getpath_graph_editor_empty_texts.inc',
+    'injector/cavalry_i18n_macos_timeline_font_policy.h',
+    'package.json', 'package-lock.json',
+    'src-tauri/Cargo.toml', 'src-tauri/Cargo.lock', 'src-tauri/build.rs',
+    'src-tauri/tauri.conf.json', ...WINDOWS_PRODUCTION_CONFIGS,
+    'src-tauri/tauri.updater-artifacts.conf.json',
+    'tools/cavalry_native_target.json', 'tools/cavalry_native_windows_target.json',
   ]) {
     collectExactInput(repoRoot, relativePath, files);
   }
   files.sort((left, right) => left.path.localeCompare(right.path, 'en'));
   const duplicate = files.find((entry, index) => index > 0 && entry.path === files[index - 1].path);
-  if (duplicate) {
-    fail(`input fingerprint contains duplicate path: ${duplicate.path}`);
-  }
-  const serialized = files.map((entry) => `${entry.path}\t${entry.bytes}\t${entry.sha256}\n`).join('');
+  if (duplicate) fail(`input fingerprint contains duplicate path: ${duplicate.path}`);
+  const serialized = files.map(entry => `${entry.path}\t${entry.bytes}\t${entry.sha256}\n`).join('');
   return {
     algorithm: 'sha256',
     value: crypto.createHash('sha256').update(serialized, 'utf8').digest('hex'),

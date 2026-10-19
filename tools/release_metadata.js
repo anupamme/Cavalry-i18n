@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 release.config.json、package.json 与 GitHub tag 环境变量
- * [OUTPUT]: 对外提供 release tag 校验、人工安装资产与 updater manifest/签名资产命名、GitHub Actions 环境变量写入能力及共享元数据解析函数
- * [POS]: tools 的发布协议守门器，把内部 SemVer 与 Cavalry 目标版本补丁号分离
+ * [INPUT]: 依赖默认 release.config.json 或显式 release profile、package.json 与 GitHub tag 环境变量
+ * [OUTPUT]: 对外提供 profile-aware tag/资产元数据与 GitHub Actions 环境变量写入能力；默认 profile 保持 2.7 协议
+ * [POS]: tools 的发布协议守门器；显式 profile 扩展发行，不改变默认 2.7 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -12,6 +12,7 @@ const path = require('node:path');
 
 const rootDir = process.cwd();
 const args = process.argv.slice(2);
+const DEFAULT_PROFILE = 'release.config.json';
 const RELEASE_ASSET_TEMPLATE_KEYS = Object.freeze(['aarch64', 'windowsX64', 'x64']);
 const UPDATER_MACOS_ASSET_TEMPLATE_KEYS = Object.freeze(['aarch64', 'x64']);
 
@@ -21,12 +22,23 @@ function readJson(relativePath) {
 
 function requireString(value, field) {
   if (typeof value !== 'string' || value.length === 0) {
-    throw new Error(`release.config.json ${field} must be a non-empty string.`);
+    throw new Error(`Release profile ${field} must be a non-empty string.`);
   }
 }
 
-function loadConfig() {
-  const config = readJson('release.config.json');
+function optionValue(name) {
+  const index = args.indexOf(name);
+  if (index === -1) return null;
+  const value = args[index + 1];
+  if (!value || value.startsWith('--')) throw new Error(`${name} requires a value.`);
+  return value;
+}
+
+function loadConfig(profilePath = null) {
+  const selectedPath = profilePath || optionValue('--profile') || DEFAULT_PROFILE;
+  const resolvedProfilePath = path.resolve(rootDir, selectedPath);
+  const defaultProfile = resolvedProfilePath === path.resolve(rootDir, DEFAULT_PROFILE);
+  const config = JSON.parse(fs.readFileSync(resolvedProfilePath, 'utf8'));
   for (const field of [
     'targetCavalryVersion',
     'releaseTagPrefix',
@@ -36,56 +48,78 @@ function loadConfig() {
     requireString(config[field], field);
   }
   if (!config.assetNameTemplates || typeof config.assetNameTemplates !== 'object') {
-    throw new Error('release.config.json assetNameTemplates must be an object.');
+    throw new Error('Release profile assetNameTemplates must be an object.');
   }
   const assetTemplateKeys = Object.keys(config.assetNameTemplates).sort();
   if (assetTemplateKeys.join(',') !== RELEASE_ASSET_TEMPLATE_KEYS.join(',')) {
     throw new Error(
-      'release.config.json must define exactly aarch64, x64, and windowsX64 assets; x86/i686 releases are unsupported.'
+      'Release profile must define exactly aarch64, x64, and windowsX64 assets; x86/i686 releases are unsupported.'
     );
   }
   for (const field of RELEASE_ASSET_TEMPLATE_KEYS) {
     requireString(config.assetNameTemplates[field], `assetNameTemplates.${field}`);
   }
   if (!config.updater || typeof config.updater !== 'object') {
-    throw new Error('release.config.json updater must be an object.');
+    throw new Error('Release profile updater must be an object.');
   }
   requireString(config.updater.manifestAssetName, 'updater.manifestAssetName');
   requireString(config.updater.downloadBaseUrl, 'updater.downloadBaseUrl');
-  if (config.updater.manifestAssetName !== 'latest.json') {
-    throw new Error('release.config.json updater.manifestAssetName must remain latest.json.');
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]*\.json$/.test(config.updater.manifestAssetName)) {
+    throw new Error('Release profile updater.manifestAssetName must be a safe JSON asset name.');
+  }
+  if (defaultProfile && config.updater.manifestAssetName !== 'latest.json') {
+    throw new Error('Default release.config.json updater.manifestAssetName must remain latest.json.');
   }
   let downloadBaseUrl;
   try {
     downloadBaseUrl = new URL(config.updater.downloadBaseUrl);
   } catch {
-    throw new Error('release.config.json updater.downloadBaseUrl must be a valid HTTPS URL.');
+    throw new Error('Release profile updater.downloadBaseUrl must be a valid HTTPS URL.');
   }
   if (downloadBaseUrl.protocol !== 'https:' || downloadBaseUrl.search || downloadBaseUrl.hash) {
-    throw new Error('release.config.json updater.downloadBaseUrl must be an HTTPS URL without query or fragment.');
+    throw new Error('Release profile updater.downloadBaseUrl must be an HTTPS URL without query or fragment.');
   }
   config.updater.downloadBaseUrl = downloadBaseUrl.toString().replace(/\/$/, '');
+  if (config.updater.assetDownloadBaseUrlTemplate !== undefined) {
+    requireString(config.updater.assetDownloadBaseUrlTemplate, 'updater.assetDownloadBaseUrlTemplate');
+    const template = config.updater.assetDownloadBaseUrlTemplate;
+    if (template.split('${tag}').length !== 2) {
+      throw new Error('Release profile updater.assetDownloadBaseUrlTemplate must contain ${tag} exactly once.');
+    }
+    const sampleTag = `${config.releaseTagPrefix}1`;
+    let assetBaseUrl;
+    try { assetBaseUrl = new URL(template.replace('${tag}', sampleTag)); } catch {
+      throw new Error('Release profile updater.assetDownloadBaseUrlTemplate must produce a valid HTTPS URL.');
+    }
+    if (assetBaseUrl.protocol !== 'https:' || assetBaseUrl.search || assetBaseUrl.hash) {
+      throw new Error('Release profile updater.assetDownloadBaseUrlTemplate must produce HTTPS without query or fragment.');
+    }
+    config.updater.assetDownloadBaseUrlTemplate = assetBaseUrl.toString()
+      .replace(sampleTag, '${tag}')
+      .replace(/\/$/, '');
+  }
+  if (config.updater.legacyManifestAssetName !== undefined) {
+    requireString(config.updater.legacyManifestAssetName, 'updater.legacyManifestAssetName');
+    if (
+      defaultProfile ||
+      config.updater.legacyManifestAssetName !== 'latest.json' ||
+      config.updater.legacyManifestAssetName === config.updater.manifestAssetName ||
+      !config.updater.assetDownloadBaseUrlTemplate
+    ) {
+      throw new Error('Only an explicit profile may add frozen latest.json beside a tag-pinned updater feed.');
+    }
+  }
   if (!config.updater.macOSAssetNameTemplates || typeof config.updater.macOSAssetNameTemplates !== 'object') {
-    throw new Error('release.config.json updater.macOSAssetNameTemplates must be an object.');
+    throw new Error('Release profile updater.macOSAssetNameTemplates must be an object.');
   }
   const updaterTemplateKeys = Object.keys(config.updater.macOSAssetNameTemplates).sort();
   if (updaterTemplateKeys.join(',') !== UPDATER_MACOS_ASSET_TEMPLATE_KEYS.join(',')) {
-    throw new Error('release.config.json updater.macOSAssetNameTemplates must define exactly aarch64 and x64.');
+    throw new Error('Release profile updater.macOSAssetNameTemplates must define exactly aarch64 and x64.');
   }
   for (const field of UPDATER_MACOS_ASSET_TEMPLATE_KEYS) {
     requireString(config.updater.macOSAssetNameTemplates[field], `updater.macOSAssetNameTemplates.${field}`);
   }
   return config;
-}
-
-function optionValue(name) {
-  const index = args.indexOf(name);
-  if (index === -1) return null;
-  const value = args[index + 1];
-  if (!value || value.startsWith('--')) {
-    throw new Error(`${name} requires a value.`);
-  }
-  return value;
 }
 
 function renderTemplate(template, patch) {
@@ -107,6 +141,9 @@ function metadataForTag(config, tag) {
   const windowsAsset = renderTemplate(config.assetNameTemplates.windowsX64, patch);
   const updaterAarch64Asset = renderTemplate(config.updater.macOSAssetNameTemplates.aarch64, patch);
   const updaterX64Asset = renderTemplate(config.updater.macOSAssetNameTemplates.x64, patch);
+  const updaterAssetBaseUrl = config.updater.assetDownloadBaseUrlTemplate
+    ? config.updater.assetDownloadBaseUrlTemplate.replace('${tag}', tag).replace(/\/$/, '')
+    : config.updater.downloadBaseUrl;
   return {
     RELEASE_TAG: tag,
     RELEASE_PATCH: patch,
@@ -117,7 +154,9 @@ function metadataForTag(config, tag) {
     RELEASE_ASSET_NAME_X64: renderTemplate(config.assetNameTemplates.x64, patch),
     RELEASE_ASSET_NAME_WINDOWS_X64: windowsAsset,
     RELEASE_UPDATER_MANIFEST_NAME: config.updater.manifestAssetName,
+    RELEASE_UPDATER_LEGACY_MANIFEST_NAME: config.updater.legacyManifestAssetName || '',
     RELEASE_UPDATER_DOWNLOAD_BASE_URL: config.updater.downloadBaseUrl,
+    RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL: updaterAssetBaseUrl,
     RELEASE_UPDATER_ASSET_NAME_AARCH64: updaterAarch64Asset,
     RELEASE_UPDATER_ASSET_NAME_X64: updaterX64Asset,
     RELEASE_UPDATER_SIGNATURE_NAME_AARCH64: `${updaterAarch64Asset}.sig`,
@@ -134,9 +173,28 @@ function writeGithubEnv(metadata) {
   console.log(lines.join('\n'));
 }
 
-function checkProtocol(config) {
+function checkProtocol(config, profilePath = DEFAULT_PROFILE) {
   const sampleTag = `${config.releaseTagPrefix}1`;
   const sample = metadataForTag(config, sampleTag);
+  if (path.resolve(rootDir, profilePath) !== path.resolve(rootDir, DEFAULT_PROFILE)) {
+    if (
+      sample.RELEASE_UPDATER_MANIFEST_NAME !== config.updater.manifestAssetName ||
+      sample.RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL !== (
+        config.updater.assetDownloadBaseUrlTemplate
+          ? config.updater.assetDownloadBaseUrlTemplate.replace('${tag}', sampleTag).replace(/\/$/, '')
+          : config.updater.downloadBaseUrl
+      )
+    ) {
+      throw new Error('Explicit release profile does not produce its declared updater metadata.');
+    }
+    if (config.updater.legacyManifestAssetName && sample.RELEASE_UPDATER_LEGACY_MANIFEST_NAME !== 'latest.json') {
+      throw new Error('Explicit dual-feed profile must preserve the fixed legacy latest.json name.');
+    }
+    if (new RegExp(config.releaseTagPattern).test('v0.1.11')) {
+      throw new Error('releaseTagPattern must reject internal SemVer tags.');
+    }
+    return;
+  }
   if (sample.RELEASE_TITLE !== 'Cavalry Language Switcher for Cavalry 2.7.2 patch 1') {
     throw new Error('releaseTitleTemplate does not render the frozen title contract.');
   }
@@ -167,15 +225,25 @@ function checkProtocol(config) {
   ) {
     throw new Error('Updater signature names must derive from their exact signed artifact names.');
   }
+  if (
+    sample.RELEASE_UPDATER_MANIFEST_NAME !== 'latest.json' ||
+    sample.RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL !== config.updater.downloadBaseUrl ||
+    sample.RELEASE_UPDATER_LEGACY_MANIFEST_NAME !== ''
+  ) {
+    throw new Error('Default release.config.json must preserve the frozen 2.7 updater feed contract.');
+  }
   if (new RegExp(config.releaseTagPattern).test('v0.1.11')) {
     throw new Error('releaseTagPattern must reject internal SemVer tags.');
   }
 }
 
 function main() {
-  const config = loadConfig();
+  const profilePath = optionValue('--profile') || DEFAULT_PROFILE;
+  const config = loadConfig(profilePath);
   if (args.includes('--check')) {
-    checkProtocol(config);
+    checkProtocol(config, profilePath);
+    const explicitTag = optionValue('--tag');
+    if (explicitTag) metadataForTag(config, explicitTag);
     console.log('[release-metadata] OK: release protocol is stable');
     return;
   }

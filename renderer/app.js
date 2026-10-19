@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖冻结 bridge 的轻量安装观察/版本兼容、有序阶段事件、Permission handoff、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、Windows 预注入平台标记驱动的首帧 caption/compositor 外壳、渐进安装选择、版本只读门禁、带语言补丁状态徽章且仅在已是最新时禁用当前语言的目标 Select、四语 Switch/Update 主动作（对象由语言选择框提供）、三轨 Activity、普通 verifyInstallation 失败时才显露固定 Issue 表单入口、语言/Official Badge、直接 Switch、跨平台未提交 marker 与 Windows runtime 残留共用的单一 Restore English、缺少完整官方恢复基线时由 typed reinstallRequired 失败原位呈现官方重装/重开/重试路径、仅由真实 typed PermissionDenied 触发的 macOS handoff（瞬时 Alert 动作正向飞出、显式 Back 回到持久 Activity 动作、业务结论直接清层）、Windows UAC 分流、App Management 仍拒绝后的明确重开提示、只展示更新动作边界而不内嵌 changelog 的 Updater 确认，以及外围失败 Toast。
- * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不扫描、推断或展示 Switcher 内部 journal/签名清理；启动只消费后端只读投影的安装、版本、当前语言与 Restore 必要性，Switch/Restore 才进入完整证明与安全事务，typed 权限拒绝才把失败阶段收敛为链尾阻塞项，业务阶段失败不得冒充桌面服务断线。
+ * [INPUT]: 依赖冻结 bridge 的 installation/userProfile 状态投影、有序阶段事件、language-scope/version-guidance 策略、project-link-control固定外链适配、Permission handoff、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
+ * [OUTPUT]: 对外提供跨平台单任务流、按 scope 呈现当前语言或 userProfile 英文默认状态与确认/恢复策略、两平台原生profile的后端Official投影、结构化默认安装候选显示、用户级Switch直达事务与跨副本退出提示、资源不可用时仅禁 Switch、用户级英文恢复的宿主无关验证阶段、严格 nativeRestoreOnly 结果的未启动终态、失败回执触发的只读 reconciliation 刷新、精确版本门控的 legacyRelease 下载入口，以及既有安装级 Switch/Restore、权限分流、Updater、固定外链适配和不入 Activity 的支持 footer。
+ * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不扫描、推断或展示 Switcher 内部 journal/签名清理；启动只消费后端只读 scope/版本/语言/回执投影，appPath 始终是重启目标；固定 userProfile 预览提示逐批资源边界，事务错误只映射本地固定文案，Windows 与 installation 文案/路径保持原样。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const appVersion = document.querySelector('#appVersion');
@@ -32,6 +32,7 @@ const browseButton = document.querySelector('#browseButton');
 const applyButton = document.querySelector('#applyButton');
 const restoreButton = document.querySelector('#restoreButton');
 const permissionButton = document.querySelector('#permissionButton');
+const legacyReleaseButton = document.querySelector('#legacyReleaseButton');
 const reportIssueButton = document.querySelector('#reportIssueButton');
 const statusLabel = document.querySelector('#statusLabel');
 const statusText = document.querySelector('#statusText');
@@ -42,7 +43,6 @@ const modalTitle = document.querySelector('#modalTitle');
 const modalBody = document.querySelector('#modalBody');
 const modalPrimaryButton = document.querySelector('#modalPrimaryButton');
 const modalSecondaryButton = document.querySelector('#modalSecondaryButton');
-
 const languageSelectControl = window.createSelectControl({
   root: languageSelectRoot,
   select: languageSelect,
@@ -68,7 +68,7 @@ const updateTooltipControl = window.createTooltipControl({
 });
 const api = window.cavalryI18n;
 const state = {
-  appPath: '', currentLang: 'en', installationMode: 'unknown', languages: [],
+  appPath: '', currentLang: 'en', nativeLocaleState: '', installationMode: 'unknown', languages: [],
   versionCompatibility: 'supported', supportedVersion: '2.7.2', patchStatus: 'unknown',
   platform: '', pendingAction: '',
   ready: false, busy: false, controlsBlocked: false,
@@ -88,10 +88,28 @@ let modalPrimaryAction = null;
 let modalSecondaryAction = null;
 let modalReturnFocus = null;
 const uiLocale = detectUiLocale();
+const languageScope = window.createLanguageScopeController({ text: t });
+const versionGuidance = window.cavalryVersionGuidance;
 const windowControls = window.createWindowControls({ api, text: t, icons: window.cavalryIcons });
 const toastControl = window.createToastControl({
   label: t('notifications'),
   closeLabel: t('close'),
+});
+const openProjectLink = window.createProjectLinkControl({ api, text: t, toast: toastControl });
+const supportFooterControl = window.createSupportFooterControl({
+  message: document.querySelector('#supportFooterMessage'),
+  nav: document.querySelector('#supportFooterLinks'),
+  icons: window.cavalryIcons,
+  text: t,
+  openProjectLink,
+  links: {
+    github: document.querySelector('#supportGithubLink'),
+    githubIcon: document.querySelector('#supportGithubIcon'),
+    twitter: document.querySelector('#supportTwitterLink'),
+    twitterIcon: document.querySelector('#supportTwitterIcon'),
+    xiaohongshu: document.querySelector('#supportXiaohongshuLink'),
+    xiaohongshuIcon: document.querySelector('#supportXiaohongshuIcon'),
+  },
 });
 const aboutControl = window.createAboutControl({
   api,
@@ -150,8 +168,7 @@ function t(key, params = {}) {
   return text.replace(/\{(\w+)\}/g, (_, name) => String(params[name] ?? ''));
 }
 function syncApplyButtonLabel() {
-  const updatingCurrentLanguage = Boolean(languageSelect.value) && languageSelect.value === state.currentLang;
-  applyButton.textContent = t(updatingCurrentLanguage ? 'updateLanguagePatch' : 'apply');
+  applyButton.textContent = t(languageScope.applyLabelKey(state.currentLang, languageSelect.value));
 }
 async function recoverOperationFailure() {
   operationLog.finishRunning('error');
@@ -177,21 +194,6 @@ function setPermissionWait(isWaiting) {
 function setReportIssueVisible(isVisible) {
   reportIssueButton.hidden = !isVisible;
   operationLog.remeasure();
-}
-function showProjectLinkFailure() {
-  toastControl.show({
-    type: 'error',
-    title: t('projectLinkFailedTitle'),
-    description: t('openProjectLinkFailed'),
-  });
-}
-async function openIssueReport() {
-  try {
-    const result = await api.openProjectLink('reportIssue');
-    if (!result?.ok) showProjectLinkFailure();
-  } catch (_) {
-    showProjectLinkFailure();
-  }
 }
 function setStatus(key, tone = 'neutral', params = {}, messageOverride = null) {
   const message = messageOverride ?? t(key, params);
@@ -219,19 +221,6 @@ function operationStateForTone(tone) {
 }
 function installationSelectionIsRequired() { return !state.appPath; }
 function syncInstallationSelection() { browseButton.hidden = !installationSelectionIsRequired(); }
-function restoreIsNeeded() {
-  return Boolean(state.appPath) && (state.currentLang !== 'en' || state.englishRestoreNeeded);
-}
-function isRestoreAction(action) {
-  return action === 'restore-official' || action === 'en';
-}
-function unsupportedVersionStatusKey() {
-  if (state.versionCompatibility === 'olderUnsupported') return 'olderVersionUnsupported';
-  if (state.versionCompatibility === 'newerUnsupported') return 'newerVersionUnsupported';
-  if (state.versionCompatibility === 'unknownUnsupported') return 'unknownVersionUnsupported';
-  return null;
-}
-
 const WARNING_TEXT_KEYS = Object.freeze({
   restartFailed: 'restartWarning',
   stateDurabilityPending: 'warningStateDurabilityPending',
@@ -273,9 +262,12 @@ function operationPhaseCopy({ phase, state: phaseState }, context) {
           : 'phaseApply';
     const copyState = phaseState === 'warning' ? 'completed' : phaseState;
     const description = phase === 'verifyInstallation' && phaseState === 'error' ? t('verifyInstallationRecovery', { supportedVersion: state.supportedVersion }) : '';
+    const titleKey = languageScope.phaseTitleKey(
+      phase, copyState, `${prefix}${copyState[0].toUpperCase()}${copyState.slice(1)}Title`, restoring
+    );
     return {
       id,
-      title: t(`${prefix}${copyState[0].toUpperCase()}${copyState.slice(1)}Title`, { language }),
+      title: t(titleKey, { language }),
       description,
       state: phaseState,
       icon: phaseState === 'completed' ? (restoring && phase === 'applyTransaction' ? 'restore' : PHASE_ICONS[phase]) : undefined,
@@ -313,47 +305,19 @@ function setBusy(isBusy) {
     isBusy ||
     !state.appPath ||
     !languageSelect.value ||
+    !languageScope.canSwitch() ||
     state.controlsBlocked ||
     durabilityPending;
   restoreButton.disabled =
     notReady ||
     isBusy ||
-    !restoreIsNeeded() ||
-    state.controlsBlocked ||
+    !languageScope.restoreIsNeeded(state.appPath, state.currentLang, state.englishRestoreNeeded) ||
+    (state.controlsBlocked && !languageScope.hostlessRestoreAvailable(state.appPath)) ||
     durabilityPending;
   languageSelectControl.setDisabled(
-    notReady || isBusy || state.controlsBlocked || durabilityPending
+    notReady || isBusy || state.controlsBlocked || durabilityPending || !languageScope.canSwitch()
   );
   updateButton.disabled = notReady || isBusy;
-}
-
-function updateLanguageOptions(languages) {
-  const currentLanguageCanUpdate = state.patchStatus === 'updateAvailable' || state.patchStatus === 'unknown';
-  const options = languages.filter((language) => language.value !== 'en')
-    .map((language) => {
-      const isCurrentLanguage = language.value === state.currentLang;
-      return {
-        ...language,
-        disabled: language.value === state.currentLang && state.patchStatus === 'current',
-        badge: isCurrentLanguage && currentLanguageCanUpdate
-          ? {
-              label: t('patchUpdateBadge'),
-              kind: 'green-subtle',
-              ariaLabel: t('languageOptionUpdateAria', { language: language.label }),
-            }
-          : null,
-        ariaLabel: isCurrentLanguage && currentLanguageCanUpdate
-          ? t('languageOptionUpdateAria', { language: language.label })
-          : language.label,
-      };
-    });
-  languageSelectControl.setOptions(options);
-}
-function languageLabel(code) {
-  if (code === 'restore-official') return t('restore');
-  const match = state.languages.find((language) => language.value === code);
-  if (match) return match.label;
-  return code === 'en' ? 'English' : code;
 }
 
 function localizeShell() {
@@ -378,8 +342,10 @@ function localizeShell() {
   restoreButton.setAttribute('aria-label', t('restore'));
   permissionButton.textContent = t('openPrivacySecurity');
   reportIssueButton.textContent = t('reportIssueButton');
+  legacyReleaseButton.textContent = versionGuidance.buttonLabel(uiLocale);
   statusLabel.textContent = t('taskProgressLabel');
   operationLog.setIdleMessage(t('idlePrompt'));
+  supportFooterControl.localize();
   aboutControl.localize();
   windowControls.localize();
   setPermissionWait(false);
@@ -387,14 +353,15 @@ function localizeShell() {
 
 function syncInstallationBadges() {
   const visualState = state.appPath ? state.installationMode : 'unknown';
-  const language = languageLabel(state.currentLang);
+  const language = languageScope.currentLanguagePresentation(state.currentLang, state.languages, state.nativeLocaleState);
   const installation = installationModeText.textContent;
   const showInstallation =
-    state.platform === 'macos' &&
+    (state.platform === 'macos' || languageScope.isUserProfile()) &&
     Boolean(state.appPath) &&
     visualState === 'official';
-  currentLanguage.setAttribute('aria-label', `${t('current')}: ${language}`);
-  currentLanguage.title = language;
+  currentLanguage.textContent = language.label;
+  currentLanguage.setAttribute('aria-label', language.ariaLabel);
+  currentLanguage.title = language.label;
   installationBadge.hidden = !showInstallation;
   installationBadge.dataset.state = showInstallation ? 'official' : 'unknown';
   installationBadge.textContent = showInstallation ? t('officialBadge') : '';
@@ -533,6 +500,9 @@ function closeModal() {
 }
 
 function showRestoreConfirmation() {
+  if (languageScope.showConfirmation('restore', 'en', {
+    showModal, closeModal, runApply, onFailure: recoverOperationFailure,
+  })) return;
   const restoreAction = state.platform === 'macos' ? 'restore-official' : 'en';
   showModal({
     title: t('restoreConfirmTitle'),
@@ -584,29 +554,35 @@ async function bootstrap({ renderActivity = true } = {}) {
   }
   const presentStatus = (...args) => { if (renderActivity) setStatus(...args); };
   const bootstrapState = await api.getStatus();
+  languageScope.configure(bootstrapState);
+  legacyReleaseButton.hidden = !versionGuidance.shouldOfferLegacyRelease(bootstrapState);
   state.appPath = bootstrapState.appPath || '';
   state.currentLang = bootstrapState.currentLang || 'en';
+  state.nativeLocaleState = bootstrapState.nativeLocaleState || '';
   state.installationMode = bootstrapState.installationMode || 'unknown';
   state.versionCompatibility = bootstrapState.versionCompatibility || 'supported';
   state.supportedVersion = bootstrapState.supportedVersion || '2.7.2';
   state.patchStatus = bootstrapState.patchStatus || 'unknown';
-  state.controlsBlocked = Boolean(unsupportedVersionStatusKey());
+  state.controlsBlocked = Boolean(versionGuidance.statusKey(state.versionCompatibility));
   state.languages = bootstrapState.languages || [];
   state.platform = bootstrapState.platform || '';
   const reconciliationRequired = bootstrapState.reconciliationRequired === true;
   const runtimeResidueDetected = state.platform === 'windows' && reconciliationRequired;
+  const userScopeStatusKey = languageScope.startupStatusKey(reconciliationRequired);
   state.englishRestoreNeeded = reconciliationRequired;
   applyShellPlatform(state.platform);
 
-  updateLanguageOptions(state.languages);
+  languageSelectControl.setOptions(
+    languageScope.languageOptions(state.languages, state.currentLang, state.patchStatus)
+  );
   languageSelectControl.setValue('');
-  currentLanguage.textContent = languageLabel(state.currentLang);
   setPermissionWait(false);
 
-  const showMacInstallationMode =
-    state.platform === 'macos' && Boolean(state.appPath) && state.installationMode === 'official';
-  installationModeText.hidden = !showMacInstallationMode;
-  installationModeText.textContent = showMacInstallationMode ? t('officialMode') : '';
+  const showInstallationMode =
+    (state.platform === 'macos' || languageScope.isUserProfile()) &&
+    Boolean(state.appPath) && state.installationMode === 'official';
+  installationModeText.hidden = !showInstallationMode;
+  installationModeText.textContent = showInstallationMode ? t('officialMode') : '';
   syncInstallationBadges();
   syncInstallationSelection();
   state.ready = true;
@@ -619,9 +595,7 @@ async function bootstrap({ renderActivity = true } = {}) {
     pathDisplay.setPath(state.appPath);
   } else {
     appVersion.textContent = t('appNotFound');
-    pathDisplay.setMessage(t('appPathFallback', {
-      candidates: bootstrapState.defaultAppCandidates.join('\n'),
-    }));
+    pathDisplay.setCandidates(t('appPathFallback'), bootstrapState.defaultAppCandidates);
   }
 
   if (!state.appPath) {
@@ -629,7 +603,7 @@ async function bootstrap({ renderActivity = true } = {}) {
     return;
   }
 
-  const versionStatusKey = unsupportedVersionStatusKey();
+  const versionStatusKey = versionGuidance.statusKey(state.versionCompatibility);
   if (versionStatusKey) {
     presentStatus(versionStatusKey, 'warning', {
       version: bootstrapState.version || '',
@@ -645,6 +619,11 @@ async function bootstrap({ renderActivity = true } = {}) {
 
   if (runtimeResidueDetected) {
     presentStatus('runtimeResidueWarning', 'warning');
+    return;
+  }
+
+  if (userScopeStatusKey) {
+    presentStatus(userScopeStatusKey, 'warning');
     return;
   }
 
@@ -677,12 +656,16 @@ function requestApply() {
     requireDurabilityRetry();
     return;
   }
-  void runApply(languageSelect.value).catch(recoverOperationFailure);
+  const nextLanguage = languageSelect.value;
+  if (languageScope.showConfirmation('switch', nextLanguage, {
+    showModal, closeModal, runApply, onFailure: recoverOperationFailure,
+  })) return;
+  void runApply(nextLanguage).catch(recoverOperationFailure);
 }
 
 function requestRestore() {
-  if (state.busy || state.controlsBlocked || !restoreIsNeeded()) return;
-  if (!state.appPath) {
+  if (state.busy || (state.controlsBlocked && !languageScope.hostlessRestoreAvailable(state.appPath)) || !languageScope.restoreIsNeeded(state.appPath, state.currentLang, state.englishRestoreNeeded)) return;
+  if (!state.appPath && !languageScope.hostlessRestoreAvailable(state.appPath)) {
     setStatus('chooseAppFirst', 'warning');
     return;
   }
@@ -702,8 +685,8 @@ async function runApply(nextLanguage, { attemptId = '' } = {}) {
   setReportIssueVisible(false);
   setBusy(true);
   setPermissionWait(false);
-  const language = languageLabel(nextLanguage);
-  const restoring = isRestoreAction(nextLanguage);
+  const language = languageScope.languageLabel(nextLanguage, state.languages);
+  const restoring = languageScope.isRestoreAction(nextLanguage);
   const operationContext = { language, restoring, attemptId };
   let terminalPhaseEvent = null;
   if (!attemptId) {
@@ -720,6 +703,25 @@ async function runApply(nextLanguage, { attemptId = '' } = {}) {
       updateOperationPhase(event, operationContext);
     });
     if (!result.ok) {
+      const profileFailureKey = languageScope.failureTextKey(result.errorCode);
+      if (profileFailureKey) {
+        operationLog.upsert({
+          id: terminalPhaseEvent?.id || (attemptId ? `${attemptId}:applyTransaction` : 'applyTransaction'),
+          title: t('nativeUserLanguageFailureTitle'), description: t(profileFailureKey), state: 'error',
+        });
+        state.pendingAction = '';
+        if (result.reconciliationRequired === true) {
+          try { await bootstrap({ renderActivity: false }); } catch (_) { state.ready = true; state.nativeLocaleState = 'unrecognized'; }
+          state.englishRestoreNeeded = true;
+          if (languageScope.isUserProfile()) {
+            state.currentLang = 'unknown'; state.patchStatus = 'unknown';
+            syncInstallationBadges();
+            languageSelectControl.setOptions(languageScope.languageOptions(state.languages, state.currentLang, state.patchStatus));
+            languageSelectControl.setValue('');
+          }
+        }
+        return;
+      }
       if (result.errorCode === 'reinstallRequired') {
         operationLog.upsert({
           id: terminalPhaseEvent?.id || (attemptId ? `${attemptId}:applyTransaction` : 'applyTransaction'),
@@ -742,7 +744,7 @@ async function runApply(nextLanguage, { attemptId = '' } = {}) {
         operationLog.upsert({
           id: terminalPhaseEvent?.id || (attemptId ? `${attemptId}:applyTransaction` : 'applyTransaction'),
           title: t('closeCavalryTitle'),
-          description: t('cavalryStillRunning'),
+          description: t(languageScope.runningTextKey()),
           state: 'error',
         });
         state.pendingAction = '';
@@ -763,7 +765,8 @@ async function runApply(nextLanguage, { attemptId = '' } = {}) {
     setBusy(state.busy);
     state.pendingAction = '';
     appendPostCommitWarnings(warningCodes);
-    if (warningCodes.length === 0) operationLog.complete(t(restoring ? 'restoreOutcome' : 'applyOutcome', { language }));
+    if (restoring && result.nativeRestoreOnly === true) operationLog.complete(t('nativeEnglishRestoreOnlyOutcome'));
+    else if (warningCodes.length === 0) operationLog.complete(t(restoring ? 'restoreOutcome' : 'applyOutcome', { language }));
   } finally {
     setBusy(false);
   }
@@ -782,7 +785,8 @@ browseButton.addEventListener('click', () => void browseForApp().catch(recoverOp
 applyButton.addEventListener('click', requestApply);
 restoreButton.addEventListener('click', requestRestore);
 permissionButton.addEventListener('click', handlePermissionButton);
-reportIssueButton.addEventListener('click', () => void openIssueReport());
+reportIssueButton.addEventListener('click', () => void openProjectLink('reportIssue'));
+legacyReleaseButton.addEventListener('click', () => void openProjectLink('legacyRelease'));
 modalPrimaryButton.addEventListener('click', () =>
   void Promise.resolve(modalPrimaryAction && modalPrimaryAction()).catch(recoverOperationFailure)
 );

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 InstallLayout、QPA Policy 与 storage 的普通文件、PE、版本资源检查。
- * [OUTPUT]: 提供 Cavalry 2.7.2/Qt 6.6.3/x64 运行身份验证，以及代理/generic/qwindows 固定文件预检。
+ * [OUTPUT]: 按编译profile提供Cavalry/Qt/x64身份与固定文件预检；native2.8绑定官方EXE摘要和Qt6.9.2。
  * [POS]: windows_qpa 的只读身份域；计划构建与执行共用同一套目标证明，绝不写入安装根。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -57,7 +57,22 @@ pub(super) fn verify_runtime_identity(
     validate_x64_pe(&layout.executable, "Cavalry.exe")?;
     let qt_core = layout.root.join(QT_CORE_FILE_NAME);
     validate_x64_pe(&qt_core, "Qt6Core.dll")?;
+    if cfg!(cavalry_native_windows)
+        && snapshot_hash(&layout.executable, "native Cavalry executable")?.as_deref()
+            != Some("bad89abf30c67b2d2fb3c9d0a26c3cfda9b738164e11bca050ac54ad0e2783a1")
+    {
+        return Err("Native Cavalry executable differs from the approved 2.8 binary".into());
+    }
     let actual_cavalry = crate::windows_install::product_version_for_executable(&layout.executable)
+        .or_else(|| {
+            (cfg!(cavalry_native_windows)
+                && snapshot_hash(&layout.executable, "native Cavalry executable")
+                    .ok()
+                    .flatten()
+                    .as_deref()
+                    == Some("bad89abf30c67b2d2fb3c9d0a26c3cfda9b738164e11bca050ac54ad0e2783a1"))
+            .then(|| "2.8.0".into())
+        })
         .unwrap_or_default();
     if actual_cavalry != policy.cavalry_version {
         return Err(format!(
@@ -72,12 +87,12 @@ pub(super) fn verify_runtime_identity(
     }
     let expected = FileVersion {
         major: 6,
-        minor: 6,
-        patch: 3,
+        minor: if cfg!(cavalry_native_windows) { 9 } else { 6 },
+        patch: if cfg!(cavalry_native_windows) { 2 } else { 3 },
         build: 0,
     };
     let actual = product_version(&qt_core)?;
-    if actual != expected || policy.qt_version != "6.6.3" {
+    if actual != expected || policy.qt_version != super::SUPPORTED_QT_VERSION {
         return Err(format!(
             "Windows QPA requires Qt {} (file version {expected}); found {actual}.",
             policy.qt_version

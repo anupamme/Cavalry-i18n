@@ -1,0 +1,100 @@
+{
+  "_contract": {
+    "INPUT": "hidden-plugin-pair.cv原厂正常Save场景。",
+    "OUTPUT": "供场景加载检查读取的结构预期。",
+    "POS": "双隐藏插件输入模板；不证明显示或翻译通过。",
+    "PROTOCOL": "变更时更新此头部，然后检查 CLAUDE.md"
+  },
+  "scene": "hidden-plugin-pair.cv",
+  "cavalryTarget": "2.8",
+  "sceneFileVersion": "1.0.72",
+  "normalSaveSourceSha256": "40f845dec304c89a8f5733b40734d791b0a21097e07fc02006a56e7f01448794",
+  "resourceType": "cavalry.scenefile",
+  "activeComposition": "compNode#1",
+  "compositionNodeType": "compNode",
+  "compositionChildren": [
+    "colorShader#1",
+    "basicShape#1",
+    "sceneGroup::erosionFilter#1",
+    "sceneGroup::rectToPolarFilter#1"
+  ],
+  "rows": [
+    {
+      "row": 0,
+      "nodeId": "colorShader#1",
+      "nodeType": "colorShader",
+      "niceName": "Color Shader"
+    },
+    {
+      "row": 1,
+      "nodeId": "basicShape#1",
+      "nodeType": "basicShape",
+      "niceName": "Rectangle 2"
+    },
+    {
+      "row": 2,
+      "nodeId": "sceneGroup::erosionFilter#1",
+      "nodeType": "sceneGroup::erosionFilter",
+      "niceName": "Erosion",
+      "nameField": "attributes.niceName",
+      "customNiceName": true,
+      "defaultNodeNameTranslationCredit": false
+    },
+    {
+      "row": 3,
+      "nodeId": "sceneGroup::rectToPolarFilter#1",
+      "nodeType": "sceneGroup::rectToPolarFilter",
+      "niceName": "Owned Polar Probe",
+      "nameField": "attributes.niceName",
+      "customNiceName": true,
+      "defaultNodeNameTranslationCredit": false
+    }
+  ],
+  "pluginNodes": [
+    {
+      "nodeId": "sceneGroup::erosionFilter#1",
+      "nodeType": "sceneGroup::erosionFilter",
+      "version": "1.0",
+      "niceName": "Erosion",
+      "niceNameIsCustom": true,
+      "defaultNodeNameCredit": false
+    },
+    {
+      "nodeId": "sceneGroup::rectToPolarFilter#1",
+      "nodeType": "sceneGroup::rectToPolarFilter",
+      "version": "1.0",
+      "niceName": "Owned Polar Probe",
+      "niceNameIsCustom": true,
+      "defaultNodeNameCredit": false
+    }
+  ],
+  "filterSlots": [
+    {
+      "index": 0,
+      "nodeId": "sceneGroup::erosionFilter#1"
+    },
+    {
+      "index": 1,
+      "nodeId": "sceneGroup::rectToPolarFilter#1"
+    }
+  ],
+  "connections": [
+    {
+      "from": "sceneGroup::erosionFilter#1.id",
+      "to": "basicShape#1.filters.0"
+    },
+    {
+      "from": "sceneGroup::rectToPolarFilter#1.id",
+      "to": "basicShape#1.filters.1"
+    }
+  ],
+  "internalAssetContainer": {
+    "nodeId": "asset#1",
+    "nodeType": "asset",
+    "externalPathFields": []
+  },
+  "externalAssets": [],
+  "externalAssetFiles": [],
+  "referenceDataEmpty": true,
+  "acceptanceStatus": "normal-load input only; verify actual load and display for each candidate; no font or translation acceptance"
+}

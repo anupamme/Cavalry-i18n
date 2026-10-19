@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 about.html 信息节点、四语文案、共享 Phosphor 图标/Toast 状态机与冻结 bridge 的 getSwitcherVersion/openProjectLink/closeAboutWindow 能力。
- * [OUTPUT]: 对外提供 About 本地化、文档平台就绪事件驱动且幂等的 Windows caption Close 装配、真实版本、固定 repository/license 点击分发及默认浏览器失败 Toast；不暴露 URL。
+ * [INPUT]: 依赖 about.html 信息节点、四语文案、共享 Phosphor 图标/Toast 状态机、project-link-control.js 与冻结 bridge 的 getSwitcherVersion/openProjectLink/closeAboutWindow 能力。
+ * [OUTPUT]: 对外提供 About 本地化、两项四语「关注+平台图标」与区分平台的可访问名称、共享图标注册表驱动的 GitHub/X/小红书 mark、幂等 Windows caption Close、真实版本、固定 link ID 分发及默认浏览器失败 Toast；不暴露 URL。
  * [POS]: 独立 About WebviewWindow 页面控制器；Windows 仅在本窗口接通固定 close label，外链失败留在局部 Toast，不污染主任务 Activity 或 AlertDialog。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -36,6 +36,10 @@
     const title = document.querySelector('#aboutTitle');
     const version = document.querySelector('#aboutVersion');
     const links = document.querySelector('#aboutLinks');
+    const twitter = document.querySelector('#aboutTwitterLink');
+    const xiaohongshu = document.querySelector('#aboutXiaohongshuLink');
+    const twitterLabel = document.querySelector('#aboutTwitterLabel');
+    const xiaohongshuLabel = document.querySelector('#aboutXiaohongshuLabel');
     const license = document.querySelector('#aboutLicenseLabel');
     const closeButton = document.querySelector('#aboutWindowCloseButton');
 
@@ -44,9 +48,25 @@
     title.textContent = text(locale, 'appTitle');
     version.textContent = '';
     links.setAttribute('aria-label', text(locale, 'aboutProjectLinks'));
+    twitter.setAttribute('aria-label', text(locale, 'aboutTwitterLinkAria'));
+    xiaohongshu.setAttribute('aria-label', text(locale, 'aboutXiaohongshuLinkAria'));
+    twitterLabel.textContent = text(locale, 'aboutSocialFollow');
+    xiaohongshuLabel.textContent = text(locale, 'aboutSocialFollow');
     license.textContent = text(locale, 'aboutLicense');
     closeButton.setAttribute('aria-label', text(locale, 'closeWindow'));
     closeButton.title = text(locale, 'closeWindow');
+  }
+
+  function mountBrandIcons() {
+    const brandIcons = [
+      ['#aboutTwitterIcon', 'xLogo'],
+      ['#aboutXiaohongshuIcon', 'xiaohongshuLogo'],
+      ['#aboutRepositoryIcon', 'githubLogo'],
+    ];
+    for (const [selector, iconName] of brandIcons) {
+      const carrier = document.querySelector(selector);
+      carrier.append(global.cavalryIcons.create(iconName));
+    }
   }
 
   let windowChromeWired = false;
@@ -74,20 +94,16 @@
     }
   }
 
-  function wireProjectLink(selector, link, onError) {
+  function wireProjectLink(selector, link, openProjectLink) {
     const element = document.querySelector(selector);
-    element.addEventListener('click', async (event) => {
+    element.addEventListener('click', (event) => {
       event.preventDefault();
-      try {
-        const result = await global.cavalryI18n.openProjectLink(link);
-        if (!result?.ok) onError();
-      } catch (_) {
-        onError();
-      }
+      void openProjectLink(link);
     });
   }
 
   const locale = detectLocale();
+  mountBrandIcons();
   wireWindowChrome();
   document.addEventListener('cavalry-platform-ready', (event) => wireWindowChrome(event.detail));
   localize(locale);
@@ -95,12 +111,14 @@
     label: text(locale, 'notifications'),
     closeLabel: text(locale, 'close'),
   });
-  const showProjectLinkError = () => toast.show({
-    type: 'error',
-    title: text(locale, 'projectLinkFailedTitle'),
-    description: text(locale, 'openProjectLinkFailed'),
+  const openProjectLink = global.createProjectLinkControl({
+    api: global.cavalryI18n,
+    text: (key) => text(locale, key),
+    toast,
   });
-  wireProjectLink('#aboutRepositoryLink', 'repository', showProjectLinkError);
-  wireProjectLink('#aboutLicenseLink', 'license', showProjectLinkError);
+  wireProjectLink('#aboutTwitterLink', 'twitter', openProjectLink);
+  wireProjectLink('#aboutXiaohongshuLink', 'xiaohongshu', openProjectLink);
+  wireProjectLink('#aboutRepositoryLink', 'repository', openProjectLink);
+  wireProjectLink('#aboutLicenseLink', 'license', openProjectLink);
   void loadVersion(locale);
 })(window);

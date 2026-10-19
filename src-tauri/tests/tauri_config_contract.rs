@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tauri.conf.json、release.config.json、两份平台配置、主窗/About capability 与 Windows generic/QPA 资源映射
- * [OUTPUT]: 提供 macOS 400×484 内容窗口、主窗口跨平台首帧后显露、主窗口/About 在创建时配置的 macOS 原生交通灯 Overlay 与随 main 退出的生命周期、Windows 10px transparent-compositor 外壳及原生 About owner、显式 renderer 入口、本地 CSP/预注入 bridge、updater 信任根、平台资源与 NSIS 合同
+ * [OUTPUT]: 提供 macOS 400×504 主窗口（40px标题栏+434px内容+30px footer）、主窗口跨平台首帧后显露、主窗口/About 在创建时配置的 macOS 原生交通灯 Overlay 与随 main 退出的生命周期、Windows 10px transparent-compositor 外壳及原生 About owner、显式 renderer 入口、本地 CSP/预注入 bridge、updater 信任根、仅四语 runtime 目录而排除 native 构建期数据、平台资源与 NSIS 合同
  * [POS]: src-tauri/tests 的宿主无关配置守门，冻结 Windows generic runtime + QPA delegate 声明并阻止 DYLD/第二套 Qt 混入；派生 DLL 字节由平台构建与 provenance 测试证明
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -9,6 +9,22 @@ use std::{fs, path::Path};
 
 fn read_json(path: &Path) -> Value {
     serde_json::from_str(&fs::read_to_string(path).unwrap()).unwrap()
+}
+
+// -- 打包边界：只映射产品运行时目录，不递归带入审稿数据 ----------------
+fn assert_runtime_languages(resources: &serde_json::Map<String, Value>) {
+    let language_resources: serde_json::Map<String, Value> = resources
+        .iter()
+        .filter(|(source, _)| source.starts_with("../languages"))
+        .map(|(source, destination)| (source.clone(), destination.clone()))
+        .collect();
+    let expected = serde_json::json!({
+        "../languages/en": "languages/en",
+        "../languages/zh-Hans": "languages/zh-Hans",
+        "../languages/zh-Hant": "languages/zh-Hant",
+        "../languages/ja_JP": "languages/ja_JP"
+    });
+    assert_eq!(Value::Object(language_resources), expected);
 }
 
 #[test]
@@ -29,9 +45,9 @@ fn tauri_window_size_matches_frozen_contract() {
     let config = read_json(&manifest_dir.join("tauri.conf.json"));
     let window = &config["app"]["windows"][0];
     assert_eq!(window["width"], 400);
-    assert_eq!(window["height"], 484);
+    assert_eq!(window["height"], 504);
     assert_eq!(window["minWidth"], 400);
-    assert_eq!(window["minHeight"], 484);
+    assert_eq!(window["minHeight"], 504);
     assert_eq!(window["decorations"], true);
     assert_eq!(window["titleBarStyle"], "Overlay");
     assert_eq!(window["hiddenTitle"], true);
@@ -159,9 +175,9 @@ fn native_titlebar_alignment_and_windows_compositor_shell_are_frozen() {
     let windows = read_json(&Path::new(env!("CARGO_MANIFEST_DIR")).join("tauri.windows.conf.json"));
     let window = &windows["app"]["windows"][0];
     assert_eq!(window["width"], 420);
-    assert_eq!(window["height"], 504);
+    assert_eq!(window["height"], 524);
     assert_eq!(window["minWidth"], 420);
-    assert_eq!(window["minHeight"], 504);
+    assert_eq!(window["minHeight"], 524);
     assert_eq!(window["decorations"], false);
     assert_eq!(window["transparent"], true);
     assert_eq!(window["shadow"], false);
@@ -184,7 +200,7 @@ fn macos_config_owns_injector_resources_without_overriding_release_signing() {
         .unwrap()
         .iter()
         .any(|value| value == "dmg"));
-    assert_eq!(resources["../languages"], "languages");
+    assert_runtime_languages(resources);
     assert_eq!(
         resources["../injector/libCavalryTranslatorInjector.dylib"],
         "injector/libCavalryTranslatorInjector.dylib"
@@ -225,9 +241,9 @@ fn windows_config_uses_nsis_icon_languages_and_windows_runtime_only() {
         assert_eq!(window[key], shared_window[key], "Windows {key} drifted");
     }
     assert_eq!(window["width"], 420);
-    assert_eq!(window["height"], 504);
+    assert_eq!(window["height"], 524);
     assert_eq!(window["minWidth"], 420);
-    assert_eq!(window["minHeight"], 504);
+    assert_eq!(window["minHeight"], 524);
     assert_eq!(window["decorations"], false);
     assert_eq!(window["transparent"], true);
     assert_eq!(window["shadow"], false);
@@ -242,7 +258,7 @@ fn windows_config_uses_nsis_icon_languages_and_windows_runtime_only() {
         .unwrap()
         .iter()
         .any(|value| value == "icons/icon.ico"));
-    assert_eq!(resources["../languages"], "languages");
+    assert_runtime_languages(resources);
     assert_eq!(
         resources["../injector/windows/generic/cavalryi18n.dll"],
         "injector/windows/generic/cavalryi18n.dll"

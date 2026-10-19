@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、CI 变更分类器、test_temp_dir.js、DMG 卷标身份解析器、人工安装/updater 发布元数据、共享 Windows NSIS provenance schema/四策略输入合同/Quick Add context/display/顶部标签 与描述生成闭包/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、发布 provenance schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、四语 README 用户路径合同、按文档/合同/依赖/平台风险选择且未知路径 fail-closed 的 CI 调度合同、renderer 视觉验收新进程合同、人工安装/updater 资产命名、macOS DMG `产品 + SemVer + 架构` 卷标、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、保留英文分类语义、发布只显示中文的版本更新说明、七项公开资产 readback 与 CI 内部 provenance、source 完整性、Actions/toolchain pin、幂等 release、直接读取最新正式 Release 的四语徽章、平台原生构建隔离、Windows x64 provenance producer-consumer 同构与 PR 级 clean-macOS link gate
- * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
+ * [INPUT]: 依赖2.8 ARM/Intel生产profile、Qt6.9.2与同源码native runtime、Tauri macOS/release overlays、production语言包、package/CHANGELOG、跨平台工具、CI变更分类器、Windows NSIS provenance与真实资源配置夹具、macOS资源readback、SOP/workflow、发布provenance、Actions pins与source artifact清单
+ * [OUTPUT]: 校验双架构入口、packaged profile、手动预验唯一漏洞例外、源码前置与CI聚合边界；保留三平台tag guard、2.8双feed、p12历史下载、Windows NSIS与release provenance合同
+ * [POS]: tools 的 Tauri打包守门；macOS预验与公开三平台发行分别裁决
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -16,6 +16,8 @@ const { installGitHooks } = require('./install_git_hooks.js');
 const { runPowerShellScript } = require('./powershell_command.js');
 const { resolvePythonCommand } = require('./python_command.js');
 const { cleanupTempDirs, makeTempDir } = require('./test_temp_dir.js');
+const { APP_SYNTAX_FILES } = require('./check_app_syntax.js');
+const { WINDOWS_PRODUCTION_CONFIGS } = require('./windows_native_build.js');
 const {
   createDmgVolumeName,
   resolveDmgArchitecture,
@@ -343,88 +345,48 @@ function makeWindowsNsisProvenanceFixture() {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, content);
   };
-  fs.mkdirSync(path.join(tempRoot, 'tools'), { recursive: true });
-  fs.copyFileSync(
-    path.join(repoRoot, 'tools', 'windows_nsis_provenance.js'),
-    path.join(tempRoot, 'tools', 'windows_nsis_provenance.js')
-  );
-  fs.copyFileSync(
-    path.join(repoRoot, 'tools', 'windows_nsis_provenance_contract.js'),
-    path.join(tempRoot, 'tools', 'windows_nsis_provenance_contract.js')
-  );
-  fs.mkdirSync(path.join(tempRoot, 'tools', 'schemas'), { recursive: true });
-  fs.copyFileSync(
-    path.join(repoRoot, 'tools', 'schemas', 'windows_nsis_provenance.schema.json'),
-    path.join(tempRoot, 'tools', 'schemas', 'windows_nsis_provenance.schema.json')
-  );
-  writeJson(path.join(tempRoot, 'package.json'), { name: 'cavalry-i18n', version: '9.8.7' });
-  writeJson(path.join(tempRoot, 'package-lock.json'), {
-    name: 'cavalry-i18n',
-    version: '9.8.7',
-    lockfileVersion: 3,
-    packages: { '': { name: 'cavalry-i18n', version: '9.8.7' } },
-  });
-  writeJson(path.join(tempRoot, 'src-tauri', 'tauri.conf.json'), {
-    productName: 'Cavalry Language Switcher',
-    version: '9.8.7',
-    build: { frontendDist: '../renderer' },
-  });
-  writeJson(path.join(tempRoot, 'src-tauri', 'tauri.windows.conf.json'), {
-    bundle: {
-      targets: ['nsis'],
-      resources: {
-        '../languages': 'languages',
-        '../injector/windows/generic/cavalryi18n.dll': 'injector/windows/generic/cavalryi18n.dll',
-        '../injector/windows/qpa/qwindows.dll': 'injector/windows/qpa/qwindows.dll',
-      },
-      windows: {
-        nsis: {
-          installerHooks: 'nsis-hooks.nsh',
-        },
-      },
-    },
-  });
-  writeJson(path.join(tempRoot, 'src-tauri', 'tauri.updater-artifacts.conf.json'), {
-    bundle: { createUpdaterArtifacts: true },
-  });
-  writeJson(path.join(tempRoot, 'src-tauri', 'capabilities', 'default.json'), { permissions: [] });
-  write('renderer/index.html', '<!doctype html><title>fixture</title>');
-  write('languages/en/appStrings.json', '{"fixture":"English"}\n');
-  for (const language of ['en', 'zh-Hans', 'zh-Hant', 'ja_JP']) {
-    write(`languages/${language}/nodeStrings.json`, '[]\n');
-    write(`languages/${language}/plugins/boxBlurFilter.json`, '[]\n');
+  for (const file of ['windows_nsis_provenance.js', 'windows_nsis_provenance_contract.js', 'windows_native_build.js']) {
+    write(`tools/${file}`, fs.readFileSync(path.join(repoRoot, 'tools', file)));
   }
+  write('tools/schemas/windows_nsis_provenance.schema.json', readText('tools/schemas/windows_nsis_provenance.schema.json'));
+  const metadata = { name: 'cavalry-i18n', version: '9.8.7' };
+  writeJson(path.join(tempRoot, 'package.json'), metadata);
+  writeJson(path.join(tempRoot, 'package-lock.json'), {
+    ...metadata, lockfileVersion: 3, packages: { '': metadata },
+  });
+  writeJson(path.join(tempRoot, 'src-tauri/tauri.conf.json'), {
+    productName: 'Cavalry Language Switcher', version: '9.8.7', build: { frontendDist: '../renderer' },
+  });
+  for (const file of [...WINDOWS_PRODUCTION_CONFIGS, 'src-tauri/tauri.updater-artifacts.conf.json']) {
+    writeJson(path.join(tempRoot, file), readJson(file));
+  }
+  writeJson(path.join(tempRoot, 'src-tauri/capabilities/default.json'), { permissions: [] });
+  write('renderer/index.html', '<!doctype html><title>fixture</title>');
+  for (const language of ['zh-Hans', 'zh-Hant', 'ja_JP']) {
+    write(`src-tauri/target/native-language-packs/${language}.json`, '[]\n');
+  }
+  write('src-tauri/target/native-language-packs/manifest.json', '{"kind":"production-2.8","complete":true}\n');
   write('src-tauri/src/lib.rs', 'pub fn fixture() {}\n');
   write('src-tauri/Cargo.toml', '[package]\nname = "fixture"\nversion = "9.8.7"\n');
   write('src-tauri/Cargo.lock', 'version = 4\n');
   write('src-tauri/build.rs', 'fn main() {}\n');
   write('src-tauri/nsis-hooks.nsh', '!macro NSIS_HOOK_POSTUNINSTALL\n!macroend\n');
+  for (const file of Object.values(readJson('src-tauri/tauri.windows.conf.json').bundle.windows.nsis.customLanguageFiles)) {
+    write(`src-tauri/${file}`, '; installer language fixture\n');
+  }
   write('src-tauri/icons/icon.ico', Buffer.from([0, 0, 1, 0]));
-  write(
-    'injector/cavalry_i18n_translation_policy.h',
-    '// shared Windows/macOS translation policy fixture\n'
-  );
-  write('injector/cavalry_i18n_input_policy.h', '// shared input policy fixture\n');
-  write('injector/cavalry_i18n_quick_add_context.h', '// shared Quick Add context fixture\n');
-  write('injector/cavalry_i18n_quick_add_display.h', '// shared Quick Add display fixture\n');
-  write('injector/cavalry_i18n_quick_add_tabs.h', '// shared Quick Add tabs fixture\n');
-  write('injector/cavalry_i18n_search_policy.h', '// shared search policy fixture\n');
-  write('injector/cavalry_i18n_classic_search.h', '// shared classic search policy fixture\n');
-  write('injector/cavalry_i18n_classic_rank.h', '// shared classic rank policy fixture\n');
-  write('injector/cavalry_i18n_search_descriptions.h', '// shared Quick Add descriptions fixture\n');
-  write('injector/generated_translations.inc', '// generated translation fixture\n');
-  write('injector/generated_quick_add_descriptions.inc', '// generated Quick Add descriptions fixture\n');
-  write('tools/generate_quick_add_descriptions.js', '// Quick Add descriptions generator fixture\n');
-  write(
-    'injector/windows/CMakeLists.txt',
-    'cmake_minimum_required(VERSION 3.21)\nproject(cavalryi18n_fixture)\n'
-  );
-  write(
-    'injector/windows/cavalry_i18n_qpa_proxy.cpp',
-    '// Windows native source fixture\n'
-  );
-  write('injector/windows/generic/cavalryi18n.dll', Buffer.from('fixture-plugin'));
-  write('injector/windows/qpa/qwindows.dll', Buffer.from('fixture-qpa-proxy'));
+  write('injector/windows/native/CMakeLists.txt', 'cmake_minimum_required(VERSION 4.2)\n');
+  write('injector/windows/native/runtime.cpp', '// Windows 2.8 native source fixture\n');
+  write('injector/native/display_policy.h', '// shared native display policy\n');
+  write('injector/native/getpath_font_texts.inc', '// approved native fonts\n');
+  write('injector/native/getpath_graph_editor_empty_texts.inc', '// approved graph texts\n');
+  write('injector/cavalry_i18n_macos_timeline_font_policy.h', '// shared native font selection\n');
+  write('languages/native/approved_fixture.js', '// approved native translations\n');
+  write('tools/native_resource_bundle.js', '// native pack producer fixture\n');
+  write('tools/cavalry_native_target.json', '{}\n');
+  write('tools/cavalry_native_windows_target.json', '{}\n');
+  write('injector/windows/generic/cavalryi18n.dll', Buffer.from('fixture-native-plugin'));
+  write('injector/windows/qpa/qwindows.dll', Buffer.from('fixture-native-qpa-proxy'));
   return tempRoot;
 }
 
@@ -450,6 +412,81 @@ test('tauri local build SOP is the only release path', () => {
   assert.doesNotMatch(localSop, /Electron|electron-builder|test:desktop|check:desktop|desktop-patcher/);
 });
 
+test('macOS and Windows ship only the four runtime language packs under the existing languages root', () => {
+  const macResources = readJson('src-tauri/tauri.macos.conf.json').bundle.resources;
+  const windowsResources = readJson('src-tauri/tauri.windows.conf.json').bundle.resources;
+  const languageResources = Object.fromEntries(
+    ['en', 'zh-Hans', 'zh-Hant', 'ja_JP'].map((locale) => [
+      `../languages/${locale}`,
+      `languages/${locale}`,
+    ])
+  );
+
+  for (const resources of [macResources, windowsResources]) {
+    assert.deepEqual(
+      Object.fromEntries(Object.entries(resources).filter(([source]) => source.startsWith('../languages'))),
+      languageResources,
+      'bundle only en/zh-Hans/zh-Hant/ja_JP and preserve languages/<locale> resource paths'
+    );
+    assert.equal(Object.hasOwn(resources, '../languages'), false, 'do not recursively bundle build-time native catalogs');
+    for (const locale of ['en', 'zh-Hans', 'zh-Hant', 'ja_JP']) {
+      assert.equal(fs.statSync(path.join(repoRoot, 'languages', locale)).isDirectory(), true);
+    }
+  }
+  assert.deepEqual(macResources, {
+    ...languageResources,
+    '../injector/libCavalryTranslatorInjector.dylib': 'injector/libCavalryTranslatorInjector.dylib',
+  });
+  assert.deepEqual(windowsResources, {
+    ...languageResources,
+    '../injector/windows/generic/cavalryi18n.dll': 'injector/windows/generic/cavalryi18n.dll',
+    '../injector/windows/qpa/qwindows.dll': 'injector/windows/qpa/qwindows.dll',
+  });
+});
+
+test('2.8 macOS production aliases share a target-neutral producer and keep native runtime inputs explicit', () => {
+  const pkg = readJson('package.json');
+  const macConfig = readJson('src-tauri/tauri.macos.conf.json');
+  const nativeProduction = readJson('src-tauri/tauri.native-production-2.8.conf.json');
+  const release28 = readJson('src-tauri/tauri.release-2.8.conf.json');
+  const localSop = readText('LOCAL_BUILD_SOP.md');
+  const workflow = readText('.github/workflows/build.yml');
+  const productionCommand = pkg.scripts['build:tauri:native:production'];
+  const intelProductionCommand = pkg.scripts['build:tauri:native:production:x86_64'];
+  const targetNeutralCommand = pkg.scripts['tauri:build'];
+
+  assert.equal(
+    targetNeutralCommand,
+    'CAVALRY_I18N_NATIVE_BUILD_PROFILE=production-2.8 tauri build --config src-tauri/tauri.macos.conf.json --config src-tauri/tauri.native-production-2.8.conf.json --config src-tauri/tauri.release-2.8.conf.json'
+  );
+  assert.equal(productionCommand, 'npm run tauri:build -- --target aarch64-apple-darwin');
+  assert.equal(intelProductionCommand, 'npm run tauri:build -- --target x86_64-apple-darwin');
+  assert.doesNotMatch(targetNeutralCommand, /--target/);
+  assert.equal(
+    pkg.scripts['build:tauri'],
+    'npm run build:tauri:native:production && bash tools/stamp_dmg_icon.sh src-tauri/target/aarch64-apple-darwin/release/bundle/dmg && PACKAGED_NATIVE_PROFILE=production-2.8 PACKAGED_EXPECTED_ARCH=arm64 npm run test:tauri:packaged'
+  );
+  assert.equal(
+    pkg.scripts['test:tauri:dmg-layout'],
+    'bash tools/check_dmg_layout.sh src-tauri/target/aarch64-apple-darwin/release/bundle/dmg'
+  );
+  assert.equal(macConfig.build.beforeBuildCommand, 'npm run build:injector');
+  assert.equal(nativeProduction.build.beforeBuildCommand, null);
+  assert.deepEqual(nativeProduction.plugins.updater.endpoints, []);
+  assert.deepEqual(release28.plugins.updater.endpoints, [
+    'https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download/latest-cavalry-2.8.json',
+  ]);
+  assert.doesNotMatch(targetNeutralCommand, /build:injector|native-preview|6\.6\.3/);
+  assert.match(localSop, /officialCavalry|官方Cavalry 2\.8\.app/);
+  assert.match(localSop, /Qt `6\.9\.2`/);
+  assert.match(localSop, /同源码已验.*arm64/);
+  assert.match(localSop, /build:native-resources -- --assets-root[\s\S]*--profile production-2\.8/);
+  assert.match(localSop, /CAVALRY_I18N_NATIVE_INJECTOR_FILE=.*arm64.*绝对路径/);
+  assert.match(localSop, /p12终版只作历史下载/);
+  assert.match(localSop, /保留三平台production guard/);
+  assert.match(workflow, /implementation-not-ready:[\s\S]*refusing to build or publish/);
+});
+
 test('tauri build scripts and configs isolate the macOS and Windows injectors', () => {
   const pkg = readJson('package.json');
   const config = readJson('src-tauri/tauri.conf.json');
@@ -462,12 +499,14 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
 
   assert.equal(
     pkg.scripts['tauri:build'],
-    'tauri build --config src-tauri/tauri.macos.conf.json'
+    'CAVALRY_I18N_NATIVE_BUILD_PROFILE=production-2.8 tauri build --config src-tauri/tauri.macos.conf.json --config src-tauri/tauri.native-production-2.8.conf.json --config src-tauri/tauri.release-2.8.conf.json'
   );
-  assert.equal(pkg.scripts.build, 'npm run tauri:build');
+  assert.equal(pkg.scripts['build:tauri:native:production'], 'npm run tauri:build -- --target aarch64-apple-darwin');
+  assert.equal(pkg.scripts['build:tauri:native:production:x86_64'], 'npm run tauri:build -- --target x86_64-apple-darwin');
+  assert.equal(pkg.scripts.build, 'npm run build:tauri');
   assert.equal(
     pkg.scripts['build:tauri:windows'],
-    'npm run prepare:qt-sdk:windows && tauri build --target x86_64-pc-windows-msvc --config src-tauri/tauri.windows.conf.json && node tools/windows_nsis_provenance.js --record'
+    'node tools/windows_native_build.js'
   );
   assert.equal(
     pkg.scripts['build:injector:windows'],
@@ -475,7 +514,7 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   );
   assert.equal(
     pkg.scripts['prepare:tauri:windows-bundle'],
-    'npm run build:injector:windows && node tools/windows_nsis_provenance.js --prepare'
+    'node tools/windows_native_build.js --prepare-only'
   );
   assert.equal(
     pkg.scripts['test:tauri:windows-nsis'],
@@ -490,8 +529,9 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   assert.equal(pkg.scripts['build:electron:dir'], undefined);
   assert.equal(pkg.scripts['build:dir'], undefined);
   assert.equal(pkg.build, undefined);
-  assert.match(pkg.scripts['check:app'], /node --check tools\/windows_nsis_provenance\.js/);
-  assert.match(pkg.scripts['check:app'], /node --check tools\/windows_nsis_provenance_contract\.js/);
+  assert.equal(pkg.scripts['check:app'], 'node tools/check_app_syntax.js');
+  assert.ok(APP_SYNTAX_FILES.includes('tools/windows_nsis_provenance.js'));
+  assert.ok(APP_SYNTAX_FILES.includes('tools/windows_nsis_provenance_contract.js'));
   assert.match(pkg.scripts['test:contracts'], /tools\/generate_quick_add_descriptions\.test\.js/);
   assert.equal(pkg.devDependencies.electron, undefined);
   assert.equal(pkg.devDependencies['electron-builder'], undefined);
@@ -525,7 +565,6 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   assert.equal(macConfig.build.beforeDevCommand, 'npm run build:injector');
   assert.equal(macConfig.build.beforeBuildCommand, 'npm run build:injector');
   assert.deepEqual(macConfig.bundle.targets, ['dmg', 'app']);
-  assert.equal(macResources['../languages'], 'languages');
   assert.equal(
     macResources['../injector/libCavalryTranslatorInjector.dylib'],
     'injector/libCavalryTranslatorInjector.dylib'
@@ -549,11 +588,6 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   );
   assert.equal(windowsNsis.headerImage, undefined);
   assert.equal(windowsNsis.sidebarImage, undefined);
-  assert.deepEqual(windowsResources, {
-    '../languages': 'languages',
-    '../injector/windows/generic/cavalryi18n.dll': 'injector/windows/generic/cavalryi18n.dll',
-    '../injector/windows/qpa/qwindows.dll': 'injector/windows/qpa/qwindows.dll',
-  });
   assert.equal(
     Object.entries(windowsResources).some(([source, destination]) => /Qt6.*\.dll/i.test(`${source}\n${destination}`)),
     false,
@@ -561,198 +595,84 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   );
 });
 
-test('Windows NSIS provenance binds one new installer to current dirty packaging inputs', () => {
+test('Windows NSIS provenance follows production resources and installer languages', () => {
   const tempRoot = makeWindowsNsisProvenanceFixture();
-  const script = path.join(tempRoot, 'tools', 'windows_nsis_provenance.js');
-  const bundleRoot = path.join(
-    tempRoot,
-    'src-tauri',
-    'target',
-    'x86_64-pc-windows-msvc',
-    'release',
-    'bundle',
-    'nsis'
-  );
+  const producer = require(path.join(tempRoot, 'tools/windows_nsis_provenance.js'));
+  const fingerprint = producer.collectInputFingerprint(tempRoot);
+  const inputPaths = new Set(fingerprint.files.map(entry => entry.path));
+  for (const locale of ['zh-Hans', 'zh-Hant', 'ja_JP']) {
+    assert.ok(inputPaths.has(`src-tauri/target/native-language-packs/${locale}.json`));
+  }
+  for (const file of WINDOWS_PRODUCTION_CONFIGS) assert.ok(inputPaths.has(file));
+  const base = readJson(path.join(tempRoot, 'src-tauri/tauri.windows.conf.json'));
+  for (const file of Object.values(base.bundle.windows.nsis.customLanguageFiles)) {
+    assert.ok(inputPaths.has(`src-tauri/${file}`), `bind configured NSIS input ${file}`);
+  }
+  const oldJson = path.join(tempRoot, 'languages/en/unshipped.json');
+  fs.mkdirSync(path.dirname(oldJson), { recursive: true });
+  fs.writeFileSync(oldJson, '{"legacy":true}\n');
+  assert.deepEqual(producer.collectInputFingerprint(tempRoot), fingerprint,
+    'legacy language JSON is not a native production input');
+  const configPath = path.join(tempRoot, 'src-tauri/tauri.native-windows-2.8.conf.json');
+  const config = readJson(configPath);
+  const source = 'target/native-language-packs';
+  delete config.bundle.resources[source];
+  writeJson(configPath, config);
+  assert.throws(() => producer.collectInputFingerprint(tempRoot), /missing the required/);
+  config.bundle.resources[source] = 'wrong-target';
+  writeJson(configPath, config);
+  assert.throws(() => producer.collectInputFingerprint(tempRoot), /missing the required/);
+});
+
+test('Windows NSIS production prepare, record and verify bind current inputs', () => {
+  const tempRoot = makeWindowsNsisProvenanceFixture();
+  const script = path.join(tempRoot, 'tools/windows_nsis_provenance.js');
+  const bundleRoot = path.join(tempRoot, 'src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis');
   const installerName = 'Cavalry Language Switcher_9.8.7_x64-setup.exe';
   const installerPath = path.join(bundleRoot, installerName);
-  const provenanceModule = require(script);
-  const run = (...args) => spawnSync(process.execPath, [script, ...args], {
-    cwd: tempRoot,
-    encoding: 'utf8',
-  });
-
+  const run = (...args) => spawnSync(process.execPath, [script, ...args], { cwd: tempRoot, encoding: 'utf8' });
   fs.mkdirSync(bundleRoot, { recursive: true });
   fs.writeFileSync(installerPath, 'stale-current-version-installer');
   const prepared = run('--prepare');
   assert.equal(prepared.status, 0, prepared.stderr || prepared.stdout);
-  assert.equal(fs.existsSync(installerPath), false, 'prepare must remove only the expected old installer');
-  assert.equal(
-    fs.existsSync(path.join(bundleRoot, 'cavalry-i18n-windows-nsis-build-intent.json')),
-    true,
-    'prepare must leave a build intent for record'
-  );
-
+  assert.equal(fs.existsSync(installerPath), false);
   fs.writeFileSync(installerPath, 'fresh-installer-bytes');
   const recorded = run('--record');
   assert.equal(recorded.status, 0, recorded.stderr || recorded.stdout);
-  const provenancePath = `${installerPath}.provenance.json`;
-  const provenance = JSON.parse(fs.readFileSync(provenancePath, 'utf8'));
+  const provenance = readJson(`${installerPath}.provenance.json`);
   assert.equal(provenance.target, 'x86_64-pc-windows-msvc');
   assert.equal(provenance.version, '9.8.7');
   assert.equal(provenance.installer.fileName, installerName);
-  assert.equal(provenance.installer.bytes, Buffer.byteLength('fresh-installer-bytes'));
   assert.equal(provenance.updaterSignature, null);
-  assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'renderer/index.html'));
-  assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'languages/en/appStrings.json'));
-  assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'src-tauri/src/lib.rs'));
-  assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'injector/windows/generic/cavalryi18n.dll'));
-  assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'injector/windows/qpa/qwindows.dll'));
-  for (const requiredInput of [
-    'package.json',
-    'package-lock.json',
-    'src-tauri/Cargo.toml',
-    'src-tauri/Cargo.lock',
-    'src-tauri/build.rs',
-    'src-tauri/tauri.conf.json',
-    'src-tauri/tauri.windows.conf.json',
-    'src-tauri/tauri.updater-artifacts.conf.json',
+  assert.equal(run('--verify', installerPath).status, 0);
+  const module = require(script);
+  assert.doesNotThrow(() => module.verify(fs.realpathSync.native(tempRoot), installerPath));
+  for (const relative of [
+    'renderer/index.html', 'src-tauri/src/lib.rs', 'src-tauri/build.rs',
+    ...WINDOWS_PRODUCTION_CONFIGS,
     'src-tauri/nsis-hooks.nsh',
-    'src-tauri/capabilities/default.json',
-    'src-tauri/icons/icon.ico',
-    'injector/cavalry_i18n_translation_policy.h',
-    'injector/cavalry_i18n_input_policy.h',
-    'injector/cavalry_i18n_quick_add_context.h',
-    'injector/cavalry_i18n_quick_add_display.h',
-    'injector/cavalry_i18n_quick_add_tabs.h',
-    'injector/cavalry_i18n_search_policy.h',
-    'injector/cavalry_i18n_classic_search.h',
-    'injector/cavalry_i18n_classic_rank.h',
-    'injector/cavalry_i18n_search_descriptions.h',
-    'injector/generated_translations.inc',
-    'injector/generated_quick_add_descriptions.inc',
-    'tools/generate_quick_add_descriptions.js',
-    'languages/en/nodeStrings.json',
-    'languages/en/plugins/boxBlurFilter.json',
-    'languages/zh-Hans/nodeStrings.json',
-    'languages/zh-Hans/plugins/boxBlurFilter.json',
-    'languages/zh-Hant/nodeStrings.json',
-    'languages/zh-Hant/plugins/boxBlurFilter.json',
-    'languages/ja_JP/nodeStrings.json',
-    'languages/ja_JP/plugins/boxBlurFilter.json',
-    'injector/windows/CMakeLists.txt',
-    'injector/windows/cavalry_i18n_qpa_proxy.cpp',
+    ...Object.values(readJson('src-tauri/tauri.windows.conf.json').bundle.windows.nsis.customLanguageFiles)
+      .map(file => `src-tauri/${file}`),
+    'src-tauri/target/native-language-packs/manifest.json',
+    'src-tauri/target/native-language-packs/zh-Hans.json',
+    'src-tauri/target/native-language-packs/zh-Hant.json',
+    'src-tauri/target/native-language-packs/ja_JP.json',
+    'injector/windows/native/runtime.cpp', 'injector/native/display_policy.h',
+    'injector/native/getpath_font_texts.inc', 'injector/native/getpath_graph_editor_empty_texts.inc',
+    'injector/cavalry_i18n_macos_timeline_font_policy.h',
+    'languages/native/approved_fixture.js', 'tools/native_resource_bundle.js',
+    'tools/cavalry_native_windows_target.json',
+    'injector/windows/generic/cavalryi18n.dll', 'injector/windows/qpa/qwindows.dll',
   ]) {
-    assert.ok(
-      provenance.inputFingerprint.files.some((entry) => entry.path === requiredInput),
-      `provenance must bind ${requiredInput}`
-    );
+    assert.ok(provenance.inputFingerprint.files.some(entry => entry.path === relative), `bind ${relative}`);
+    const file = path.join(tempRoot, relative);
+    const original = fs.readFileSync(file);
+    fs.appendFileSync(file, ' ');
+    assert.notEqual(run('--verify', installerPath).status, 0, `reject changed input ${relative}`);
+    fs.writeFileSync(file, original);
   }
-
-  const verified = run('--verify', installerPath);
-  assert.equal(verified.status, 0, verified.stderr || verified.stdout);
-  assert.equal(provenanceModule.TARGET_TRIPLE, 'x86_64-pc-windows-msvc');
-  assert.doesNotThrow(() => provenanceModule.verify(fs.realpathSync.native(tempRoot), installerPath));
   fs.appendFileSync(installerPath, '-tampered');
-  assert.throws(
-    () => provenanceModule.verify(fs.realpathSync.native(tempRoot), installerPath),
-    /sidecar does not match the current installer bytes and packaging input fingerprint/
-  );
-  fs.writeFileSync(installerPath, 'fresh-installer-bytes');
-  fs.appendFileSync(
-    path.join(tempRoot, 'injector', 'windows', 'cavalry_i18n_qpa_proxy.cpp'),
-    '// dirty-after-package\n'
-  );
-  const staleNativeSource = run('--verify', installerPath);
-  assert.notEqual(
-    staleNativeSource.status,
-    0,
-    'a dirty native source input must invalidate the old installer sidecar'
-  );
-  assert.match(
-    staleNativeSource.stderr,
-    /sidecar does not match the current installer bytes and packaging input fingerprint/
-  );
-  fs.writeFileSync(
-    path.join(tempRoot, 'injector', 'windows', 'cavalry_i18n_qpa_proxy.cpp'),
-    '// Windows native source fixture\n'
-  );
-  fs.appendFileSync(
-    path.join(tempRoot, 'injector', 'cavalry_i18n_translation_policy.h'),
-    '// dirty-shared-policy-after-package\n'
-  );
-  const staleSharedTranslationPolicy = run('--verify', installerPath);
-  assert.notEqual(
-    staleSharedTranslationPolicy.status,
-    0,
-    'a dirty shared translation policy must invalidate the old installer sidecar'
-  );
-  assert.match(
-    staleSharedTranslationPolicy.stderr,
-    /sidecar does not match the current installer bytes and packaging input fingerprint/
-  );
-  fs.writeFileSync(
-    path.join(tempRoot, 'injector', 'cavalry_i18n_translation_policy.h'),
-    '// shared Windows/macOS translation policy fixture\n'
-  );
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_input_policy.h'), '// changed input policy\n');
-  const staleInputPolicy = run('--verify', installerPath);
-  assert.notEqual(staleInputPolicy.status, 0, 'input policy changes must invalidate old installer provenance');
-  assert.match(staleInputPolicy.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_input_policy.h'), '// shared input policy fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_quick_add_context.h'), '// changed Quick Add context\n');
-  const staleQuickAddContext = run('--verify', installerPath);
-  assert.notEqual(staleQuickAddContext.status, 0, 'Quick Add context changes must invalidate old installer provenance');
-  assert.match(staleQuickAddContext.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_quick_add_context.h'), '// shared Quick Add context fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_quick_add_display.h'), '// changed Quick Add display policy\n');
-  const staleQuickAddDisplay = run('--verify', installerPath);
-  assert.notEqual(staleQuickAddDisplay.status, 0, 'Quick Add display policy changes must invalidate old installer provenance');
-  assert.match(staleQuickAddDisplay.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_quick_add_display.h'), '// shared Quick Add display fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_quick_add_tabs.h'), '// changed Quick Add tabs policy\n');
-  const staleQuickAddTabs = run('--verify', installerPath);
-  assert.notEqual(staleQuickAddTabs.status, 0, 'Quick Add tabs policy changes must invalidate old installer provenance');
-  assert.match(staleQuickAddTabs.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_quick_add_tabs.h'), '// shared Quick Add tabs fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_search_policy.h'), '// changed search policy\n');
-  const staleSearchPolicy = run('--verify', installerPath);
-  assert.notEqual(staleSearchPolicy.status, 0, 'search policy changes must invalidate old installer provenance');
-  assert.match(staleSearchPolicy.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_search_policy.h'), '// shared search policy fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_classic_search.h'), '// changed classic search policy\n');
-  const staleClassicSearchPolicy = run('--verify', installerPath);
-  assert.notEqual(staleClassicSearchPolicy.status, 0, 'classic search policy changes must invalidate old installer provenance');
-  assert.match(staleClassicSearchPolicy.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_classic_search.h'), '// shared classic search policy fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_classic_rank.h'), '// changed classic rank policy\n');
-  const staleClassicRankPolicy = run('--verify', installerPath);
-  assert.notEqual(staleClassicRankPolicy.status, 0, 'classic rank policy changes must invalidate old installer provenance');
-  assert.match(staleClassicRankPolicy.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_classic_rank.h'), '// shared classic rank policy fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_search_descriptions.h'), '// changed descriptions policy\n');
-  const staleQuickAddDescriptionsPolicy = run('--verify', installerPath);
-  assert.notEqual(staleQuickAddDescriptionsPolicy.status, 0, 'Quick Add descriptions policy changes must invalidate old installer provenance');
-  assert.match(staleQuickAddDescriptionsPolicy.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_search_descriptions.h'), '// shared Quick Add descriptions fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'generated_quick_add_descriptions.inc'), '// changed descriptions table\n');
-  const staleQuickAddDescriptionsTable = run('--verify', installerPath);
-  assert.notEqual(staleQuickAddDescriptionsTable.status, 0, 'Quick Add descriptions table changes must invalidate old installer provenance');
-  assert.match(staleQuickAddDescriptionsTable.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'injector', 'generated_quick_add_descriptions.inc'), '// generated Quick Add descriptions fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'tools', 'generate_quick_add_descriptions.js'), '// changed descriptions generator\n');
-  const staleQuickAddDescriptionsGenerator = run('--verify', installerPath);
-  assert.notEqual(staleQuickAddDescriptionsGenerator.status, 0, 'Quick Add descriptions generator changes must invalidate old installer provenance');
-  assert.match(staleQuickAddDescriptionsGenerator.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'tools', 'generate_quick_add_descriptions.js'), '// Quick Add descriptions generator fixture\n');
-  fs.appendFileSync(path.join(tempRoot, 'languages', 'zh-Hans', 'plugins', 'boxBlurFilter.json'), '// changed localized description input\n');
-  const staleQuickAddDescriptionsJson = run('--verify', installerPath);
-  assert.notEqual(staleQuickAddDescriptionsJson.status, 0, 'localized Quick Add descriptions JSON changes must invalidate old installer provenance');
-  assert.match(staleQuickAddDescriptionsJson.stderr, /packaging input fingerprint/);
-  fs.writeFileSync(path.join(tempRoot, 'languages', 'zh-Hans', 'plugins', 'boxBlurFilter.json'), '[]\n');
-  fs.appendFileSync(path.join(tempRoot, 'injector', 'windows', 'qpa', 'qwindows.dll'), '-dirty-after-package');
-  const staleInputs = run('--verify', installerPath);
-  assert.notEqual(staleInputs.status, 0, 'a dirty packaging input must invalidate the old installer sidecar');
-  assert.match(staleInputs.stderr, /sidecar does not match the current installer bytes and packaging input fingerprint/);
+  assert.notEqual(run('--verify', installerPath).status, 0);
 });
 
 test('Windows NSIS provenance binds an updater signature only when tag intent requires it', () => {
@@ -850,7 +770,7 @@ test('project version workflow exposes one synchronizer and a pre-commit hook in
   assert.equal(pkg.scripts['check:version'], 'node tools/sync_project_version.js --check');
   assert.equal(pkg.scripts['release:metadata'], 'node tools/release_metadata.js');
   assert.equal(pkg.scripts['check:release'], 'node tools/release_metadata.js --check');
-  assert.match(pkg.scripts['check:app'], /node --check tools\/extract_release_changelog\.js/);
+  assert.ok(APP_SYNTAX_FILES.includes('tools/extract_release_changelog.js'));
   assert.equal(pkg.scripts['hooks:install'], 'node tools/install_git_hooks.js');
   assert.equal(pkg.scripts.postinstall, 'npm run hooks:install');
   assert.doesNotMatch(pkg.scripts['hooks:install'], /\/dev\/null|&&|\|\||\btrue\b/);
@@ -1070,6 +990,9 @@ test('PowerShell launcher prefers pwsh and falls back only when the host is abse
 
 test('release protocol separates internal SemVer from target Cavalry tag naming', () => {
   const releaseConfig = readJson('release.config.json');
+  const release28Config = readJson('release-2.8.config.json');
+  const sharedTauriConfig = readJson('src-tauri/tauri.conf.json');
+  const release28TauriConfig = readJson('src-tauri/tauri.release-2.8.conf.json');
   const workflow = readText('.github/workflows/build.yml');
   const localSop = readText('LOCAL_BUILD_SOP.md');
   const windowsBuild = readText('injector/windows/build.ps1');
@@ -1099,6 +1022,21 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
       x64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_x64.app.tar.gz',
     },
   });
+  assert.equal(
+    sharedTauriConfig.plugins.updater.endpoints[0],
+    `${releaseConfig.updater.downloadBaseUrl}/latest.json`,
+    'the shared/default Tauri endpoint must remain on the frozen legacy feed'
+  );
+  assert.equal(release28Config.targetCavalryVersion, '2.8.0');
+  assert.equal(release28Config.releaseTagPrefix, 'cavalry-2.8.0-p');
+  assert.equal(release28Config.releaseTagPattern, '^cavalry-2\\.8\\.0-p[0-9]+$');
+  assert.equal(release28Config.updater.manifestAssetName, 'latest-cavalry-2.8.json');
+  assert.equal(release28Config.updater.legacyManifestAssetName, 'latest.json');
+  assert.equal(
+    release28TauriConfig.plugins.updater.endpoints[0],
+    `${release28Config.updater.downloadBaseUrl}/${release28Config.updater.manifestAssetName}`
+  );
+  assert.deepEqual(Object.keys(release28TauriConfig.plugins.updater), ['endpoints']);
   assert.match(windowsBuild, /'-A', 'x64'/);
   assert.match(windowsBuild, /function Assert-NoReparsePathChain/);
   assert.match(windowsBuild, /function Reset-GeneratedBuildDirectory/);
@@ -1160,14 +1098,10 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   assert.match(windowsCmake, /cavalryi18n_quick_add_search_test[\s\S]*check_quick_add_search\.cpp/);
   assert.match(windowsCmake, /cavalryi18n_classic_quick_add_search_test[\s\S]*check_classic_quick_add_search\.cpp/);
   assert.match(windowsProvenance, /function assertNoReparsePathChain/);
-  assert.match(
-    windowsProvenance,
-    /path\.join\('injector', 'windows'\)[\s\S]*\(\?:cpp\|h\|json\|ps1\)[\s\S]*injector', 'generated_translations\.inc'/
-  );
-  assert.match(
-    windowsProvenance,
-    /cavalry_i18n_search_descriptions\.h[\s\S]*generated_quick_add_descriptions\.inc[\s\S]*generate_quick_add_descriptions\.js/
-  );
+  assert.match(windowsProvenance, /WINDOWS_PRODUCTION_CONFIGS/);
+  for (const input of ['injector/windows', 'injector/native', 'languages/native', 'target/native-language-packs']) {
+    assert.ok(windowsProvenance.includes(input), `native packaging fingerprints ${input}`);
+  }
   assert.match(
     windowsProvenance,
     /assertNoReparsePathChain\(bundleRoot, 'Windows NSIS bundle root'\)[\s\S]*fs\.mkdirSync\(bundleRoot[\s\S]*assertNoReparsePathChain\(bundleRoot, 'Windows NSIS bundle root after creation'\)/
@@ -1183,8 +1117,69 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   assert.ok(releaseJob, 'release job missing');
   assert.match(
     preflightJob[1],
-    /if:\s*startsWith\(github\.ref, 'refs\/tags\/cavalry-'\)[\s\S]*uses:\s*actions\/checkout@[0-9a-f]{40}[\s\S]*fetch-depth:\s*0/,
-    'release ancestry needs a tag-only complete checkout with full action SHA pin'
+    /if:\s*startsWith\(github\.ref, 'refs\/tags\/cavalry-'\) \|\| \(github\.event_name == 'workflow_dispatch' && inputs\.package_scope == 'macos-2\.8-preflight'\)[\s\S]*uses:\s*actions\/checkout@[0-9a-f]{40}[\s\S]*fetch-depth:\s*0/,
+    'tag ancestry and manual profile validation need a complete checkout with full action SHA pin'
+  );
+  assert.match(preflightJob[1], /cavalry-2\.7\.2-p\[0-9\]\*\).*2\.7\.2 p12 feed is historical only; repackaging is forbidden[\s\S]*exit 1/);
+  assert.doesNotMatch(preflightJob[1], /cavalry-2\.7\.2-p12\) profile=/, 'the frozen p12 feed must not route back into packaging');
+  assert.match(
+    preflightJob[1],
+    /cavalry-2\.8\.0-p\[0-9\]\*\) profile='release-2\.8\.config\.json'/
+  );
+  assert.match(
+    preflightJob[1],
+    /if \[\[ "\$profile" == 'release-2\.8\.config\.json' \]\][\s\S]*tauri_endpoint_config='src-tauri\/tauri\.release-2\.8\.conf\.json'/,
+    'the updater endpoint overlay must derive from the selected release profile, not a second tag rule'
+  );
+  assert.match(preflightJob[1], /else[\s\S]*tauri_endpoint_config=''/,
+    'the default and frozen p12 profile must not select a 2.8 endpoint overlay');
+  assert.match(preflightJob[1], /echo "tauri_endpoint_config=\$tauri_endpoint_config" >> "\$GITHUB_OUTPUT"/);
+  const implementationNotReadyIndex = preflightJob[1].indexOf('implementation-not-ready:');
+  const profileValidationIndex = preflightJob[1].indexOf('node tools/release_metadata.js');
+  const endpointOutputIndex = preflightJob[1].indexOf('tauri_endpoint_config=$tauri_endpoint_config');
+  assert.ok(
+    profileValidationIndex >= 0 && endpointOutputIndex > profileValidationIndex && endpointOutputIndex < implementationNotReadyIndex,
+    '2.8 profile and endpoint selection must be validated before the retained runtime-readiness guard'
+  );
+  assert.ok(implementationNotReadyIndex >= 0, '2.8 must remain blocked before every native build job');
+  assert.match(preflightJob[1], /if:\s*\$\{\{ startsWith\(github\.ref, 'refs\/tags\/cavalry-'\) && steps\.release_profile\.outputs\.config == 'release-2\.8\.config\.json' \}\}[\s\S]*implementation-not-ready:[\s\S]*refusing to build or publish/);
+  assert.match(
+    preflightJob[1],
+    /outputs:[\s\S]*release_profile_config: \$\{\{ steps\.release_profile\.outputs\.config \}\}[\s\S]*tauri_endpoint_config: \$\{\{ steps\.release_profile\.outputs\.tauri_endpoint_config \}\}/,
+    'preflight must export the selected profile and its matching endpoint overlay'
+  );
+  assert.match(
+    workflow,
+    /TAURI_UPDATER_ENDPOINT_CONFIG: \$\{\{ needs\.release_tag_preflight\.outputs\.tauri_endpoint_config \}\}/,
+    'platform package jobs must consume the preflight-selected endpoint overlay'
+  );
+  const windowsCheckJob = workflow.match(
+    /\r?\n  windows_check:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
+  );
+  const packageMacosJob = workflow.match(
+    /\r?\n  package_macos:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
+  );
+  assert.ok(windowsCheckJob, 'windows_check job missing');
+  assert.ok(packageMacosJob, 'package_macos job missing');
+  assert.match(
+    windowsCheckJob[1],
+    /RELEASE_PROFILE_CONFIG: \$\{\{ needs\.release_tag_preflight\.outputs\.release_profile_config \}\}[\s\S]*TAURI_UPDATER_ENDPOINT_CONFIG: \$\{\{ needs\.release_tag_preflight\.outputs\.tauri_endpoint_config \}\}/
+  );
+  assert.match(
+    packageMacosJob[1],
+    /RELEASE_PROFILE_CONFIG: \$\{\{ needs\.release_tag_preflight\.outputs\.release_profile_config \}\}[\s\S]*TAURI_UPDATER_ENDPOINT_CONFIG: \$\{\{ needs\.release_tag_preflight\.outputs\.tauri_endpoint_config \}\}/
+  );
+  assert.match(windowsCheckJob[1], /npm run build:tauri:windows -- --package-only --updater/);
+  assert.equal(WINDOWS_PRODUCTION_CONFIGS.at(-1), 'src-tauri/tauri.release-2.8.conf.json');
+  assert.match(
+    packageMacosJob[1],
+    /if \[\[ -z "\$\{TAURI_UPDATER_ENDPOINT_CONFIG:-\}\" \]\][\s\S]*Tag packaging requires the endpoint overlay selected by release_tag_preflight[\s\S]*--config src-tauri\/tauri\.updater-artifacts\.conf\.json[\s\S]*--config "\$TAURI_UPDATER_ENDPOINT_CONFIG"/,
+    'the macOS tag package must append the endpoint overlay selected by release_tag_preflight'
+  );
+  assert.doesNotMatch(
+    packageMacosJob[1].match(/Build packaged macOS app \(workflow_dispatch = ad-hoc verification only\)([\s\S]*?)(?=\n      - name:|$)/)?.[1] || '',
+    /TAURI_UPDATER_ENDPOINT_CONFIG|tauri\.release-2\.8\.conf\.json|tauri\.updater-artifacts\.conf\.json|TAURI_SIGNING_PRIVATE_KEY/,
+    'workflow_dispatch preflight must not consume tag-only updater signing or endpoint overlays'
   );
   assert.match(
     preflightJob[1],
@@ -1211,7 +1206,13 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
     'release must consume the shared preflight rather than rechecking ancestry after platform builds'
   );
   assert.match(workflow, /npm run check:release/);
-  assert.match(workflow, /npm run release:metadata -- --github-env/);
+  assert.match(workflow, /npm run release:metadata -- --profile "\$RELEASE_PROFILE_CONFIG" --github-env/);
+  assert.match(releaseJob[1], /release:metadata -- --profile "\$RELEASE_PROFILE_CONFIG" --github-env/);
+  assert.match(releaseJob[1], /create_legacy_updater_manifest\.js[\s\S]*--output "dist\/\$RELEASE_UPDATER_LEGACY_MANIFEST_NAME"/);
+  assert.equal(readJson('release-2.8.config.json').updater.legacyManifestAssetName, 'latest.json');
+  assert.match(releaseJob[1], /create_updater_manifest\.js[\s\S]*--profile "\$RELEASE_PROFILE_CONFIG"/);
+  assert.match(releaseJob[1], /release_publish\.js[\s\S]*--profile "\$RELEASE_PROFILE_CONFIG"/);
+  assert.match(releaseJob[1], /post_release_reactions\.js[\s\S]*--profile "\$RELEASE_PROFILE_CONFIG"/);
   assert.match(
     workflow,
     /node tools\/extract_release_changelog\.js[\s\S]*--version "\$INTERNAL_APP_VERSION"[\s\S]*--changelog CHANGELOG\.md[\s\S]*--output release-changes\.md/
@@ -1225,13 +1226,25 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   assert.match(workflow, /RELEASE_ASSET_NAME_WINDOWS_X64/);
   assert.match(workflow, /x86_64-apple-darwin/);
   assert.match(localSop, /Internal app version: SemVer/);
-  assert.match(localSop, /Release tag: `cavalry-2\.7\.2-pN`/);
+  assert.match(localSop, /Release tag: 历史版本使用 `cavalry-2\.7\.2-pN`/);
+  assert.match(localSop, /旧 `latest\.json` feed 永久冻结于 p12/);
+  assert.match(localSop, /p12终版只作历史下载/);
+  assert.doesNotMatch(localSop, /当前发布器只读复核p12|当前2\.7只准p12只读回读/);
+  assert.match(localSop, /workflow已按所选2\.8 profile向tag打包命令传独立endpoint overlay/);
+  assert.match(localSop, /Intel的2\.8 x86_64及Windows native本地构建入口已接通/);
+  assert.doesNotMatch(localSop, /Windows生产runtime仍未接通/);
+  assert.match(localSop, /8\.1 Windows 2\.8默认本地构建/);
+  assert.match(localSop, /windows_native_build\.js/);
+  assert.deepEqual(WINDOWS_PRODUCTION_CONFIGS.slice(1, 3), [
+    'src-tauri/tauri.native-production-2.8.conf.json', 'src-tauri/tauri.native-windows-2.8.conf.json',
+  ]);
+  assert.match(localSop, /保留三平台production guard/);
   assert.match(localSop, /三种发布资产：/);
-  assert.match(localSop, /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-pN_aarch64\.dmg/);
-  assert.match(localSop, /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-pN_x64\.dmg/);
+  assert.match(localSop, /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-p12_aarch64\.dmg/);
+  assert.match(localSop, /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-p12_x64\.dmg/);
   assert.match(
     localSop,
-    /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-pN_windows-x64-setup\.exe/
+    /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-p12_windows-x64-setup\.exe/
   );
 });
 
@@ -1257,7 +1270,10 @@ test('release metadata script renders GitHub release fields from the patch tag',
     RELEASE_ASSET_NAME_WINDOWS_X64:
       'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_windows-x64-setup.exe',
     RELEASE_UPDATER_MANIFEST_NAME: 'latest.json',
+    RELEASE_UPDATER_LEGACY_MANIFEST_NAME: '',
     RELEASE_UPDATER_DOWNLOAD_BASE_URL:
+      'https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download',
+    RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL:
       'https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download',
     RELEASE_UPDATER_ASSET_NAME_AARCH64:
       'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_aarch64.app.tar.gz',
@@ -1272,6 +1288,20 @@ test('release metadata script renders GitHub release fields from the patch tag',
   });
   assert.notEqual(invalid.status, 0, invalid.stderr || invalid.stdout);
   assert.match(invalid.stderr, /does not match/);
+
+  const explicit28 = spawnSync(process.execPath, [
+    'tools/release_metadata.js', '--profile', 'release-2.8.config.json', '--tag', 'cavalry-2.8.0-p17',
+  ], { cwd: repoRoot, encoding: 'utf8' });
+  assert.equal(explicit28.status, 0, explicit28.stderr || explicit28.stdout);
+  const metadata28 = JSON.parse(explicit28.stdout);
+  assert.equal(metadata28.TARGET_CAVALRY_VERSION, '2.8.0');
+  assert.equal(metadata28.INTERNAL_APP_VERSION, readJson('package.json').version);
+  assert.equal(metadata28.RELEASE_UPDATER_MANIFEST_NAME, 'latest-cavalry-2.8.json');
+  assert.equal(metadata28.RELEASE_UPDATER_LEGACY_MANIFEST_NAME, 'latest.json');
+  assert.equal(
+    metadata28.RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL,
+    'https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p17'
+  );
 });
 
 test('release metadata refuses x86 and i686 asset templates', () => {
@@ -1530,11 +1560,13 @@ test('tauri bundle config preserves the frozen Tauri window contract', () => {
   assert.ok(window, 'main window missing');
   assert.equal(window.url, './index.html');
   assert.equal(window.width, 400);
-  assert.equal(window.height, 484);
+  assert.equal(window.height, 504);
   assert.equal(window.minWidth, 400);
-  assert.equal(window.minHeight, 484);
-  assert.match(localSop, /main window 逻辑本体固定 `400x484`，最小本体 `400x484`/);
-  assert.match(localSop, /Windows 配置中的 `420x504` 只是在本体四边各加 10px transparent compositor 阴影画布，产品最小尺寸和所有视觉对齐均排除这层阴影/);
+  assert.equal(window.minHeight, 504);
+  assert.match(localSop, /main window 逻辑本体固定 `400x504`，最小本体 `400x504`/);
+  assert.match(localSop, /Windows 配置中的 `420x524` 只是在400×504本体四边各加10px transparent compositor 阴影画布/);
+  assert.match(localSop, /20px行\+10px底padding推导30px高度/);
+  assert.match(localSop, /footer文字与图标整组居中[\s\S]*?不重复加top padding[\s\S]*?32px命中区[\s\S]*?焦点框不裁切/);
   assert.doesNotMatch(localSop, /main window 外框固定 `480x528`/);
   assert.equal(window.decorations, true);
   assert.equal(window.titleBarStyle, 'Overlay');
@@ -1543,6 +1575,18 @@ test('tauri bundle config preserves the frozen Tauri window contract', () => {
   assert.deepEqual(windowsConfig.bundle.targets, ['nsis']);
   assert.equal(config.bundle.createUpdaterArtifacts, undefined);
   assert.deepEqual(updaterArtifactsConfig.bundle, { createUpdaterArtifacts: true });
+});
+
+test('About menu uses the exact name from the selected Tauri bundle', () => {
+  const windowLibrary = readText('tools/window_contract_lib.js');
+  const windowRegression = readText('tools/check_tauri_window_regression.js');
+
+  assert.match(windowLibrary, /function selectedTauriBundlePath\(\)[\s\S]*?CAVALRY_I18N_TAURI_APP_BUNDLE/);
+  assert.match(windowLibrary, /function readTauriBundleName\(\)[\s\S]*?plutil[\s\S]*?CFBundleName/);
+  assert.match(windowLibrary, /exists menu item \$\{appleScriptString\(menuTitle\)\}/);
+  assert.match(windowRegression, /title: 'About Cavalry Language Switcher'/);
+  assert.match(windowRegression, /menuTitle: aboutMenuTitle/);
+  assert.match(windowRegression, /const aboutMenuTitle = `About \$\{readTauriBundleName\(\)\}`/);
 });
 
 test('CI selects evidence by changed-path risk without skipping required workflow checks', () => {
@@ -1575,7 +1619,7 @@ test('CI selects evidence by changed-path risk without skipping required workflo
   assert.match(scopeJob[1], /github\.event\.pull_request\.base\.sha \|\| github\.event\.before/);
   assert.match(
     dependencyJob[1],
-    /needs:\s*\[release_tag_preflight, change_scope\][\s\S]*if:\s*needs\.change_scope\.outputs\.vulnerability == 'true'/
+    /needs:\s*\[release_tag_preflight, change_scope\][\s\S]*if:\s*\$\{\{ needs\.change_scope\.outputs\.vulnerability == 'true' && \(github\.event_name != 'workflow_dispatch' \|\| inputs\.package_scope != 'macos-2\.8-preflight'\) \}\}/
   );
   assert.match(buildJob[1], /needs:\s*\[release_tag_preflight, change_scope, dependency_vulnerability_gate\]/);
   assert.match(buildJob[1], /if:\s*\$\{\{ always\(\) \}\}/);
@@ -1601,11 +1645,70 @@ test('CI selects evidence by changed-path risk without skipping required workflo
     aggregateJob[1],
     /needs:\s*\[change_scope, release_tag_preflight, dependency_vulnerability_gate, build, windows_check, macos_injector_check\]/
   );
-  assert.match(aggregateJob[1], /if:\s*\$\{\{ always\(\)/);
+  assert.match(aggregateJob[1], /if:\s*\$\{\{ always\(\) && github\.event_name != 'workflow_dispatch' && \(github\.event_name == 'pull_request' \|\| github\.ref == 'refs\/heads\/main'\) \}\}/);
+  const ciGateCondition = require('yaml').parse(workflow).jobs.ci_gate.if;
+  assert.equal(ciGateCondition, "${{ always() && github.event_name != 'workflow_dispatch' && (github.event_name == 'pull_request' || github.ref == 'refs/heads/main') }}");
+  const aggregateCases = [
+    { event: 'workflow_dispatch', ref: 'refs/heads/main', expected: false },
+    { event: 'workflow_dispatch', ref: 'refs/heads/feature', expected: false },
+    { event: 'pull_request', ref: 'refs/pull/4/merge', expected: true },
+    { event: 'push', ref: 'refs/heads/main', expected: true },
+    { event: 'push', ref: 'refs/heads/feature', expected: false },
+  ];
+  for (const { event, ref, expected } of aggregateCases) {
+    const shouldRun = event !== 'workflow_dispatch' && (event === 'pull_request' || ref === 'refs/heads/main');
+    assert.equal(shouldRun, expected, `${event} on ${ref} ci_gate routing`);
+  }
+  assert.equal(require('./classify_ci_changes.js').scopeForEvent({ eventName: 'workflow_dispatch', ref: 'refs/heads/main' }).windows, true);
+  assert.match(windowsJob[1], /event_name != 'workflow_dispatch'/, 'manual preflight skips Windows while ci_gate also stays out');
   assert.match(
     aggregateJob[1],
     /require_exact change_scope[\s\S]*require_exact build[\s\S]*require_selected dependency_vulnerability_gate[\s\S]*require_selected windows_check[\s\S]*require_selected macos_injector_check/
   );
+});
+
+test('manual macOS preflight skips only the vulnerability scan and waits for source contracts', () => {
+  const workflow = readText('.github/workflows/build.yml');
+  const jobs = require('yaml').parse(workflow).jobs;
+  const packageJob = jobs.package_macos;
+  const packageGate = packageJob.steps.find(
+    ({ name }) => name === 'Validate packaged app with LOCAL_BUILD_SOP gates'
+  );
+
+  assert.equal(
+    jobs.dependency_vulnerability_gate.if,
+    "${{ needs.change_scope.outputs.vulnerability == 'true' && (github.event_name != 'workflow_dispatch' || inputs.package_scope != 'macos-2.8-preflight') }}",
+    'only the explicit manual macOS preflight may skip the dependency scan'
+  );
+  assert.deepEqual([...packageJob.needs].sort(), [
+    'release_tag_preflight',
+    'dependency_vulnerability_gate',
+    'build',
+  ].sort());
+  assert.equal(
+    packageJob.if.replace(/\s+/g, ' ').trim(),
+    "${{ always() && (startsWith(github.ref, 'refs/tags/cavalry-') || (github.event_name == 'workflow_dispatch' && inputs.package_scope == 'macos-2.8-preflight')) && needs.release_tag_preflight.result == 'success' && needs.build.result == 'success' && (needs.dependency_vulnerability_gate.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.package_scope == 'macos-2.8-preflight' && needs.dependency_vulnerability_gate.result == 'skipped')) }}",
+    'failed scans must block packaging; only a skipped scan for this exact input is allowed'
+  );
+  assert.ok(packageGate, 'packaged-app verification step missing');
+  assert.match(packageGate.run, /npm run test:tauri -- --target \$\{\{ matrix\.rust_target \}\}/);
+  assert.match(packageGate.run, /npm run test:tauri:packaged/);
+  assert.match(packageGate.run, /tools\/check_dmg_layout\.sh/);
+  assert.doesNotMatch(
+    packageJob.steps.map(({ run = '' }) => run).join('\n'),
+    /npm run (?:check:app|test:contracts|check:version|check:release|check:tauri)(?:\s|$)/,
+    'source validation and standalone cargo check must not repeat in both package runners'
+  );
+
+  const sourceRuns = jobs.build.steps.map(({ run = '' }) => run).join('\n');
+  for (const command of [
+    'npm run check:version',
+    'npm run check:release -- --profile "$RELEASE_PROFILE_CONFIG"',
+    'npm run test:contracts',
+    'npm run check:app',
+  ]) {
+    assert.ok(sourceRuns.includes(command), `source build must retain ${command}`);
+  }
 });
 
 test('tauri macOS package uses ad-hoc signing while tag updater artifacts require the independent Tauri key', () => {
@@ -1620,7 +1723,7 @@ test('tauri macOS package uses ad-hoc signing while tag updater artifacts requir
   assert.ok(rustToolchain, 'root Rust channel missing');
   assert.ok(packageJob, 'package_macos job missing');
   const packageToolchain = packageJob[1].match(
-    /^    env:\r?\n(?:      #.*\r?\n)*      RUSTUP_TOOLCHAIN:\s*['"]?([^'"\s]+)['"]?\s*$/m
+    /^      RUSTUP_TOOLCHAIN:\s*['"]?([^'"\s]+)['"]?\s*$/m
   );
   assert.ok(
     packageToolchain,
@@ -1637,7 +1740,7 @@ test('tauri macOS package uses ad-hoc signing while tag updater artifacts requir
   );
   assert.match(
     packageJob[1],
-    /workflow_dispatch packaging uses ad-hoc signing for build verification only/
+    /Build packaged macOS app \(workflow_dispatch = ad-hoc verification only\)[\s\S]*2\.8 macOS preflight builds unsigned-updater ARM and Intel packages only/
   );
   assert.match(
     packageJob[1],
@@ -1645,7 +1748,7 @@ test('tauri macOS package uses ad-hoc signing while tag updater artifacts requir
   );
 });
 
-test('manual updater signing smoke uses protected secrets without creating a tag or Release', () => {
+test('2.8 manual macOS preflight has no updater-signing smoke or Release path', () => {
   const workflow = readText('.github/workflows/build.yml');
   const packageJob = workflow.match(
     /\r?\n  package_macos:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
@@ -1653,31 +1756,26 @@ test('manual updater signing smoke uses protected secrets without creating a tag
   const releaseJob = workflow.match(
     /\r?\n  release:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
   );
+  const manualPackageStep = packageJob?.[1].match(
+    /- name: Build packaged macOS app \(workflow_dispatch = ad-hoc verification only\)([\s\S]*?)(?=\n      - name:|$)/
+  )?.[1];
 
-  assert.match(
-    workflow,
-    /workflow_dispatch:\s*\r?\n\s+inputs:\s*\r?\n\s+updater_signing_smoke:[\s\S]*?default:\s*false[\s\S]*?type:\s*boolean/
-  );
+  assert.match(workflow, /package_scope:[\s\S]*default: 'none'[\s\S]*macos-2\.8-preflight/);
+  assert.doesNotMatch(workflow, /updater_signing_smoke/);
   assert.ok(packageJob, 'package_macos job missing');
-  assert.match(
-    packageJob[1],
-    /inputs\.updater_signing_smoke[\s\S]*release-production[\s\S]*Require updater signing secrets for tag or signing smoke/
-  );
-  assert.match(
-    packageJob[1],
-    /Build signed updater artifact \(workflow_dispatch smoke, no release\)[\s\S]*TAURI_SIGNING_PRIVATE_KEY:[\s\S]*TAURI_SIGNING_PRIVATE_KEY_PASSWORD:[\s\S]*--config src-tauri\/tauri\.updater-artifacts\.conf\.json/
-  );
-  assert.match(
-    packageJob[1],
-    /Verify signed updater artifact against embedded public key \(workflow_dispatch smoke\)[\s\S]*pwd -P[\s\S]*CAVALRY_I18N_UPDATER_ARTIFACT=[\s\S]*CAVALRY_I18N_UPDATER_SIGNATURE=[\s\S]*--test updater_signature_contract[\s\S]*verifies_external_updater_signature -- --ignored --exact/
-  );
-  assert.match(
-    packageJob[1],
-    /Build packaged macOS app \(workflow_dispatch = ad-hoc verification only\)[\s\S]*!inputs\.updater_signing_smoke[\s\S]*workflow_dispatch packaging uses ad-hoc signing for build verification only/
-  );
+  assert.ok(manualPackageStep, 'manual 2.8 preflight package step missing');
+  assert.match(packageJob[1], /Prepare official 2\.8 native production inputs[\s\S]*prepare_cavalry_28_ci_inputs\.sh/);
+  assert.match(packageJob[1], /CAVALRY_NATIVE_CI_TARGET: \$\{\{ matrix\.rust_target \}\}/);
+  assert.match(manualPackageStep, /npm run tauri:build -- --target \$\{\{ matrix\.rust_target \}\}/);
+  assert.doesNotMatch(manualPackageStep, /TAURI_SIGNING_PRIVATE_KEY|TAURI_UPDATER_ENDPOINT_CONFIG|tauri\.updater-artifacts\.conf\.json|tauri\.release-2\.8\.conf\.json/);
+  assert.match(manualPackageStep, /2\.8 macOS preflight builds unsigned-updater ARM and Intel packages only/);
   assert.ok(releaseJob, 'release job missing');
   assert.match(releaseJob[1], /^    if:\s*startsWith\(github\.ref, 'refs\/tags\/cavalry-'\)\s*$/m);
-  assert.doesNotMatch(releaseJob[1], /updater_signing_smoke/);
+  assert.doesNotMatch(releaseJob[1], /workflow_dispatch/);
+  assert.match(
+    packageJob[1],
+    /Build packaged macOS app \(tag = ad-hoc \+ signed updater\)[\s\S]*TAURI_SIGNING_PRIVATE_KEY:[\s\S]*tauri\.updater-artifacts\.conf\.json/
+  );
 });
 
 test('Windows injector selects the installed Visual Studio generator and locks the proven x64 v143 toolset', () => {
@@ -1720,17 +1818,18 @@ test('Windows CI runs deterministic dependencies, contracts, Rust tests, and an 
   assert.ok(job, 'windows_check job missing');
   assert.match(job[1], /runs-on:\s*windows-2022/);
   assert.match(job[1], /actions\/setup-python@[0-9a-f]{40}/);
-  assert.match(job[1], /npm run prepare:qt-sdk:windows/);
+  assert.match(job[1], /prepare_cavalry_28_windows_ci_inputs\.ps1/);
+  assert.doesNotMatch(job[1], /prepare:qt-sdk:windows|build:injector:windows/);
   assert.doesNotMatch(job[1], /python -m aqt install-qt/);
   assert.match(job[1], /resolve_windows_cmake\.js --ensure --print-json/);
   assert.match(job[1], /record_windows_toolchain_evidence\.js/);
   assert.match(job[1], /toolchain-evidence-windows-x64\.json/);
   assert.match(job[1], /npm ci/);
   assert.match(job[1], /npm run test:contracts/);
-  assert.match(job[1], /npm run build:injector:windows/);
+  assert.match(job[1], /npm run prepare:tauri:windows-bundle/);
   assert.match(job[1], /npm run test:tauri/);
-  const prepareQtIndex = job[1].indexOf('npm run prepare:qt-sdk:windows');
-  const buildInjectorIndex = job[1].indexOf('npm run build:injector:windows');
+  const prepareQtIndex = job[1].indexOf('prepare_cavalry_28_windows_ci_inputs.ps1');
+  const buildInjectorIndex = job[1].indexOf('npm run prepare:tauri:windows-bundle');
   const rustCheckIndex = job[1].indexOf('npm run check:tauri');
   assert.ok(prepareQtIndex >= 0 && prepareQtIndex < buildInjectorIndex);
   assert.ok(buildInjectorIndex < rustCheckIndex);
@@ -1751,19 +1850,15 @@ test('Windows CI runs deterministic dependencies, contracts, Rust tests, and an 
     /src-tauri\/target\/x86_64-pc-windows-msvc\/release\/bundle\/nsis\/\*\.exe\.sig/
   );
   assert.match(job[1], /TAURI_SIGNING_PRIVATE_KEY_PASSWORD/);
-  assert.match(
-    job[1],
-    /npm run tauri -- build --target x86_64-pc-windows-msvc --config src-tauri\/tauri\.windows\.conf\.json --config src-tauri\/tauri\.updater-artifacts\.conf\.json/,
-    'Windows tag packaging must remain one PowerShell-safe command line'
-  );
+  assert.match(job[1], /npm run build:tauri:windows -- --package-only --updater/);
   assert.match(job[1], /if-no-files-found:\s*error/);
   // Windows Authenticode is intentionally not implemented here (external issue).
   assert.doesNotMatch(job[1], /signtool|Authenticode|osslsigncode/i);
   const pkg = readJson('package.json');
-  assert.match(pkg.scripts['build:tauri:windows'], /^npm run prepare:qt-sdk:windows/);
+  assert.equal(pkg.scripts['build:tauri:windows'], 'node tools/windows_native_build.js');
   assert.equal(
     pkg.scripts['prepare:tauri:windows-bundle'],
-    'npm run build:injector:windows && node tools/windows_nsis_provenance.js --prepare'
+    'node tools/windows_native_build.js --prepare-only'
   );
   assert.ok(sourceArtifact, 'source artifact upload step missing');
   assert.match(
@@ -1833,7 +1928,8 @@ test('Windows NSIS lifecycle preserves by default and restores English only thro
       `${relativePath}: Windows PowerShell 5.1 requires a UTF-8 BOM before parsing non-ASCII comments`
     );
   }
-  const script = readText('tools/check_windows_nsis_install.ps1');
+  const script = readText('tools/check_windows_nsis_install.ps1')
+    + readText('tools/windows_native_pack.ps1');
   const nsisHooks = readText('src-tauri/nsis-hooks.nsh');
   const executableNsisHooks = nsisHooks
     .split(/\r?\n/)
@@ -1956,8 +2052,10 @@ test('Windows NSIS lifecycle preserves by default and restores English only thro
   assert.match(script, /\.WaitForExit\(\$processTimeoutMilliseconds\)/);
   assert.match(script, /Assert-NoReparsePoints -Root \$InstallRoot/);
   assert.match(script, /0x8664/);
-  assert.match(script, /\$expectedLocales = @\('en', 'ja_JP', 'zh-Hans', 'zh-Hant'\)/);
-  assert.match(script, /\$expectedJsonCountPerLocale = 38/);
+  assert.match(script, /\$nativePackLocales = @\('zh-Hans', 'zh-Hant', 'ja_JP'\)/);
+  assert.match(script, /Assert-InstalledNativeResources/);
+  assert.match(script, /\$manifest\.kind -ceq 'production-2\.8'/);
+  assert.doesNotMatch(script, /expectedJsonCountPerLocale/);
   assert.match(script, /\$provenanceTool = Join-Path \$repoRoot 'tools\\windows_nsis_provenance\.js'/);
   assert.match(script, /function Assert-CurrentInstallerProvenance/);
   assert.match(script, /& \$node\.Source \$provenanceTool '--verify' \$Installer/);
@@ -2459,12 +2557,12 @@ test('tauri capability and SOP mention the bridge and packaged resource boundari
   for (const requiredText of [
     'tauri.conf.json',
     'tauri.macos.conf.json',
+    'native-production-2.8',
     'tauri.windows.conf.json',
     'languages',
-    'libCavalryTranslatorInjector.dylib',
     'build:tauri:windows',
     'provenance',
-    'src-tauri/target/release/bundle',
+    'src-tauri/target/aarch64-apple-darwin/release/bundle',
     'DMG',
     '.app',
     'Developer ID',

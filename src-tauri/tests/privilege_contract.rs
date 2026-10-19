@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 privilege facade、其按职责拆分的源码树，以及复制、重签、quarantine 与跨平台 restart 边界。
+ * [INPUT]: 依赖 privilege facade 与源码树；UAC环境读取断言只检查known_folders授权根，不误扫Mac配置和测试夹具。
  * [OUTPUT]: 对外提供权限回退、Cavalry owned Keychain patch、无 Switcher journal Keychain HMAC、macOS 签名/不跟随 symlink 的 quarantine 清理与 launch-gate/observe-only/tombstone transaction source contract、Switch/Restore 早期只读 exact-PID admission，及 Windows Known Folder UAC、same-EXE worker 早分流、无控制台 PowerShell、当前会话 SafeHandle 绑定且 exact-PID 可见窗口 oracle 守护的精确进程收尾、45 可重试关闭阻塞、hash-locked loader 与 typed recovery diagnostics contract tests。
  * [POS]: src-tauri/tests 的系统边界守门；审计 facade 与子模块共同满足安全边界，避免文件拆分掩盖 Windows 提权约束。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -52,7 +52,6 @@ fn write(path: &Path, value: &[u8]) {
     fs::write(path, value).unwrap();
 }
 
-#[cfg(target_os = "windows")]
 fn privilege_source_tree() -> String {
     let source_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let mut sources = vec![source_root.join("privilege.rs")];
@@ -65,7 +64,6 @@ fn privilege_source_tree() -> String {
         .join("\n")
 }
 
-#[cfg(target_os = "windows")]
 fn collect_privilege_sources(directory: &Path, sources: &mut Vec<PathBuf>) {
     for entry in fs::read_dir(directory).unwrap() {
         let path = entry.unwrap().path();
@@ -952,9 +950,12 @@ fn elevated_language_worker_dispatch_precedes_headless_launch_and_webview_runtim
 }
 
 #[test]
-#[cfg(target_os = "windows")]
 fn windows_uac_allowlist_uses_known_folders_and_forbids_environment_root_lookup() {
     let source = privilege_source_tree();
+    let authorization_source = fs::read_to_string(
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("src/privilege/windows/known_folders.rs"),
+    )
+    .unwrap();
     let legacy_wow64_root = ["Program", "W6432"].concat();
     let legacy_x86_environment = ["ProgramFiles", "(x86)"].concat();
     let environment_lookup = ["var", "_os"].concat();
@@ -967,7 +968,8 @@ fn windows_uac_allowlist_uses_known_folders_and_forbids_environment_root_lookup(
     assert!(source.contains("[System.IO.FileAttributes]::ReparsePoint"));
     assert!(!source.contains(&legacy_wow64_root));
     assert!(!source.contains(&legacy_x86_environment));
-    assert!(!source.contains(&environment_lookup));
+    // 授权根禁用环境读取；平台配置和显式测试输入不属于提权授权。
+    assert!(!authorization_source.contains(&environment_lookup));
 }
 
 #[test]

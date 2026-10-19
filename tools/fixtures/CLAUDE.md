@@ -1,7 +1,8 @@
 # fixtures/
-> L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/tools/CLAUDE.md
+> L2 | 父级: ../CLAUDE.md
 
 成员清单
+legacy-p12-updater-manifest.json: 已发行Cavalry 2.7.2-p12公开latest.json的2521B原文字节锁输入；离线转换后由2.8双feed发布器附带为冻结p12 latest.json，保留原1.0.6/三平台签名，不证明archive验签。
 make_fake_cavalry_bundle.js: fake Cavalry.app 工厂，写入 Info.plist、JSON 资产、插件 strings、Mach-O 头与 Resources 目录。
 
 依赖边界:
