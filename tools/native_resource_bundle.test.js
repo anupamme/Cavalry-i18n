@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 native_resource_bundle 的纯生成入口、合成官方catalog/审定数据及固定schema补充源记录。
- * [OUTPUT]: 验证预览/生产资源profile、完整度、摘要、2.8资源overlay与默认2.7 feed隔离。
+ * [OUTPUT]: 验证预览/生产资源profile、完整度、摘要、2.8资源overlay与统一latest.json更新入口。
  * [POS]: macOS native UI 接线的构建边界合同；补充测试只证明有限8键producer契约，不审批译文/不证明实际显示。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -24,7 +24,7 @@ test('optimized ARM candidate command retains preview configuration and no updat
   assert.notEqual(preview.bundle.createUpdaterArtifacts, true);
   assert.doesNotMatch(scripts['tauri:build'], /NATIVE_RELEASE_CANDIDATE|native-preview/);
 });
-test('2.8 production overlay binds native resources and reuses the isolated 2.8 endpoint', () => {
+test('2.8 production overlay binds native resources and shares the latest.json endpoint', () => {
   const fs = require('node:fs');
   const path = require('node:path');
   const root = path.join(__dirname, '..');
@@ -35,8 +35,8 @@ test('2.8 production overlay binds native resources and reuses the isolated 2.8 
   assert.equal(production.identifier, 'com.daftai.cavalry-i18n');
   assert.equal(production.build.beforeBuildCommand, null);
   assert.deepEqual(production.bundle.resources, ['target/native-language-packs']);
-  assert.deepEqual(production.plugins.updater.endpoints, [], 'production overlay alone must not fall back to the 2.7 feed');
-  assert.deepEqual(endpoint.plugins.updater.endpoints, ['https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download/latest-cavalry-2.8.json']);
+  assert.deepEqual(production.plugins.updater.endpoints, [], 'production overlay alone must keep updating disabled until the release endpoint is supplied');
+  assert.deepEqual(endpoint.plugins.updater.endpoints, ['https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download/latest.json']);
   assert.deepEqual(legacy.plugins.updater.endpoints, ['https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download/latest.json']);
 });
 function fixture() {

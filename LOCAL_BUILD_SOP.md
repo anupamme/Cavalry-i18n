@@ -52,8 +52,8 @@ npm run prepare:qt-sdk:windows  # Windows x64
 发布版本分两层，不能混用：
 
 - Internal app version: SemVer，写在 `CHANGELOG.md`、`package.json`、`src-tauri/Cargo.toml` 与 `src-tauri/tauri.conf.json`，由 `npm run sync:version` 同步。
-- Release tag: 历史版本使用 `cavalry-2.7.2-pN`；旧 `latest.json` feed 永久冻结于 p12。p12终版只作历史下载；停止2.7开发、更新、验收与p12复核维护。
-- Cavalry 2.8.0 使用 `release-2.8.config.json` 与 `cavalry-2.8.0-pN`。本地生产包使用独立 `latest-cavalry-2.8.json` endpoint overlay。workflow已按所选2.8 profile向tag打包命令传独立endpoint overlay。Intel的2.8 x86_64及Windows native本地构建入口已接通；公开tag仍由 `implementation-not-ready` guard阻断，须另行完成三平台发布接线与批准。Intel实机UI尚未验，不作为本地编译通过的阻断。不得给旧2.7 runtime换名称；保留三平台production guard。
+- Release tag: 历史版本使用 `cavalry-2.7.2-pN`；统一 `latest.json` 更新入口，不再按Cavalry版本拆通道。p12终版只作历史下载；停止2.7开发、更新、验收与p12复核维护。
+- Cavalry 2.8.0 使用 `release-2.8.config.json` 与 `cavalry-2.8.0-pN`。本地生产包与历史客户端共用 `latest.json` endpoint overlay。workflow已按所选2.8 profile向tag打包命令传统一endpoint overlay。Intel的2.8 x86_64及Windows native本地构建入口已接通；公开tag仍由 `implementation-not-ready` guard阻断，须另行完成三平台发布接线与批准。Intel实机UI尚未验，不作为本地编译通过的阻断。不得给旧2.7 runtime换名称；保留三平台production guard。
 - 历史p12三种发布资产：
   - Apple Silicon: `Cavalry.Language.Switcher_Cavalry-2.7.2-p12_aarch64.dmg`
   - Intel: `Cavalry.Language.Switcher_Cavalry-2.7.2-p12_x64.dmg`
@@ -85,7 +85,7 @@ git push origin "$TAG"
 ```
 
 3. Tag 流水线会先验证tag ancestry与三平台闭包，再运行合同、Rust/native、Windows NSIS与macOS打包检查。未完成全部平台前，现有preflight会以 `implementation-not-ready` 拒绝2.8 tag；不要绕过此guard。
-4. 2.7 p12仅保留历史下载，不复验、不更新、不维护。2.8双feed合同保留隔离规则；旧 `latest.json` 不得改写。只有三平台runtime与验收就绪后，才按2.8 profile执行publisher。新2.8资产仍由CI生成 `SHA256SUMS` 与 `release-asset-provenance.json`；此流程不改写p12历史资产。
+4. 2.7 p12仅保留历史下载，不复验、不更新、不维护。新版Release发布新的 `latest.json`；宿主版本不匹配时复用主窗口提示与p12下载入口。只有三平台runtime与验收就绪后，才按2.8 profile执行publisher。新2.8资产仍由CI生成 `SHA256SUMS` 与 `release-asset-provenance.json`；此流程不改写p12历史资产。
 5. **Apple Developer ID/notarization** 与 **Windows Authenticode** 均不在当前 SOP 的发布前提内；获得相应身份后再单独升级，不得预先写成已完成。macOS updater 仍由独立 Tauri Ed25519 签名验证，但它不创造 Apple 平台身份。当前2.8 macOS-only手动预验不提供 no-tag updater-signing smoke；updater私钥与签名仅在tag生产流程使用。
 
 6. Release 正文由 workflow 中的版本更新记录与固定用户指引组成。**从 p8 开始，版本更新说明只显示中文**，不额外显示“中文 / English”语言标题。CHANGELOG 使用 Added/Changed/Fixed 等稳定英文分类键，条目写本版实际中文变化；抽取器只把分类标题映射为新增/变更/修复，不自动翻译正文，不用产品介绍代替更新条目。未来 GitHub Release 与 updater notes 共用该中文投影。已发布正文修订不替换历史 updater manifest 或安装包。固定部分保留 macOS 首次打开、Windows 首次安装、带版本链接的源码构建步骤、四语支持列表、权限/备份须知及简短英日说明；不要用维护者私有绝对路径替代通用 `<仓库路径>`。只修改已发布正文时使用 `gh release edit --notes-file`，不重打 tag、不替换资产，并回读正文及资产摘要。
@@ -449,7 +449,7 @@ npm run test:tauri:windows-nsis
 产物在`src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/`。
 两阶段CI调用`--prepare-only`和`--package-only`共用同一包装器，不复制构建命令。
 `--updater`只供tag阶段生成签名附件；不会自行创建tag或Release。
-独立2.8 feed由固定release overlay选择；旧`latest.json`保持冻结。
+固定release overlay启用统一`latest.json`；旧宿主沿主窗口提示与p12下载入口。
 
 本地编译、NSIS烟测与Cavalry实屏验收分账。整轮填写表及配置原像保持私有。
 默认构建切到2.8不等于公开发行；三平台tag guard在发行收口前保持。

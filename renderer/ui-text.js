@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖先行加载的user-profile-text.js，再合并renderer稳定的其余四语copy。
- * [OUTPUT]: 对外提供统一四语 UI_TEXT 与状态标题路由；用户级默认英语标签、共享scope/确认/恢复copy由独立子域spread合并，About社交按钮提供四语「关注」与平台区分名称，主窗单行关注入口提供四语操作提示与可访问名称；Official说明只声明已验证原厂App及无Switcher语言覆盖，不冒称任意第三方/全UI原样。
+ * [OUTPUT]: 对外提供统一四语 UI_TEXT 与状态标题路由；用户级默认英语标签、共享scope/确认/恢复copy由独立子域spread合并，版本不兼容时提供简短说明与既有p12入口；About社交按钮提供四语「关注」与平台区分名称，主窗单行关注入口提供四语操作提示与可访问名称；Official说明只声明已验证原厂App及无Switcher语言覆盖，不冒称任意第三方/全UI原样。
  * [POS]: renderer 的视觉文案与状态语义数据层；将持久事实、即时决策和短时局部失败分别供 Activity、AlertDialog 与 Toast 消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -141,7 +141,7 @@ const UI_TEXT = {
     readyToApply: 'Choose a language, then switch.',
     chooseAppToContinue: 'Choose a Cavalry installation to continue.',
     reinstallRequired: 'This Cavalry installation has no complete, verified original backup. Updating its language or restoring English is unsafe. Reinstall Cavalry {supportedVersion} from the official installer, reopen the Switcher, then choose a language again.',
-    olderVersionUnsupported: 'This Switcher currently supports Cavalry {supportedVersion}. Update Cavalry to {supportedVersion}, then reopen the Switcher. Your installation has not been changed.',
+    olderVersionUnsupported: 'This Switcher supports Cavalry {supportedVersion}. Please use the Switcher for your Cavalry version.',
     newerVersionUnsupported: 'This Switcher currently supports Cavalry {supportedVersion} and won’t modify this installation. Keep using Cavalry, then try again after a compatible Switcher update is available.',
     unknownVersionUnsupported: 'This Switcher supports Cavalry {supportedVersion} and has not changed your installation.',
     warningStateDurabilityPending: 'Restart the Switcher before applying a language or restoring Cavalry.',
@@ -320,7 +320,7 @@ const UI_TEXT = {
     readyToApply: '选择语言，然后切换。',
     chooseAppToContinue: '请选择 Cavalry 安装位置后继续。',
     reinstallRequired: '此 Cavalry 安装缺少完整且可验证的原厂备份，无法安全更新语言或恢复英文。请使用官方安装包重新安装 Cavalry {supportedVersion}，重新打开语言切换器，再选择语言。',
-    olderVersionUnsupported: '语言切换器目前支持 Cavalry {supportedVersion}。请先将 Cavalry 更新至 {supportedVersion}，再重新打开语言切换器。当前安装未被修改。',
+    olderVersionUnsupported: '当前支持 Cavalry {supportedVersion}。请使用对应版本的语言切换器。',
     newerVersionUnsupported: '语言切换器目前支持 Cavalry {supportedVersion}，不会修改此安装。你可以继续使用 Cavalry；请在兼容更新发布后再试。',
     unknownVersionUnsupported: '此语言切换器支持 Cavalry {supportedVersion}，当前安装未被修改。',
     warningStateDurabilityPending: '重启语言切换器，然后再应用语言或恢复 Cavalry。',
@@ -495,7 +495,7 @@ const UI_TEXT = {
     readyToApply: '選擇語言，然後切換。',
     chooseAppToContinue: '請先選擇 Cavalry 安裝位置再繼續。',
     reinstallRequired: '此 Cavalry 安裝缺少完整且可驗證的原廠備份，無法安全更新語言或還原英文。請使用官方安裝程式重新安裝 Cavalry {supportedVersion}，重新開啟語言切換器，再選擇語言。',
-    olderVersionUnsupported: '語言切換器目前支援 Cavalry {supportedVersion}。請先將 Cavalry 更新至 {supportedVersion}，再重新開啟語言切換器。目前的安裝未被修改。',
+    olderVersionUnsupported: '目前支援 Cavalry {supportedVersion}。請使用對應版本的語言切換器。',
     newerVersionUnsupported: '語言切換器目前支援 Cavalry {supportedVersion}，不會修改此安裝。你可以繼續使用 Cavalry；請在相容更新推出後再試。',
     unknownVersionUnsupported: '此語言切換器支援 Cavalry {supportedVersion}，目前安裝未被修改。',
     warningStateDurabilityPending: '重新啟動語言切換器，然後再套用語言或還原 Cavalry。',
@@ -670,7 +670,7 @@ const UI_TEXT = {
     readyToApply: '言語を選んで切り替えます。',
     chooseAppToContinue: '続行するには Cavalry のインストール先を選択してください。',
     reinstallRequired: 'この Cavalry インストールには完全で検証済みの元のバックアップがないため、言語の更新も英語への復元も安全にできません。公式インストーラーから Cavalry {supportedVersion} を再インストールし、言語スイッチャーを開き直してから言語を選び直してください。',
-    olderVersionUnsupported: 'この言語スイッチャーは現在 Cavalry {supportedVersion} に対応しています。Cavalry を {supportedVersion} に更新してから、言語スイッチャーを開き直してください。現在のインストールは変更されていません。',
+    olderVersionUnsupported: 'Cavalry {supportedVersion} 対応です。お使いの Cavalry に対応するスイッチャーをご利用ください。',
     newerVersionUnsupported: 'この言語スイッチャーは現在 Cavalry {supportedVersion} に対応しており、このインストールは変更しません。Cavalry はそのまま使用し、対応版の更新後にもう一度お試しください。',
     unknownVersionUnsupported: 'この言語スイッチャーは Cavalry {supportedVersion} に対応しています。現在のインストールは変更されていません。',
     warningStateDurabilityPending: '言語の適用または Cavalry の復元前に、言語スイッチャーを再起動してください。',

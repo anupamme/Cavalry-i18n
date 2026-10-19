@@ -139,7 +139,7 @@ add('16-release', 'G-3,G-6', ['release'], 'release', [
  ['versions','版本/tag/三平台资产命名与实际目标2.8一致'],
  ['signatures','包身份与updater签名验证；不冒Developer ID/notarized'],
  ['authorize','公开发行授权与发布状态核对'],
- ['feeds','发布后实际下载两个feed；旧latest.json冻结p12，新2.8独立endpoint'],
+ ['feeds','发布后实际下载统一latest.json，核三平台新包与不支持宿主的p12入口'],
  ['downloads','发行资产下载/签名/内容读回，不用配置存在代发布成功']]);
 add('17-closeout', 'H-1,H-2,H-3,H-4', ['shared'], 'shared', [
  ['freeze','冻结源码/译文检查点及输入身份，旧检查点不重做'],

@@ -8,7 +8,7 @@ run_flow.py: Python双平台编排；以run占位符绑定跨步骤回执；即�
 test_run_flow.py: 编排离线自测；验证即时采集、异常收尾与回交门，按本机Path身份核路径、显式UTF-8读证据。
 DRIVERS.md: 成功入口、同语场景与平台生命周期路由；不新增跨显示器验收门。
 README.md: 整轮单表、平台回交入口及存放规则；明确工具与实屏验收边界。
-masters.js: 固定44主项与平台归属；不复制动态完成状态。
+masters.js: 固定44主项ID与平台归属；G-2保留历史下载，G-3核统一更新入口，不复制动态完成状态。
 scenarios.js: 可观察行为与场景顺序；Cavalry三语事务与Switcher四语分开，同语共享动作，故障及实验启动单列。
 catalog.js: 分离源库存、场景观察索引与实屏case；保留冻结v1及旧schema2视图。
 checklist.js: 按路径段区分仓内副本与Windows跨卷仓外输出；生成schema2副本、记账并核验三段scope身份链，不启动产品。

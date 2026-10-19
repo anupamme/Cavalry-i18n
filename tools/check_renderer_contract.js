@@ -1053,10 +1053,10 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   assert.match(app, /versionGuidance\.statusKey\(state\.versionCompatibility\)/);
   assert.match(versionGuidance, /status\.versionCompatibility === 'olderUnsupported'[\s\S]*?status\.version === '2\.7\.2'[\s\S]*?status\.supportedVersion === '2\.8\.0'/);
   for (const label of [
-    'Download the final Cavalry 2.7.2 Switcher release',
-    '下载最终版 Cavalry 2.7.2 语言切换器',
-    '下載最終版 Cavalry 2.7.2 語言切換器',
-    '最終版 Cavalry 2.7.2 スイッチャーをダウンロード',
+    'Download p12 for Cavalry 2.7.2',
+    '下载 2.7.2 对应的 p12',
+    '下載 2.7.2 對應的 p12',
+    'Cavalry 2.7.2 用の p12 をダウンロード',
   ]) assert.ok(versionGuidance.includes(label), `version guidance must localize ${label}`);
   assert.match(app, /reportIssueButton\.textContent = t\('reportIssueButton'\)/);
   assert.match(app, /visualState === 'official'/);

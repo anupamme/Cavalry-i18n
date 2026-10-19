@@ -3,7 +3,7 @@
   "plugins": {
     "updater": {
       "endpoints": [
-        "https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download/latest-cavalry-2.8.json"
+        "https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download/latest.json"
       ]
     }
   }

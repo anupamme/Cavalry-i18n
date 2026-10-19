@@ -30,7 +30,7 @@ tests.rs: commands 基础契约 owner tests；验证缺少补丁回执的旧安�
 tests/runtime.rs: macOS apply fixture 与 Windows DLL/语言资源解析分开验证，覆盖打包资源、语言 apply、macOS直接调用内部legacy helper的fixture runner与Windows restart边界回归；native profile准入由独立fixture合同覆盖；Windows 断言 QPA ACTIVE 且子进程环境只含诊断 marker，复用父级 fixture，不在磁盘写魔法 ACTIVE sentinel。
 tests/native_user_official_independence.rs: tempfile双门合同；只有可信vendor+无Switcher覆盖的内置en/ja可声明Official，自有三语/旧pack/缺资源/漂移/pending/坏证据隐藏徽章；另测Current-owned非英语的runtime source失配、一致、缺失与不可读投影；不改变语言、资源或owned English恢复能力。
 tests/native_status_readonly_smoke.rs: status人工ignored组合烟测；真实原厂签名/编译包/OS默认profile经同一次生产native status owner投影，不启动GUI或创建模拟首次运行的state，细节由tests地图约束。
-update.rs: Switcher自更新；preview禁用，production仅允许正式identifier与唯一latest-cavalry-2.8.json。安装只消费Rust持有的已检查Update，复用operation lock与三阶段Channel；不回退旧feed。
+update.rs: Switcher自更新；preview禁用，production仅允许正式identifier与唯一latest.json。安装只消费Rust持有的已检查Update，复用operation lock与三阶段Channel；不另设旧feed。
 
 法则: facade 只保留稳定命令与兼容 seam；领域逻辑按状态、快照、写入、平台运行时单向下沉。
 

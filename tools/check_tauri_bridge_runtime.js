@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/user-profile-text/ui-text/language-scope/version-guidance/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/support-footer/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证单行关注 footer 四语文案/提示/无障碍名称与 GitHub/X/小红书固定 ID 分发；验证 About「关注」文案和平台区分的四语名称；保留 camelCase scope/错误白名单、严格 Restore/恢复语义、失败 Activity、局部外链 Toast、任务流、权限、Updater 与组件状态机合同。
+ * [OUTPUT]: 验证单行关注 footer 四语文案/提示/无障碍名称与 GitHub/X/小红书固定 ID 分发；验证 About「关注」文案和平台区分的四语名称；验证旧宿主短提示/p12入口和禁用Switch；保留 camelCase scope/错误白名单、严格 Restore/恢复语义、失败 Activity、局部外链 Toast、任务流、权限、Updater 与组件状态机合同。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1001,7 +1001,8 @@ test('unsupported Cavalry versions are read-only and preserve the user\'s upgrad
     assert.equal(r.calls.some(({ command }) => command === 'apply_language'), false);
   }
   assert.equal(activityTitle(older), 'Cavalry 2.7.1 isn’t supported');
-  assert.match(activityText(older), /update Cavalry to 2\.7\.2/i);
+  assert.match(activityText(older), /supports Cavalry 2\.7\.2/i);
+  assert.match(activityText(older), /Switcher for your Cavalry version/i);
   assert.equal(activityTitle(newer), 'Cavalry 2.7.3 isn’t supported yet');
   assert.match(activityText(newer), /won’t modify this installation/i);
   assert.match(activityText(newer), /keep using Cavalry/i);
@@ -1729,7 +1730,7 @@ test('user-profile fixed-English transaction phases name English, not the Cavalr
   }
 });
 
-test('legacy 2.7.2 release link appears only for a 2.8 preview and stays a fixed bridge id', async () => {
+test('legacy 2.7.2 host keeps a short p12 link and blocks switching after a Switcher update', async () => {
   const stable = boot({ status: {
     version: '2.7.2', supportedVersion: '2.7.2', versionCompatibility: 'supported',
   } });
@@ -1744,10 +1745,10 @@ test('legacy 2.7.2 release link appears only for a 2.8 preview and stays a fixed
   assert.equal(tooOld.elements['#legacyReleaseButton'].hidden, true, 'the fixed legacy link is specifically for Cavalry 2.7.2');
 
   const labels = [
-    ['en-US', 'Download the final Cavalry 2.7.2 Switcher release'],
-    ['zh-CN', '下载最终版 Cavalry 2.7.2 语言切换器'],
-    ['zh-TW', '下載最終版 Cavalry 2.7.2 語言切換器'],
-    ['ja-JP', '最終版 Cavalry 2.7.2 スイッチャーをダウンロード'],
+    ['en-US', 'Download p12 for Cavalry 2.7.2'],
+    ['zh-CN', '下载 2.7.2 对应的 p12'],
+    ['zh-TW', '下載 2.7.2 對應的 p12'],
+    ['ja-JP', 'Cavalry 2.7.2 用の p12 をダウンロード'],
   ];
   let preview;
   for (const [locale, label] of labels) {
@@ -1758,6 +1759,8 @@ test('legacy 2.7.2 release link appears only for a 2.8 preview and stays a fixed
     assert.equal(preview.elements['#legacyReleaseButton'].hidden, false, locale);
     assert.equal(preview.elements['#legacyReleaseButton'].textContent, label, locale);
     assert.match(activityText(preview), /Cavalry 2\.8\.0/);
+    assert.equal(preview.elements['#applyButton'].disabled, true, locale);
+    assert.equal(preview.calls.some(({ command }) => command === 'apply_language'), false, locale);
   }
   preview.elements['#legacyReleaseButton'].listeners.get('click')[0]();
   await flush();

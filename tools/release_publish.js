@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 gh CLI、显式 release profile metadata、人工安装资产、updater feed/archive/signature 与 CI 内部供应链证据
- * [OUTPUT]: 生成并验证内部 v5 provenance；p12仅回读既有七项资产，2.8双feed先私有draft逐字节回读
- * [POS]: GitHub Release 发布边界；2.7 p12只读且p13+拒绝，显式2.8 profile绑定冻结旧feed并发布独立feed
+ * [INPUT]: 依赖 gh CLI、release profile metadata、人工安装资产、单 updater manifest/archive/signature 与 CI 内部供应链证据
+ * [OUTPUT]: 生成并验证内部 v5 provenance；p12仅回读既有七项资产，新发行以单 manifest 私有 draft 逐字节回读
+ * [POS]: GitHub Release 发布边界；2.7 p12只读且p13+拒绝，2.8沿同一 latest.json 通道发布
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -13,7 +13,6 @@ const os = require('node:os');
 const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const { loadConfig, metadataForTag } = require('./release_metadata');
-const { assertLegacyManifest } = require('./create_legacy_updater_manifest');
 
 const rootDir = process.cwd();
 const args = process.argv.slice(2);
@@ -233,7 +232,10 @@ function main() {
   let releaseMetadata;
   try { releaseMetadata = metadataForTag(releaseConfig, tag); } catch (error) { fail(error.message); }
   if (releaseConfig.targetCavalryVersion === '2.7.2' && tag !== 'cavalry-2.7.2-p12') {
-    fail('The default 2.7 updater feed is frozen at cavalry-2.7.2-p12; use the explicit 2.8 profile for new releases.');
+    fail(
+      'The historical 2.7.2 release path accepts only cavalry-2.7.2-p12; ' +
+      'use the existing-version prompt and p12 download for older hosts.'
+    );
   }
   const commitSha = (optionValue('--release-commit') || optionValue('--commit') || process.env.GITHUB_SHA || '').toLowerCase();
   if (!/^[a-f0-9]{40}$/.test(commitSha)) fail('--release-commit/GITHUB_SHA must be a 40-character SHA.');
@@ -250,10 +252,7 @@ function main() {
     profileEnv('RELEASE_ASSET_NAME_X64', releaseMetadata),
     profileEnv('RELEASE_ASSET_NAME_WINDOWS_X64', releaseMetadata),
   ];
-  const manifestNames = [profileEnv('RELEASE_UPDATER_MANIFEST_NAME', releaseMetadata)];
-  if (releaseMetadata.RELEASE_UPDATER_LEGACY_MANIFEST_NAME) {
-    manifestNames.push(profileEnv('RELEASE_UPDATER_LEGACY_MANIFEST_NAME', releaseMetadata));
-  }
+  const manifestName = profileEnv('RELEASE_UPDATER_MANIFEST_NAME', releaseMetadata);
   profileEnv('RELEASE_UPDATER_DOWNLOAD_BASE_URL', releaseMetadata);
   profileEnv('RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL', releaseMetadata);
   const updaterNames = [
@@ -263,21 +262,14 @@ function main() {
     profileEnv('RELEASE_UPDATER_SIGNATURE_NAME_X64', releaseMetadata),
     profileEnv('RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64', releaseMetadata),
   ];
-  const distributionNames = [...releaseAssetNames, ...manifestNames, ...updaterNames];
+  const distributionNames = [...releaseAssetNames, manifestName, ...updaterNames];
   const distribution = localAssets(distDir, distributionNames);
   const publicDistributionNames = [
     ...releaseAssetNames,
-    ...manifestNames,
+    manifestName,
     releaseMetadata.RELEASE_UPDATER_ASSET_NAME_AARCH64,
     releaseMetadata.RELEASE_UPDATER_ASSET_NAME_X64,
   ];
-  if (releaseMetadata.RELEASE_UPDATER_LEGACY_MANIFEST_NAME) {
-    try {
-      assertLegacyManifest(fs.readFileSync(path.join(distDir, releaseMetadata.RELEASE_UPDATER_LEGACY_MANIFEST_NAME)));
-    } catch (error) {
-      fail(`Frozen legacy updater feed is invalid: ${error.message}`);
-    }
-  }
   const publicDistribution = localAssets(distDir, publicDistributionNames);
   writeChecksums(publicDistribution, path.join(distDir, 'SHA256SUMS'));
   const createdAtUtc = git(['show', '-s', '--format=%cI', commitSha]);

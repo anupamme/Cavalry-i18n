@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖迁移主账A–H的44个稳定编号。
- * [OUTPUT]: 提供主项名称、平台及历史裁决归属。
+ * [OUTPUT]: 提供主项名称、平台及裁决归属；G-2/G-3沿统一更新和历史下载规则。
  * [POS]: 验收表导航，不保存完成数或替代迁移主账。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -183,12 +183,12 @@ module.exports = [
   },
   {
     "id": "G-2",
-    "title": "冻结旧feed",
+    "title": "历史版本下载",
     "platform": "shared"
   },
   {
     "id": "G-3",
-    "title": "独立更新通道",
+    "title": "统一更新入口",
     "platform": "release"
   },
   {
