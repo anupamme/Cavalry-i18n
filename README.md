@@ -18,13 +18,13 @@
 
 ## Download
 
-Current release: **Cavalry 2.8.0 p1**. See [release notes and other versions](https://github.com/daftAI2026/Cavalry-i18n/releases/latest).
+Current release: **Cavalry 2.8.0 p2**. See [release notes and other versions](https://github.com/daftAI2026/Cavalry-i18n/releases/latest).
 
 | Platform | Download |
 | --- | --- |
-| macOS · Apple Silicon | [DMG](https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p1/Cavalry.Language.Switcher_Cavalry-2.8.0-p1_aarch64.dmg) |
-| macOS · Intel | [DMG](https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p1/Cavalry.Language.Switcher_Cavalry-2.8.0-p1_x64.dmg) |
-| Windows x64 | [EXE](https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p1/Cavalry.Language.Switcher_Cavalry-2.8.0-p1_windows-x64-setup.exe) |
+| macOS · Apple Silicon | [DMG](https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p2/Cavalry.Language.Switcher_Cavalry-2.8.0-p2_aarch64.dmg) |
+| macOS · Intel | [DMG](https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p2/Cavalry.Language.Switcher_Cavalry-2.8.0-p2_x64.dmg) |
+| Windows x64 | [EXE](https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p2/Cavalry.Language.Switcher_Cavalry-2.8.0-p2_windows-x64-setup.exe) |
 
 For Cavalry 2.7.2, use the historical [p12 release](https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.7.2-p12).
 
@@ -58,7 +58,7 @@ The image below is from an earlier version and illustrates the translated Cavalr
 - Improved Chinese and Japanese font rendering in the Time Editor, viewport, and tooltips, plus fixes for Japanese Quick Add queries.
 - Faster language switching after the patch is installed, with progress that includes configuration-recovery checks.
 
-See [all p1 changes](https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.8.0-p2).
+See [all p1 changes](https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.8.0-p1).
 
 ## Quick Start
 

@@ -18,13 +18,13 @@
 
 ## ダウンロード
 
-現在のリリース：**Cavalry 2.8.0 p1**。[更新内容とその他のバージョン](https://github.com/daftAI2026/Cavalry-i18n/releases/latest)。
+現在のリリース：**Cavalry 2.8.0 p2**。[更新内容とその他のバージョン](https://github.com/daftAI2026/Cavalry-i18n/releases/latest)。
 
 | プラットフォーム | ダウンロード |
 | --- | --- |
-| macOS · Apple Silicon | [DMG](https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p1/Cavalry.Language.Switcher_Cavalry-2.8.0-p1_aarch64.dmg) |
-| macOS · Intel | [DMG](https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p1/Cavalry.Language.Switcher_Cavalry-2.8.0-p1_x64.dmg) |
-| Windows x64 | [EXE](https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p1/Cavalry.Language.Switcher_Cavalry-2.8.0-p1_windows-x64-setup.exe) |
+| macOS · Apple Silicon | [DMG](https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p2/Cavalry.Language.Switcher_Cavalry-2.8.0-p2_aarch64.dmg) |
+| macOS · Intel | [DMG](https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p2/Cavalry.Language.Switcher_Cavalry-2.8.0-p2_x64.dmg) |
+| Windows x64 | [EXE](https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p2/Cavalry.Language.Switcher_Cavalry-2.8.0-p2_windows-x64-setup.exe) |
 
 Cavalry 2.7.2 では、過去の [p12 Release](https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.7.2-p12) を使用してください。
 
@@ -58,7 +58,7 @@ open "/Applications/Cavalry Language Switcher.app"
 - タイムエディター、ビューポート、ツールチップの中国語・日本語のフォント表示を改善し、一部の日本語Quick Add検索を修正。
 - パッチ適用後の言語切り替えを高速化し、設定の復元確認を進行状況に追加。
 
-[p1 のすべての更新内容](https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.8.0-p2)。
+[p1 のすべての更新内容](https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.8.0-p1)。
 
 ## 使い方
 
