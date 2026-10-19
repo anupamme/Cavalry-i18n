@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands/contract/update、native_runtime协调器与AppKit handoff生产源码。
- * [OUTPUT]: 验证 App Management handoff 保持九命令内固定权限边界、CSS viewport 的 forward/return 坐标合同、per-session Channel、drop 后同进程 oracle、业务成功/错误 cleanup、native协调器映射、待协调或nativeRestoreOnly时不进入restart、仅显式 Back 重新捕获持久 Activity 动作并 reverse、透明底整条实时 App row 快照且只在 System Settings 整窗内接受的 file-URL Copy drag、参考同形 532×112 helper 的单行指令 / Back + App row 几何、single motion surface 的内容与 shadow/stroke 共用边界、底部锚定且带 overscan 的箭头 spring、Reduce Motion 与无 TCC/AX 自动化副作用；权限链不主动重启 Switcher，系统“退出并重新打开”只产生待实机确认的新会话语义，程序 self-restart 只允许 updater 安装完成后持有。
+ * [OUTPUT]: 验证 App Management handoff 保持九命令内固定权限边界、CSS viewport 的 forward/return 坐标合同、per-session Channel、drop 后同进程 oracle、业务成功/错误 cleanup、native协调器映射、待协调或nativeRestoreOnly时不进入restart、仅显式 Back 重新捕获持久 Activity 动作并 reverse、透明底整条实时 App row 快照且只在 System Settings 整窗内接受的 file-URL Copy drag、参考同形 532×112 helper 的单行指令 / Back + App row 几何、Settings 右下内嵌定位与四边 clamp、live endpoint 更新、single motion surface 的内容与 shadow/stroke 共用边界、带 overscan 的箭头 spring、Reduce Motion 与无 TCC/AX 自动化副作用；权限链不主动重启 Switcher，系统“退出并重新打开”只产生待实机确认的新会话语义，程序 self-restart 只允许 updater 安装完成后持有。
  * [POS]: src-tauri/tests 的只读 macOS 权限交接守门；证明源码边界与可编译合同，不冒充首次授权、多屏或真实 System Settings drop 证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -249,6 +249,112 @@ fn native_helper_matches_the_reference_instruction_back_and_app_row_geometry() {
     assert!(native.contains("[self finishWithReverse:canReverse];"));
     assert!(native.contains("CAVSourceScreenRect(self.sourceView, self.returnRectCSS"));
     assert!(native.contains("self.sourceImage = image;"));
+}
+
+#[test]
+fn native_helper_matches_settings_lower_right_geometry_and_refreshes_the_live_flight_endpoint() {
+    let native = read("native/macos_permission_handoff.m");
+    let helper_start = native
+        .find("static NSRect CAVHelperFrame(NSRect settingsFrame)")
+        .expect("helper placement function missing");
+    let helper_end = native[helper_start..]
+        .find("static NSString *CAVScreenTopologyKey")
+        .map(|offset| helper_start + offset)
+        .expect("helper placement boundary missing");
+    let helper = &native[helper_start..helper_end];
+    let helper_width = numeric_constant(&native, "CAVHelperWidth");
+    let helper_height = numeric_constant(&native, "CAVHelperHeight");
+    let screen_inset = numeric_constant(&native, "CAVScreenInset");
+    let half_inset = screen_inset * numeric_constant(&native, "CAVHalf");
+
+    assert!(helper.contains(
+        "CGFloat x = NSMaxX(settingsFrame) - CAVHelperWidth - CAVScreenInset * CAVHalf;"
+    ));
+    assert!(helper.contains("CGFloat y = NSMinY(settingsFrame) + CAVScreenInset * CAVHalf;"));
+    assert!(helper.contains("x = MAX(NSMinX(visible) + CAVScreenInset,"));
+    assert!(helper.contains("MIN(x, NSMaxX(visible) - CAVHelperWidth - CAVScreenInset)"));
+    assert!(helper.contains("y = MAX(NSMinY(visible) + CAVScreenInset,"));
+    assert!(helper.contains("MIN(y, NSMaxY(visible) - CAVHelperHeight - CAVScreenInset)"));
+
+    let helper_origin = |settings_min_x: f64,
+                         settings_min_y: f64,
+                         settings_width: f64,
+                         visible_min_x: f64,
+                         visible_min_y: f64,
+                         visible_max_x: f64,
+                         visible_max_y: f64| {
+        let x = (settings_min_x + settings_width - helper_width - half_inset).clamp(
+            visible_min_x + screen_inset,
+            visible_max_x - helper_width - screen_inset,
+        );
+        let y = (settings_min_y + half_inset).clamp(
+            visible_min_y + screen_inset,
+            visible_max_y - helper_height - screen_inset,
+        );
+        (x, y)
+    };
+    let settings_helper = helper_origin(153.0, 139.0, 740.0, 0.0, 0.0, 1710.0, 1073.0);
+    assert_eq!(settings_helper, (351.0, 149.0));
+    assert_eq!(settings_helper.0 + helper_width, 153.0 + 740.0 - half_inset);
+    assert_eq!(settings_helper.1, 139.0 + half_inset);
+    assert_eq!(
+        helper_origin(0.0, 300.0, 500.0, 0.0, 0.0, 1710.0, 1073.0).0,
+        screen_inset
+    );
+    assert_eq!(
+        helper_origin(1000.0, 300.0, 710.0, 0.0, 0.0, 1710.0, 1073.0).0,
+        1710.0 - helper_width - screen_inset
+    );
+    assert_eq!(
+        helper_origin(200.0, 0.0, 740.0, 0.0, 0.0, 1710.0, 1073.0).1,
+        screen_inset
+    );
+    assert_eq!(
+        helper_origin(200.0, 1050.0, 740.0, 0.0, 0.0, 1710.0, 1073.0).1,
+        1073.0 - helper_height - screen_inset
+    );
+
+    let tracking_start = native
+        .find("- (void)trackSettings:(NSTimer *)timer")
+        .expect("Settings tracking function missing");
+    let tracking_end = native[tracking_start..]
+        .find("- (void)buildHelperAtFrame:")
+        .map(|offset| tracking_start + offset)
+        .expect("Settings tracking boundary missing");
+    assert!(native[tracking_start..tracking_end]
+        .contains("[self moveHelperToFrame:CAVHelperFrame(settingsFrame)]"));
+
+    let move_start = native
+        .find("- (void)moveHelperToFrame:(NSRect)frame")
+        .expect("helper move function missing");
+    let move_end = native[move_start..]
+        .find("- (void)updateTargetGeometry")
+        .map(|offset| move_start + offset)
+        .expect("helper target refresh boundary missing");
+    let movement = &native[move_start..move_end];
+    assert!(movement.contains("setFrame:frame"));
+    assert!(movement.contains("[self updateTargetGeometry];"));
+
+    let target_start = native
+        .find("- (void)updateTargetGeometry")
+        .expect("target geometry function missing");
+    let target_end = native[target_start..]
+        .find("- (void)back:")
+        .map(|offset| target_start + offset)
+        .expect("target geometry boundary missing");
+    assert!(native[target_start..target_end]
+        .contains("self.targetScreenRect = [self.helperPanel convertRectToScreen:rowRect]"));
+
+    let center_start = native
+        .find("- (NSPoint)centerAtProgress:(CGFloat)progress")
+        .expect("flight center function missing");
+    let center_end = native[center_start..]
+        .find("- (NSRect)motionFrameForProgress:")
+        .map(|offset| center_start + offset)
+        .expect("flight frame boundary missing");
+    let center = &native[center_start..center_end];
+    assert!(center.contains("NSMidX(self.targetScreenRect)"));
+    assert!(center.contains("NSMidY(self.targetScreenRect)"));
 }
 
 #[test]

@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-batch-plan.md: 沿用整轮表，按候选、语言、场景和状态合批；续剩余动作，先收尾后审图。
+batch-plan.md: 合并同语兼容会话；限定复验，隔离Switcher状态，发布前清理测试副本并回交安装选择。
 surfaces.md: Timeline测量/绘制、Viewport、四种质量文字状态、FPS与固定帮助；按实际工具和完整文本区分覆盖，空白场景避免遮挡。
 test-fixtures.md: 场景复制/正常打开、Script标准Run、内容加载证明与新增模板条件。
 workspace-helper.md: 已批准helper的启动、匹配、有限等待与精确PID清理；布局独立快照、显式恢复目标、夹具隔离和恢复弹窗归属。

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/user-profile-text/ui-text/language-scope/version-guidance/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/support-footer/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证单行关注 footer 四语文案/提示/无障碍名称与 GitHub/X/小红书固定 ID 分发；验证 About「关注」文案和平台区分的四语名称；验证旧宿主四语不支持提示、2.7.2专用p12入口和禁用Switch；保留 camelCase scope/错误白名单、严格 Restore/恢复语义、失败 Activity、局部外链 Toast、任务流、权限、Updater 与组件状态机合同。
+ * [OUTPUT]: 验证unset/explicit共用English标签且不改变恢复能力；验证单行关注 footer 四语文案/提示/无障碍名称与 GitHub/X/小红书固定 ID 分发；验证 About「关注」文案和平台区分的四语名称；验证旧宿主四语不支持提示、2.7.2专用p12入口和禁用Switch；保留 camelCase scope/错误白名单、严格 Restore/恢复语义、失败 Activity、局部外链 Toast、任务流、权限、Updater 与组件状态机合同。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -597,10 +597,10 @@ test('idle task viewport centers one localized prompt without creating event row
 
 test('installation badge follows backend Official projection across built-in locales and UI languages', async () => {
   const uiLocales = [
-    ['en-US', 'Official', 'Installation: verified vendor app; no Switcher language override', 'English (default)'],
-    ['zh-CN', '官方', '安装状态：已验证原厂应用；无 Switcher 语言覆盖', '英语（默认）'],
-    ['zh-TW', '官方', '安裝狀態：已驗證原廠應用；無 Switcher 語言覆寫', '英語（預設）'],
-    ['ja-JP', '公式', 'インストール状態: 検証済みの純正アプリ・Switcher の言語上書きなし', '英語（既定）'],
+    ['en-US', 'Official', 'Installation: verified vendor app; no Switcher language override', 'English'],
+    ['zh-CN', '官方', '安装状态：已验证原厂应用；无 Switcher 语言覆盖', 'English'],
+    ['zh-TW', '官方', '安裝狀態：已驗證原廠應用；無 Switcher 語言覆寫', 'English'],
+    ['ja-JP', '公式', 'インストール状態: 検証済みの純正アプリ・Switcher の言語上書きなし', 'English'],
   ];
   const builtInOfficialCases = [
     ['default English', {
@@ -1524,12 +1524,12 @@ test('nativeLocaleState accepts only the three camelCase user-profile states', a
   assert.equal(legacyStatus.nativeLocaleState, null, 'native profile detail is absent from installation scope');
 });
 
-test('unset native locale shows vendor-default English without selecting a language or granting Restore', async () => {
+test('unset native locale shows the shared English label without selecting a language or granting Restore', async () => {
   const locales = [
-    ['en-US', 'English (default)', 'Current: English (default)'],
-    ['zh-CN', '英语（默认）', '当前: 英语（默认）'],
-    ['zh-TW', '英語（預設）', '目前: 英語（預設）'],
-    ['ja-JP', '英語（既定）', '現在: 英語（既定）'],
+    ['en-US', 'English', 'Current: English'],
+    ['zh-CN', 'English', '当前: English'],
+    ['zh-TW', 'English', '目前: English'],
+    ['ja-JP', 'English', '現在: English'],
   ];
   for (const [locale, label, ariaLabel] of locales) {
     const profile = boot({ locale, status: {

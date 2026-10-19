@@ -5,7 +5,7 @@ description: 验收 Cavalry 2.8 macOS 原生文字、字体、提示和首帧，
 
 <!--
 [INPUT]: 依赖统一验收流程、当前总账与本轮候选。
-[OUTPUT]: 路由macOS显示动作、合批与证据判定。
+[OUTPUT]: 路由macOS显示动作、合批、测试状态隔离与收尾。
 [POS]: 显示验收技能入口；流程与表单由验收工具持有。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -35,3 +35,18 @@ description: 验收 Cavalry 2.8 macOS 原生文字、字体、提示和首帧，
 | 属性提示、节点说明、脚本帮助 | [帮助动作](references/help-actions.md) |
 | Quick Add或Switcher备用入口 | [搜索与Switcher动作](references/search-switcher.md) |
 | OCR、漏译、方框、旧证据复用 | [证据与定位](references/evidence.md)对应节 |
+
+## 测试隔离与发布前收尾
+
+测试正式构建，也必须隔离Switcher状态。
+按[合批方法](references/batch-plan.md#测试状态与发布前清理)设置独立状态根并核对实际落点。
+只换App副本、产品名或identifier，不算状态隔离。
+
+决定发布前，先归档成功脚本、必要失败证据和制品摘要。
+关闭自有测试PID，移除本轮不再使用的测试App和夹具。
+检查正常用户的安装选择，不得遗留测试路径。
+测试若借用过真实Switcher状态，回交原安装选择。
+未能确认正常入口识别正确时，记录未验，不宣称收尾完成。
+
+只清测试产物，不把用户配置或恢复记录当垃圾。
+这项是测试环境收尾，不新增实屏分母，也不授予发布权限。

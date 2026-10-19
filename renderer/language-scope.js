@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 ui-text 提供的四语文案，以及业务层传入的状态、Dialog 和事务回调。
- * [OUTPUT]: 提供 installation/userProfile 控制门、unset+English默认与Unknown徽章、仅Restore确认、owned-English hostless Restore准入、恢复阶段文案与固定错误文案。
+ * [OUTPUT]: 提供 installation/userProfile 控制门、unset与explicit共用English标签及Unknown徽章、仅Restore确认、owned-English hostless Restore准入、恢复阶段文案与固定错误文案。
  * [POS]: renderer 的语言范围策略层；用户级设置覆盖同一用户配置中的所有 Cavalry 副本，appPath 仍由业务层作为重启目标。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -39,7 +39,7 @@
       const defaultEnglish = isUserProfile() && nativeLocaleState === 'unset' && code === 'en';
       const explicit = !isUserProfile() || nativeLocaleState === 'explicit';
       const language = defaultEnglish
-        ? text('nativeLocaleEnglishDefault')
+        ? languageLabel('en', languages)
         : explicit ? languageLabel(code, languages) : text('unknownLanguage');
       return {
         label: language,

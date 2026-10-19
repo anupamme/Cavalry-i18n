@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 AppKit/CoreGraphics/QuartzCore，消费 Tauri WebView 原生 NSView、CSS forward/return rect、viewport 尺寸与一次性 C callback。
  * [OUTPUT]: 对外提供 cavalry_permission_handoff_start/finish；以 AppKit point geometry、每屏非激活 replicant、单一 motion surface 及其 shadow/stroke、独立非激活箭头 panel、参考同形的“单行指令 / Back + App row”helper 和不含 NSBox 背景的整条实时 App row 快照承载 file-URL NSDraggingSession，并仅接受落在实时 System Settings 主窗口内的 Copy 结果；显式 Back 重新捕获持久 Activity 动作作为返回目标，业务成功与错误只清理视觉层。
- * [POS]: src-tauri/native 的 macOS 权限交接 owner；按 0.72/1.0 spring、50pt apex、1-p/p opacity、12pt 对向 blur、三层 shadow/stroke 与底部锚定的箭头 spring 实现洁净室 handoff，外层半透明材质属于本进程 accessory 而非 System Settings，且不读写 TCC 或自动拨动系统开关；整个 System Settings 窗口是拖拽判定区域，forward 来源与 Back 返回锚点由同一 session 条件化。
+ * [POS]: src-tauri/native 的 macOS 权限交接 owner；helper 非拖拽时贴 Settings 右下内侧，右/下各留 10pt，并受选中屏幕 visibleFrame 四边约束；helper 移动会刷新 live flight endpoint。按 0.72/1.0 spring、50pt apex、1-p/p opacity、12pt 对向 blur、三层 shadow/stroke 与底部锚定的箭头 spring 实现洁净室 handoff；外层半透明材质属于本进程 accessory，且不读写 TCC 或自动拨动系统开关；整个 Settings 窗口是拖拽判定区域，forward 来源与 Back 返回锚点由同一 session 条件化。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #import <AppKit/AppKit.h>
@@ -251,8 +251,8 @@ static NSRect CAVSystemSettingsWindowFrame(void) {
 static NSRect CAVHelperFrame(NSRect settingsFrame) {
   NSScreen *screen = CAVScreenForAppKitRect(settingsFrame);
   NSRect visible = screen.visibleFrame;
-  CGFloat x = NSMidX(settingsFrame) - CAVHelperWidth * CAVHalf;
-  CGFloat y = NSMinY(visible) + CAVScreenInset;
+  CGFloat x = NSMaxX(settingsFrame) - CAVHelperWidth - CAVScreenInset * CAVHalf;
+  CGFloat y = NSMinY(settingsFrame) + CAVScreenInset * CAVHalf;
   x = MAX(NSMinX(visible) + CAVScreenInset,
           MIN(x, NSMaxX(visible) - CAVHelperWidth - CAVScreenInset));
   y = MAX(NSMinY(visible) + CAVScreenInset,

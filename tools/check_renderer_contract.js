@@ -28,7 +28,7 @@ const repoRoot = path.resolve(__dirname, '..');
 const read = (relative) => fs.readFileSync(path.join(repoRoot, relative), 'utf8');
 const UI_LOCALE_MARKERS = ['  en: {', "  'zh-Hans': {", "  'zh-Hant': {", '  ja_JP: {'];
 const PROFILE_TEXT_KEYS = [
-  'nativeLocaleEnglishDefault', 'nativeUserProfileScopeTitle', 'nativeUserProfileRecoveryTitle',
+  'nativeUserProfileScopeTitle', 'nativeUserProfileRecoveryTitle',
   'nativeResourceUnavailableTitle', 'nativeUserProfileScopeNotice', 'nativeUserProfileReconciliation',
   'nativeResourceUnavailable', 'nativeUserProfileResourcesUnavailableRecovery',
   'nativeUserLanguageFailureTitle', 'nativeUserLanguageConflict', 'nativeUserLanguagePermissionDenied',
@@ -1187,7 +1187,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.deepEqual(Object.keys(nativeCopies).sort(), [...localeNames].sort());
   for (const locale of localeNames) {
     assert.deepEqual(Object.keys(nativeCopies[locale]).sort(), [...PROFILE_TEXT_KEYS].sort(), `${locale} userProfile copy domain drifted`);
-    assert.equal(Object.keys(mergedCopies[locale]).length, 195, `${locale} merged UI_TEXT key count must include five support-footer keys and one shared follow label`);
+    assert.equal(Object.keys(mergedCopies[locale]).length, 194, `${locale} merged UI_TEXT key count must reuse the language manifest English label without a duplicate default-label key`);
     for (const removedSwitchKey of ['nativeUserProfileSwitchConfirmTitle', 'nativeUserProfileSwitchConfirmBody']) {
       assert.equal(Object.hasOwn(nativeCopies[locale], removedSwitchKey), false, `${locale} no longer owns ${removedSwitchKey}`);
       assert.equal(Object.hasOwn(mergedCopies[locale], removedSwitchKey), false, `${locale} no longer exports ${removedSwitchKey}`);

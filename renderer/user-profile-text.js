@@ -1,19 +1,18 @@
 /**
  * [INPUT]: 无运行时依赖；四语用户配置语言状态、共享范围提示和固定英文恢复文案只由ui-text.js消费。
- * [OUTPUT]: 对外提供 NATIVE_USER_PROFILE_TEXT 四语字典，收口默认英文显示、Restore确认、资源/恢复故障与原生恢复阶段copy。
+ * [OUTPUT]: 对外提供 NATIVE_USER_PROFILE_TEXT 四语字典，收口正式版共享提示、Restore确认、资源/恢复故障与原生恢复阶段copy。
  * [POS]: renderer 的用户级copy数据层；作为UI_TEXT的内聚子域，在主窗口、About与测试harness中先于ui-text.js加载。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const NATIVE_USER_PROFILE_TEXT = Object.freeze({
   en: {
-    nativeLocaleEnglishDefault: "English (default)",
-    nativeUserProfileScopeTitle: "Cavalry 2.8 shared language preview",
+    nativeUserProfileScopeTitle: "Shared language setting",
     nativeUserProfileRecoveryTitle: "Shared language state needs recovery",
     nativeResourceUnavailableTitle: "Native translation resources unavailable",
-    nativeUserProfileScopeNotice: "Development preview: language changes affect all Cavalry copies using this profile, including other versions. Translation coverage is incomplete.",
+    nativeUserProfileScopeNotice: "Language changes affect all Cavalry copies using this user profile.",
     nativeUserProfileReconciliation: "The shared language state may need recovery. Restore English to bring every Cavalry copy in this user profile to a known English state, or reapply a language after checking the state. Do not remove recovery records.",
-    nativeResourceUnavailable: "Cavalry 2.8 native language support is in preview and uses shared settings for every Cavalry copy in this user profile, including other versions. Native translation resources are unavailable or do not match this build, so switching is unavailable; Restore English remains available. Language resources are still being added; this is not full support.",
-    nativeUserProfileResourcesUnavailableRecovery: "The shared language state may need recovery. Cavalry 2.8 native language support is in preview and uses settings shared by every Cavalry copy in this profile, including other versions. Native translation resources are unavailable or do not match this build, so switching is unavailable; Restore English remains available to recover the shared state. Do not remove recovery records.",
+    nativeResourceUnavailable: "Native translation resources are unavailable or do not match this build. Language switching is unavailable. Use Restore English if available.",
+    nativeUserProfileResourcesUnavailableRecovery: "The shared language state may need recovery. Native translation resources are unavailable or do not match this build, so language switching is unavailable. Use Restore English if available. Do not remove recovery records.",
     nativeUserLanguageFailureTitle: "Could not safely change the shared Cavalry language",
     nativeUserLanguageConflict: "The shared language change could not be completed safely. Recovery records have been preserved. Check the Cavalry user configuration and retry; do not delete recovery data.",
     nativeUserLanguagePermissionDenied: "The Switcher could not write Cavalry settings for this user. Check the user file permissions, then retry.",
@@ -32,14 +31,13 @@ const NATIVE_USER_PROFILE_TEXT = Object.freeze({
     phaseApplyEnglishRestoreErrorTitle: "Could not restore English"
   },
   "zh-Hans": {
-    nativeLocaleEnglishDefault: "英语（默认）",
-    nativeUserProfileScopeTitle: "Cavalry 2.8 共享语言预览",
+    nativeUserProfileScopeTitle: "共享语言设置",
     nativeUserProfileRecoveryTitle: "共享语言状态需要恢复",
     nativeResourceUnavailableTitle: "原生翻译资源不可用",
-    nativeUserProfileScopeNotice: "开发预览，翻译覆盖尚不完整。切换语言会影响此用户配置下的所有 Cavalry 副本，包括其他版本。",
+    nativeUserProfileScopeNotice: "切换语言会影响使用此用户配置的所有 Cavalry 副本。",
     nativeUserProfileReconciliation: "此用户配置中的共享语言状态可能需要恢复。恢复英文可让所有 Cavalry 副本回到确定的英文状态；核验状态后，也可重新应用语言。请勿删除恢复记录。",
-    nativeResourceUnavailable: "Cavalry 2.8 原生语言功能仍处于预览阶段，使用此用户配置中供所有 Cavalry 副本（包括其他版本）共享的设置。原生翻译资源不可用或与此构建不匹配，因此暂时无法切换语言；需要时仍可恢复英文。语言资源仍在逐步完善，此预览不代表完整支持。",
-    nativeUserProfileResourcesUnavailableRecovery: "此用户配置中的共享语言状态可能需要恢复。Cavalry 2.8 原生语言功能仍处于预览阶段，使用此配置下所有 Cavalry 副本（包括其他版本）的共享设置。原生翻译资源不可用或与此构建不匹配，因此暂时无法切换语言；仍可通过恢复英文来恢复共享状态。请勿删除恢复记录。",
+    nativeResourceUnavailable: "原生翻译资源不可用或与此构建不匹配，暂时无法切换语言。若「恢复英文」可用，请用它恢复。",
+    nativeUserProfileResourcesUnavailableRecovery: "共享语言状态可能需要恢复。原生翻译资源不可用或与此构建不匹配，暂时无法切换语言。若「恢复英文」可用，请用它恢复。请勿删除恢复记录。",
     nativeUserLanguageFailureTitle: "无法安全更改 Cavalry 共享语言",
     nativeUserLanguageConflict: "无法安全完成共享语言更改。已保留恢复记录。请检查 Cavalry 用户配置后重试；不要删除恢复数据。",
     nativeUserLanguagePermissionDenied: "无法写入当前用户的 Cavalry 配置。请检查该用户的文件权限后重试。",
@@ -58,14 +56,13 @@ const NATIVE_USER_PROFILE_TEXT = Object.freeze({
     phaseApplyEnglishRestoreErrorTitle: "无法恢复英文"
   },
   "zh-Hant": {
-    nativeLocaleEnglishDefault: "英語（預設）",
-    nativeUserProfileScopeTitle: "Cavalry 2.8 共享語言預覽",
+    nativeUserProfileScopeTitle: "共享語言設定",
     nativeUserProfileRecoveryTitle: "共享語言狀態需要還原",
     nativeResourceUnavailableTitle: "原生翻譯資源無法使用",
-    nativeUserProfileScopeNotice: "開發預覽，翻譯覆蓋尚不完整。切換語言會影響此使用者設定檔下的所有 Cavalry 副本，包括其他版本。",
+    nativeUserProfileScopeNotice: "切換語言會影響使用此使用者設定檔的所有 Cavalry 副本。",
     nativeUserProfileReconciliation: "此使用者設定檔中的共享語言狀態可能需要還原。還原英文可讓所有 Cavalry 副本回到明確的英文狀態；核對狀態後，也可重新套用語言。請勿刪除還原記錄。",
-    nativeResourceUnavailable: "Cavalry 2.8 原生語言功能仍處於預覽階段，使用此使用者設定檔中供所有 Cavalry 副本（包括其他版本）共享的設定。原生翻譯資源無法使用，或與此建置不相符，因此暫時無法切換語言；需要時仍可還原英文。語言資源仍在逐步完善，此預覽不代表完整支援。",
-    nativeUserProfileResourcesUnavailableRecovery: "此使用者設定檔中的共享語言狀態可能需要還原。Cavalry 2.8 原生語言功能仍處於預覽階段，使用設定檔內所有 Cavalry 副本（包括其他版本）的共享設定。原生翻譯資源無法使用，或與此建置不相符，因此暫時無法切換語言；仍可透過還原英文來恢復共享狀態。請勿刪除還原記錄。",
+    nativeResourceUnavailable: "原生翻譯資源無法使用，或與此建置不相符，暫時無法切換語言。若「還原英文」可用，請用它還原。",
+    nativeUserProfileResourcesUnavailableRecovery: "共享語言狀態可能需要還原。原生翻譯資源無法使用，或與此建置不相符，暫時無法切換語言。若「還原英文」可用，請用它還原。請勿刪除還原記錄。",
     nativeUserLanguageFailureTitle: "無法安全變更 Cavalry 共享語言",
     nativeUserLanguageConflict: "無法安全完成共享語言變更。還原記錄已保留。請檢查 Cavalry 使用者設定後重試；不要刪除還原資料。",
     nativeUserLanguagePermissionDenied: "無法寫入目前使用者的 Cavalry 設定。請檢查該使用者的檔案權限後重試。",
@@ -84,14 +81,13 @@ const NATIVE_USER_PROFILE_TEXT = Object.freeze({
     phaseApplyEnglishRestoreErrorTitle: "無法還原英文"
   },
   ja_JP: {
-    nativeLocaleEnglishDefault: "英語（既定）",
-    nativeUserProfileScopeTitle: "Cavalry 2.8 共有言語プレビュー",
+    nativeUserProfileScopeTitle: "共有言語設定",
     nativeUserProfileRecoveryTitle: "共有言語状態の復旧が必要です",
     nativeResourceUnavailableTitle: "ネイティブ翻訳リソースを利用できません",
-    nativeUserProfileScopeNotice: "開発プレビューです。翻訳はまだ一部のみです。このユーザープロファイルの言語を変更すると、他のバージョンを含むすべてのCavalryコピーに影響します。",
+    nativeUserProfileScopeNotice: "このユーザープロファイルを使用するすべての Cavalry に言語変更が適用されます。",
     nativeUserProfileReconciliation: "共有言語状態の復旧が必要な可能性があります。英語に戻すと、このユーザープロファイル内のすべての Cavalry コピーを確実に英語へ戻せます。状態を確認した後、言語を再適用することもできます。復旧記録は削除しないでください。",
-    nativeResourceUnavailable: "Cavalry 2.8 のネイティブ言語機能はプレビュー段階で、このユーザープロファイル内のすべての Cavalry コピー（他のバージョンを含む）で共有される設定を使います。ネイティブ翻訳リソースを利用できないか、このビルドと一致しないため、言語を切り替えられません。必要に応じて英語に戻せます。言語リソースは順次追加中で、完全対応を示すものではありません。",
-    nativeUserProfileResourcesUnavailableRecovery: "共有言語状態の復旧が必要な可能性があります。Cavalry 2.8 のネイティブ言語機能はプレビュー段階で、このユーザープロファイル内のすべての Cavalry コピー（他のバージョンを含む）で共有される設定を使います。ネイティブ翻訳リソースを利用できないか、このビルドと一致しないため言語を切り替えられませんが、共有状態の復旧には英語に戻せます。復旧記録は削除しないでください。",
+    nativeResourceUnavailable: "ネイティブ翻訳リソースを利用できないか、このビルドと一致しないため、言語を切り替えられません。「英語に戻す」が利用できる場合は、この操作で復旧してください。",
+    nativeUserProfileResourcesUnavailableRecovery: "共有言語状態の復旧が必要な可能性があります。ネイティブ翻訳リソースを利用できないか、このビルドと一致しないため、言語を切り替えられません。「英語に戻す」が利用できる場合は、この操作で復旧してください。復旧記録は削除しないでください。",
     nativeUserLanguageFailureTitle: "Cavalry の共有言語を安全に変更できませんでした",
     nativeUserLanguageConflict: "共有言語の変更を安全に完了できませんでした。復旧記録は保持されています。Cavalry のユーザー設定を確認して再試行してください。復旧データは削除しないでください。",
     nativeUserLanguagePermissionDenied: "このユーザーの Cavalry 設定に書き込めませんでした。ユーザーファイルのアクセス権を確認してから再試行してください。",

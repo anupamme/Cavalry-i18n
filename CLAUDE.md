@@ -17,7 +17,7 @@ Windows2.8窄补充在`injector/windows/native/`：复用225项/固定状态及G
 
 Windows固定工具帮助的Alt组合仅在字体准入时对应共享Option/Alt组合；原显示字节、75项共享lane及准确owner调用链不变，三语隔离合同与实屏复验分账。
 <directory>
-.agents/ - 项目技能入口；翻译与macOS显示分别路由；显示沿统一验收表和SOP合批补验，脚本自测留tools；不参与产品构建或运行 (1 子目录: skills)
+.agents/ - 项目技能入口；翻译与macOS显示分别路由；显示按影响合批补验，显式隔离Switcher状态，发布前清测试副本并回交安装选择；脚本自测留tools，不参与产品构建或运行 (1 子目录: skills)
 .baoyu-skills/ - 项目本地 Agent 技能扩展配置，约束翻译偏好与术语来源 (Markdown)
 .github/ - GitHub Actions与Issue模板；手动macos-2.8-preflight在现有ARM/Intel矩阵打包，不发布；旧2.7 tag拒绝重打包，2.8公开tag仍受三平台guard约束 (YAML)
 desktop-patcher/ - 旧桌面补丁器产物镜像，仅保留 injector 生成物与预编译 dylib (C++, dylib)
@@ -37,7 +37,7 @@ CAVALRY_2_8_MIGRATION_PLAN.md - 单2.8迁移唯一44项主账，44完成/0待办
 AGENTS.md - 固定本轮单2.8安装范围，不加旧版/双安装必验门；根级 Agent 行动地图，按 Kumo knowledge base 结构固化查找入口、约定、反模式、命令、流水线、工具链与安全边界
 CHANGELOG.md - 新版本中文条目与英文分类语义分离的 SemVer 发布历史与 Unreleased 用户可见变更真相源；tag 正文由 workflow 按版本抽取，不保留会漂移的根目录 release body 快照
 LOCAL_BUILD_SOP.md - 当前默认2.8 ARM正式模式构建；旧2.7 p12仅历史下载，不作前置验收；三平台发布门保留；唯一桌面打包与发布操作合同，区分本地验证、ad-hoc tag、Tauri updater 签名和未具备的平台身份，并固定 macOS DMG 文件名与挂载卷标的不同职责
-README.md - 英文主入口，四语发布徽章直接读取 GitHub 最新正式 Release tag，冻结头部/预览/支持/许可证节点，以用户任务为顺序压缩功能、安全、安装、运行、固定缺陷反馈模板与开发说明；明确2.8用户profile语言包与归属恢复、平台权限、原生运行时事务和2.7.2 p12历史入口
+README.md - 英文主入口；四语保留头部、预览、支持与许可证。三平台下载前置，安装后接2.8亮点、三步使用及权限恢复；开发命令后折叠原理、语言代码、翻译来源、目录和CI。旧预览标明历史示意；p2下载固定tag，徽章读取最新Release；2.7.2保留p12入口
 README.zh-Hans.md - 简体中文 README，与英文入口保持标题结构、用户事实、命令和导航同构，包括2.8用户profile与归属恢复
 README.zh-Hant.md - 繁体中文 README，与英文入口保持标题结构、用户事实、命令和导航同构，包括2.8使用者profile與歸屬還原
 README.ja_JP.md - 日文 README，与英文入口保持标题结构、用户事实、命令和导航同构，包括2.8ユーザープロファイルと所有状態の復元
@@ -149,3 +149,5 @@ M88统一根因：同一CI候选在runner旧dyld_info中符号错位，LLVM绑�
 2026-10-19: 维护者批准2.8首发。移除过期迁移tag拦截，保留main ancestry及三平台production、updater签名与七资产回读；准备cavalry-2.8.0-p1 / app1.1.0。未获发行实证前，G-3/G-6仍待。
 
 2026-10-19: cavalry-2.8.0-p1（app1.1.0）已公开，main/tag CI与三平台包均成功。七资产实取、SHA-256、三平台updater验签、统一latest.json及p12前后对比通过；主账44/44。Intel实机仍未验且非阻断，平台签名身份不变。后续账本提交不移动发布tag。
+
+2026-10-19 p2修订：正式版四语共享提示去预览声明，unset与explicit英文共用English标签；权限helper改贴Settings右下内侧10pt并沿用实时端点。测试隔离和发布前收尾只记显示skill，不改SOP。版本1.1.1，发布实证另记。
