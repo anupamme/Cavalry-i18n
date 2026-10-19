@@ -33,7 +33,7 @@ output/ - 只跟踪稳定地图与派生产物规则；实跑证据在仓外sess
 <config>
 src-tauri/tauri.native-windows-2.8.conf.json - Windows默认生产wrapper的runtime资源映射；与native-production共同装三语包和同版generic/QPA，不带旧translator或Qt运行时
 .gitignore - 排除依赖、构建、实跑和output派生产物；output仅保留CLAUDE与README稳定规则
-CAVALRY_2_8_MIGRATION_PLAN.md - 单2.8迁移唯一44项主账，42完成/2待办；Windows D-6/G-5按§66.189收口；§66.191记录2.8首发授权、1.1.0及生产tag启用；§5.2是待办导航，§66.149–151记录NRT Keychain、同源profile快路与真实恢复进度，§66.159–177记录四语footer、ARM内部包/恢复、5.367GiB清理、Save caption、验收复用纠偏、Intel隔离编译与Graph/官方示例新缺口；原动画不动。Intel实机不阻断，编译/反馈留XIA-187；Windows已在合批流程稳定后完成本机验收。完整225不变；普通GUI繁1.449秒、简4.309秒，不抵冷首装/恢复/完整性能/首帧。Guide79/79/79；本profile首启已完成，限定N/A各19、待验0，源分母各98。旧STOP§126限当次私档发布；新归档独立执行，功能分支已推送并合入PR54，未tag/release。私档不作为构建输入。
+CAVALRY_2_8_MIGRATION_PLAN.md - 单2.8迁移唯一44项主账，44完成/0待办；§66.193记录2.8 p1正式发行及七资产/统一feed回读；Windows D-6/G-5按§66.189收口；§66.191记录2.8首发授权、1.1.0及生产tag启用；§5.2是待办导航，§66.149–151记录NRT Keychain、同源profile快路与真实恢复进度，§66.159–177记录四语footer、ARM内部包/恢复、5.367GiB清理、Save caption、验收复用纠偏、Intel隔离编译与Graph/官方示例新缺口；原动画不动。Intel实机不阻断，编译/反馈留XIA-187；Windows已在合批流程稳定后完成本机验收。完整225不变；普通GUI繁1.449秒、简4.309秒，不抵冷首装/恢复/完整性能/首帧。Guide79/79/79；本profile首启已完成，限定N/A各19、待验0，源分母各98。旧STOP§126限当次私档发布；新归档独立执行，功能分支已合入PR54，2.8 p1已按§66.193公开发行。私档不作为构建输入。
 AGENTS.md - 固定本轮单2.8安装范围，不加旧版/双安装必验门；根级 Agent 行动地图，按 Kumo knowledge base 结构固化查找入口、约定、反模式、命令、流水线、工具链与安全边界
 CHANGELOG.md - 新版本中文条目与英文分类语义分离的 SemVer 发布历史与 Unreleased 用户可见变更真相源；tag 正文由 workflow 按版本抽取，不保留会漂移的根目录 release body 快照
 LOCAL_BUILD_SOP.md - 当前默认2.8 ARM正式模式构建；旧2.7 p12仅历史下载，不作前置验收；三平台发布门保留；唯一桌面打包与发布操作合同，区分本地验证、ad-hoc tag、Tauri updater 签名和未具备的平台身份，并固定 macOS DMG 文件名与挂载卷标的不同职责
@@ -147,3 +147,5 @@ M88统一根因：同一CI候选在runner旧dyld_info中符号错位，LLVM绑�
 2026-10-19 新裁决：Switcher统一latest.json更新，撤销旧feed冻结/按宿主拆通道。2.7.2沿现有短提示与p12按钮；p12历史资产不变。G-3改核统一feed发布回读，42/44不变；不得据此打tag或发布。
 
 2026-10-19: 维护者批准2.8首发。移除过期迁移tag拦截，保留main ancestry及三平台production、updater签名与七资产回读；准备cavalry-2.8.0-p1 / app1.1.0。未获发行实证前，G-3/G-6仍待。
+
+2026-10-19: cavalry-2.8.0-p1（app1.1.0）已公开，main/tag CI与三平台包均成功。七资产实取、SHA-256、三平台updater验签、统一latest.json及p12前后对比通过；主账44/44。Intel实机仍未验且非阻断，平台签名身份不变。后续账本提交不移动发布tag。
