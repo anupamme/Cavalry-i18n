@@ -1002,7 +1002,8 @@ test('unsupported Cavalry versions are read-only and preserve the user\'s upgrad
   }
   assert.equal(activityTitle(older), 'Cavalry 2.7.1 isn’t supported');
   assert.match(activityText(older), /supports Cavalry 2\.7\.2/i);
-  assert.match(activityText(older), /Switcher for your Cavalry version/i);
+  assert.match(activityText(older), /Update Cavalry to use it/i);
+  assert.equal(older.elements['#legacyReleaseButton'].hidden, true);
   assert.equal(activityTitle(newer), 'Cavalry 2.7.3 isn’t supported yet');
   assert.match(activityText(newer), /won’t modify this installation/i);
   assert.match(activityText(newer), /keep using Cavalry/i);
