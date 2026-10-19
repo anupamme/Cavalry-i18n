@@ -170,7 +170,8 @@ record_windows_toolchain_evidence.js: 读取已验证 Windows CMake identity，�
 dependency_vulnerability_gate.json / dependency_vulnerability_gate.js / dependency_vulnerability_gate.test.js: 三生态依赖漏洞门；版本同步也会改变 package-lock 字节，必须核验依赖差异并同步 npm 摘要，不能跳过 audit；通过共享 npm 命令边界固定 Node/npm 与 registry，hash-lock `pip-audit==2.10.1` 并要求报告精确等于 CPython 3.12.6/Linux 的 24 项 canonical active lock（拒绝截断/增项/重复/漏洞），Cargo 固定 cargo-audit 与 immutable RustSec commit/timestamp，并要求 30 天内重审 snapshot。
 verify_runner_image.js: 规范化 GitHub `ImageOS`/`ImageVersion` 及 runner OS/arch；PR/main 记录，tag 在受保护 environment 的 allowlist 缺失或不匹配时 fail-closed。
 dmg_volume_identity.js: DMG 挂载身份真相源，从 package SemVer 与 `_aarch64`/`_x64` 文件名后缀生成 `Cavalry Switcher <SemVer> <arch>`，由 producer/verifier 共同消费并拒绝未知架构。
-stamp_dmg_icon.sh: DMG 卷标与卷宗图标 producer；将共享身份写入可写镜像，再用 hdiutil 写入 `.VolumeIcon.icns`/custom-icon 标记，并以 Rez/SetFile best-effort 写本机 Finder 文件图标。
+stamp_dmg_icon.test.js: 执行真实盖章脚本的离线生命周期合同；只虚拟化系统命令，覆盖忙卷三次等待、非忙错误直退及挂载 backing 保全。
+stamp_dmg_icon.sh: 仅对卸载 EBUSY=16 等待2/4秒；保留错误，仍挂载时不删 backing。DMG 卷标与卷宗图标 producer；将共享身份写入可写镜像，再用 hdiutil 写入 `.VolumeIcon.icns`/custom-icon 标记，并以 Rez/SetFile best-effort 写本机 Finder 文件图标。
 cavalry_qt_target.json: 发布目标映射，唯一声明 Cavalry 2.7.2 与 Qt 6.6.3，并为 macOS `clang_64`、Windows `msvc2019_64` 提供 repo-local SDK 路径和 aqt 参数；macOS qtbase 安装身份是可复核的完整 SDK tree SHA-256，而非仅版本号。
 build_translator_injector.sh: 同时编译时间轴字体适配器，vendor-free Skia 链接桩覆盖 measure/draw； 同步生成独立 Quick Add 说明索引， 重生成共享翻译表后，以 `-O2/-fno-omit-frame-pointer` 合编 macOS injector、Classic 评分、空结果、完整分类 getter 与 TransformTool ABI 适配器；真实运行绑定 `@rpath/libskia.dylib`，无 vendor app 的 CI 只使用不入包的临时链接桩。
 launch_cavalry_with_injector.sh: 手动调试启动器，复用 embedded injector runtime flow。
