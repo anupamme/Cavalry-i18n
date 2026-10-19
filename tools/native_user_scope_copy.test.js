@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 renderer/user-profile-text.js 与ui-text.js组合后的四语 userProfile copy、language-scope.js投影器与固定语言清单。
- * [OUTPUT]: 锁定正式版共享范围通知、统一English徽章/无障碍文案、矛盾状态Unknown隔离、legacy显示与默认语言不授予恢复能力。
- * [POS]: tools 的本地化与状态投影合同；不冒充浏览器排版、400×556 窗口或现场可见性验证。
+ * [OUTPUT]: 锁定p12正常待机与真实恢复提示分流、统一English徽章/无障碍文案、矛盾状态Unknown隔离、legacy显示与默认语言不授予恢复能力。
+ * [POS]: tools 的本地化与状态投影合同；不冒充浏览器排版、400×504 窗口或现场可见性验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -14,9 +14,6 @@ const vm = require('node:vm');
 const profileTextSource = fs.readFileSync(path.join(__dirname, '../renderer/user-profile-text.js'), 'utf8');
 const uiTextSource = fs.readFileSync(path.join(__dirname, '../renderer/ui-text.js'), 'utf8');
 const translations = vm.runInNewContext(`${profileTextSource}\n${uiTextSource}\nUI_TEXT`, {});
-const notices = Object.fromEntries(['en', 'zh-Hans', 'zh-Hant', 'ja_JP'].map(locale => [
-  locale, translations[locale].nativeUserProfileScopeNotice,
-]));
 const languageScopeSource = fs.readFileSync(path.join(__dirname, '../renderer/language-scope.js'), 'utf8');
 const languages = [
   { value: 'en', label: 'English' },
@@ -35,20 +32,12 @@ function scopeFor(locale, status) {
   return controller;
 }
 
-test('production user-profile notices describe shared settings without development-preview claims', () => {
-  const expected = {
-    en: ['Shared language setting', 'Language changes affect all Cavalry copies using this user profile.'],
-    'zh-Hans': ['共享语言设置', '切换语言会影响使用此用户配置的所有 Cavalry 副本。'],
-    'zh-Hant': ['共享語言設定', '切換語言會影響使用此使用者設定檔的所有 Cavalry 副本。'],
-    ja_JP: ['共有言語設定', 'このユーザープロファイルを使用するすべての Cavalry に言語変更が適用されます。'],
-  };
-  const limits = { en: 90, 'zh-Hans': 55, 'zh-Hant': 60, ja_JP: 90 };
-  for (const [locale, [title, notice]] of Object.entries(expected)) {
-    assert.equal(translations[locale].nativeUserProfileScopeTitle, title, `${locale} production title`);
-    assert.equal(notices[locale], notice, `${locale} shared-profile scope remains explicit`);
-    assert.ok(Array.from(notice).length <= limits[locale], `${locale} compact Activity slot`);
+test('healthy user-profile startup returns to the p12 idle state, not a shared-settings warning', () => {
+  for (const locale of Object.keys(translations)) {
     const controller = scopeFor(locale, { languageScope: 'userProfile', nativeResourceAvailable: true });
-    assert.equal(controller.startupStatusKey(false), 'nativeUserProfileScopeNotice');
+    assert.equal(controller.startupStatusKey(false), null, `${locale} normal startup has no warning`);
+    assert.equal(controller.startupStatusKey(true), 'nativeUserProfileReconciliation',
+      `${locale} a real recovery state still has its existing warning`);
   }
 });
 

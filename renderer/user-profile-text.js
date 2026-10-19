@@ -1,15 +1,13 @@
 /**
- * [INPUT]: 无运行时依赖；四语用户配置语言状态、共享范围提示和固定英文恢复文案只由ui-text.js消费。
- * [OUTPUT]: 对外提供 NATIVE_USER_PROFILE_TEXT 四语字典，收口正式版共享提示、Restore确认、资源/恢复故障与原生恢复阶段copy。
+ * [INPUT]: 无运行时依赖；四语用户配置语言状态、资源故障和固定英文恢复文案只由ui-text.js消费。
+ * [OUTPUT]: 对外提供 NATIVE_USER_PROFILE_TEXT 四语字典，收口Restore确认、资源/恢复故障与原生恢复阶段copy。
  * [POS]: renderer 的用户级copy数据层；作为UI_TEXT的内聚子域，在主窗口、About与测试harness中先于ui-text.js加载。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const NATIVE_USER_PROFILE_TEXT = Object.freeze({
   en: {
-    nativeUserProfileScopeTitle: "Shared language setting",
     nativeUserProfileRecoveryTitle: "Shared language state needs recovery",
     nativeResourceUnavailableTitle: "Native translation resources unavailable",
-    nativeUserProfileScopeNotice: "Language changes affect all Cavalry copies using this user profile.",
     nativeUserProfileReconciliation: "The shared language state may need recovery. Restore English to bring every Cavalry copy in this user profile to a known English state, or reapply a language after checking the state. Do not remove recovery records.",
     nativeResourceUnavailable: "Native translation resources are unavailable or do not match this build. Language switching is unavailable. Use Restore English if available.",
     nativeUserProfileResourcesUnavailableRecovery: "The shared language state may need recovery. Native translation resources are unavailable or do not match this build, so language switching is unavailable. Use Restore English if available. Do not remove recovery records.",
@@ -31,10 +29,8 @@ const NATIVE_USER_PROFILE_TEXT = Object.freeze({
     phaseApplyEnglishRestoreErrorTitle: "Could not restore English"
   },
   "zh-Hans": {
-    nativeUserProfileScopeTitle: "共享语言设置",
     nativeUserProfileRecoveryTitle: "共享语言状态需要恢复",
     nativeResourceUnavailableTitle: "原生翻译资源不可用",
-    nativeUserProfileScopeNotice: "切换语言会影响使用此用户配置的所有 Cavalry 副本。",
     nativeUserProfileReconciliation: "此用户配置中的共享语言状态可能需要恢复。恢复英文可让所有 Cavalry 副本回到确定的英文状态；核验状态后，也可重新应用语言。请勿删除恢复记录。",
     nativeResourceUnavailable: "原生翻译资源不可用或与此构建不匹配，暂时无法切换语言。若「恢复英文」可用，请用它恢复。",
     nativeUserProfileResourcesUnavailableRecovery: "共享语言状态可能需要恢复。原生翻译资源不可用或与此构建不匹配，暂时无法切换语言。若「恢复英文」可用，请用它恢复。请勿删除恢复记录。",
@@ -56,10 +52,8 @@ const NATIVE_USER_PROFILE_TEXT = Object.freeze({
     phaseApplyEnglishRestoreErrorTitle: "无法恢复英文"
   },
   "zh-Hant": {
-    nativeUserProfileScopeTitle: "共享語言設定",
     nativeUserProfileRecoveryTitle: "共享語言狀態需要還原",
     nativeResourceUnavailableTitle: "原生翻譯資源無法使用",
-    nativeUserProfileScopeNotice: "切換語言會影響使用此使用者設定檔的所有 Cavalry 副本。",
     nativeUserProfileReconciliation: "此使用者設定檔中的共享語言狀態可能需要還原。還原英文可讓所有 Cavalry 副本回到明確的英文狀態；核對狀態後，也可重新套用語言。請勿刪除還原記錄。",
     nativeResourceUnavailable: "原生翻譯資源無法使用，或與此建置不相符，暫時無法切換語言。若「還原英文」可用，請用它還原。",
     nativeUserProfileResourcesUnavailableRecovery: "共享語言狀態可能需要還原。原生翻譯資源無法使用，或與此建置不相符，暫時無法切換語言。若「還原英文」可用，請用它還原。請勿刪除還原記錄。",
@@ -81,10 +75,8 @@ const NATIVE_USER_PROFILE_TEXT = Object.freeze({
     phaseApplyEnglishRestoreErrorTitle: "無法還原英文"
   },
   ja_JP: {
-    nativeUserProfileScopeTitle: "共有言語設定",
     nativeUserProfileRecoveryTitle: "共有言語状態の復旧が必要です",
     nativeResourceUnavailableTitle: "ネイティブ翻訳リソースを利用できません",
-    nativeUserProfileScopeNotice: "このユーザープロファイルを使用するすべての Cavalry に言語変更が適用されます。",
     nativeUserProfileReconciliation: "共有言語状態の復旧が必要な可能性があります。英語に戻すと、このユーザープロファイル内のすべての Cavalry コピーを確実に英語へ戻せます。状態を確認した後、言語を再適用することもできます。復旧記録は削除しないでください。",
     nativeResourceUnavailable: "ネイティブ翻訳リソースを利用できないか、このビルドと一致しないため、言語を切り替えられません。「英語に戻す」が利用できる場合は、この操作で復旧してください。",
     nativeUserProfileResourcesUnavailableRecovery: "共有言語状態の復旧が必要な可能性があります。ネイティブ翻訳リソースを利用できないか、このビルドと一致しないため、言語を切り替えられません。「英語に戻す」が利用できる場合は、この操作で復旧してください。復旧記録は削除しないでください。",

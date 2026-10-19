@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖先行加载的user-profile-text.js，再合并renderer稳定的其余四语copy。
- * [OUTPUT]: 对外提供统一四语 UI_TEXT 与状态标题路由；用户级默认英语标签、共享scope/确认/恢复copy由独立子域spread合并，旧宿主仅提示不支持，2.7.2另保留既有p12入口；About社交按钮提供四语「关注」与平台区分名称，主窗单行关注入口提供四语操作提示与可访问名称；Official说明只声明已验证原厂App及无Switcher语言覆盖，不冒称任意第三方/全UI原样。
+ * [OUTPUT]: 对外提供统一四语 UI_TEXT 与状态标题路由；用户级恢复确认、资源故障与恢复阶段copy由独立子域spread合并，旧宿主仅提示不支持，2.7.2另保留既有p12入口；About社交按钮提供四语「关注」与平台区分名称，主窗单行关注入口提供四语操作提示与可访问名称；Official说明只声明已验证原厂App及无Switcher语言覆盖，不冒称任意第三方/全UI原样。
  * [POS]: renderer 的视觉文案与状态语义数据层；将持久事实、即时决策和短时局部失败分别供 Activity、AlertDialog 与 Toast 消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -738,7 +738,6 @@ const STATUS_TITLE_KEYS = Object.freeze({
   newerVersionUnsupported: 'newerVersionUnsupportedTitle',
   unknownVersionUnsupported: 'unknownVersionUnsupportedTitle',
   runtimeResidueWarning: 'finishRuntimeCleanupTitle',
-  nativeUserProfileScopeNotice: 'nativeUserProfileScopeTitle',
   nativeUserProfileReconciliation: 'nativeUserProfileRecoveryTitle',
   nativeResourceUnavailable: 'nativeResourceUnavailableTitle', nativeUserProfileResourcesUnavailableRecovery: 'nativeUserProfileRecoveryTitle',
   readyToApply: 'readyToApplyTitle',

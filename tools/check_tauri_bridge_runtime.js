@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/user-profile-text/ui-text/language-scope/version-guidance/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/support-footer/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证unset/explicit共用English标签且不改变恢复能力；验证单行关注 footer 四语文案/提示/无障碍名称与 GitHub/X/小红书固定 ID 分发；验证 About「关注」文案和平台区分的四语名称；验证旧宿主四语不支持提示、2.7.2专用p12入口和禁用Switch；保留 camelCase scope/错误白名单、严格 Restore/恢复语义、失败 Activity、局部外链 Toast、任务流、权限、Updater 与组件状态机合同。
+ * [OUTPUT]: 验证2.8正常启动沿用p12待机且真实故障保留；验证unset/explicit共用English标签且不改变恢复能力；验证单行关注 footer 四语文案/提示/无障碍名称与 GitHub/X/小红书固定 ID 分发；验证 About「关注」文案和平台区分的四语名称；验证旧宿主四语不支持提示、2.7.2专用p12入口和禁用Switch；保留 camelCase scope/错误白名单、严格 Restore/恢复语义、失败 Activity、局部外链 Toast、任务流、权限、Updater 与组件状态机合同。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1559,6 +1559,33 @@ test('unset native locale shows the shared English label without selecting a lan
   await flush();
   assert.equal(legacy.elements['#currentLanguage'].textContent, 'English',
     'installation badges ignore the native-only locale state');
+});
+
+test('healthy 2.8 startup matches p12 idle copy across UI locales and platforms', async () => {
+  const idle = [
+    ['en-US', 'What would you like to do?'],
+    ['zh-CN', '这次你想做什么？'],
+    ['zh-TW', '這次你想做什麼？'],
+    ['ja-JP', '今回は何をしますか？'],
+  ];
+  for (const [locale, prompt] of idle) {
+    for (const platform of ['macos', 'windows']) {
+      for (const currentLang of ['en', 'zh-Hans', 'zh-Hant', 'ja_JP']) {
+        const r = boot({ locale, status: {
+          platform, languageScope: 'userProfile', nativeResourceAvailable: true,
+          currentLang, nativeLocaleState: currentLang === 'en' ? 'unset' : 'explicit',
+          reconciliationRequired: false, version: '2.8.0', supportedVersion: '2.8.0',
+          versionCompatibility: 'supported',
+        } });
+        await flush();
+        assert.equal(r.elements['#statusPanel'].dataset.mode, 'idle', `${locale}/${platform}/${currentLang}`);
+        assert.equal(r.elements['#statusIdle'].textContent, prompt);
+        assert.equal(activityRows(r).length, 0, 'normal startup creates no status event');
+        assert.equal(r.elements['#modalBackdrop'].open, false, 'no new startup confirmation');
+        assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 0);
+      }
+    }
+  }
 });
 
 test('native user-profile Switch applies immediately without a confirmation modal', async () => {

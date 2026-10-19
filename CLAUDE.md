@@ -151,3 +151,5 @@ M88统一根因：同一CI候选在runner旧dyld_info中符号错位，LLVM绑�
 2026-10-19: cavalry-2.8.0-p1（app1.1.0）已公开，main/tag CI与三平台包均成功。七资产实取、SHA-256、三平台updater验签、统一latest.json及p12前后对比通过；主账44/44。Intel实机仍未验且非阻断，平台签名身份不变。后续账本提交不移动发布tag。
 
 2026-10-19 p2修订：正式版四语共享提示去预览声明，unset与explicit英文共用English标签；权限helper改贴Settings右下内侧10pt并沿用实时端点。测试隔离和发布前收尾只记显示skill，不改SOP。版本1.1.1，发布实证另记。
+
+2026-10-19 p2待机更正：正常启动对齐p12的四语idlePrompt，不常驻共享profile说明。仅保留资源故障与待恢复提示，不新增确认框；旧p2流水线在公开前已取消。

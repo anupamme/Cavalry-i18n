@@ -51,7 +51,7 @@ native_plugin_caption_supplement.test.js: 合成验证Directional Blur身份与s
 native_schema_gap_sources.test.js: 固定365 tuple摘要与当前366源行投影合同；合成根/继承/list/compound及隐藏bool定义，覆盖schema漂移、hide/UI漂移、官方/Forge碰撞与metadata拒绝；不证明live/审批。
 native_official_target.js: 精确投影target官方字段；target仍锁Forge8+固定缺源365=373，隐藏Background Rendering与插件caption均在target外独立计数，不改变baseline摘要。
 native_official_target.test.js: source/provenance共用target合同；冻结官方摘要正例，验证runtime/catalog/native count/安装身份变异失败，并证明补充count/path/hash单独失败且未知字段不被忽略。
-native_user_scope_copy.test.js: 四语 userProfile copy与badge状态投影合同；锁定正式版共享profile文案、资源故障恢复提示及unset/explicit共用English标签与当前语言ARIA、显式/Unknown/legacy分流和默认语言不授予hostless Restore；读取user-profile-text→ui-text组合，不代替浏览器布局或现场可见性验收。
+native_user_scope_copy.test.js: 四语 userProfile copy与badge状态投影合同；锁定p12正常待机、真实资源故障恢复提示及unset/explicit共用English标签与当前语言ARIA、显式/Unknown/legacy分流和默认语言不授予hostless Restore；读取user-profile-text→ui-text组合，不代替浏览器布局或现场可见性验收。
 cavalry_native_target.json: 2.8 host/17个official catalog与原厂源身份锁；target保持10473官方键、Forge8及固定缺源365=补充373；隐藏caption1和插件caption1仅在资源manifest独立计数，不改target/baseline原字节。
 native_observed_ui_translations.test.js: Node 的 CUA 现场遗漏键入库合同；锁定 42 app 键与 drawable 不透明度、完整 catalog 身份、Auto 推荐限定词、9 DNT、三语格式与厂商日语优先，混合包投影保护模型身份，离线通过不代替现场重验。
 native_sound_translations.test.js: Node 的 Sound 整域 65 键审批合同；绑定官方 source/notes/角色摘要、三语显式决策、Mel/Bark/RMS 技术保留、分析阈值与声像/采样/计权关系、11枚举索引及反向变异、当前标签引用；缺模块/原草稿真实失败，离线通过不代表 Sound live 验收。
