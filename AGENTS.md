@@ -72,10 +72,10 @@ Cavalry-i18n/
 - 2.7 p12 is the final 2.7 release. Do not develop, update, or rerun acceptance for 2.7. Historical downloads remain available.
 - Current macOS packaging targets 2.8 with `production-2.8`, complete native resources, and an explicitly approved arm64 runtime. Do not use the historical Qt 6.6.3 injector build as a 2.8 prerequisite.
 - Windows default packaging and CI use `tools/windows_native_build.js`: Qt 6.9.2 MSVC x64, production native packs/DLLs, four production overlays, and the independent 2.8 feed. The old Qt/injector build is not a prerequisite. Debug Rust contracts do not inherit the Release production environment.
-- Keep the frozen legacy feed isolated; this is not a 2.7 maintenance lane. Intel complete-app compilation and Windows 2.8 implementation remain separate acceptance items.
+- Use one `latest.json` updater feed for all Switcher versions; incompatible hosts use the existing version notice and p12 download link. Keep historical p12 assets unchanged. Intel complete-app compilation and Windows 2.8 implementation remain separate acceptance items.
 
 - 2.8 migration targets one selected Cavalry 2.8 installation. Do not require a 2.7.2 installer, old-version coexistence, or two-installation acceptance. These are not release gates and no cross-version support is promised.
-- Keep existing target-version admission and owned-file restoration. Legacy updater feed isolation is a separate release obligation; do not remove it as a coexistence cleanup.
+- Keep existing target-version admission and owned-file restoration. The shared updater feed does not authorize applying a patch to an incompatible host; keep the existing version admission and p12 link.
 
 ### Renderer
 

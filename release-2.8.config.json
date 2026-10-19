@@ -9,8 +9,7 @@
     "windowsX64": "Cavalry.Language.Switcher_Cavalry-2.8.0-p${patch}_windows-x64-setup.exe"
   },
   "updater": {
-    "manifestAssetName": "latest-cavalry-2.8.json",
-    "legacyManifestAssetName": "latest.json",
+    "manifestAssetName": "latest.json",
     "downloadBaseUrl": "https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download",
     "assetDownloadBaseUrlTemplate": "https://github.com/daftAI2026/Cavalry-i18n/releases/download/${tag}",
     "macOSAssetNameTemplates": {

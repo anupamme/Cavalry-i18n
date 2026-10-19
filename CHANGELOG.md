@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- 统一通过同一更新入口获取新版切换器；不支持的 Cavalry 版本沿用主窗口提示，Cavalry 2.7.2 可直接下载 p12。
+
 ## [1.0.6] - 2026-09-29
 
 ### Fixed

@@ -1,4 +1,4 @@
-# [INPUT]: 依赖受控workflow_dispatch选择器、2.8 ARM/Intel生产输入、漏洞审计例外、tag-only updater、Windows2.8官方输入/native生产包装器与GitHub环境
+# [INPUT]: 依赖受控workflow_dispatch选择器、2.8 ARM/Intel生产输入、漏洞审计例外、统一latest.json的tag-only updater、Windows2.8官方输入/native生产包装器与GitHub环境
 # [OUTPUT]: 对外提供风险分流、同SHA源码门后的2.8 macOS双架构预验、隔离资源的Rust测试、PR/main聚合门、Windows闭环、2.8 tag阻断及Release闭环
 # [POS]: 唯一CI/CD编排器；手动2.8预验仅跳过漏洞审计，等待同SHA源码门后打包；公开tag仍受三平台guard约束
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -1051,10 +1051,6 @@ jobs:
       - name: Create and verify deterministic updater manifest
         run: |
           pub_date="$(git show -s --format=%cI "$GITHUB_SHA")"
-          if [ -n "$RELEASE_UPDATER_LEGACY_MANIFEST_NAME" ]; then
-            node tools/create_legacy_updater_manifest.js \
-              --output "dist/$RELEASE_UPDATER_LEGACY_MANIFEST_NAME"
-          fi
           node tools/create_updater_manifest.js \
             --profile "$RELEASE_PROFILE_CONFIG" \
             --tag "$GITHUB_REF_NAME" \
@@ -1133,6 +1129,7 @@ jobs:
           ## 使用前须知
 
           - 适用于 Cavalry ${TARGET_CAVALRY_VERSION}。请按操作系统和芯片类型选择上方的安装包。
+          - 使用 Cavalry 2.7.2？请下载 [p12](https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.7.2-p12)。
           - 应用语言包时，macOS 可能要求授予 App Management 权限。
           - Windows 版不要求 Cavalry 位于固定盘符；自动检测失败时可以手动选择安装目录，写入受保护目录时可能请求 UAC 提权。
           - 建议保留一份干净的 Cavalry 安装包或备份。需要恢复到完全原始状态时，可使用官方安装包重新安装 Cavalry。

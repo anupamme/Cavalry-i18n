@@ -90,11 +90,15 @@ Windows验收与PR54合入见§66.189。
 - 不翻 API/type/id、机器协议、脚本、路径、字体族/样式或用户输入。不禁止用户输入中文/日文名称，也不假定新版创建的默认层名必定是英文。
 - 本次 macOS 输入是原厂 2.8.0 universal DMG、Qt 6.9.2；用户提供的 Windows MSI 已完成资源、PE 与安装表静态专项：ProductVersion 2.8.0 / x64、Qt 6.9.2。Windows 实机行为不能借 macOS 结果宣布通过。
 
-### 1.1 分别发行与更新隔离
+### 1.1 统一切换器更新与宿主版本提示
 
-已确认：2.7.2用户继续使用最后一个完整历史版本，新版专做2.8，不建立长期双版本安装路由。当前历史入口固定到[2.7.2 p12](https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.7.2-p12)。2.8目标UI只在发现2.7.2时给出下载入口；默认旧版UI/安装事务不变。
-
-不能仅靠新UI阻止旧客户端升级：[已发布p12配置](https://raw.githubusercontent.com/daftAI2026/Cavalry-i18n/cavalry-2.7.2-p12/src-tauri/tauri.conf.json)读取共享`releases/latest/download/latest.json`，p12 manifest中的三平台archive URL也走移动latest。最低复杂度方案是每个未来2.8正式Release同时携带冻结的legacy `latest.json`（保留p12的1.0.6/notes/原签名，三个archive URL固定p12 tag）与独立`latest-2.8.json`（新客户端endpoint，archive固定各自2.8 tag）；固定历史CTA、不同公钥或prerelease不能代替通道隔离。旧feed离线producer已完成（§11）；双feed生产接线、旧p11/p12实收合同、原包签名证明与release exact-readback尚未完成，不得发布2.8或改共享manifest。开发预览check/install updater已禁用，不改变旧发布版本的行为。
+当前裁决以§66.190为准：所有Switcher共用`latest.json`更新。
+不再按Cavalry版本拆分feed；此决定替代旧冻结策略。
+2.8只应用于当前已验宿主，不扩大兼容范围。
+2.7.2沿主窗口已有短提示和[p12下载入口](https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.7.2-p12)。
+p12历史Release和安装包原样保留，不重打包。
+新Release只生成一个latest.json，三平台下载URL固定发布tag。
+开发预览仍禁用updater，生产发行仍须另行授权。
 
 ## 2. 总体路线：原生加载 + 最小接线 + 实证缺口
 
@@ -509,7 +513,7 @@ Windows两项已按后置顺序完成，发行闭环仍为第11项。
 | 4 | F-3 | 修复已确证缺陷；只回归受影响边界。 |
 | 5 | F-4 | 原厂对照冷启动、菜单首开、搜索、创建、保存、重开、播放及首次可见文字。 |
 | 6 | F-5 | Apple Silicon成品优先；Intel编译必须有结果，实机不阻断。 |
-| 7 | G-3 | 2.8独立更新通道、冻结旧feed与实际下载回读。 |
+| 7 | G-3 | 统一latest.json更新、旧宿主提示与实际下载回读。 |
 | 8 | G-4 | 正式macOS包安装、更新、英文恢复与卸载。 |
 | 9 | D-6 | Windows用户事务与功能，已完成本机验收与复核。 |
 | 10 | G-5 | Windows实现及安装包安装、更新、恢复、卸载。 |
@@ -525,7 +529,7 @@ Windows两项已按后置顺序完成，发行闭环仍为第11项。
 | 4 / F-3 | 已闭 | Welcome、双Save标题与Graph空态已修；连续快拖按维护者明确确认通过，不再重复测试，不冒称本轮新增修复。 |
 | 5 / F-4 | 已闭 | 固定9c三语首显及既有编辑/播放复用；M83补启动/搜索，M86补真实鼠标菜单，M85无阈值离线帧间隔。仅本机固定场景观测，不授内部渲染时延或统计保证（§66.186）。 |
 | 6 / F-5 | 已闭 | Intel完整App/DMG、6/6成品检查与源码同一性已核。ARM复用既验范围；Intel实机仍未验且非阻断，首帧独立归F-4。 |
-| 7 / G-3 | 待闭 | 双feed/p12冻结已接通；macOS双架构线上预验38932098058成功，Windows已闭。剩发布时实际读回两feed。 |
+| 7 / G-3 | 待闭 | 按§66.190统一latest.json，保留旧宿主提示及p12下载；剩正式发布时实际回读清单和三平台下载。 |
 | 8 / G-4 | 已闭 | M66首版bootstrap生命周期通过；真实跨版本更新按SOP留下一版，不记PASS。 |
 | 9 / D-6 | 已闭 | 原Windows整表与修复后定向回归已复核；不重跑已过点位（§66.189）。 |
 | 10 / G-5 | 已闭 | 原生运行、安装器/恢复/卸载与配置回交已复核；PR54已合入功能分支（§66.189）。 |
@@ -618,8 +622,8 @@ Trace动效仅属renderer视觉补充。
 #### G 构建、更新隔离与发行
 
 - [x] 原生资源与显式debug预览构建通路、编译期审批陈旧拒绝及native预览独立identifier/state；默认旧发布资源排除native构建期源。
-- [x] 固定p12旧feed离线producer与字节/URL/原签名保留合同完成；只生成工件，不意味着旧客户端通道已隔离。
-- [ ] 双feed发布器、独立endpoint与p12字节冻结、macOS双架构production资源/runtime CI输入已实现；线上预验38932098058成功，剩三平台发布后的实际双feed读回。旧2.7仅历史下载，不复验p11/p12客户端；固定p12三平台archive签名3/3沿用，不冒实际发布。
+- [x] p12历史下载及旧宿主提示已保留。旧feed冻结producer转历史复核；现行统一更新裁决见§66.190。
+- [ ] 统一latest.json发布器与生产endpoint按§66.190接线；剩正式发布后清单、三平台包及签名实际回读。p12仅历史下载，不重验已过旧客户端。
 - [x] 正式macOS首版bootstrap包安装、同版本重装、恢复与移除验收（§66.181）；M66正式状态独立建立owner，简体切换与English十固定槽恢复通过，移除自有Switcher保留翻译。不同版本updater依LOCAL_BUILD_SOP §8留下一版，不记跨版本PASS；公开发行另属G-6。
   - §66.119以0656066固化当前45源/9地图；双模式各433合同通过。只闭源码保存，不抵正式包、完整生命周期或本主项。
 - [x] Windows 2.8实施/实机/installer验收完成（§66.189）；按Windows原机证据与定向补证关闭，不借macOS结果。
@@ -6114,3 +6118,15 @@ PR54已合入feat/cavalry-2.8.0，合并提交b7eec06。
 本次是功能分支集成，不合并main、不打tag、不公开发布。
 该feature-target PR没有自动CI结果，不记CI已绿。
 主账42/44；余G-3实际双feed回读、G-6最终授权发行。
+
+
+### 66.190 统一更新入口与既有旧宿主提示（2026-10-19）
+
+维护者改为统一latest.json更新，不再冻结旧feed或按宿主拆通道。
+此决定替代§11等历史隔离方案；历史验收记录不重写。
+旧宿主检测、禁止切换与p12固定下载入口保持。
+四语提示及按钮缩短，不新增弹窗或分流服务。
+发布器只产一份latest.json，下载URL固定具体tag。
+p12历史Release和安装包不变，临时2.8公开发布guard保留。
+G-2/G-3稳定ID及44项分母不变；G-3仍待正式发布回读。
+本轮不发布，不将本地合同验证计作线上发行。

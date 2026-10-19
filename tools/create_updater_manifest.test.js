@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 create_updater_manifest.js、临时 updater artifacts/签名与默认/显式 release profile
- * [OUTPUT]: 覆盖默认 latest.json 与 2.8 独立 manifest、tag-pinned URL、三平台闭包、artifact/signature 错配及 symlink 输入失败关闭
+ * [OUTPUT]: 覆盖默认 latest.json 与 2.8 共用 latest.json、tag-pinned URL、三平台闭包、artifact/signature 错配及 symlink 输入失败关闭
  * [POS]: tools 的 updater manifest 离线对抗测试；使用伪签名字节，不读取真实私钥、不联网、不触碰 Release
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -102,14 +102,14 @@ test('writes a deterministic latest.json with exact Tauri platform keys and sign
   }
 });
 
-test('explicit 2.8 profile uses its separate feed name and tag-pinned archive URLs', () => {
+test('explicit 2.8 profile shares latest.json and pins archive URLs to its own tag', () => {
   const f = fixture({
     profilePath: path.join(repoRoot, 'release-2.8.config.json'),
     profileTag: 'cavalry-2.8.0-p17',
   });
   try {
-    assert.equal(f.metadata.RELEASE_UPDATER_MANIFEST_NAME, 'latest-cavalry-2.8.json');
-    assert.equal(f.metadata.RELEASE_UPDATER_LEGACY_MANIFEST_NAME, 'latest.json');
+    assert.equal(f.metadata.RELEASE_UPDATER_MANIFEST_NAME, 'latest.json');
+    assert.equal(Object.hasOwn(f.metadata, 'RELEASE_UPDATER_LEGACY_MANIFEST_NAME'), false);
     assert.equal(
       f.metadata.RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL,
       `https://github.com/daftAI2026/Cavalry-i18n/releases/download/${f.tag}`
@@ -117,7 +117,7 @@ test('explicit 2.8 profile uses its separate feed name and tag-pinned archive UR
     const result = run(f);
     assert.equal(result.status, 0, result.stderr || result.stdout);
     const manifest = JSON.parse(fs.readFileSync(f.output, 'utf8'));
-    assert.equal(path.basename(f.output), 'latest-cavalry-2.8.json');
+    assert.equal(path.basename(f.output), 'latest.json');
     assert.equal(
       manifest.platforms['darwin-aarch64'].url,
       `${f.metadata.RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL}/${f.metadata.RELEASE_UPDATER_ASSET_NAME_AARCH64}`

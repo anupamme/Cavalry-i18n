@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖默认 release.config.json 或显式 release profile、package.json 与 GitHub tag 环境变量
- * [OUTPUT]: 对外提供 profile-aware tag/资产元数据与 GitHub Actions 环境变量写入能力；默认 profile 保持 2.7 协议
- * [POS]: tools 的发布协议守门器；显式 profile 扩展发行，不改变默认 2.7 配置
+ * [OUTPUT]: 对外提供单 manifest 的 profile-aware tag/资产元数据与 GitHub Actions 环境变量写入能力
+ * [POS]: tools 的发布协议守门器；默认 profile 保留历史 2.7 命名，显式 profile 使用同一 updater 通道
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -98,17 +98,6 @@ function loadConfig(profilePath = null) {
       .replace(sampleTag, '${tag}')
       .replace(/\/$/, '');
   }
-  if (config.updater.legacyManifestAssetName !== undefined) {
-    requireString(config.updater.legacyManifestAssetName, 'updater.legacyManifestAssetName');
-    if (
-      defaultProfile ||
-      config.updater.legacyManifestAssetName !== 'latest.json' ||
-      config.updater.legacyManifestAssetName === config.updater.manifestAssetName ||
-      !config.updater.assetDownloadBaseUrlTemplate
-    ) {
-      throw new Error('Only an explicit profile may add frozen latest.json beside a tag-pinned updater feed.');
-    }
-  }
   if (!config.updater.macOSAssetNameTemplates || typeof config.updater.macOSAssetNameTemplates !== 'object') {
     throw new Error('Release profile updater.macOSAssetNameTemplates must be an object.');
   }
@@ -154,7 +143,6 @@ function metadataForTag(config, tag) {
     RELEASE_ASSET_NAME_X64: renderTemplate(config.assetNameTemplates.x64, patch),
     RELEASE_ASSET_NAME_WINDOWS_X64: windowsAsset,
     RELEASE_UPDATER_MANIFEST_NAME: config.updater.manifestAssetName,
-    RELEASE_UPDATER_LEGACY_MANIFEST_NAME: config.updater.legacyManifestAssetName || '',
     RELEASE_UPDATER_DOWNLOAD_BASE_URL: config.updater.downloadBaseUrl,
     RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL: updaterAssetBaseUrl,
     RELEASE_UPDATER_ASSET_NAME_AARCH64: updaterAarch64Asset,
@@ -186,9 +174,6 @@ function checkProtocol(config, profilePath = DEFAULT_PROFILE) {
       )
     ) {
       throw new Error('Explicit release profile does not produce its declared updater metadata.');
-    }
-    if (config.updater.legacyManifestAssetName && sample.RELEASE_UPDATER_LEGACY_MANIFEST_NAME !== 'latest.json') {
-      throw new Error('Explicit dual-feed profile must preserve the fixed legacy latest.json name.');
     }
     if (new RegExp(config.releaseTagPattern).test('v0.1.11')) {
       throw new Error('releaseTagPattern must reject internal SemVer tags.');
@@ -227,10 +212,9 @@ function checkProtocol(config, profilePath = DEFAULT_PROFILE) {
   }
   if (
     sample.RELEASE_UPDATER_MANIFEST_NAME !== 'latest.json' ||
-    sample.RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL !== config.updater.downloadBaseUrl ||
-    sample.RELEASE_UPDATER_LEGACY_MANIFEST_NAME !== ''
+    sample.RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL !== config.updater.downloadBaseUrl
   ) {
-    throw new Error('Default release.config.json must preserve the frozen 2.7 updater feed contract.');
+    throw new Error('Default release.config.json must preserve the historical 2.7 updater metadata contract.');
   }
   if (new RegExp(config.releaseTagPattern).test('v0.1.11')) {
     throw new Error('releaseTagPattern must reject internal SemVer tags.');

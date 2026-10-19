@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖所选 release profile、release-asset-provenance.json、CycloneDX SBOM、toolchain evidence 与分发资产
- * [OUTPUT]: 校验 profile tag、供应链 sidecar、分发字节及 updater manifest；双feed时逐字节锁定 p12 legacy manifest
- * [POS]: GitHub Release 上传前的最终本地 provenance 守门器；默认 2.7 检查保持不变
+ * [OUTPUT]: 校验 profile tag、供应链 sidecar、分发字节及唯一 updater manifest 的 URL 与签名闭包
+ * [POS]: GitHub Release 上传前的最终本地 provenance 守门器；默认 profile 保留历史 2.7 资产名
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -12,7 +12,6 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { loadConfig, metadataForTag } = require('./release_metadata');
 const { verifyManifestClosure } = require('./create_updater_manifest');
-const { assertLegacyManifest } = require('./create_legacy_updater_manifest');
 
 const args = process.argv.slice(2);
 function fail(message) { throw new Error(message); }
@@ -65,9 +64,6 @@ function expectedAssetNames(metadata) {
     metadata.RELEASE_UPDATER_ASSET_NAME_X64,
     metadata.RELEASE_UPDATER_SIGNATURE_NAME_X64,
     metadata.RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64,
-    ...(metadata.RELEASE_UPDATER_LEGACY_MANIFEST_NAME
-      ? [metadata.RELEASE_UPDATER_LEGACY_MANIFEST_NAME]
-      : []),
   ];
 }
 
@@ -177,14 +173,6 @@ function main() {
       'windows-x86_64': path.join(dist, metadata.RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64),
     },
   });
-
-  if (metadata.RELEASE_UPDATER_LEGACY_MANIFEST_NAME) {
-    try {
-      assertLegacyManifest(fs.readFileSync(path.join(dist, metadata.RELEASE_UPDATER_LEGACY_MANIFEST_NAME)));
-    } catch (error) {
-      fail(`Frozen legacy updater feed is invalid: ${error.message}`);
-    }
-  }
 
   const requested = repeated('--primary');
   if (requested.length) {
