@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖commands的共享状态目录/原生Restart、operation_lock和严格State；legacy另用Windows runtime ready marker与CommandRunner。
- * [OUTPUT]: --launch-cavalry复用GUI的原生状态/锁/Restart准入；原生模式关闭时保留旧revision/marker/QPA/PID就绪合同。
+ * [OUTPUT]: --launch-cavalry复用GUI的原生状态/锁/Restart准入；原生模式关闭时保留旧revision/marker/QPA/PID就绪合同；测试独立建立损坏状态fixture，不依赖锁的建目录副作用。
  * [POS]: Windows无WebView入口；native正常启动，legacy仅给子进程注入诊断marker；不改vendor EXE或全局环境。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -341,7 +341,8 @@ mod tests {
         let temp = tempfile::tempdir().unwrap();
         let state = temp.path().join("native-2.8");
         assert!(super::launch_native_from_state(&state, |_| panic!("missing target")).is_err());
-        fs::write(state.join("state.json"), b"corrupt").unwrap();
+        // -- fixture独立建目录；前次启动可因共享锁忙而提前返回 --------
+        write(&state.join("state.json"), b"corrupt");
         assert!(super::launch_native_from_state(&state, |_| panic!("corrupt target")).is_err());
     }
 
