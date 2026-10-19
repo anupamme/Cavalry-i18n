@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 GitHub 最新正式 Release、当前发布配置、平台运行时边界与 LOCAL_BUILD_SOP
-[OUTPUT]: 提供三平台下載、2.8 重點、使用與還原步驟，以及摺疊的開發和翻譯資料
+[OUTPUT]: 提供預覽、2.8.0重點、使用與還原、Release安裝說明及摺疊的開發和翻譯資料
 [POS]: 倉庫繁體中文使用者入口；與英文及其他本地化 README 同步發布真相，不替代平台真機驗收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -16,44 +16,15 @@
   <p>Languages: <a href="README.md">English</a> | <a href="README.zh-Hans.md">简体中文</a> | 繁體中文 | <a href="README.ja_JP.md">日本語</a></p>
 </div>
 
-## 下載
-
-目前版本：**Cavalry 2.8.0 p2**。[查看更新內容與其他版本](https://github.com/daftAI2026/Cavalry-i18n/releases/latest)。
-
-| 平台 | 下載 |
-| --- | --- |
-| macOS · Apple Silicon | [DMG](https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p2/Cavalry.Language.Switcher_Cavalry-2.8.0-p2_aarch64.dmg) |
-| macOS · Intel | [DMG](https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p2/Cavalry.Language.Switcher_Cavalry-2.8.0-p2_x64.dmg) |
-| Windows x64 | [EXE](https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p2/Cavalry.Language.Switcher_Cavalry-2.8.0-p2_windows-x64-setup.exe) |
-
-Cavalry 2.7.2 使用者請使用歷史版本 [p12 Release](https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.7.2-p12)。
-
-macOS：開啟 DMG，將應用程式拖入「應用程式」。Windows：執行安裝程式。
-
-macOS 版本使用 ad-hoc 簽名，尚未經過 Apple 公證。將應用程式拖入「應用程式」後，如果 macOS 阻止首次開啟，請執行：
-
-<details>
-<summary>macOS 阻止首次開啟？</summary>
-
-```bash
-xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
-codesign --force --deep --sign - "/Applications/Cavalry Language Switcher.app"
-open "/Applications/Cavalry Language Switcher.app"
-```
-
-</details>
-
-應用程式內更新會安裝新的 app bundle，因此 macOS 可能要求再次執行這些步驟。Windows 安裝程式尚未進行 Authenticode 簽名，可能顯示「未知發行者」；請確認檔案來自本專案的 GitHub Release。
-
 ## 預覽
-
-下圖是早期版本的翻譯效果示意，並非 2.8 p1 的新版截圖。
 
 ![Cavalry UI 繁體中文](docs/img/ui-zh-Hant.png)
 
-## 2.8 版本重點
+Cavalry 2.8.0 實機截圖，展示三級選單、屬性編輯器、圖層名稱與加入圖層面板。
 
-- 適配 Cavalry 2.8 的選單、節點、屬性、外掛說明及內建指南譯文。
+## 2.8.0 版本重點
+
+- 適配 Cavalry 2.8.0 的選單、節點、屬性、外掛說明及內建指南譯文。
 - 翻譯官方示例選單、合成名稱及作者命名的圖層，不改寫既有使用者專案。
 - 改善時間編輯器、檢視區及工具提示中的中文、日文字型顯示，並修正部分日文快速新增查詢。
 - 加快套用修補程式後的語言切換，並在進度中補上設定還原檢查。
@@ -79,6 +50,31 @@ Cavalry Language Switcher 是獨立社群工具，不隸屬於 Scene Group、Cav
 在 macOS 上，它會先直接嘗試切換。只有系統實際拒絕寫入後，才會開啟 **「系統設定 → 隱私權與安全性 → App Management」**。僅在信任目前構建時授權；macOS 可能要求重新開啟語言切換器後再試。修改後的 `Cavalry.app` 會在本機重新簽名，以便正常啟動。
 
 在 Windows 上，目前使用者可寫入的自訂目錄會直接處理。UAC 提權僅用於系統 Program Files 目錄中的 Cavalry 安裝。不明 DLL 不會被刪除或替換。
+
+## 從 Release 安裝
+
+從 [GitHub Releases](https://github.com/daftAI2026/Cavalry-i18n/releases/latest) 下載：macOS DMG（Apple Silicon 或 Intel）或 Windows x64 NSIS 安裝程式。
+
+Cavalry 2.7.2 使用者請使用歷史版本 [p12 Release](https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.7.2-p12)。
+
+macOS：開啟 DMG，將應用程式拖入「應用程式」。Windows：執行安裝程式。
+
+<details>
+<summary>macOS 首次開啟受阻？</summary>
+
+macOS 版本使用 ad-hoc 簽名，尚未經過 Apple 公證。安裝後若 macOS 阻止首次開啟，請執行：
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
+codesign --force --deep --sign - "/Applications/Cavalry Language Switcher.app"
+open "/Applications/Cavalry Language Switcher.app"
+```
+
+應用程式內更新會安裝新的 app bundle，因此 macOS 可能要求再次執行這些步驟。
+
+</details>
+
+Windows 安裝程式尚未進行 Authenticode 簽名，可能顯示「未知發行者」；請確認檔案來自本專案的 GitHub Release。
 
 ## 開發與貢獻
 
@@ -108,10 +104,10 @@ npm run check:app              # JavaScript 語法
 
 ### 工作原理
 
-2.8 語言包會將原生介面文字和語言設定寫入目前使用者的 Cavalry 設定。它不使用歷史 2.7 JSON 資源覆蓋。macOS 需要變更原生執行階段時，會先驗證 Cavalry 目標和官方基線。基線缺失或無效時，執行階段寫入會停止。
+2.8.0 語言包會將原生介面文字和語言設定寫入目前使用者的 Cavalry 設定。它不使用歷史 2.7 JSON 資源覆蓋。macOS 需要變更原生執行階段時，會先驗證 Cavalry 目標和官方基線。基線缺失或無效時，執行階段寫入會停止。
 
 1. 驗證所選 Cavalry 2.8.0 安裝和內嵌原生資源清單。
-2. 載入由固定 Cavalry 2.8 目錄建置的已核准語言包。
+2. 載入由固定 Cavalry 2.8.0 目錄建置的已核准語言包。
 3. 將語言設定和 `strings.json` 包寫入目前使用者的 Cavalry 設定。
 4. 需要變更執行階段時，呼叫經驗證的平台原生執行階段交易。
 5. 語言交易提交後開啟 Cavalry。
@@ -131,7 +127,7 @@ npm run check:app              # JavaScript 語法
 
 建置器預設保留官方 `dontTranslate` 項目。顯示例外只涵蓋 100 個身分與譯值均已核對的內建示例選單標籤。它不會修改預設集路徑、模型名稱、選單動作或使用者輸入文字。
 
-`languages/` 中的 JSON 覆蓋包和 `tools/*.ts` 注入器譯文屬於獨立的歷史或執行階段路徑，不是 Cavalry 2.8 原生使用者設定包的來源。生成的注入器表也不得手動修改。翻譯規則和實機驗證流程見 [docs/translation-guidelines.md](docs/translation-guidelines.md) 與 [docs/runtime-ui-live-capture-workflow.md](docs/runtime-ui-live-capture-workflow.md)。
+`languages/` 中的 JSON 覆蓋包和 `tools/*.ts` 注入器譯文屬於獨立的歷史或執行階段路徑，不是 Cavalry 2.8.0 原生使用者設定包的來源。生成的注入器表也不得手動修改。翻譯規則和實機驗證流程見 [docs/translation-guidelines.md](docs/translation-guidelines.md) 與 [docs/runtime-ui-live-capture-workflow.md](docs/runtime-ui-live-capture-workflow.md)。
 
 ### 倉庫結構
 
@@ -140,7 +136,7 @@ Cavalry-i18n/
 ├── renderer/          # Tauri WebView 介面
 ├── src-tauri/         # Rust 命令與平台作業
 ├── injector/          # macOS 與 Windows Qt 執行階段翻譯器
-├── languages/         # 歷史 JSON 包與 2.8 原生核准譯文
+├── languages/         # 歷史 JSON 包與 2.8.0 原生核准譯文
 ├── tools/             # 構建、驗證與發布工具
 ├── docs/              # 公開規則、可重複 SOP 與圖片
 └── .github/workflows/ # CI、平台打包與 Release 發布

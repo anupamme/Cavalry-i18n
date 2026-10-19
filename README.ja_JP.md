@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 GitHub 最新正式 Release、当前发布配置、平台运行时边界与 LOCAL_BUILD_SOP
-[OUTPUT]: 提供三平台下载、2.8 亮点、使用与恢复步骤，以及折叠的开发和翻译资料
+[OUTPUT]: 提供预览、2.8.0亮点、使用与恢复、Release安装说明及折叠的开发和翻译资料
 [POS]: リポジトリの日本語ユーザー入口。英語と他のローカライズ README に公開の事実を同期し、実機検証の代替にはしない
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -16,44 +16,15 @@
   <p>Languages: <a href="README.md">English</a> | <a href="README.zh-Hans.md">简体中文</a> | <a href="README.zh-Hant.md">繁體中文</a> | 日本語</p>
 </div>
 
-## ダウンロード
-
-現在のリリース：**Cavalry 2.8.0 p2**。[更新内容とその他のバージョン](https://github.com/daftAI2026/Cavalry-i18n/releases/latest)。
-
-| プラットフォーム | ダウンロード |
-| --- | --- |
-| macOS · Apple Silicon | [DMG](https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p2/Cavalry.Language.Switcher_Cavalry-2.8.0-p2_aarch64.dmg) |
-| macOS · Intel | [DMG](https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p2/Cavalry.Language.Switcher_Cavalry-2.8.0-p2_x64.dmg) |
-| Windows x64 | [EXE](https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p2/Cavalry.Language.Switcher_Cavalry-2.8.0-p2_windows-x64-setup.exe) |
-
-Cavalry 2.7.2 では、過去の [p12 Release](https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.7.2-p12) を使用してください。
-
-macOS：DMGを開き、アプリを「アプリケーション」にドラッグします。Windows：インストーラーを実行します。
-
-macOS版はad-hoc署名で、Appleの公証は受けていません。アプリケーションへドラッグした後、macOSが初回起動をブロックした場合は次を実行します。
-
-<details>
-<summary>macOSで初回起動がブロックされる場合</summary>
-
-```bash
-xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
-codesign --force --deep --sign - "/Applications/Cavalry Language Switcher.app"
-open "/Applications/Cavalry Language Switcher.app"
-```
-
-</details>
-
-アプリ内更新では新しいapp bundleがインストールされるため、同じ手順が再度必要になる場合があります。WindowsインストーラーはAuthenticode署名されておらず、「不明な発行元」と表示される場合があります。本プロジェクトのGitHub Releaseから取得したファイルであることを確認してください。
-
 ## プレビュー
-
-下の画像は旧バージョンの翻訳表示例です。2.8 p1 のスクリーンショットではありません。
 
 ![Cavalry UI日本語](docs/img/ui-ja_JP.png)
 
-## 2.8 の主な変更
+Cavalry 2.8.0 の実機スクリーンショット。3 階層のメニュー、属性エディター、レイヤー名、レイヤー追加パネルを表示しています。
 
-- Cavalry 2.8 のメニュー、ノード、属性、プラグインの説明、組み込みガイドの翻訳に対応。
+## 2.8.0 の主な変更
+
+- Cavalry 2.8.0 のメニュー、ノード、属性、プラグインの説明、組み込みガイドの翻訳に対応。
 - 公式デモのメニュー名、コンポジション名、作者が付けたレイヤー名を翻訳し、既存のユーザープロジェクトは書き換えません。
 - タイムエディター、ビューポート、ツールチップの中国語・日本語のフォント表示を改善し、一部の日本語Quick Add検索を修正。
 - パッチ適用後の言語切り替えを高速化し、設定の復元確認を進行状況に追加。
@@ -79,6 +50,31 @@ SwitcherはローカルのCavalryインストールを変更します。バー�
 macOSでは、まず切り替えを直接試します。macOSが実際に書き込みを拒否した場合にだけ、**システム設定 → プライバシーとセキュリティ → App Management** を開きます。このビルドを信頼できる場合にのみ許可してください。再試行前にSwitcherを開き直すよう求められる場合があります。変更された `Cavalry.app` は、起動できるようローカルで再署名されます。
 
 Windowsでは、現在のユーザーが書き込めるカスタムインストール先を直接処理します。UAC昇格はシステムのProgram Files配下にあるCavalryだけに限定されます。不明なDLLは削除も置換もしません。
+
+## Release からインストール
+
+[GitHub Releases](https://github.com/daftAI2026/Cavalry-i18n/releases/latest) からダウンロードします。macOSはApple SiliconまたはIntel向けDMG、Windowsはx64 NSISインストーラーです。
+
+Cavalry 2.7.2 では、過去の [p12 Release](https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.7.2-p12) を使用してください。
+
+macOS：DMGを開き、アプリを「アプリケーション」にドラッグします。Windows：インストーラーを実行します。
+
+<details>
+<summary>macOSで初回起動がブロックされる場合</summary>
+
+macOS版はad-hoc署名で、Appleの公証は受けていません。インストール後、初回起動がブロックされた場合は次を実行します。
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
+codesign --force --deep --sign - "/Applications/Cavalry Language Switcher.app"
+open "/Applications/Cavalry Language Switcher.app"
+```
+
+アプリ内更新では新しいapp bundleがインストールされるため、同じ手順が再度必要になる場合があります。
+
+</details>
+
+WindowsインストーラーはAuthenticode署名されておらず、「不明な発行元」と表示される場合があります。本プロジェクトのGitHub Releaseから取得したファイルであることを確認してください。
 
 ## 開発と貢献
 
@@ -108,10 +104,10 @@ npm run check:app              # JavaScript 構文
 
 ### 仕組み
 
-2.8 の言語パックは、ネイティブUIテキストと言語設定を現在のユーザーのCavalryプロファイルに書き込みます。過去の 2.7 JSONアセット上書きは使用しません。macOSでネイティブランタイムを変更する場合は、Cavalryの対象と公式ベースラインを検証します。ベースラインがない、または無効な場合、ランタイムへの書き込みを停止します。
+2.8.0 の言語パックは、ネイティブUIテキストと言語設定を現在のユーザーのCavalryプロファイルに書き込みます。過去の 2.7 JSONアセット上書きは使用しません。macOSでネイティブランタイムを変更する場合は、Cavalryの対象と公式ベースラインを検証します。ベースラインがない、または無効な場合、ランタイムへの書き込みを停止します。
 
 1. 選択したCavalry 2.8.0 と組み込みリソースマニフェストを検証します。
-2. 固定されたCavalry 2.8 カタログから構築した承認済み言語パックを読み込みます。
+2. 固定されたCavalry 2.8.0 カタログから構築した承認済み言語パックを読み込みます。
 3. 言語設定と `strings.json` パックを現在のユーザープロファイルに適用します。
 4. ランタイム変更が必要な場合は、検証済みのプラットフォーム別トランザクションを実行します。
 5. 言語トランザクションの確定後にCavalryを開きます。
@@ -131,7 +127,7 @@ npm run check:app              # JavaScript 構文
 
 ビルダーは公式の `dontTranslate` 項目を標準で維持します。表示の例外は、IDと値を検証した 100 個の組み込みデモメニュー名だけです。プリセットのパス、モデル名、メニュー操作、ユーザー入力テキストは変更しません。
 
-`languages/` のJSON上書きと `tools/*.ts` injector訳文は、別の過去またはランタイム経路です。Cavalry 2.8 のネイティブユーザープロファイルパックの翻訳元ではありません。生成されたinjectorテーブルも手動編集しないでください。翻訳規則と実機検証は [docs/translation-guidelines.md](docs/translation-guidelines.md) と [docs/runtime-ui-live-capture-workflow.md](docs/runtime-ui-live-capture-workflow.md) を参照してください。
+`languages/` のJSON上書きと `tools/*.ts` injector訳文は、別の過去またはランタイム経路です。Cavalry 2.8.0 のネイティブユーザープロファイルパックの翻訳元ではありません。生成されたinjectorテーブルも手動編集しないでください。翻訳規則と実機検証は [docs/translation-guidelines.md](docs/translation-guidelines.md) と [docs/runtime-ui-live-capture-workflow.md](docs/runtime-ui-live-capture-workflow.md) を参照してください。
 
 ### リポジトリ
 
@@ -140,7 +136,7 @@ Cavalry-i18n/
 ├── renderer/          # Tauri WebView UI
 ├── src-tauri/         # Rust コマンドとプラットフォーム処理
 ├── injector/          # macOS / Windows Qt ランタイム翻訳
-├── languages/         # 過去の JSON パックと 2.8 の承認済みネイティブ翻訳
+├── languages/         # 過去の JSON パックと 2.8.0 の承認済みネイティブ翻訳
 ├── tools/             # ビルド、検証、Release ツール
 ├── docs/              # 公開規則、再現可能な SOP、画像
 └── .github/workflows/ # CI、プラットフォーム別パッケージ、Release 公開

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖2.8 ARM/Intel生产profile、Qt6.9.2与同源码native runtime、Tauri macOS/release overlays、production语言包、package/CHANGELOG、跨平台工具、CI变更分类器、Windows NSIS provenance与真实资源配置夹具、macOS资源readback、SOP/workflow、发布provenance、Actions pins与source artifact清单
+ * [INPUT]: 依赖2.8 ARM/Intel生产profile、Qt6.9.2与同源码native runtime、Tauri macOS/release overlays、production语言包、package/CHANGELOG、跨平台工具、CI变更分类器、Windows NSIS provenance与真实资源配置夹具、macOS资源readback、SOP精确版本文案/workflow、发布provenance、Actions pins与source artifact清单
  * [OUTPUT]: 校验双架构入口、packaged profile、手动预验唯一漏洞例外、源码前置与CI聚合边界；保留三平台生产构建闭包、统一latest.json、p12历史下载、Windows NSIS与release provenance合同
  * [POS]: tools 的 Tauri打包守门；macOS预验与公开三平台发行分别裁决
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -477,7 +477,7 @@ test('2.8 macOS production aliases share a target-neutral producer and keep nati
     'https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download/latest.json',
   ]);
   assert.doesNotMatch(targetNeutralCommand, /build:injector|native-preview|6\.6\.3/);
-  assert.match(localSop, /officialCavalry|官方Cavalry 2\.8\.app/);
+  assert.match(localSop, /officialCavalry|官方Cavalry 2\.8\.0\.app/);
   assert.match(localSop, /Qt `6\.9\.2`/);
   assert.match(localSop, /同源码已验.*arm64/);
   assert.match(localSop, /build:native-resources -- --assets-root[\s\S]*--profile production-2\.8/);
@@ -1225,20 +1225,20 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   assert.match(workflow, /RELEASE_ASSET_NAME_WINDOWS_X64/);
   assert.match(workflow, /x86_64-apple-darwin/);
   assert.match(localSop, /Internal app version: SemVer/);
-  assert.match(localSop, /Release tag: 历史版本使用 `cavalry-2\.7\.2-pN`/);
+  assert.match(localSop, /Release tag[：:][^\n]*`cavalry-2\.7\.2-pN`[^\n]*历史协议/);
   assert.match(localSop, /统一 `latest\.json` 更新入口/);
   assert.match(localSop, /p12终版只作历史下载/);
   assert.doesNotMatch(localSop, /当前发布器只读复核p12|当前2\.7只准p12只读回读/);
-  assert.match(localSop, /workflow已按所选2\.8 profile向tag打包命令传统一endpoint overlay/);
-  assert.match(localSop, /Intel的2\.8 x86_64及Windows native本地构建入口已接通/);
+  assert.match(localSop, /workflow按所选2\.8\.0 profile向tag打包命令传统一endpoint overlay/);
+  assert.match(localSop, /Intel的2\.8\.0 x86_64及Windows native本地构建入口已接通/);
   assert.doesNotMatch(localSop, /Windows生产runtime仍未接通/);
-  assert.match(localSop, /8\.1 Windows 2\.8默认本地构建/);
+  assert.match(localSop, /8\.1 Windows 2\.8\.0默认本地构建/);
   assert.match(localSop, /windows_native_build\.js/);
   assert.deepEqual(WINDOWS_PRODUCTION_CONFIGS.slice(1, 3), [
     'src-tauri/tauri.native-production-2.8.conf.json', 'src-tauri/tauri.native-windows-2.8.conf.json',
   ]);
   assert.match(localSop, /保留三平台production构建与发布闭包/);
-  assert.match(localSop, /三种发布资产：/);
+  assert.match(localSop, /历史p12三种发布资产[^\n]*冻结的 `release\.config\.json`/);
   assert.match(localSop, /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-p12_aarch64\.dmg/);
   assert.match(localSop, /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-p12_x64\.dmg/);
   assert.match(
