@@ -38,10 +38,11 @@ CAVALRY_2_8_MIGRATION_PLAN.md - 单2.8.0迁移唯一44项主账，44完成/0待�
 AGENTS.md - 固定本轮单2.8.0安装范围，不加旧版/双安装必验门；根级 Agent 行动地图，按 Kumo knowledge base 结构固化查找入口、约定、反模式、命令、流水线、工具链与安全边界
 CHANGELOG.md - 新版本中文条目与英文分类语义分离的 SemVer 发布历史与 Unreleased 用户可见变更真相源；tag 正文由 workflow 按版本抽取，不保留会漂移的根目录 release body 快照
 LOCAL_BUILD_SOP.md - 当前2.8.0三平台生产构建与发布合同；旧2.7.2 p12只作历史下载，release.config.json保留冻结profile与共享latest.json endpoint；唯一桌面打包与发布操作合同，区分本地验证、ad-hoc tag、Tauri updater 签名和未具备的平台身份，并固定 macOS DMG 文件名与挂载卷标的不同职责
-README.md - 英文主入口；四语保留头部徽章与语言导航，Preview和图片前置，说明紧跟图片；再列2.8.0亮点、三步使用及权限恢复，Release安装段置于权限之后、开发之前；折叠原理、语言代码、翻译来源、目录和CI；徽章读取最新Release，2.7.2保留p12入口
-README.zh-Hans.md - 简体中文 README，与英文入口保持Preview前置、Release安装靠后的标题结构，以及2.8.0用户profile与归属恢复事实
-README.zh-Hant.md - 繁体中文 README，与英文入口保持Preview前置、Release安装靠后的标题结构，以及2.8.0使用者profile與歸屬還原事实
-README.ja_JP.md - 日文 README，与英文入口保持Preview前置、Release安装靠后的标题结构，以及2.8.0ユーザープロファイルと所有状態の復元事实
+README.md - 简体中文主入口；标题与介绍说明Cavalry汉化/中文语言包及Windows/macOS支持，英文入口移至README.en.md；四语保留头部徽章与语言导航，Preview和图片前置，说明紧跟图片；再列2.8.0亮点、三步使用及权限恢复，Release安装段置于权限之后、开发之前；折叠原理、语言代码、翻译来源、目录和CI；徽章读取最新Release，2.7.2保留p12入口
+README.en.md - 英文完整说明，保留原英文内容并导航回默认中文入口
+README.zh-Hans.md - 简体中文兼容镜像，保留既有链接与锚点，与默认入口保持Preview前置、Release安装靠后的标题结构，以及2.8.0用户profile与归属恢复事实
+README.zh-Hant.md - 繁体中文 README，与默认中文入口保持Preview前置、Release安装靠后的标题结构，以及2.8.0使用者profile與歸屬還原事实
+README.ja_JP.md - 日文 README，与默认中文入口保持Preview前置、Release安装靠后的标题结构，以及2.8.0ユーザープロファイルと所有状態の復元事实
 package.json - Windows默认构建经windows_native_build.js生成2.8.0生产NSIS及指纹；CI先准备官方2.8.0/Qt6.9.2，安装烟测核native三语包。tauri:build使用无硬编码target的2.8.0 production入口；ARM与Intel alias各传一次目标，复用盖章和目标架构资源检查；纯packaged helper加入合同/语法门。项目元数据与核心构建/测试指令；纳入20项Easing显示表合同和生成器语法门；默认合同与语法门纳入384/17帮助表及401根排版producer测试，生成表仍须显式官方MetaData输入，构建输出不入库；默认合同与语法门包含历史365加独立1条raw source adapter、366批准caption/旧364冻结与单键撤批missing反例及显式官方集合/合法数字开头vendor owner反例；默认合同与语法门覆盖native源身份/ICU、已审批次及88槽真实旧译回退、13厂商纠错/377原样闭合，历史批准摘要与现行译文摘要分别守门；新增38条空区域短提示类别合同，锁精确source及三语producer，并注册于test:contracts和check:app；p12旧feed、候选路径和四语userProfile copy保持独立；check:app语法门包含user-profile-text模块。build:tauri:native:candidate显式生成ARM优化预览App/DMG，保持独立状态并禁用updater；显式tauri:dev:native仅运行未发布2.8.0预览，build:native-resources必须传官方assets；FormatJS仅作构建期格式校验
 package-lock.json - npm 依赖锁定文件，冻结 Tauri CLI/API 与构建期 ICU parser，不增加产品运行时解释器
 release.config.json - 冻结2.7.2 p12读取与合同profile；共享latest.json endpoint，不用于当前2.8.0发布

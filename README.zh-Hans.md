@@ -1,24 +1,24 @@
 <!--
 [INPUT]: 依赖 GitHub 最新正式 Release、当前发布配置、平台运行时边界与 LOCAL_BUILD_SOP
-[OUTPUT]: 提供预览、2.8.0亮点、使用与恢复、Release安装说明及折叠的开发和翻译资料
-[POS]: 仓库简体中文用户入口；与英文及其他本地化 README 同步发布真相，不替代平台真机验收
+[OUTPUT]: 提供预览、2.8.0 亮点、使用与恢复、Release 安装说明及折叠的开发和翻译资料
+[POS]: 简体中文兼容入口；保留既有链接与锚点，正文和默认中文 README 同步
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
 <div align="center">
   <img src="./src-tauri/icons/icon.png" width="120" />
-  <h1>Cavalry-i18n</h1>
-  <p>在 macOS 和 Windows 上，将 <a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.8.0 切换为英文、简体中文、繁體中文或日本語。</p>
+  <h1>Cavalry-i18n · Cavalry 汉化工具</h1>
+  <p><a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.8.0 中文语言包与汉化工具，支持 Windows 和 macOS，可切换简体中文、繁體中文、日本語和 English。</p>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/stargazers"><img src="https://img.shields.io/github/stars/daftAI2026/Cavalry-i18n?style=flat-square" alt="Stars" /></a>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/releases/latest"><img src="https://img.shields.io/github/v/release/daftAI2026/Cavalry-i18n?sort=date&display_name=tag&style=flat-square" alt="Release" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License" /></a>
 
-  <p>Languages: <a href="README.md">English</a> | 简体中文 | <a href="README.zh-Hant.md">繁體中文</a> | <a href="README.ja_JP.md">日本語</a></p>
+  <p>语言：<a href="README.md">简体中文</a> | <a href="README.en.md">English</a> | <a href="README.zh-Hant.md">繁體中文</a> | <a href="README.ja_JP.md">日本語</a></p>
 </div>
 
 ## 预览
 
-![Cavalry UI 简体中文](docs/img/ui-zh-Hans.png)
+![Cavalry 2.8 中文汉化界面](docs/img/ui-zh-Hans.png)
 
 Cavalry 2.8.0 实机截图，展示三级菜单、属性编辑器、图层名称与添加图层面板。
 
