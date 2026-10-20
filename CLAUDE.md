@@ -3,6 +3,7 @@ HTML + Javascript + Rust (Tauri) + Objective-C++ / C++ (Qt Injector / Windows ge
 
 当前只推进Cavalry 2.8.0。2.7 p12是终版，只保留历史下载。
 Windows原生Apply在profile/runtime写入前持久化已验安装选择；GUI、--launch-cavalry和卸载共用native模式状态域及操作锁。卸载先解析必要目标，缺状态零profile写入，宿主已移除仍幂等恢复自有profile。
+Windows启动warning独立限域于Api目标语言sidecar缺失分支；动态安装根下17官方目录和实际同版批准用户包共同授降噪，缺包/漂移、英语源缺失、未知插件与其它日志保留。不补写安装级翻译目录，不改变Mac日志链。
 ARM production-2.8已接编译期资源、命令与独立updater配置；本地包生命周期另验。预览状态与生产状态分离，旧2.7不作验收前置。
 macOS 2.8.0 NRT将Extension补丁纳入恢复事务。baseline schema 2保存原像，owner v3记录九槽后像。旧八槽owner保留读取与English恢复；新写入须先恢复原厂再捕获。
 Welcome、双Save caption、Graph空态与Demo reader源码已归位。9c冻结源码对应20个归位文件。新ARM候选已正常升级owned测试App；历史9973/b643制品保留。正常首帧与完整发行仍另验，不继承旧PASS。
