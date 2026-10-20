@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 classify_ci_changes.js 的纯路径分类接口
- * [OUTPUT]: 证明离线验收工具合同门与未知驱动边界、技能 Markdown 文档轻门与脚本未知路径边界、合同门、共享翻译/输入/Quick Add context/display/顶部标签/搜索/Classic 评分/Quick Add 描述策略双平台门、依赖门及未知路径 fail-closed 的离线回归测试
+ * [OUTPUT]: 验证Windows catalog guard独占Windows门及近似未知路径仍fail-closed；证明离线验收工具合同门与未知驱动边界、技能 Markdown 文档轻门与脚本未知路径边界、合同门、共享翻译/输入/Quick Add context/display/顶部标签/搜索/Classic 评分/Quick Add 描述策略双平台门、依赖门及未知路径 fail-closed 的离线回归测试
  * [POS]: CI 风险调度器的单元测试，防止节省 Runner 时误跳产品或发布证据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -91,6 +91,20 @@ test('renderer and Windows paths run Windows packaging but not the unrelated mac
   const windows = classifyPaths(['injector/windows/generic/CavalryTranslator.cpp']);
   assert.equal(windows.windows, true);
   assert.equal(windows.macosInjector, false);
+});
+
+test('the Windows catalog guard producer owns only the Windows native gate', () => {
+  for (const paths of [
+    ['tools/native_windows_catalog_warning_guard.js'],
+    ['injector/windows/native/runtime.cpp', 'injector/windows/native/CMakeLists.txt',
+      'tools/native_windows_catalog_warning_guard.js', 'tools/native_windows_catalog_warning_guard.test.js'],
+  ]) assert.deepEqual(projection(classifyPaths(paths)), {
+    documentationOnly: false, source: true, vulnerability: false,
+    windows: true, macosInjector: false, reason: 'path-classified',
+  });
+  assert.equal(classifyPaths(['tools/native_windows_catalog_warning_guard_extra.js']).reason,
+    'unknown-source-path-fail-closed');
+  assert.equal(classifyPaths(['tools/native_windows_catalog_warning_guard.test.js']).windows, false);
 });
 
 test('macOS-only and shared injector paths select the correct native evidence', () => {

@@ -1,12 +1,13 @@
 /*
  * [INPUT]: 官方2.8同根Core/Extension/Api/skia/fmt/UI/Qt/spdlog、原厂locale及共享显示策略、Windows Alt字体准入薄层和CAS。
- * [OUTPUT]: 固定状态/Graph/Timeline/Viewport字体与窄UI投影；Demo仅在内置JS读取点对官方路径/原字节投影，Welcome仅在已证启动logger链投影影子payload，Fast只扩批准Unicode查询。
- * [POS]: Windows2.8窄补充；固定3个系统face进程期持有，不记录用户文字、不改模型/认证/profile，热路径无IO或定时器。
+ * [OUTPUT]: 固定状态/Graph/Timeline/Viewport字体与窄UI投影；Demo/Welcome保留已证边界，Api仅对批准包实际存在时的17目录预期探测warning降噪。
+ * [POS]: Windows2.8窄补充；固定3个系统face进程期持有，不改模型/认证/profile；显示热路径无IO，精确启动warning才有界核用户包。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "runtime.h"
 #include <windows.h>
 #include <intrin.h>
+#include <shlobj.h>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QCryptographicHash>
 #include <QtCore/QFile>
@@ -38,6 +39,11 @@
 #include NATIVE_EASING_DISPLAY_TABLE
 #include "demo_adapter.h"
 #include "welcome_adapter.h"
+#include "catalog_warning_adapter.h"
+#include "catalog_warning_pack.h"
+namespace native_windows_catalog_warning {
+#include NATIVE_CATALOG_WARNING_GUARD
+}
 namespace native_demo_reader {
 #include NATIVE_DEMO_READER_TEXTS_TABLE
 #include NATIVE_DEMO_READER_FILES_TABLE
@@ -68,13 +74,17 @@ struct State {
     FastConstructor fastOriginal=nullptr;
     native_windows_demo::Original demoOriginal=nullptr;
     native_windows_welcome::Original welcomeOriginal=nullptr;
+    native_windows_catalog_warning::Original catalogWarningOriginal=nullptr;
+    const native_windows_catalog_warning::PackProof *catalogPack=nullptr;
+    QByteArray installRootUtf8;
+    QString catalogStrings;
     QString presetRoot;
     NativeMeasureFunction measureOriginal=nullptr;NativeDrawFunction drawOriginal=nullptr;NativeBlobFunction blobOriginal=nullptr;
-    std::uintptr_t core=0,extension=0,ui=0;
+    std::uintptr_t core=0,extension=0,ui=0,api=0;
     std::array<void*,3> faces{};
     std::size_t faceCount=0;
     cavalry_native_font::LocaleSnapshot locale;
-    std::array<std::atomic<std::uint64_t>,29> stats{};
+    std::array<std::atomic<std::uint64_t>,31> stats{};
 };
 State *g=nullptr;
 void bump(std::size_t n){g->stats[n].fetch_add(1,std::memory_order_relaxed);}
@@ -241,6 +251,20 @@ __declspec(noinline) void welcomeHook(void *logger,const void *message,bool enab
     if(owned)bump(27);
     if(native_windows_welcome::forward(g->welcomeOriginal,logger,message,enabled,traceback,owned,g->locale.value()))bump(28);
 }
+__declspec(noinline) void catalogWarningHook(void *logger,const void *message,bool enabled,bool traceback){
+    bool owned=false;
+    // === Api模板也服务真实错误；必须同时命中目标缺文件分支，英语源缺失的相邻分支不准入 ===
+    if(reinterpret_cast<std::uintptr_t>(_ReturnAddress())==g->api+0x3b5a6){
+        void *frames[6]{};const auto count=CaptureStackBackTrace(0,6,frames,nullptr);
+        for(unsigned i=0;i<count;++i)if(reinterpret_cast<std::uintptr_t>(frames[i])==g->api+0x378d8){owned=true;break;}
+    }
+    if(owned)bump(29);
+    if(!g->catalogPack){g->catalogWarningOriginal(logger,message,enabled,traceback);return;}
+    using namespace native_windows_catalog_warning;
+    const auto root=std::string_view(g->installRootUtf8.constData(),std::size_t(g->installRootUtf8.size()));
+    if(forward(g->catalogWarningOriginal,logger,message,enabled,traceback,owned,root,*g->catalogPack,
+               kOfficialCatalogs,std::size(kOfficialCatalogs),[]{return approvedPackFile(g->catalogStrings,*g->catalogPack);}))bump(30);
+}
 __declspec(noinline) native_windows_demo::Result demoHook(const std::string &path){
     const auto caller=reinterpret_cast<std::uintptr_t>(_ReturnAddress());
     if(caller==g->extension+native_windows_demo::kDemoReturn)bump(25);
@@ -336,8 +360,18 @@ bool installNativeWindowsRuntime(const QString &language,QString *error){
     auto welcome=GetProcAddress(spdlog,"?log_it_@logger@spdlog@@IEAAXAEBUlog_msg@details@2@_N1@Z");
     auto welcomeSlot=reinterpret_cast<void**>(address(extension,0x1fa30d0));
     if(reinterpret_cast<void*>(welcome)!=address(spdlog,0x12550) || *welcomeSlot!=reinterpret_cast<void*>(welcome))return fail(error,"Native Welcome logger import ABI differs");
+    auto catalogWarningSlot=reinterpret_cast<void**>(address(api,0x377df8));
+    if(*catalogWarningSlot!=reinterpret_cast<void*>(welcome))return fail(error,"Native catalog logger import ABI differs");
     if(!pin(core) || !pin(skia) || !pin(extension) || !pin(api) || !pin(fmt) || !pin(widgets) || !pin(ui) || !pin(qtCore) || !pin(qtGui) || !pin(spdlog) || !pin(reinterpret_cast<const void*>(pathHook)))return fail(error,"Native callback module PIN failed");
     auto *state=new State;state->original=reinterpret_cast<NativeGetPathFunction>(getPath);state->glyph=reinterpret_cast<Glyph>(glyph);state->localeOriginal=reinterpret_cast<ActiveLocale>(locale);state->core=reinterpret_cast<std::uintptr_t>(core);state->extension=reinterpret_cast<std::uintptr_t>(extension);
+    state->api=reinterpret_cast<std::uintptr_t>(api);state->installRootUtf8=root.toUtf8();
+    for(const auto &proof:native_windows_catalog_warning::kApprovedPacks)
+        if(proof.language==language.toStdString())state->catalogPack=&proof;
+    PWSTR roaming=nullptr;
+    if(SUCCEEDED(SHGetKnownFolderPath(FOLDERID_RoamingAppData,KF_FLAG_DONT_VERIFY,nullptr,&roaming))){
+        state->catalogStrings=QString::fromWCharArray(roaming)+QStringLiteral("/Cavalry/Third-Party/Plugins/Cavalry-i18n/strings.json");
+        CoTaskMemFree(roaming);
+    }
     void *manager=nullptr;reinterpret_cast<DefaultManager>(getManager)(&manager);if(!manager)return fail(error,"Vendor font manager unavailable");
     std::array<const char*,3> families{"Microsoft YaHei UI","Microsoft JhengHei UI","Yu Gothic UI"};
     if(language==QStringLiteral("zh-Hant"))std::swap(families[0],families[1]);
@@ -346,6 +380,8 @@ bool installNativeWindowsRuntime(const QString &language,QString *error){
     for(const auto family:families){void *face=nullptr;reinterpret_cast<MatchFamily>(match)(manager,&face,family,&style);if(face)state->faces[state->faceCount++]=face;}
     if(!state->faceCount)return fail(error,"No native system typeface");
     g=state;
+    state->catalogWarningOriginal=reinterpret_cast<native_windows_catalog_warning::Original>(welcome);
+    if(!replaceCavalryIatPointer(catalogWarningSlot,reinterpret_cast<void*>(welcome),reinterpret_cast<void*>(catalogWarningHook),error))return false;
     state->welcomeOriginal=reinterpret_cast<native_windows_welcome::Original>(welcome);
     if(!replaceCavalryIatPointer(welcomeSlot,reinterpret_cast<void*>(welcome),reinterpret_cast<void*>(welcomeHook),error))return false;
     state->demoOriginal=reinterpret_cast<native_windows_demo::Original>(demo);state->presetRoot=presetRoot;
@@ -371,7 +407,7 @@ bool installNativeWindowsRuntime(const QString &language,QString *error){
 QJsonObject nativeWindowsRuntimeDiagnostics(){
     if(!g)return {{QStringLiteral("installed"),false}};
     QJsonObject result{{QStringLiteral("locale"),QString::fromLatin1(g->locale.hint()?g->locale.hint():"unset")}};
-    const char *names[]={"pathCalls","approvedText","ownerMatch","fallback","forward","localeCaptured","titleCalls","titleProjected","timelineMeasure","timelineMeasureFallback","timelineDraw","timelineDrawFallback","viewportName","viewportNameFallback","helpEntries","helpProjected","helpLayouts","helpLayoutProjected","guideBodies","guideProjected","fastQueries","fastUnicode","easingActions","easingProjected","helpBeforeLocale","demoReads","demoProjected","welcomeOwned","welcomeProjected"};
+    const char *names[]={"pathCalls","approvedText","ownerMatch","fallback","forward","localeCaptured","titleCalls","titleProjected","timelineMeasure","timelineMeasureFallback","timelineDraw","timelineDrawFallback","viewportName","viewportNameFallback","helpEntries","helpProjected","helpLayouts","helpLayoutProjected","guideBodies","guideProjected","fastQueries","fastUnicode","easingActions","easingProjected","helpBeforeLocale","demoReads","demoProjected","welcomeOwned","welcomeProjected","catalogWarningOwned","catalogWarningQuiet"};
     for(unsigned i=0;i<std::size(names);++i)result[QString::fromLatin1(names[i])]=double(g->stats[i].load(std::memory_order_relaxed));
     return result;
 }

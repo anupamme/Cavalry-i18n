@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Windows 已应用完整语言包时，不再重复显示官方资源目录缺少语言文件的预期告警；简体中文、繁体中文与日文翻译保持原有加载方式，真实语言包缺失或变化仍显示告警。
+
 ## [1.1.1] - 2026-10-19
 
 ### Fixed

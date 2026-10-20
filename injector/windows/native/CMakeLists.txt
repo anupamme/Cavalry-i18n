@@ -1,5 +1,5 @@
 # [INPUT]: Qt6.9.2 x64 SDK、官方MetaData/Presets、共享说明/缓动/Demo producer与显示策略及Windows QPA/CAS。
-# [OUTPUT]: native generic/QPA及标题、帮助ABI/布局、ToolHelp字体、Demo、Welcome隔离合同；不复制Qt。
+# [OUTPUT]: native generic/QPA及标题、帮助/字体、Demo、Welcome和Api限域warning/实际包证明合同；不复制Qt。
 # [POS]: Windows2.8专用窄运行时构建；旧2.7全量translator不在编译闭包。
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 cmake_minimum_required(VERSION 4.2)
@@ -42,6 +42,12 @@ if(NOT easingResult EQUAL 0)
   message(FATAL_ERROR "Approved easing projection failed: ${easingError}")
 endif()
 get_filename_component(nativeAssetsRoot "${CAVALRY_NATIVE_METADATA_DIR}/.." ABSOLUTE)
+execute_process(COMMAND "${NATIVE_NODE_EXECUTABLE}" "${NATIVE_REPO_ROOT}/tools/native_windows_catalog_warning_guard.js"
+  --assets-root "${nativeAssetsRoot}" --out "${nativeGenerated}/catalog-warning-guard.inc"
+  RESULT_VARIABLE catalogWarningResult ERROR_VARIABLE catalogWarningError)
+if(NOT catalogWarningResult EQUAL 0)
+  message(FATAL_ERROR "Approved catalog warning guard failed: ${catalogWarningError}")
+endif()
 execute_process(COMMAND "${NATIVE_NODE_EXECUTABLE}" "${NATIVE_REPO_ROOT}/tools/generate_demo_reader_tables.js"
   --source "${NATIVE_REPO_ROOT}/languages/native/official_demo_scripts.js" --presets-root "${nativeAssetsRoot}/Presets"
   --source-line-endings crlf --texts-out "${nativeGenerated}/demo-texts.inc" --files-out "${nativeGenerated}/demo-files.inc"
@@ -50,15 +56,16 @@ if(NOT demoResult EQUAL 0)
   message(FATAL_ERROR "Official Windows Demo projection failed: ${demoError}")
 endif()
 file(GLOB helpInputs CONFIGURE_DEPENDS "${NATIVE_REPO_ROOT}/tools/native_*.js" "${NATIVE_REPO_ROOT}/languages/native/*.js" "${NATIVE_REPO_ROOT}/languages/*/MetaData/*.json" "${CAVALRY_NATIVE_METADATA_DIR}/*.json")
-set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${helpInputs} "${NATIVE_REPO_ROOT}/tools/build_native_help_description_table.js" "${NATIVE_REPO_ROOT}/tools/build_native_easing_display_table.js")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${helpInputs} "${NATIVE_REPO_ROOT}/tools/build_native_help_description_table.js" "${NATIVE_REPO_ROOT}/tools/build_native_easing_display_table.js" "${NATIVE_REPO_ROOT}/tools/native_windows_catalog_warning_guard.js" "${NATIVE_REPO_ROOT}/tools/cavalry_native_target.json")
 file(GLOB_RECURSE demoInputs CONFIGURE_DEPENDS "${nativeAssetsRoot}/Presets/*.js")
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${demoInputs} "${NATIVE_REPO_ROOT}/tools/generate_demo_reader_tables.js")
 qt_add_plugin(cavalryi18n SHARED CLASS_NAME CavalryI18nNativePlugin)
 target_sources(cavalryi18n PRIVATE plugin.cpp runtime.cpp runtime.h ../cavalry_i18n_iat_patch.cpp)
-target_link_libraries(cavalryi18n PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets)
+target_link_libraries(cavalryi18n PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets shell32 ole32 uuid)
 target_include_directories(cavalryi18n PRIVATE "${NATIVE_REPO_ROOT}/injector/native")
 target_compile_definitions(cavalryi18n PRIVATE NATIVE_HELP_DESCRIPTION_TABLE="${nativeGenerated}/help-descriptions.inc")
 target_compile_definitions(cavalryi18n PRIVATE NATIVE_HELP_LAYOUT_ROWS="${nativeGenerated}/help-descriptions.inc.layout.inc")
+target_compile_definitions(cavalryi18n PRIVATE NATIVE_CATALOG_WARNING_GUARD="${nativeGenerated}/catalog-warning-guard.inc")
 target_compile_definitions(cavalryi18n PRIVATE NATIVE_EASING_DISPLAY_TABLE="${nativeGenerated}/easing.inc")
 target_compile_definitions(cavalryi18n PRIVATE NATIVE_DEMO_READER_TEXTS_TABLE="${nativeGenerated}/demo-texts.inc" NATIVE_DEMO_READER_FILES_TABLE="${nativeGenerated}/demo-files.inc")
 target_compile_definitions(cavalryi18n PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX QT_NO_KEYWORDS)
@@ -75,6 +82,13 @@ endforeach()
 
 include(CTest)
 if(BUILD_TESTING)
+  add_test(NAME native_windows_catalog_warning_generator_contract COMMAND "${NATIVE_NODE_EXECUTABLE}" --test "${NATIVE_REPO_ROOT}/tools/native_windows_catalog_warning_guard.test.js")
+  add_executable(native_windows_catalog_warning_contract catalog_warning_contract_test.cpp)
+  add_test(NAME native_windows_catalog_warning_contract COMMAND native_windows_catalog_warning_contract)
+  add_executable(native_windows_catalog_warning_pack_contract catalog_warning_pack_test.cpp)
+  target_link_libraries(native_windows_catalog_warning_pack_contract PRIVATE Qt6::Core)
+  target_compile_definitions(native_windows_catalog_warning_pack_contract PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+  add_test(NAME native_windows_catalog_warning_pack_contract COMMAND "${CMAKE_COMMAND}" -E env --modify "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>" $<TARGET_FILE:native_windows_catalog_warning_pack_contract>)
   add_executable(native_windows_tool_help_font_contract tool_help_font_contract_test.cpp)
   add_test(NAME native_windows_tool_help_font_contract COMMAND native_windows_tool_help_font_contract)
   add_executable(native_windows_title_contract title_contract_test.cpp)
