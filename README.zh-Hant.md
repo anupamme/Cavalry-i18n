@@ -13,7 +13,7 @@
   <a href="https://github.com/daftAI2026/Cavalry-i18n/releases/latest"><img src="https://img.shields.io/github/v/release/daftAI2026/Cavalry-i18n?sort=date&display_name=tag&style=flat-square" alt="Release" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License" /></a>
 
-  <p>Languages: <a href="README.md">English</a> | <a href="README.zh-Hans.md">简体中文</a> | 繁體中文 | <a href="README.ja_JP.md">日本語</a></p>
+  <p>Languages: <a href="README.md">简体中文</a> | <a href="README.en.md">English</a> | 繁體中文 | <a href="README.ja_JP.md">日本語</a></p>
 </div>
 
 ## 預覽
