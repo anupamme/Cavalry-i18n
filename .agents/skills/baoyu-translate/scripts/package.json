@@ -2,6 +2,7 @@
   "name": "baoyu-translate-chunk",
   "private": true,
   "dependencies": {
+    "linkify-it": "5.0.2",
     "markdown-it": "14.1.1"
   }
 }
